@@ -473,6 +473,23 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 
 每个 Package 至少声明：合法主路径（positive）、非法 transition / 越权 / 缺失资源 / authority 越界（negative）、Wait/resume 关联、预算耗尽、崩溃恢复、取消（recovery）。corpus 场景是 Package 的一部分（`validation.conformance[]`），运行时/模拟器必须可执行。
 
+### 12.4 Runtime 能力要求
+
+任何声称 conformance 的 Runtime Profile 必须实现 DSL 能声明的每项能力；两个 first-party Definition 已经使用了其中一部分。conforming Runtime 必须支持：
+
+| DSL 构造 | 必需的 Runtime 能力 |
+| --- | --- |
+| 条件边，`judge.kind: state` | 对 Workflow State 确定性求值闭合词汇谓词 |
+| 条件边，`judge.kind: planner` | 调度声明的 Planner Action 的 Agent 对（可能非结构化的）上下文做语义判断；校验返回的结构化分类符合 `resultSchema`；再按 `conditions[].when` 对该分类选分支；目标必须在源 Action 的 `allowedSuccessors` 内 |
+| 并行执行（`execution.mode: parallel`） | 调度全部 required 分支（session-isolated 或 shared），强制执行 `barrier`，再应用声明的 `join`（`all` 或 `aggregator` action）；分支隔离在 barrier 关闭前必须成立 |
+| runtime-authority action（`responsibleAuthority.kind: runtime`） | 直接执行声明的确定性 validator——无 Agent 会话、prompt、model 或 route |
+| budgets（`budgets[]`） | 调用 `evaluator` 脚本注册点（content-addressed）获得预算结论；按 `onExhaustion` 进入声明的 terminal/wait/recovery 路径；耗尽永不放松 Gate |
+| planner selector（`selector.kind: planner`） | 推进前校验结构化 selection proposal 符合 `proposalSchema` 且在 `allowedTargets` 内 |
+| waits / checkpoints / terminal settlement | durable 关联 resume、最小 checkpoint 绑定（§9.2）、checkpointed terminal proposal（既有 FPLG 范围） |
+| 合并算法（R1–R3）与 route 解析 | 从 Snapshot 复算冻结指令束；任何失配拒绝 |
+
+Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是硬失败（fail closed），绝不静默降级。此清单是 FPLG Host（`FPLG-IMP-002` / `FPLG-IMP-005`）与 Host 消费 gap `FPLG-EXT-003.1` 的可执行契约。
+
 ## 13. §14 验收第 12 问：换 Runtime 不改变 Definition/Package/Snapshot 语义
 
 > "如果替换 LangGraph 或某个 Driver，哪些 Contract、Artifact 和 Workflow 语义仍保持不变？" —— **回答：是，全部 Definition/Package/Snapshot 语义保持不变。**

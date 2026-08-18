@@ -474,6 +474,23 @@ A Definition claiming conformance to `agentops.workflow-dsl@X.Y.Z` must: pass th
 
 Every Package must declare at least: the legal main path (positive), illegal transition / overreach / missing resource / authority overreach (negative), Wait/resume correlation, budget exhaustion, crash recovery, cancellation (recovery). Corpus scenarios are part of the Package (`validation.conformance[]`) and must be executable by a Runtime or simulator.
 
+### 12.4 Runtime capability requirements
+
+Any Runtime Profile claiming conformance must implement every capability the DSL can declare; the two first-party Definitions already exercise a subset. A conforming Runtime supports all of the following:
+
+| DSL construct | Required Runtime capability |
+| --- | --- |
+| conditional edges, `judge.kind: state` | deterministic evaluation of closed-vocabulary predicates over Workflow State |
+| conditional edges, `judge.kind: planner` | dispatch the declared Planner Action's Agent for semantic judgment of (possibly unstructured) context; validate the returned structured classification against `resultSchema`; then evaluate `conditions[].when` over that classification to select the branch; the target must be within the source Action's `allowedSuccessors` |
+| parallel execution (`execution.mode: parallel`) | schedule all required branches (session-isolated or shared), enforce the `barrier`, then apply the declared `join` (`all` or `aggregator` action); branch isolation holds until the barrier closes |
+| runtime-authority actions (`responsibleAuthority.kind: runtime`) | execute the declared deterministic validator directly — no Agent session, prompt, model, or route |
+| budgets (`budgets[]`) | invoke the `evaluator` script registration point (content-addressed) to obtain the budget conclusion; on `onExhaustion` enter the declared terminal/wait/recovery path; exhaustion never relaxes a Gate |
+| planner selectors (`selector.kind: planner`) | validate the structured selection proposal against `proposalSchema` and `allowedTargets` before advancing |
+| waits / checkpoints / terminal settlement | durable correlated resume, minimum checkpoint bindings (§9.2), checkpointed terminal proposal (existing FPLG scope) |
+| merge algorithm (R1–R3) and route resolution | recompute the frozen instruction bundle from the Snapshot; reject any mismatch |
+
+A capability a Definition declares but the Runtime cannot honor is a hard failure at admission/activation (fail closed), never a silent degradation. This list is the executable contract for the FPLG Host (`FPLG-IMP-002` / `FPLG-IMP-005`) and for the Host-consumption gap `FPLG-EXT-003.1`.
+
 ## 13. §14 Q12: Runtime Replacement Does Not Change Definition/Package/Snapshot Semantics
 
 > "If LangGraph or a Driver is replaced, which Contract, Artifact, and Workflow semantics remain unchanged?" — **Answer: yes, all Definition/Package/Snapshot semantics remain unchanged.**
