@@ -490,6 +490,8 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 
 Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是硬失败（fail closed），绝不静默降级。此清单是 FPLG Host（`FPLG-IMP-002` / `FPLG-IMP-005`）与 Host 消费 gap `FPLG-EXT-003.1` 的可执行契约。
 
+**实现归属。** 这些能力的第一方实现是 FPLG（LangGraph Workflow Host）：DSL 编译为 LangGraph 语义，Host 拥有调度、barrier/join、判断分发、budget evaluator 调用与 route 解析。DSH 是当前宿主 Adapter；其自带 workflow 能力不承载 Workflow 编排语义——它正是 FPLG 要替换的能力——因此任何 Host/Adapter 原生的 workflow 能力都不是本 Contract 的一部分。
+
 ## 13. §14 验收第 12 问：换 Runtime 不改变 Definition/Package/Snapshot 语义
 
 > "如果替换 LangGraph 或某个 Driver，哪些 Contract、Artifact 和 Workflow 语义仍保持不变？" —— **回答：是，全部 Definition/Package/Snapshot 语义保持不变。**
@@ -589,7 +591,7 @@ Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是�
 
 | 限制 | 状态 |
 | --- | --- |
-| 并行 Action 无法表达 per-branch role（单一 `responsibleAuthority`）；SD-09 三 lens 用 nominal role + `validation.review`/branch routes 逐 lens 强制 | 接受：并行是 Runtime 发起的 action 层编排（`execution.mode: parallel` 是 v1，DSH 经 `ctx.workflowEngine.parallel` + `ctx.subagents` 原生支持）；单 action 多 role 表达不做；**多 action 并发**（graph 级并行）是候选扩展 |
+| 并行 Action 无法表达 per-branch role（单一 `responsibleAuthority`）；SD-09 三 lens 用 nominal role + `validation.review`/branch routes 逐 lens 强制 | 接受：并行是 Runtime 发起的 action 层编排（`execution.mode: parallel` 是 v1；第一方实现是 FPLG/LangGraph Workflow Host——调度、barrier、join、分支隔离；任何 Host/Adapter 原生的 workflow 能力不得进入 Contract）；单 action 多 role 表达不做；**多 action 并发**（graph 级并行）是候选扩展 |
 | 动态分支子集激活（如 SD-09 复检只跑失效 lens） | 接受为 Runtime 调度细节，非 workflow 语义 |
 | Wait resume 目标固定（`wait.resumeAction`）；按"记录的 resume_action"路由的逻辑 wait 表达为每触发 Action 一个 wait | 语义等价；不改 DSL |
 

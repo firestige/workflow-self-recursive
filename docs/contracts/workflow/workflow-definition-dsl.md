@@ -491,6 +491,8 @@ Any Runtime Profile claiming conformance must implement every capability the DSL
 
 A capability a Definition declares but the Runtime cannot honor is a hard failure at admission/activation (fail closed), never a silent degradation. This list is the executable contract for the FPLG Host (`FPLG-IMP-002` / `FPLG-IMP-005`) and for the Host-consumption gap `FPLG-EXT-003.1`.
 
+**Implementation ownership.** The first-party implementation of these capabilities is the FPLG (LangGraph Workflow Host): the DSL is compiled to LangGraph semantics and the Host owns scheduling, barrier/join, judgment dispatch, budget-evaluator invocation, and route resolution. DSH is the current host Adapter; its bundled workflow capability does not carry Workflow-orchestration semantics — it is precisely the capability FPLG replaces — so no host/Adapter-native workflow capability is part of this Contract.
+
 ## 13. §14 Q12: Runtime Replacement Does Not Change Definition/Package/Snapshot Semantics
 
 > "If LangGraph or a Driver is replaced, which Contract, Artifact, and Workflow semantics remain unchanged?" — **Answer: yes, all Definition/Package/Snapshot semantics remain unchanged.**
@@ -590,7 +592,7 @@ Rules: **zero** physical tokens in Definition/Package/Snapshot; `schemaVersion` 
 
 | Limitation | Status |
 | --- | --- |
-| Parallel actions cannot express per-branch roles (single `responsibleAuthority`); SD-09's three lenses use a nominal role with per-lens enforcement via `validation.review` + branch routes | accepted: parallelism is action-level orchestration initiated by the Runtime (`execution.mode: parallel` is v1, DSH-native via `ctx.workflowEngine.parallel` + `ctx.subagents`); single-action multi-role expression is not done; **multi-action concurrency** (graph-level parallelism) is a candidate extension |
+| Parallel actions cannot express per-branch roles (single `responsibleAuthority`); SD-09's three lenses use a nominal role with per-lens enforcement via `validation.review` + branch routes | accepted: parallelism is action-level orchestration initiated by the Runtime (`execution.mode: parallel` is v1; first-party implementation is the FPLG/LangGraph Workflow Host — scheduling, barrier, join, branch isolation; no host/Adapter-native workflow capability enters the Contract); single-action multi-role expression is not done; **multi-action concurrency** (graph-level parallelism) is a candidate extension |
 | Dynamic branch-subset activation (e.g. SD-09 recheck of only invalidated lenses) | accepted as Runtime scheduling detail, not workflow semantics |
 | Wait resume targets are fixed (`wait.resumeAction`); a logical wait that routes by a recorded `resume_action` is expressed as one wait per trigger Action | semantically equivalent; no DSL change |
 
