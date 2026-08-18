@@ -589,7 +589,7 @@ Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是�
 
 | 限制 | 状态 |
 | --- | --- |
-| 并行 Action 无法表达 per-branch role（单一 `responsibleAuthority`）；SD-09 三 lens 用 nominal role + `validation.review`/branch routes 逐 lens 强制 | 接受为 MVP 范围（与多 action 并发同类；若第一方 Runtime 原生支持，后续可能以"多 action 并发"回归） |
+| 并行 Action 无法表达 per-branch role（单一 `responsibleAuthority`）；SD-09 三 lens 用 nominal role + `validation.review`/branch routes 逐 lens 强制 | 接受：并行是 Runtime 发起的 action 层编排（`execution.mode: parallel` 是 v1，DSH 经 `ctx.workflowEngine.parallel` + `ctx.subagents` 原生支持）；单 action 多 role 表达不做；**多 action 并发**（graph 级并行）是候选扩展 |
 | 动态分支子集激活（如 SD-09 复检只跑失效 lens） | 接受为 Runtime 调度细节，非 workflow 语义 |
 | Wait resume 目标固定（`wait.resumeAction`）；按"记录的 resume_action"路由的逻辑 wait 表达为每触发 Action 一个 wait | 语义等价；不改 DSL |
 

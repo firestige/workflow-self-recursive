@@ -590,7 +590,7 @@ Rules: **zero** physical tokens in Definition/Package/Snapshot; `schemaVersion` 
 
 | Limitation | Status |
 | --- | --- |
-| Parallel actions cannot express per-branch roles (single `responsibleAuthority`); SD-09's three lenses use a nominal role with per-lens enforcement via `validation.review` + branch routes | accepted MVP scope (same class as multi-action concurrency; may return as multi-action concurrency if the first-party Runtime supports it natively) |
+| Parallel actions cannot express per-branch roles (single `responsibleAuthority`); SD-09's three lenses use a nominal role with per-lens enforcement via `validation.review` + branch routes | accepted: parallelism is action-level orchestration initiated by the Runtime (`execution.mode: parallel` is v1, DSH-native via `ctx.workflowEngine.parallel` + `ctx.subagents`); single-action multi-role expression is not done; **multi-action concurrency** (graph-level parallelism) is a candidate extension |
 | Dynamic branch-subset activation (e.g. SD-09 recheck of only invalidated lenses) | accepted as Runtime scheduling detail, not workflow semantics |
 | Wait resume targets are fixed (`wait.resumeAction`); a logical wait that routes by a recorded `resume_action` is expressed as one wait per trigger Action | semantically equivalent; no DSL change |
 
