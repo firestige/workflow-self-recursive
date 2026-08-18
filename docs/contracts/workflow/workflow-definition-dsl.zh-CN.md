@@ -88,7 +88,7 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 | --- | --- | --- |
 | node | `graph.nodes[].id` + `action` | 图的执行单元；每个 node 绑定一个 Action |
 | edge（静态转移） | `graph.edges[]`（`from`/`to`/`condition`） | `to` 可以是 node 或 `terminal:<id>` |
-| conditional edge（条件函数） | `graph.conditionalEdges[]`（`conditions[].when` 谓词 → `target`，`default`） | 谓词是**闭合词汇表**（§4.1），编译为条件函数 |
+| conditional edge（条件函数） | `graph.conditionalEdges[]`（`judge` + `conditions[].when` 谓词 → `target`，`default`） | 分支结构归 Workflow；**判断**归 state 谓词或 Planner Action（§4.1） |
 | state schema | `state.fields[]`（name/type/items/schema/reducer） | 见 §4.2 reducer |
 | reducer（状态合并） | `reducer` 内建词汇 + custom | 见 §4.2 |
 | checkpoint（持久化） | `graph.nodes[].checkpoint`（mode + bindings） | 见 §4.3 |
@@ -108,6 +108,10 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 - 语义超出词汇表的规则**不允许写成自由代码**，必须引用 deterministic validator 资源（`gate.deterministic` / `validator`）。
 
 这保证条件边的语义在 Definition 层完全可判定、可机械校验；复杂判断显式委托给内容寻址的确定性校验器，而不是"看似可准入"的伪代码。
+
+**条件边的判断 authority。** `conditionalEdges` 条目声明 `judge`：
+- `judge.kind: state`（默认）：`conditions[].when` 谓词对 Workflow State 求值（仅结构化结果）。
+- `judge.kind: planner`：runtime 先调用声明的 Planner Action 的 Agent 对（可能非结构化的）上下文做语义判断；Agent 返回符合 `resultSchema` 的结构化分类；runtime 校验后按 `conditions[].when` 对该分类选分支。判断归 agent，分支结构归 workflow。Planner Action 必须声明其 allowed routes 且保持非递归。
 
 ### 4.2 State 与 reducer（closed）
 
@@ -184,10 +188,10 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 | `graph.start` | 是 | 必须是 node id |
 | `graph.nodes[]` | 是 | `id` + `action`（action 必须存在于 actions 文档）+ 可选 `checkpoint` |
 | `graph.edges[]` | 否 | `id/from/to` + 可选 `condition`；node 不得同时有静态出边与条件边 |
-| `graph.conditionalEdges[]` | 否 | `id/source/conditions[]/default`；conditions 至少 1 条 |
+| `graph.conditionalEdges[]` | 否 | `id/source/judge?/conditions[]/default`；conditions 至少 1 条；`judge` = state 谓词或 Planner Action（§4.1） |
 | `graph.terminals[]` | 是 | `id/kind/meaning` + 可选 `validation[]`/`proposalCheckpoint` |
 | `waits[]` | 否 | 见 §4.4 |
-| `budgets[]` | 否 | `id/scope/resource/limit/onExhaustion` + 可选 `action`/`accounting` |
+| `budgets[]` | 否 | `id/scope/resource`（`time|tokens|context|custom`，custom 需 `resourceName`）+ `evaluator`（脚本注册点，schemaRef）+ `onExhaustion` + 可选 `action`/`accounting`；**配置中无数值额度**（§6.4） |
 | `recovery[]` | 否 | `id/mode` + 可选 `scope/action/condition`；`noBlindReplay: true` 强制 |
 | `handoffs[]` | 否 | 上游 handoff 声明；`semanticOnly: true` 强制，禁止下游控制字段（§10） |
 | `consumedHandoffs[]` | 否 | 下游消费声明；`mustNotWeaken: true` 强制，`preservesSemantics` 字节保真（§10） |
@@ -200,7 +204,7 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 | `id/name/purpose` | 是 | — |
 | `inputSchema` / `resultSchema` | 否 / 是 | `schemaOrInline`：固定引用（schemaRef）或受限内联 schema |
 | `responsibleAuthority` | 是 | `{kind: role, role}`（Agent Action，composition model §11）或 `{kind: runtime, validator}`（纯确定性 Action，Runtime authority） |
-| `allowedRoutes[]` | 是 | ≥1；必须是 roles/routes 文档声明的 route id |
+| `allowedRoutes[]` | 仅 role action | Agent Action（`kind: role`）：≥1 条 roles/routes 文档声明的 route id。Runtime Action（`kind: runtime`）不声明——它们没有 Agent 绑定 |
 | `execution` | 是 | `{mode: single}` 或 `{mode: parallel, branches[], join{barrier: true}}`（§4.6） |
 | `selector` | 是 | `{kind: deterministic}` 或 `{kind: planner, action, proposalSchema, allowedTargets, nonRecursive: true}`（§6.3） |
 | `allowedSuccessors[]` | 是（≥1） | 必须**等于**该 Action 所在 node 的 graph 出边集（§6.2 机械校验） |
@@ -284,12 +288,13 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 
 - `deterministic`：Runtime 直接求值声明边/条件边（不需要 Agent）。
 - `planner`：Workflow 通过一个**显式 Planner Action** 调用其 Agent，要求返回结构化 selection proposal（符合 `proposalSchema`）；Runtime 校验 proposal 属于 `allowedTargets` 后才推进。Planner Action 自身必须声明 allowed routes，且 `nonRecursive: true`（Planner 不能选择自身）。
+- 同一 Planner 模式服务于**语义分支判断**：`judge.kind: planner` 的条件边用 Planner Action 的结构化分类决定走哪个分支（§4.1）。由于 Agent 输出常为非结构化文本，确定性谓词只适用于结构化状态/结果；任何需要理解语义的判断归 Planner Action。
 - "Planner 决定 next action" ≠ "Planner 发明流程"：确定性流程由配置固定。
 
 ### 6.4 Budget
 
-- `resource ∈ {attempts, iterations, cost, time}`；`onExhaustion ∈ {incomplete, wait, recovery}`；
-- 语义规则：预算消耗进入 Workflow State（如 `reviewIterations` 用 `sum` reducer 累积）；**耗尽永不放松 Gate**；耗尽进入声明的 terminal/wait/recovery 路径（如 `terminal:INCOMPLETE`，保留当前状态、理由与 resume Action）。
+- budget 声明**资源维度**（闭合集 `time | tokens | context | custom`；custom 维度如 attempts/iterations 需声明 `resourceName`）+ **evaluator**：content-addressed **脚本注册点**（`schemaRef`），runtime 调用它获得预算结论。**配置中永不出现数值额度**；精确额度是 project/runtime policy，在准入时绑定（这是 Implementation Workflow 的既有实践：配置绑定注册点，runtime 调用脚本）。
+- `onExhaustion ∈ {incomplete, wait, recovery}`；预算消耗进入 Workflow State（如 `attempts` 用 `sum` reducer 累积）；**耗尽永不放松 Gate**；耗尽进入声明的 terminal/wait/recovery 路径（如 `terminal:INCOMPLETE`，保留当前状态、理由与 resume Action）。
 - 重试保留同一 Goal/rung 内容身份、获得新 attempt identity；无新诊断的重复失败消耗预算且不构成进展。
 
 ### 6.5 Recovery
@@ -562,3 +567,15 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 - 本 Contract 是 DSL 面的**定义源头**：Task 2（`workflow-machine-definition`）把两个 first-party Workflow 迁移为符合本 DSL 的机器可读 Definition，语义与 design-time 文档保持一致（"使文档反向迁就 Runtime 私有格式"是禁止项，composition model §9）。
 - 物理表示、graph 词汇、reducer 词汇、谓词 op、authority 顺序的任何变化都必须走 Contract revision（`agentops.workflow-dsl@X.Y.Z`），不能以 Package 内字段漂移实现。
 - 动态 fan-out、更多 selector 类型、多租户/安全机制属于明确排除项或候选扩展，需要新的 Contract 决策后才能进入。
+
+### 18.1 已知限制（Task 2 迁移中验证；决策记录：`gap-review-decisions.md`）
+
+| 限制 | 状态 |
+| --- | --- |
+| 并行 Action 无法表达 per-branch role（单一 `responsibleAuthority`）；SD-09 三 lens 用 nominal role + `validation.review`/branch routes 逐 lens 强制 | 接受为 MVP 范围（与多 action 并发同类；若第一方 Runtime 原生支持，后续可能以"多 action 并发"回归） |
+| 动态分支子集激活（如 SD-09 复检只跑失效 lens） | 接受为 Runtime 调度细节，非 workflow 语义 |
+| Wait resume 目标固定（`wait.resumeAction`）；按"记录的 resume_action"路由的逻辑 wait 表达为每触发 Action 一个 wait | 语义等价；不改 DSL |
+
+### 18.2 修订记录（0.1.0 REVIEW_CANDIDATE，冻结前）
+
+按 `gap-review-decisions.md`：budget 改为资源维度 + evaluator 注册点（无数值额度）；Runtime authority 的 Action 不再声明 `allowedRoutes`；条件边新增 `judge` 声明（state 谓词或 Planner Action 判断）。Definition 与 checker 已同步更新；全部闭包检查 PASS。冻结目标 `1.0.0`。

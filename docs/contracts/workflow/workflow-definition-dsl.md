@@ -89,7 +89,7 @@ The graph semantics of this DSL align item by item with the industry-standard mo
 | --- | --- | --- |
 | node | `graph.nodes[].id` + `action` | Graph execution unit; each node binds one Action |
 | edge (static transition) | `graph.edges[]` (`from`/`to`/`condition`) | `to` may be a node or `terminal:<id>` |
-| conditional edge (condition function) | `graph.conditionalEdges[]` (`conditions[].when` predicate → `target`, `default`) | Predicates use a **closed vocabulary** (§4.1), compiled to a condition function |
+| conditional edge (condition function) | `graph.conditionalEdges[]` (`judge` + `conditions[].when` predicate → `target`, `default`) | Branch structure belongs to the Workflow; the **judgment** belongs to state predicates or a Planner Action (§4.1) |
 | state schema | `state.fields[]` (name/type/items/schema/reducer) | See §4.2 reducers |
 | reducer (state merge) | built-in `reducer` vocabulary + custom | See §4.2 |
 | checkpoint (durability) | `graph.nodes[].checkpoint` (mode + bindings) | See §4.3 |
@@ -109,6 +109,10 @@ The graph semantics of this DSL align item by item with the industry-standard mo
 - Rules beyond this vocabulary are **not allowed as free-form code** in the Definition; they must reference a deterministic validator resource (`gate.deterministic` / `validator`).
 
 This keeps conditional-edge semantics fully decidable and machine-checkable at the Definition layer; complex judgments are explicitly delegated to content-addressed deterministic validators rather than plausible-looking pseudo-code.
+
+**Judgment authority of a conditional edge.** A `conditionalEdges` entry declares a `judge`:
+- `judge.kind: state` (default): `conditions[].when` predicates are evaluated over Workflow State (structured results only).
+- `judge.kind: planner`: the Runtime first invokes the declared Planner Action's Agent to judge (possibly unstructured) context semantically; the Agent returns a structured classification conforming to `resultSchema`; the Runtime validates it and then evaluates `conditions[].when` over that classification to select the target. Judgment belongs to the Agent; branch structure belongs to the Workflow. The Planner Action must declare its allowed routes and remain non-recursive.
 
 ### 4.2 State and reducers (closed)
 
@@ -185,10 +189,10 @@ The normative complete field set is the 8 JSON Schemas under `system-contracts/w
 | `graph.start` | yes | must be a node id |
 | `graph.nodes[]` | yes | `id` + `action` (the action must exist in the actions document) + optional `checkpoint` |
 | `graph.edges[]` | no | `id/from/to` + optional `condition`; a node must not have both static out-edges and conditional edges |
-| `graph.conditionalEdges[]` | no | `id/source/conditions[]/default`; at least 1 condition |
+| `graph.conditionalEdges[]` | no | `id/source/judge?/conditions[]/default`; at least 1 condition; `judge` = state predicates or a Planner Action (§4.1) |
 | `graph.terminals[]` | yes | `id/kind/meaning` + optional `validation[]`/`proposalCheckpoint` |
 | `waits[]` | no | see §4.4 |
-| `budgets[]` | no | `id/scope/resource/limit/onExhaustion` + optional `action`/`accounting` |
+| `budgets[]` | no | `id/scope/resource` (`time|tokens|context|custom`, custom requires `resourceName`) + `evaluator` (script registration point, schemaRef) + `onExhaustion` + optional `action`/`accounting`; **no numeric limit in configuration** (§6.4) |
 | `recovery[]` | no | `id/mode` + optional `scope/action/condition`; `noBlindReplay: true` mandatory |
 | `handoffs[]` | no | upstream handoff declarations; `semanticOnly: true` mandatory, downstream control fields forbidden (§10) |
 | `consumedHandoffs[]` | no | downstream consumption declarations; `mustNotWeaken: true` mandatory, `preservesSemantics` byte-faithful (§10) |
@@ -201,7 +205,7 @@ The normative complete field set is the 8 JSON Schemas under `system-contracts/w
 | `id/name/purpose` | yes | — |
 | `inputSchema` / `resultSchema` | no / yes | `schemaOrInline`: fixed reference (schemaRef) or restricted inline schema |
 | `responsibleAuthority` | yes | `{kind: role, role}` (Agent Action; composition model §11) or `{kind: runtime, validator}` (pure deterministic Action; Runtime authority) |
-| `allowedRoutes[]` | yes | ≥1; must be route ids declared in the roles/routes documents |
+| `allowedRoutes[]` | role actions only | Agent Actions (`kind: role`): ≥1 route ids declared in the roles/routes documents. Runtime Actions (`kind: runtime`) declare none — they have no Agent binding |
 | `execution` | yes | `{mode: single}` or `{mode: parallel, branches[], join{barrier: true}}` (§4.6) |
 | `selector` | yes | `{kind: deterministic}` or `{kind: planner, action, proposalSchema, allowedTargets, nonRecursive: true}` (§6.3) |
 | `allowedSuccessors[]` | yes (≥1) | must **equal** the graph out-edge set of the Action's node(s) (§6.2 machine check) |
@@ -285,12 +289,13 @@ The normative complete field set is the 8 JSON Schemas under `system-contracts/w
 
 - `deterministic`: the Runtime evaluates the declared edges/conditional edges directly (no Agent needed).
 - `planner`: the Workflow invokes the Planner Action's Agent through an **explicit Planner Action** and requires a structured selection proposal (conforming to `proposalSchema`); the Runtime validates that the proposal is within `allowedTargets` before advancing. The Planner Action itself must declare its allowed routes and `nonRecursive: true` (a Planner cannot select itself).
+- The same Planner pattern serves **semantic branch judgment**: a conditional edge with `judge.kind: planner` uses the Planner Action's structured classification to decide which branch to take (§4.1). Since Agent output is often unstructured text, deterministic predicates apply to structured state/results only; anything requiring reading meaning belongs to the Planner Action.
 - "Planner decides the next action" ≠ "Planner invents the flow": deterministic flow is fixed by configuration.
 
 ### 6.4 Budget
 
-- `resource ∈ {attempts, iterations, cost, time}`; `onExhaustion ∈ {incomplete, wait, recovery}`;
-- Semantics: budget consumption enters Workflow State (e.g., `reviewIterations` accumulates via the `sum` reducer); **exhaustion never relaxes a Gate**; exhaustion enters the declared terminal/wait/recovery path (e.g., `terminal:INCOMPLETE`, preserving current state, reason, and resume Action).
+- A budget declares a **resource dimension** from the closed set `time | tokens | context | custom` (`custom` dimensions — e.g. attempts, iterations — declare a `resourceName`) and an **evaluator**, a content-addressed **script registration point** (`schemaRef`) that the Runtime invokes to obtain the budget conclusion. **No numeric limit ever appears in configuration**; the exact limit is project/runtime policy bound at admission (this is the established Implementation Workflow pattern: configuration binds a registration point, the Runtime calls the script).
+- `onExhaustion ∈ {incomplete, wait, recovery}`; budget consumption enters Workflow State (e.g., `attempts` accumulates via the `sum` reducer); **exhaustion never relaxes a Gate**; exhaustion enters the declared terminal/wait/recovery path (e.g., `terminal:INCOMPLETE`, preserving current state, reason, and resume Action).
 - A retry keeps the same Goal/rung content identity and gains a new attempt identity; repeating the same failure without new diagnosis consumes budget and does not constitute progress.
 
 ### 6.5 Recovery
@@ -563,3 +568,15 @@ Rules: **zero** physical tokens in Definition/Package/Snapshot; `schemaVersion` 
 - This Contract is the **definition source** of the DSL surface: Task 2 (`workflow-machine-definition`) migrates the two first-party Workflows into machine-readable Definitions conforming to this DSL, with semantics consistent with the design-time documents ("making documents conform to a Runtime-private format" is forbidden, composition model §9).
 - Any change to physical representation, graph vocabulary, reducer vocabulary, predicate ops, or authority order must go through a Contract revision (`agentops.workflow-dsl@X.Y.Z`); it may not be implemented as field drift inside a Package.
 - Dynamic fan-out, additional selector types, and multi-tenant/security mechanisms are explicit exclusions or candidate extensions requiring a new Contract decision before admission.
+
+### 18.1 Known limitations (validated during Task 2 migration; decision record: `gap-review-decisions.md`)
+
+| Limitation | Status |
+| --- | --- |
+| Parallel actions cannot express per-branch roles (single `responsibleAuthority`); SD-09's three lenses use a nominal role with per-lens enforcement via `validation.review` + branch routes | accepted MVP scope (same class as multi-action concurrency; may return as multi-action concurrency if the first-party Runtime supports it natively) |
+| Dynamic branch-subset activation (e.g. SD-09 recheck of only invalidated lenses) | accepted as Runtime scheduling detail, not workflow semantics |
+| Wait resume targets are fixed (`wait.resumeAction`); a logical wait that routes by a recorded `resume_action` is expressed as one wait per trigger Action | semantically equivalent; no DSL change |
+
+### 18.2 Revision record (0.1.0 REVIEW_CANDIDATE, pre-freeze)
+
+Per `gap-review-decisions.md`: budgets now use resource dimensions + evaluator registration points (no numeric limits); Runtime-authority Actions declare no `allowedRoutes`; conditional edges gained the `judge` declaration (state predicates or Planner Action judgment). Definitions and checker updated accordingly; all closure checks PASS. Freeze targets `1.0.0`.

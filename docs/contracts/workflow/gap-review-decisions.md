@@ -1,0 +1,28 @@
+# Workflow DSL — Gap Review Decisions (0.1.x revision input)
+
+> **Status: ADOPTED review input for `agentops.workflow-dsl@0.1.0` (REVIEW_CANDIDATE).** These decisions resolve the six DSL gaps found during the Task 2 migration of the two first-party Workflows. They feed the G1 semantic review; the Contract revision remains `0.1.0` until freeze (the Contract is not published, so revision bumps are not required while in `REVIEW_CANDIDATE`; freeze targets `1.0.0`).
+>
+> **Normative language: English.** The Chinese file [`gap-review-decisions.zh-CN.md`](gap-review-decisions.zh-CN.md) is a non-normative tracking translation.
+
+## Decisions
+
+| ID | Gap | Decision | Action |
+| --- | --- | --- | --- |
+| DSL-1 / DSL-S4 | `budget.limit` is a required number, but workflow semantics leave the numeric limit to project/runtime policy | **Revise.** Budgets declare a resource dimension from the closed set `time \| tokens \| context \| custom` (with `resourceName` for custom dimensions such as attempts) and a **script registration point** (`evaluator`, a content-addressed reference) that the Runtime invokes to obtain the budget conclusion. **No numeric limit ever appears in configuration.** This is the established pattern of the Implementation Workflow: configuration binds a registration point, the Runtime calls the script. | Revise schema (§budgets), spec (§5.2, §6.4); add `budgets[]` back to both first-party Definitions with evaluator registration points; remove the placeholder-limit workarounds |
+| DSL-2 | Pure deterministic Actions (`responsibleAuthority.kind: runtime` — IM-06, SD-14, SD-15) have no Agent route, yet `allowedRoutes` is required with `minItems: 1`, forcing fabricated placeholder routes | **Revise.** A Runtime-authority Action has no Agent binding and therefore declares no `allowedRoutes` (omitted or empty). Agent Actions (`kind: role`) keep `minItems: 1`. | Revise schema (remove `allowedRoutes` from required; `if/then` role⇒minItems 1), spec (§5.3); remove IM-06's custodian-route binding and the `role.runtime-custodian` / `route.runtime.deterministic` placeholders |
+| DSL-S1 (judgment authority) | Conditional-edge predicates only evaluate structured state; Agent output is often unstructured text and semantic judgment must go to an Agent | **Revise.** `conditionalEdges` gains a `judge` declaration: `judge.kind: state` (structured predicates, current behavior) or `judge.kind: planner` (the Runtime first invokes a Planner Action whose Agent returns a structured classification conforming to `resultSchema`; the Runtime validates it, then selects the branch by evaluating `conditions[].when` predicates over that classification). Judgment belongs to the Agent; branch structure belongs to the Workflow. | Revise schema (§conditionalEdges), spec (§4.1, §5.2, §6.3) |
+| DSL-S1 (branch subset activation) | SD-09 recheck should rerun only invalidated lenses; v1 has no dynamic branch activation | **Accept as known limitation.** This is Runtime scheduling (an optimization), not workflow semantics; the full-3-branch parallel declaration plus a recheck-scope note in purpose/conformance stays. | Record in spec known limitations + checklist |
+| DSL-S2 | Parallel action with multiple roles (SD-09's three lenses) cannot be expressed in a single `responsibleAuthority` | **Accept (MVP scope).** Single-action multi-role parallelism and multi-action concurrency are the same class of parallel-coordination mechanism (barrier/wait coordination) and are out of MVP scope. If the first-party Runtime (LangGraph) natively supports it without bespoke coordination code, it may be added later — likely as multi-action concurrency rather than one action with multiple roles. | Record as known limitation + trade-off; keep the nominal-role workaround |
+| DSL-S3 | `wait.resumeAction` is a fixed value while workflow.md routes waits by a recorded `resume_action` | **Close as non-issue.** Splitting one logical wait into one wait per trigger Action (resume == trigger) is semantically equivalent. Dynamic post-resume routing is covered by "resume to the exact trigger Action, then route by that Action's conditional edges". No DSL change. | Document equivalence in checklists |
+
+## Effects on the Contract and Definitions
+
+1. **Schema** (all under `system-contracts/workflow-dsl/schemas/`):
+   - `workflow-definition.schema.json`: `budgets[].resource` → `time|tokens|context|custom`, add `resourceName` (custom only) and `evaluator` (schemaRef, required), remove `limit`; `conditionalEdges[].judge` added.
+   - `actions.schema.json`: `allowedRoutes` no longer required; `if/then` — `responsibleAuthority.kind == role` ⇒ `allowedRoutes.minItems 1`.
+2. **Spec** (`docs/contracts/workflow/workflow-definition-dsl.md` + companion): §4.1 predicate/judgment authority, §4 mapping table, §5.2 field catalog (budgets, conditionalEdges), §5.3 allowedRoutes, §6.3 selector/planner judgment, §6.4 budget semantics, new known-limitations list (§18).
+3. **Definitions** (`workflow-package/*/definition/`):
+   - Implementation: IM-06 drops `allowedRoutes`; `budgets[]` added (attempts via `custom` + evaluator registration point).
+   - System Design: `role.runtime-custodian`, `route.runtime.deterministic` and `resources/runtime-custodian.role.md` removed; SD-14/SD-15 drop `allowedRoutes`; 6 budgets converted to the new schema with evaluator registration points.
+4. **Checker** (`system-contracts/workflow-dsl/tools/check-example.cjs`): `allowedRoutes >= 1` enforced only for role-authority Actions.
+5. Re-verify both Definitions (checker PASS), update both semantic-fidelity checklists, then submit all revisions for the combined G1 review.
