@@ -1,0 +1,29 @@
+# Contracts
+
+English | [中文](README.zh-CN.md)
+
+`docs/contracts/` holds the semantic specification documents of every Agent Ops Ledger Contract. Each Contract is managed under one standard lifecycle defined in [Contract Lifecycle Management](contract-lifecycle.md); its normative machine representation (schemas, registries, fixtures, validators) lives in the `system-contracts/` submodule under the matching name.
+
+## How Contracts are managed
+
+- **Two paired halves.** A Contract is a semantic document here plus a machine representation in `system-contracts/`; publication is pairwise and no conformance claim is possible before both are released (see [Contract Lifecycle Management](contract-lifecycle.md) §2).
+- **One state machine.** Every Contract header carries a `Lifecycle status`: `DRAFTING → REVIEW_CANDIDATE → FROZEN → DEPRECATED → SUPERSEDED`. Only `FROZEN` admits physical-conformance claims (§3–§5).
+- **Evidence-gated transition.** Draft-to-published requires semantic review, fresh reader, deterministic verification, translation parity, machine-representation release, and a publication binding (§4).
+- **English authoritative.** Semantic documents are English-authoritative; each has a `zh-CN` non-normative tracking companion replaced wholesale on English change.
+- **Explicit obligations.** Releasing a machine representation is a tracked obligation (`EE-OBL-001` pattern); downstream consumers track gaps against exact revisions (`FPLG-EXT-003.x` pattern) (§8).
+
+## Current register
+
+| Contract | Semantic document | Lifecycle status | Revision |
+| --- | --- | --- | --- |
+| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `REVIEW_CANDIDATE` | split draft; profile cited at `0.2.0` |
+| OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `REVIEW_CANDIDATE` | proposed `0.2.0` |
+| Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `REVIEW_CANDIDATE` | split draft |
+| Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `REVIEW_CANDIDATE` | split draft |
+| Workflow Definition DSL | [workflow/workflow-definition-dsl.md](workflow/workflow-definition-dsl.md) | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@0.1.0` |
+
+Status values are the normalized mapping per [Contract Lifecycle Management](contract-lifecycle.md) §9; the documents' own headers remain the primary source.
+
+## Authoring
+
+New Contract authors follow [Contract Lifecycle Management](contract-lifecycle.md) §10: draft under `docs/contracts/<contract>/` with the header template, declare semantic closure, run gates G1–G6, and release the paired machine representation under `system-contracts/<contract>/`.
