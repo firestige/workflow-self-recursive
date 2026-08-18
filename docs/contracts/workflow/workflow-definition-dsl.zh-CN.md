@@ -587,14 +587,10 @@ Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是�
 - 物理表示、graph 词汇、reducer 词汇、谓词 op、authority 顺序的任何变化都必须走 Contract revision（`agentops.workflow-dsl@X.Y.Z`），不能以 Package 内字段漂移实现。
 - 动态 fan-out、更多 selector 类型、多租户/安全机制属于明确排除项或候选扩展，需要新的 Contract 决策后才能进入。
 
-### 18.1 已知限制（Task 2 迁移中验证；决策记录：`gap-review-decisions.md`）
+### 18.1 已知限制（Task 2 迁移中验证）
 
 | 限制 | 状态 |
 | --- | --- |
 | 并行 Action 无法表达 per-branch role（单一 `responsibleAuthority`）；SD-09 三 lens 用 nominal role + `validation.review`/branch routes 逐 lens 强制 | 接受：并行是 Runtime 发起的 action 层编排（`execution.mode: parallel` 是 v1；第一方实现是 FPLG/LangGraph Workflow Host——调度、barrier、join、分支隔离；任何 Host/Adapter 原生的 workflow 能力不得进入 Contract）；单 action 多 role 表达不做；**多 action 并发**（graph 级并行）是候选扩展 |
 | 动态分支子集激活（如 SD-09 复检只跑失效 lens） | 接受为 Runtime 调度细节，非 workflow 语义 |
 | Wait resume 目标固定（`wait.resumeAction`）；按"记录的 resume_action"路由的逻辑 wait 表达为每触发 Action 一个 wait | 语义等价；不改 DSL |
-
-### 18.2 修订记录（0.1.0 REVIEW_CANDIDATE，冻结前）
-
-按 `gap-review-decisions.md`：budget 改为资源维度 + evaluator 注册点（无数值额度）；Runtime authority 的 Action 不再声明 `allowedRoutes`；条件边新增 `judge` 声明（state 谓词或 Planner Action 判断）。Definition 与 checker 已同步更新；全部闭包检查 PASS。冻结目标 `1.0.0`。

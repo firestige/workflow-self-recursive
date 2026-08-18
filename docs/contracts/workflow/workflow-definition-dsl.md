@@ -588,14 +588,10 @@ Rules: **zero** physical tokens in Definition/Package/Snapshot; `schemaVersion` 
 - Any change to physical representation, graph vocabulary, reducer vocabulary, predicate ops, or authority order must go through a Contract revision (`agentops.workflow-dsl@X.Y.Z`); it may not be implemented as field drift inside a Package.
 - Dynamic fan-out, additional selector types, and multi-tenant/security mechanisms are explicit exclusions or candidate extensions requiring a new Contract decision before admission.
 
-### 18.1 Known limitations (validated during Task 2 migration; decision record: `gap-review-decisions.md`)
+### 18.1 Known limitations (validated during Task 2 migration)
 
 | Limitation | Status |
 | --- | --- |
 | Parallel actions cannot express per-branch roles (single `responsibleAuthority`); SD-09's three lenses use a nominal role with per-lens enforcement via `validation.review` + branch routes | accepted: parallelism is action-level orchestration initiated by the Runtime (`execution.mode: parallel` is v1; first-party implementation is the FPLG/LangGraph Workflow Host — scheduling, barrier, join, branch isolation; no host/Adapter-native workflow capability enters the Contract); single-action multi-role expression is not done; **multi-action concurrency** (graph-level parallelism) is a candidate extension |
 | Dynamic branch-subset activation (e.g. SD-09 recheck of only invalidated lenses) | accepted as Runtime scheduling detail, not workflow semantics |
 | Wait resume targets are fixed (`wait.resumeAction`); a logical wait that routes by a recorded `resume_action` is expressed as one wait per trigger Action | semantically equivalent; no DSL change |
-
-### 18.2 Revision record (0.1.0 REVIEW_CANDIDATE, pre-freeze)
-
-Per `gap-review-decisions.md`: budgets now use resource dimensions + evaluator registration points (no numeric limits); Runtime-authority Actions declare no `allowedRoutes`; conditional edges gained the `judge` declaration (state predicates or Planner Action judgment). Definitions and checker updated accordingly; all closure checks PASS. Freeze targets `1.0.0`.
