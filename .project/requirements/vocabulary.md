@@ -1,11 +1,10 @@
 # Vocabulary
 
-One vocabulary, no duplication. Every dimension below is consumed by automation or
-a query (see "Consumed by"). Dimensions without a consumer are removed.
+One vocabulary, no duplication. Every dimension below is consumed by automation or a query (see "Consumed by"). Dimensions without a consumer are removed.
 
-GitHub default labels (`bug` reused as type; `documentation`, `enhancement`,
-`duplicate`, `question`, `invalid`, `wontfix`, `good first issue`, `help wanted`)
-are not part of this vocabulary. Prefer the vocabulary names in queries and automation.
+> Structured data source: [`vocabulary.json`](vocabulary.json) in this directory (the machine source — `pctl init` creates labels from it). This file is the rendered protocol copy: edit the JSON, then update this file, then re-run `pctl init`.
+
+GitHub default labels (`bug` reused as type; `documentation`, `enhancement`, `duplicate`, `question`, `invalid`, `wontfix`, `good first issue`, `help wanted`) are not part of this vocabulary. Prefer the vocabulary names in queries and automation.
 
 ## State — one per card (except `needs-decision`, which can coexist)
 
@@ -33,9 +32,7 @@ are not part of this vocabulary. Prefer the vocabulary names in queries and auto
 
 ## Component — one per card (workstream mapping)
 
-`component:execution` · `component:evidence` · `component:evolution` ·
-`component:contracts` · `component:workflow-package` · `component:meta`
-(mechanism improvements about this process itself).
+`component:execution` · `component:evidence` · `component:evolution` · `component:contracts` · `component:workflow-package` · `component:meta` (mechanism improvements about this process itself).
 
 ## Priority — one per card
 
@@ -45,9 +42,7 @@ are not part of this vocabulary. Prefer the vocabulary names in queries and auto
 
 `impact:none` · `impact:check` · `impact:contract-change`
 
-`impact:contract-change` is the load-bearing query for a preview-stage,
-contracts-driven project: `gh issue list --label impact:contract-change` answers
-"what would reopen system design boundaries".
+`impact:contract-change` is the load-bearing query for a preview-stage, contracts-driven project: `gh issue list --label impact:contract-change` answers "what would reopen system design boundaries".
 
 ## Effort — one per card
 
@@ -55,5 +50,4 @@ contracts-driven project: `gh issue list --label impact:contract-change` answers
 
 ## Scheduling
 
-GitHub **Milestones**, not project fields. Per-workstream by default
-(`ws:execution`, …), one `mvp` milestone spanning all components as the special case.
+GitHub **Milestones**, not project fields. Per-workstream by default (`ws:execution`, …), one `mvp` milestone spanning all components as the special case.

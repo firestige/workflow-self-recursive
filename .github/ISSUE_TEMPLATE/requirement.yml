@@ -1,32 +1,33 @@
 name: Requirement card
-description: 新想法或已提炼的需求（feature / bug / doc / benchmark / chore / memo）。一句话想法只需填摘要与链接，结构化字段由提炼环节补齐。
+description: 新想法或已提炼的需求（feature / bug / doc / benchmark / chore / memo）。一句话想法只需填摘要与链接，结构化字段由提炼环节补齐。 / A new idea or a refined requirement (feature / bug / doc / benchmark / chore / memo). A one-line idea only needs a summary and a link; structured fields are filled in during refine.
 title: "[type] 一句话摘要"
 labels: ["idea"]
 body:
   - type: markdown
     attributes:
       value: |
-        ## 使用说明
-        - 一句话想法（裸卡）：只填 **Summary** 与可选的 **Discussion link**，其余留空。
-        - 已提炼需求：填全结构化字段，确认后由 `pctl req ready` 或整理环节升为 `ready`。
-        - 协议规范见 `.project/requirements/`。
+        ## 使用说明 / How to use
+        - 一句话想法（裸卡）：只填 **Summary / 摘要** 与可选的 **Discussion link / 讨论链接**，其余留空。 / A bare idea: fill only the summary and an optional link; leave the rest empty.
+        - 已提炼需求：填全结构化字段，确认后由 `pctl req ready` 或整理环节升为 `ready`。 / A refined requirement: fill all structured fields; after confirmation it is promoted to `ready` by `pctl req ready` or the review pass.
+        - 协议规范见 `.project/requirements/`。 / Protocol: see `.project/requirements/`.
+        - 语言：模板双语；机制生成的内容用中文；用户书写不限制。 / Language: the template is bilingual; mechanism-generated content is in Chinese; user-written content is unrestricted.
   - type: input
     id: summary
     attributes:
       label: Summary / 摘要
-      description: 问题、要点、为什么值得做（一句到一段）
+      description: 问题、要点、为什么值得做（一句到一段） / what, why, and why it is worth doing (one sentence to one paragraph)
       placeholder: "..."
     validations:
       required: true
   - type: input
     id: link
     attributes:
-      label: Discussion link
-      description: 只放指向持久产物的链接（spec / 设计文档）；讨论会话链接通常不需要
+      label: Discussion link / 讨论链接
+      description: 只放指向持久产物的链接（spec / 设计文档）；讨论会话链接通常不需要 / only links to durable artifacts (spec / design doc); session links are usually not needed
   - type: dropdown
     id: type
     attributes:
-      label: Type
+      label: Type / 类型
       options:
         - feature
         - bug
@@ -37,7 +38,7 @@ body:
   - type: dropdown
     id: component
     attributes:
-      label: Component
+      label: Component / 组件
       options:
         - execution
         - evidence
@@ -48,7 +49,7 @@ body:
   - type: dropdown
     id: priority
     attributes:
-      label: Priority
+      label: Priority / 优先级
       options:
         - p0
         - p1
@@ -57,7 +58,7 @@ body:
   - type: dropdown
     id: effort
     attributes:
-      label: Effort
+      label: Effort / 工作量
       options:
         - xs
         - s
@@ -66,8 +67,8 @@ body:
   - type: dropdown
     id: impact
     attributes:
-      label: Architecture impact
-      description: contract-change 表示会触碰系统设计边界（对应 .project/requirements/vocabulary.md）
+      label: Architecture impact / 架构影响
+      description: contract-change 表示会触碰系统设计边界（对应 .project/requirements/vocabulary.md） / contract-change means the issue would reopen system design boundaries (see .project/requirements/vocabulary.md)
       options:
         - none
         - check
@@ -76,5 +77,5 @@ body:
     id: acceptance
     attributes:
       label: Acceptance criteria / 验收标准
-      description: ready 门禁要求此字段非空
+      description: ready 门禁要求此字段非空 / required non-empty by the ready gate
       placeholder: "- [ ] ..."
