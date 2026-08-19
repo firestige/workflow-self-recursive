@@ -1,0 +1,80 @@
+name: Requirement card
+description: 新想法或已提炼的需求（feature / bug / doc / benchmark / chore / memo）。一句话想法只需填摘要与链接，结构化字段由提炼环节补齐。
+title: "[type] 一句话摘要"
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 使用说明
+        - 一句话想法（裸卡）：只填 **Summary** 与可选的 **Discussion link**，其余留空。
+        - 已提炼需求：填全结构化字段，确认后由 `pctl req ready` 或整理环节升为 `ready`。
+        - 协议规范见 `.project/requirements/`。
+  - type: input
+    id: summary
+    attributes:
+      label: Summary / 摘要
+      description: 问题、要点、为什么值得做（一句到一段）
+      placeholder: "..."
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Discussion link
+      description: 只放指向持久产物的链接（spec / 设计文档）；讨论会话链接通常不需要
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - feature
+        - bug
+        - doc
+        - benchmark
+        - chore
+        - memo
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - execution
+        - evidence
+        - evolution
+        - contracts
+        - workflow-package
+        - meta
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - p0
+        - p1
+        - p2
+        - p3
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Effort
+      options:
+        - xs
+        - s
+        - m
+        - l
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Architecture impact
+      description: contract-change 表示会触碰系统设计边界（对应 .project/requirements/vocabulary.md）
+      options:
+        - none
+        - check
+        - contract-change
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria / 验收标准
+      description: ready 门禁要求此字段非空
+      placeholder: "- [ ] ..."
