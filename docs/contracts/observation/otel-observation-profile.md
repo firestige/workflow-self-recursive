@@ -1,7 +1,7 @@
 <a id="otel-observation-profile"></a>
 # OTel Observation Profile
 
-> **DRAFT — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`; provenance remains in Git history. It owns the exact proposed OTel/OTLP wire mapping: pins, carriers, Resource, Scope, schema URL, standard GenAI mapping, the closed EventName set, the closed `agentops.*` registries, the complete Review/Finding shapes, the C17/C27 oracle, and the shape/identity/conflict rules. It does not publish a machine schema, packaged registry, protobuf definition, fixture corpus, implementation, or conformance claim, and it owns no transport interaction flow and no durable storage model.
+> **DRAFT — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the exact proposed OTel/OTLP wire mapping: pins, carriers, Resource, Scope, schema URL, standard GenAI mapping, the closed EventName set, the closed `agentops.*` registries, the complete Review/Finding shapes, the C17/C27 oracle, and the shape/identity/conflict rules. It does not publish a machine schema, packaged registry, protobuf definition, fixture corpus, implementation, or conformance claim, and it owns no transport interaction flow and no durable storage model.
 
 <a id="otel-profile-1"></a>
 ## 1. Metadata and Authority
@@ -11,8 +11,8 @@
 | Document identity | `observation.identity.002` |
 | Status | `DRAFT_NOT_PUBLISHED` |
 | Normative language | English |
-| Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`; provenance remains in Git history; the wire registry below is byte-for-meaning identical to the adopted proposal |
-| Profile version | proposed `0.2.0` (adopted proposal, not a release) |
+| Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment for C55–C57 and proposed profile `0.3.0`; provenance remains in Git history |
+| Profile version | proposed `0.3.0` (adopted proposal, not a release) |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md), and the tech-neutral [Observation Catalog](observation-catalog.md) |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
@@ -27,7 +27,7 @@ This document owns the one editable proposed wire registry, carrier placement, v
 | Layer | State in this candidate | What is fixed | What may be claimed |
 | --- | --- | --- | --- |
 | System semantic meaning and owner | fixed in the English Concept/Execution/Evidence Designs and the Observation Catalog | fact meaning, ownership, truth, privacy and lifecycle | Design meaning after promotion |
-| Wire profile proposal | adopted normative-as-draft | exact pins, carriers, standard/custom split, ten EventNames, 54 common + 10 Implementation + 6 System Design fields, complete Review/Finding variant composition, relationships, placement, requiredness and exclusions | this exact proposal may be cited only as `DRAFT_NOT_PUBLISHED` |
+| Wire profile proposal | adopted normative-as-draft | exact pins, carriers, standard/custom split, ten EventNames, 57 common + 10 Implementation + 6 System Design fields, complete Review/Finding variant composition, relationships, placement, requiredness and exclusions | this exact proposal may be cited only as `DRAFT_NOT_PUBLISHED` |
 | Released physical Contract | absent | nothing physical is released | no schema, package or registry publication claim |
 | Implementation conformance | unproven | no implementation is certified | no conformance claim until executable validators pass the released physical Contract |
 
@@ -60,8 +60,8 @@ Draft maturity is not permission to re-decide the selected mapping. Conversely, 
 | OTLP/protobuf | `v1.10.0` | official `.proto` decode and partial-success path |
 | Semantic conventions | `v1.41.1` | GenAI conventions remain Development; compatibility is limited to this generation |
 | Schema URL | `https://opentelemetry.io/schemas/1.41.0` | exact tested scope schema URL |
-| Observation Profile | proposed version `0.2.0` | adopted proposal, not a release |
-| InstrumentationScope | name `io.agentops.dsh.observation`, version `0.2.0`, schema URL above | required on Trace and Log scopes |
+| Observation Profile | proposed version `0.3.0` | adopted proposal, not a release |
+| InstrumentationScope | name `io.agentops.dsh.observation`, version `0.3.0`, schema URL above | required on Trace and Log scopes |
 | Factual transport | OTLP/HTTP through official binary protobuf Trace and Log exporters | stock DSH rc.6 OTLP/JSON is disabled and not routed to Evidence |
 | Sampling | Delivery-level head sampling; default probability `1` | sampled-out decision LogRecord may carry unsampled Trace context; no durability/completeness claim |
 
@@ -76,7 +76,7 @@ Transport *flow* semantics — endpoints, per-batch partial success reporting, d
 | --- | --- | --- |
 | Sampled Delivery | one Trace; root Span name begins `invoke_workflow`; root kind `INTERNAL` | one Delivery-to-Trace relation; Delivery ID never substitutes for Trace ID |
 | Workflow/Agent call | `gen_ai.operation.name=invoke_agent`; `gen_ai.agent.id`; conditional `gen_ai.agent.name` and `gen_ai.agent.version`; `INTERNAL` Span | invocation/Role Trace node; name does not establish identity or lineage |
-| Model call | operation `chat` or `generate_content`; `gen_ai.provider.name`; `gen_ai.request.model`; conditional `gen_ai.response.model`; `CLIENT` Span | model Trace node; no input/output content |
+| Model call | operation `chat` or `generate_content`; `gen_ai.provider.name`; `gen_ai.request.model`; conditional `gen_ai.response.model`; native Span start/end duration; C57 canonical model identity; C30 when model-to-Role attribution is asserted; `CLIENT` Span | model Trace node and direct host-reported operational latency; exact provider/model/Role/Runtime attribution when asserted; no input/output content and no free-form/list summary |
 | Tool call | `gen_ai.operation.name=execute_tool`; `gen_ai.tool.name`, `gen_ai.tool.type`, `gen_ai.tool.call.id`; `INTERNAL` Span | tool Trace node; no arguments or results |
 | Causality | parent Span ID and Span links | only recorded causality; grouping creates no inferred edge |
 | Technical failure | Span Status plus safe low-cardinality `error.type` when available | technical state only; never Delivery outcome |
@@ -111,11 +111,11 @@ The tech-neutral meaning, semantic owner, and relationships of each of these ten
 <a id="otel-profile-7"></a>
 ## 7. Exact Closed `agentops.*` Draft Registries
 
-The adopted proposal uses one closed common registry plus two separately closed family registries. The mechanical identity is **54 common + 10 Implementation + 6 System Design = 70 total unique names**. A field name occurs in exactly one registry; a conforming family profile admits the common registry plus its own family registry and rejects the other family registry. `Source` identifies the semantic owner that supplies the scalar; Delivery Observation only maps it. `Privacy` is the profile classification. All strings are logically bounded here; physical character sets, maximum lengths, and cardinality budgets remain publication work. `HC`, `LC`, and `BC` mean high-, low-, and bounded-cardinality classes.
+The adopted proposal uses one closed common registry plus two separately closed family registries. The mechanical identity is **57 common + 10 Implementation + 6 System Design = 73 total unique names**. A field name occurs in exactly one registry; a conforming family profile admits the common registry plus its own family registry and rejects the other family registry. `Source` identifies the semantic owner that supplies the scalar; Delivery Observation only maps it. `Privacy` is the profile classification. All strings are logically bounded here; physical character sets, maximum lengths, and cardinality budgets remain publication work. `HC`, `LC`, and `BC` mean high-, low-, and bounded-cardinality classes.
 
 The tech-neutral meaning, identity, applicability, completeness, unit, privacy, relationship, and missingness semantics of the facts these fields carry are owned by the [Observation Catalog](observation-catalog.md#observation-catalog-4). This profile owns only the exact wire mapping of each field.
 
-### 7.1 Closed common registry — 54 fields
+### 7.1 Closed common registry — 57 fields
 
 | # | Exact field | Carrier / applicability | OTel type | Requiredness | Cardinality / closed values | Source | Privacy | Evidence landing |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -157,7 +157,7 @@ The tech-neutral meaning, identity, applicability, completeness, unit, privacy, 
 | C36 | `agentops.writer.invocation.id` | review/artifact relation | string | conditional; required when writer relation is asserted | HC, nonempty invocation identity | Workflow invocation owner | metadata identity | explicit writer-invocation edge |
 | C37 | `agentops.reviewer.invocation.id` | review relation | string | required on review result | HC, nonempty invocation identity | Workflow invocation owner | metadata identity | explicit reviewer-invocation edge |
 | C38 | `agentops.recheck.invocation.id` | recheck relation | string | required with C23 | HC, nonempty invocation identity | Workflow invocation owner | metadata identity | explicit recheck-invocation edge |
-| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT` for profile `0.2.0` | Workflow control owner | factual classification | intervention contribution |
+| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT` for profile `0.3.0` | Workflow control owner | factual classification | intervention contribution |
 | C40 | `agentops.observed.loop.count` | family summary | integer | required when applicable summary reports loops | BC nonnegative integer | Workflow owner | factual count | observed-loop contribution; never quality inference |
 | C41 | `agentops.observed.intervention.count` | family summary | integer | required when applicable summary reports interventions | BC nonnegative integer | Workflow owner | factual count | observed-intervention contribution |
 | C42 | `agentops.usage.kind` | `usage` | string | required | LC enum `native_credit`, `request`, `premium_request`, `provider_native`, `money` | Runtime/provider usage owner | factual classification | native-usage compatibility key |
@@ -173,6 +173,9 @@ The tech-neutral meaning, identity, applicability, completeness, unit, privacy, 
 | C52 | `agentops.finding.target.kind` | every `review.finding` | string | required | LC enum `ARTIFACT`, `SECTION`, `COMPONENT`, `REQUIREMENT` | source review lens / target owner | classification metadata | typed Finding-to-target edge discriminator |
 | C53 | `agentops.finding.target.id` | every `review.finding` | string | required | HC bounded nonempty owner-defined target identity; never free text or parsed path | source review lens / target owner | metadata identity | affected target endpoint |
 | C54 | `agentops.finding.target.artifact.id` | `review.finding` affected target | string | required for `SECTION`; absent for `ARTIFACT`; conditional for `COMPONENT`/`REQUIREMENT` only when target is artifact-scoped | HC bounded nonempty containing Artifact identity | Artifact/target owner | metadata identity | containing-Artifact endpoint for scoped target; distinct from reviewed Artifact C28 |
+| C55 | `agentops.delivery.elapsed_time_ms` | `delivery.summary` | double | conditional; present only when the Runtime/Execution result owner reports a complete start-to-terminal elapsed measurement | BC nonnegative finite milliseconds | Runtime/Execution result owner | factual duration | direct Delivery cycle-time contribution; absence is unavailable, never zero |
+| C56 | `agentops.delivery.stage.reached` | `delivery.summary` | string | conditional; present only when the Workflow owner reports the furthest reached stage at terminal outcome | BC bounded nonempty exact Workflow stage identity; no display-name parsing or inferred ordering | Workflow owner | metadata identity | direct Delivery-to-reached-stage fact; absence is unavailable |
+| C57 | `agentops.model.id` | model-call Span | string | required when canonical model-to-Role attribution is asserted; C30 is then required on the same Span | BC bounded nonempty provider-scoped canonical model identity; no request/response alias or display-name inference | Runtime/provider model owner | metadata identity | exact model coordinate in `(provider,C57,C30,C06,trace_id,span_id)` attribution tuple |
 
 ### 7.2 Closed `implementation@1` registry — 10 fields
 
@@ -327,13 +330,13 @@ This matrix is the mechanical completeness view; the registries and complete sha
 | Recheck on Finding and iteration | `review.finding` | complete Recheck-on-Finding shape from §7.4 | source review lens and Workflow iteration owner | Recheck graph plus exact Finding target context |
 | Recheck summary | `review.summary` | complete Recheck-summary shape from §7.4 | source review lens and Workflow iteration owner | Review-level Recheck summary; per-Finding edges remain separate |
 | version-local Role and owner-known family lineage | relationship Event plus `role.lineage` | C30 on Role activity; C30+C31 on each known/applicable lineage Event; C32 only for asserted parent relation | Workflow Contract owner | local Role coordinate plus separate immutable local→lineage mapping |
-| observed Role/Agent/model/tool call and duration | standard Span path | native `(trace_id, span_id)`, parent/link, applicable `gen_ai.*`, C30 where Role applies | Runtime/Workflow activity owner | Trace nodes/edges/durations; no summary-derived causality |
+| observed Role/Agent/model/tool call and duration | standard Span path | native `(trace_id,span_id)`, parent/link, applicable `gen_ai.*`; C57+C30 when canonical model-to-Role attribution is asserted; Runtime C06 from the sampled Delivery binding | Runtime/provider/Workflow activity owners | Trace nodes/edges/durations and exact provider/model/Role/Runtime attribution; no summary-derived causality |
 | observed loops and interventions | family summary plus `intervention` | C09, C11, C39–C41, C49=`implementation@1` as applicable | Workflow control owner | observed factual contributions only; no quality/effectiveness inference |
-| Delivery outcome and native usage | `delivery.summary` and `usage` | C09–C11/C49 plus C42–C46; C11 on `usage` when completeness is asserted | Runtime/Execution result owner and Runtime/provider usage owner | Delivery fact and exact source-scoped usage group |
+| Delivery outcome, elapsed time, reached stage and native usage | `delivery.summary` and `usage` | C09–C11/C49; conditional C55/C56 on `delivery.summary`; C42–C46 plus C11 on `usage` when completeness is asserted | Runtime/Execution result, Workflow stage and Runtime/provider usage owners | Delivery terminal fact with direct duration/stage contributions and exact source-scoped usage group |
 | System Design Review/Finding/Fix/Recheck/Role graph | same complete bases/variants, `role.lineage`, standard Span path | same common shapes with C49=`system-design@1` | System Design Workflow owners and source review lens | same typed graph/content/target/activity landing; no sibling Implementation fields |
 | Fresh Reader result and Findings | `review.summary` plus zero or more complete `review.finding` variants | `REVIEW_SUMMARY_BASE`+S01+S02; each Finding/Fix/Recheck uses its complete §7.4 shape with C49=`system-design@1` | Fresh Reader owner; source Fresh Reader recheck owns disposition | Fresh Reader summary plus exact human-readable Finding/source/target/recheck graph |
 | deterministic verification result and checks | `system_design.summary` | C09, C11, C28+C29, C49=`system-design@1`, S03–S06 | deterministic verification owner; Artifact owner supplies report identity/digest | verification-run fact with result, passed/failed checks and immutable report reference |
-| System Design Delivery outcome, native usage, observed activity and family summary | `delivery.summary`, `usage`, standard Spans and `system_design.summary` | same applicable C09–C11, C30, C40–C46, C49=`system-design@1` groups | Runtime/Workflow/activity/usage owners | exact factual contributions under System Design family coordinates |
+| System Design Delivery outcome, elapsed time, reached stage, native usage, observed activity and family summary | `delivery.summary`, `usage`, standard Spans and `system_design.summary` | same applicable C09–C11, C30, C40–C49, C55–C57, C49=`system-design@1` groups | Runtime/Workflow/activity/usage owners | exact factual contributions under System Design family coordinates |
 
 ### 7.6 Positive and negative composition examples
 
@@ -351,6 +354,8 @@ These examples name field IDs to remain independent of physical serialization or
 | C17/C27 Recheck summary | each record carries C27 and uses C17=`0`, C17=`3`, or C17 absent | accept all; land Recheck plus count `0`, count `3`, or no observed-count contribution respectively |
 | C17/C27 Finding family | ordinary Finding and Fix omit both; Recheck-on-Finding omits C17 and carries C27 | each exact shape accepts |
 | exact summary retries | retry every valid ordinary/Recheck C17 form with identical C09/digest | complete no-op; no duplicate Review, Recheck or observed-count contribution |
+| Delivery elapsed/stage facts | one terminal `delivery.summary` carries C55=`812.5` and C56=`review`; both values are owner-reported | accept; land one direct elapsed-time contribution and one exact reached-stage identity for the Delivery |
+| canonical model-to-Role attribution | one model-call Span carries standard provider/request model fields plus C57 and C30, under a sampled Delivery root with C06 | accept; land one exact `(provider,C57,C30,C06,trace_id,span_id)` attribution tuple; evaluation may aggregate the tuple but may not invent a summary body |
 
 | Negative case | Violation | Admission result |
 | --- | --- | --- |
@@ -367,6 +372,8 @@ These examples name field IDs to remain independent of physical serialization or
 | empty/unbounded Finding content | C50 empty, over physical bounded maximum, or producer marks it unbounded | reject; never truncate or move content into body |
 | prohibited content | C50 contains Prompt/message/source/diff/tool/credential/raw-error body material | producer must redact or omit Observation; Admission rejects detected violation; execution remains unaffected |
 | unknown relation/scope type | C52 outside its four-member enum or target encoded by parsing C14/text | reject; no fallback/extension map |
+| invalid Delivery A-class field | C55 is negative/non-finite, C56 is empty/unbounded, or either value is encoded in an Event body/map | reject the whole `delivery.summary`; no elapsed/stage contribution or partial Delivery landing |
+| incomplete model attribution | C57 is present without C30, lacks standard provider identity, or is inferred from a display/request/response alias | reject the custom attribution; no model-role tuple is projected from partial or inferred coordinates |
 
 <a id="otel-profile-8"></a>
 ## 8. Usage, Completeness, Sampling, and Truth
@@ -375,7 +382,9 @@ Standard GenAI token fields and custom native `usage` Events are distinct measur
 
 The four completeness values are the closed C11 vocabulary: `FINAL` proves an applicable final total and permits an explicitly reported zero; `LOWER_BOUND` means detail was observed without a complete applicable summary; `NOT_APPLICABLE` means no value exists for the family/metric; `UNAVAILABLE` means sampling, loss or a missing summary prevents a claim. Missing cost, token, count or activity is always unavailable, never zero. The tech-neutral meaning of completeness and missingness is owned by the [Observation Catalog](observation-catalog.md#observation-catalog-6).
 
-The five examples below share Scope profile `0.2.0`, C49=`implementation@1`, C11=`FINAL`, and distinct stable C09 Event IDs; those coordinates are part of each logical record even though the table focuses on the usage-specific fields.
+C55 and C56 are independent optional direct facts on a terminal Delivery Summary. Absence of C55 means elapsed time is unavailable, not zero; absence of C56 means reached stage is unavailable, not an initial stage. C57 is an activity coordinate, not a Delivery summary: without the complete standard-provider+C57+C30+C06+Span tuple, model-to-Role attribution is unavailable and must not be reconstructed from names, parentage or a free-form/list summary.
+
+The five examples below share Scope profile `0.3.0`, C49=`implementation@1`, C11=`FINAL`, and distinct stable C09 Event IDs; those coordinates are part of each logical record even though the table focuses on the usage-specific fields.
 
 | Example | Exact logical fields | Compatible grouping result |
 | --- | --- | --- |
@@ -406,7 +415,7 @@ The producer allow-list/redaction boundary and Admission both prohibit:
 - scores, grades, rankings, recommendations and inferred causality; and
 - replay, recompute or correction authority, plus use of Span Status as Delivery outcome.
 
-C50 is the sole human-readable Finding scalar. It is a bounded nonempty paraphrase authored by the source review lens, not a copied body. It may state the factual issue and impact in privacy-safe terms, but it does not relax any prohibition above. Evidence stores and displays the accepted scalar verbatim as a reported fact; it does not generate, grade, summarize, reinterpret or infer it. C51–C54 are bounded identifiers only and cannot carry paths, source text, requirement bodies or arbitrary labels.
+C50 is the sole human-readable Finding scalar. It is a bounded nonempty paraphrase authored by the source review lens, not a copied body. It may state the factual issue and impact in privacy-safe terms, but it does not relax any prohibition above. Evidence stores and displays the accepted scalar verbatim as a reported fact; it does not generate, grade, summarize, reinterpret or infer it. C51–C54 and C56–C57 are bounded identifiers only and cannot carry paths, source text, requirement bodies, arbitrary labels or model content; C55 is a bounded duration scalar only.
 
 The following fixture-only or unaccepted material is outside the registry: `agentops.phase.kind`, `agentops.duplicate.copy`, `agentops.invalid.reason`, `agentops.iteration`, `agentops.agent.outcome`, `agentops.workflow.stop_reason`, fixture `deployment.environment.name`, `workflow.log`, fixed fixture body text, `delivery.disposition`, and `agentops.delivery.disposition`. No fixture occurrence is publication authority.
 
@@ -415,7 +424,7 @@ The tech-neutral meaning of privacy for each fact class is owned by the [Observa
 <a id="otel-profile-10"></a>
 ## 10. Identity, Versioning, and Compatibility
 
-Delivery, task, Workflow, implementation, Runtime, Manifest, Trace, Span, Event, Review, Finding, Finding scope, affected target/edge, Artifact, Fix, Recheck, Invocation, iteration, version-local Role and family-scoped Role-lineage identities remain distinct. Span identity is exactly `(trace_id, span_id)`; `span_id` alone is not globally sufficient and Trace ID alone does not identify a Span. Event identity remains `agentops.event.id`. Review/Finding composition and relationships follow §7.4 complete shapes and typed edges rather than entity-name reuse. A `role.lineage` Event is emitted only when the owner supplies a known/applicable lineage; C30 and C31 are then both required. Unknown/not-applicable lineage emits no lineage Event and does not synthesize a value. Names, display text, ordering and versions never establish identity, scope, target or lineage.
+Delivery, task, Workflow, Workflow stage, implementation, Runtime, canonical model, Manifest, Trace, Span, Event, Review, Finding, Finding scope, affected target/edge, Artifact, Fix, Recheck, Invocation, iteration, version-local Role and family-scoped Role-lineage identities remain distinct. Span identity is exactly `(trace_id, span_id)`; `span_id` alone is not globally sufficient and Trace ID alone does not identify a Span. Event identity remains `agentops.event.id`. Model-to-Role attribution is exactly `(provider,C57,C30,C06,trace_id,span_id)` and is never inferred from names, aliases, ancestry alone or task grouping. Review/Finding composition and relationships follow §7.4 complete shapes and typed edges rather than entity-name reuse. A `role.lineage` Event is emitted only when the owner supplies a known/applicable lineage; C30 and C31 are then both required. Unknown/not-applicable lineage emits no lineage Event and does not synthesize a value. Names, display text, ordering and versions never establish identity, scope, target or lineage.
 
 Manifest, lifecycle/result, Observation Profile, each Workflow-family schema and factual semantics are explicitly versioned. Accepted history is not rewritten. Compatibility is declared against exact profile/family/semantic coordinates, never inferred from matching names or field spelling. Transport-level version compatibility and compatibility failure handling are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7).
 
@@ -424,7 +433,7 @@ Manifest, lifecycle/result, Observation Profile, each Workflow-family schema and
 
 This profile is acceptable for affected review only when:
 
-- its exact pins, standard mapping, ten EventNames and 54 common + 10 Implementation + 6 System Design registry names pass mechanical count and total-unique checks (54 + 10 + 6 = 70 total unique names);
+- its exact pins, standard mapping, ten EventNames and 57 common + 10 Implementation + 6 System Design registry names pass mechanical count and total-unique checks (57 + 10 + 6 = 73 total unique names);
 - every common/family registry row contains exactly nine Markdown columns: row ID, field, carrier, type, requiredness, cardinality/value rule, source, privacy and Evidence landing;
 - fixture-only/prohibited fields are absent from the registry and `delivery.disposition` remains outside the wire profile;
 - the local/lineage pair rule is unambiguous; and

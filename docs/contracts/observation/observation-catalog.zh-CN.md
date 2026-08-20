@@ -1,7 +1,7 @@
 <a id="observation-catalog"></a>
 # Observation Catalog（中文翻译）
 
-> **DRAFT——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split；出处保留在 Git 历史中。它拥有 Observation fact 的 technology-neutral meaning：fact class、semantic owner，以及 identity / applicability / completeness / unit / privacy / relationship / missingness semantics。它不包含任何 wire-level representation（无 machine field name、无 carrier 或 type mapping、无 concrete serialization）。Exact machine mapping 由 [OTel Observation Profile](otel-observation-profile.md) 拥有，以 profile version `0.2.0` 引用。
+> **DRAFT——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 Observation fact 的 technology-neutral meaning：fact class、semantic owner，以及 identity / applicability / completeness / unit / privacy / relationship / missingness semantics。它不包含任何 wire-level representation（无 machine field name、无 carrier 或 type mapping、无 concrete serialization）。Exact machine mapping 由 [OTel Observation Profile](otel-observation-profile.md) 拥有，以 profile version `0.3.0` 引用。
 
 <a id="observation-catalog-1"></a>
 ## 1. 元数据与权威性
@@ -11,9 +11,9 @@
 | 文档身份 | `observation.identity.001` |
 | 状态 | `DRAFT_NOT_PUBLISHED` |
 | 规范语言 | 英文 |
-| 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split；出处保留在 Git 历史中；下方 semantic meaning 与已采纳提案 byte-for-meaning 一致 |
+| 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 elapsed time、reached stage 与 model-to-Role attribution 的 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中 |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](otel-observation-profile.md)，proposed version `0.2.0` |
+| Representation companion | [OTel Observation Profile](otel-observation-profile.md)，proposed version `0.3.0` |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
@@ -28,7 +28,7 @@ Observation 是 Execution 发出、Evidence 接受的 versioned、allow-listed�
 | Concern | 唯一 owner |
 | --- | --- |
 | Fact meaning、semantic owner、truth、privacy、fact lifecycle semantics | 本文件，委托给 English Concept/Execution/Evidence Design |
-| Exact machine mapping（name、carrier、closed value set、complete shape） | [OTel Observation Profile](otel-observation-profile.md)，version `0.2.0` |
+| Exact machine mapping（name、carrier、closed value set、complete shape） | [OTel Observation Profile](otel-observation-profile.md)，version `0.3.0` |
 | Transport flow、endpoint、partial success、retry、ambiguous commit | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Admission、projection、durable storage、query | [Evidence System Design](../../systems/evidence/evidence-system.md) |
 | Producer mapping、privacy/redaction、export isolation | [Execution System Design](../../systems/execution/project-execution-system.md) |
@@ -44,7 +44,7 @@ Exact field registry 只出现在一个文档中（OTel Observation Profile）�
 
 | # | Fact class | 含义 | Semantic owner |
 | ---: | --- | --- | --- |
-| 1 | Delivery Summary | 一个 Delivery 的 terminal outcome 及其 business binding（delivery、task、workflow、implementation、runtime、manifest digest、family） | outcome 由 Runtime/Execution result owner 提供；binding identity 由 Execution/Workflow owner 提供 |
+| 1 | Delivery Summary | 一个 Delivery 的 terminal outcome 及其 business binding（delivery、task、workflow、implementation、runtime、manifest digest、family），加 owner-reported 的 optional elapsed time 与 furthest reached Workflow stage | outcome 与 elapsed time 由 Runtime/Execution result owner 提供；stage identity 由 Workflow owner 提供；binding identity 由 Execution/Workflow owner 提供 |
 | 2 | Review Finding | 一个 bounded、non-empty、privacy-safe human-readable Finding assertion，加其 source Review、Finding-specific scope 与恰好一个 typed affected target | source review lens；Workflow/Artifact/target owner 提供 coordinate |
 | 3 | Review Summary | 一个 Review result：identity、lens、scope、reviewed Artifact、writer/reviewer invocation，以及可选 observed review count | Workflow review owner |
 | 4 | Test Summary | 一个 test report 的 implementation test pass/fail/skip count 与 applicable duration | Implementation test owner；Artifact owner 提供 report reference |
@@ -55,7 +55,7 @@ Exact field registry 只出现在一个文档中（OTel Observation Profile）�
 | 9 | Implementation Summary | 单个 dimension（line、branch 或 function）的一个 structural-coverage fact 及其 report | structural coverage owner；Artifact owner 提供 report reference |
 | 10 | System Design Summary | Fresh Reader result 与 deterministic verification result | Fresh Reader owner 与 deterministic verification owner |
 
-没有 fact class 断言 design quality、reviewer effectiveness、ranking、recommendation 或 causal inference。Observed activity（Role/Agent/model/tool call 与 duration）作为 causal activity 记录，而非 summary fact class；它不携带 summary-derived causality。
+没有 fact class 断言 design quality、reviewer effectiveness、ranking、recommendation 或 causal inference。Observed activity（Role/Agent/model/tool call 与 duration）作为 causal activity 记录，而非 summary fact class；它不携带 summary-derived causality。Model-role evaluation 汇总这些 activity fact；wire 绝不嵌入 free-form 或 list-valued model summary。
 
 <a id="observation-catalog-4"></a>
 ## 4. Semantic Field
@@ -74,6 +74,10 @@ Exact field registry 只出现在一个文档中（OTel Observation Profile）�
 | Workflow family | Delivery Summary、所有 family fact | classification | `implementation` 或 `system-design`；一个 fact 属于一个 family |
 | Record identity | 每个 fact record | identity | stable first-accepted record identity 与 dedup key |
 | Delivery outcome | Delivery Summary | status | closed terminal outcome category |
+| Delivery elapsed time | Delivery Summary | duration | 从 Delivery start 到 terminal outcome 的 owner-reported elapsed millisecond；必须 nonnegative，absent 时为 unavailable |
+| Delivery stage reached | Delivery Summary | classification | terminal outcome 时 owner-reported 的 furthest reached Workflow stage identity；只使用 exact identity，不解析 name 或推断 order |
+| Canonical model identity | recorded model-call activity | identity | Runtime/provider owner 提供的 provider-scoped canonical model identity；不同于 display name 与 request/response alias |
+| Model-to-role attribution | recorded model-call activity | relationship | canonical model identity、provider、version-local Role identity、Runtime identity 与 Span identity 组成的 exact on-call tuple；evaluation 只能汇总 recorded tuple |
 | Completeness state | summary 与 usage fact | completeness | closed completeness/applicability state |
 | Review identity | Review Finding、Review Summary | identity | review result identity |
 | Review lens | Review Finding、Review Summary | classification | closed review-lens category |
@@ -136,7 +140,7 @@ Exact field registry 只出现在一个文档中（OTel Observation Profile）�
 
 | Fact class | Identity | Applicability | Completeness | Unit | Privacy | Relationships | Missing meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Delivery Summary | distinct Delivery identity 加 record identity | 每个 Delivery 一个 record；business binding coordinate required | 断言 completeness truth 时 summary state 适用 | outcome 是 category；无 numeric unit | 仅 classification 与 identity metadata | Delivery→business binding；task grouping 不产生 causality | 缺失 outcome 或 binding 意味着 no fact，绝不默认 outcome |
+| Delivery Summary | distinct Delivery identity 加 record identity | 每个 Delivery 一个 record；business binding coordinate required；elapsed time 与 reached stage 是 optional direct owner report | 断言 completeness truth 时 summary state 适用 | outcome 与 stage 是 category/identity；elapsed time 为 nonnegative millisecond | 仅 classification、identity 与 bounded duration metadata | Delivery→business binding 与 Delivery→reached-stage；task grouping 不产生 causality | 缺失 outcome 或 binding 意味着 no fact；absent elapsed time 或 stage 为 unavailable，绝不是 zero 或 inferred stage |
 | Review Finding | Finding assertion `(Finding identity, Finding scope)`；每个 record 一个 typed target edge | 每个 record 恰好一个 affected target；multi-target 每个 target 重复一次 complete assertion | 不适用于 assertion 本身 | 无 numeric unit；Finding summary 是 bounded text | Finding summary 是唯一 content scalar，privacy-safe；target 仅为 identifier | Finding→source Review；Finding→affected target；Finding-specific scope node | 缺失 field 拒绝 record；绝不产生 partial Finding |
 | Review Summary | Review identity 加 record identity | ordinary 或 Recheck summary；summary 必须携带 lens、scope、Artifact 与 writer/reviewer invocation | `FINAL`、`LOWER_BOUND`、`NOT_APPLICABLE` 或 `UNAVAILABLE` | observed count 是 nonnegative integer；review total 是 nonnegative integer | 仅 classification 与 identity metadata | Review→reviewed Artifact；writer/reviewer invocation→Role | absent observed count 意味着 “no count fact”，绝不是 zero |
 | Test Summary | record identity 加 report Artifact reference | 每个 applicable test report 一个 record | completeness state 适用 | count 是 nonnegative integer；duration 是 seconds | 仅 count 与 duration | Test Summary→report Artifact | 缺失 duration 意味着 no duration fact |
@@ -173,7 +177,7 @@ Field 是 **required**、**conditional** 还是 **prohibited**，完全按 repre
 
 ### Unit
 
-Quantity 携带 exact、source-scoped unit。Usage quantity 携带 exact unit（money 为 ISO-4217 currency）；token usage 与 native usage 是不同 measurement family，绝不互相替代。Structural coverage 携带 dimension 与 covered/total pair。Compatible fact 仅在 identical semantic version、kind、unit-or-currency、source、source identity 与 completeness coordinate 下聚合；不允许 implicit conversion 或 cross-unit summation。
+Quantity 携带 exact、source-scoped unit。Delivery elapsed time 是 owner-reported nonnegative millisecond duration，绝不替代 individual activity Span duration。Usage quantity 携带 exact unit（money 为 ISO-4217 currency）；token usage 与 native usage 是不同 measurement family，绝不互相替代。Structural coverage 携带 dimension 与 covered/total pair。Compatible fact 仅在 identical semantic version、kind、unit-or-currency、source、source identity 与 completeness coordinate 下聚合；不允许 implicit conversion 或 cross-unit summation。
 
 ### Privacy
 
@@ -181,7 +185,7 @@ Producer allow-list/redaction boundary 与 Admission 都禁止 prompt 与 system
 
 ### Missing meaning
 
-Missing 绝不是 zero，absence 绝不重建。Absent observed review count 是 “no count fact”；present zero 是 recorded zero。Absent usage 或 token quantity 是 unavailable，绝不是 zero。Absent lineage fact 意味着 lineage unknown 或 not applicable，绝不是 synthesized identity。Absent completeness claim 意味着 no claim，绝不假定 final state。Consumer 绝不重建 unavailable producer intent。
+Missing 绝不是 zero，absence 绝不重建。Absent observed review count 是 “no count fact”；present zero 是 recorded zero。Absent usage 或 token quantity 是 unavailable，绝不是 zero。Absent Delivery elapsed time 或 reached stage 是 unavailable，绝不是 zero 或 inferred initial/terminal stage。Incomplete provider/model/Role/Runtime/Span attribution tuple 是 unavailable，绝不从 alias、ancestry 或 task grouping 补齐。Absent lineage fact 意味着 lineage unknown 或 not applicable，绝不是 synthesized identity。Absent completeness claim 意味着 no claim，绝不假定 final state。Consumer 绝不重建 unavailable producer intent。
 
 <a id="observation-catalog-7"></a>
 ## 7. 关系模型
@@ -196,8 +200,10 @@ Objective review graph 仅通过 typed endpoint 连接 distinct Review、Finding
 - **Recheck → Review/Finding/Fix/iteration**：Recheck 引用被 recheck 的 prior Review、被处理的 Finding、处于 recheck 的 Fix（仅当存在时）与 iteration，外加其自身的 invocation 与 Role。
 - **Writer/reviewer/recheck invocation → Role**：每个 invocation 引用执行它的 version-local Role；join 经 lineage mapping，绝不经 display name 或 position。
 - **version-local Role → family lineage**：每个 known lineage 将一个 version-local Role 映射到一个 family-scoped lineage identity。
+- **Delivery → reached stage**：terminal Delivery Summary 可携带 Workflow owner 的 exact furthest-reached stage identity；consumer 绝不从 name 排序或推断 stage。
+- **model call → Role/Runtime**：model-call activity 可断言 exact provider/canonical-model/version-local-Role/Runtime/Span tuple；evaluation 可分组 recorded tuple，但绝不从 parentage 或 display name 创建 attribution。
 
 <a id="observation-catalog-8"></a>
 ## 8. Compatibility 与聚合
 
-Compatible fact 仅在 identical coordinate 下聚合：semantic/family version、measurement kind、unit-or-currency、source、source identity 与 completeness。Incompatible group 保持分离；premium request 与其他 provider-native unit 保持与 ordinary request 和 credit 不同；money 绝不 conversion 或 cross-sum；reported 与 estimated usage source 保持分离。Structural coverage 仅在 identical dimension、scope、tool、format 与 report 下聚合；line、branch 与 function pair 绝不合并为 score。Accepted history 绝不重写，aggregation 绝不 fabricate 任何 accepted fact 未报告的值。
+Compatible fact 仅在 identical coordinate 下聚合：semantic/family version、measurement kind、unit-or-currency、source、source identity 与 completeness。Delivery elapsed time 保持每个 Delivery 一个 direct contribution，且仅按 evaluation-declared cohort 分组；reached-stage fact 保持 exact Workflow stage identity。Model-role measure 只分组 complete identical provider/canonical-model/version-local-Role/Runtime coordinate，同时保留每个 Span identity 作为 contributing activity。Incompatible group 保持分离；premium request 与其他 provider-native unit 保持与 ordinary request 和 credit 不同；money 绝不 conversion 或 cross-sum；reported 与 estimated usage source 保持分离。Structural coverage 仅在 identical dimension、scope、tool、format 与 report 下聚合；line、branch 与 function pair 绝不合并为 score。Accepted history 绝不重写，aggregation 绝不 fabricate 任何 accepted fact 未报告的值。

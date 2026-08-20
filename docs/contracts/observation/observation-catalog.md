@@ -1,7 +1,7 @@
 <a id="observation-catalog"></a>
 # Observation Catalog
 
-> **DRAFT — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`; provenance remains in Git history. It owns the technology-neutral meaning of the Observation facts: fact classes, semantic owners, and the identity / applicability / completeness / unit / privacy / relationship / missingness semantics. It contains no wire-level representation (no machine field names, no carrier or type mapping, no concrete serialization). The exact machine mapping is owned by the [OTel Observation Profile](otel-observation-profile.md), cited by profile version `0.2.0`.
+> **DRAFT — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the technology-neutral meaning of the Observation facts: fact classes, semantic owners, and the identity / applicability / completeness / unit / privacy / relationship / missingness semantics. It contains no wire-level representation (no machine field names, no carrier or type mapping, no concrete serialization). The exact machine mapping is owned by the [OTel Observation Profile](otel-observation-profile.md), cited by profile version `0.3.0`.
 
 <a id="observation-catalog-1"></a>
 ## 1. Metadata and Authority
@@ -11,9 +11,9 @@
 | Document identity | `observation.identity.001` |
 | Status | `DRAFT_NOT_PUBLISHED` |
 | Normative language | English |
-| Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`; provenance remains in Git history; the semantic meaning below is byte-for-meaning identical to the adopted proposal |
+| Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment for elapsed time, reached stage and model-to-Role attribution; provenance remains in Git history |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](otel-observation-profile.md), proposed version `0.2.0` |
+| Representation companion | [OTel Observation Profile](otel-observation-profile.md), proposed version `0.3.0` |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
@@ -28,7 +28,7 @@ Observation is the versioned, allow-listed, content-minimized factual record tha
 | Concern | Sole owner |
 | --- | --- |
 | Fact meaning, semantic owner, truth, privacy, fact lifecycle semantics | this document, delegating to the English Concept/Execution/Evidence Designs |
-| Exact machine mapping (names, carriers, closed value sets, complete shapes) | [OTel Observation Profile](otel-observation-profile.md), version `0.2.0` |
+| Exact machine mapping (names, carriers, closed value sets, complete shapes) | [OTel Observation Profile](otel-observation-profile.md), version `0.3.0` |
 | Transport flow, endpoints, partial success, retry, ambiguous commit | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Admission, projection, durable storage, query | [Evidence System Design](../../systems/evidence/evidence-system.md) |
 | Producer mapping, privacy/redaction, export isolation | [Execution System Design](../../systems/execution/project-execution-system.md) |
@@ -44,7 +44,7 @@ A **fact class** is a typed family of observation records with one stable meanin
 
 | # | Fact class | Meaning | Semantic owner |
 | ---: | --- | --- | --- |
-| 1 | Delivery Summary | one Delivery's terminal outcome and its business binding (delivery, task, workflow, implementation, runtime, manifest digest, family) | Runtime/Execution result owner for outcome; Execution/Workflow owners for binding identity |
+| 1 | Delivery Summary | one Delivery's terminal outcome and its business binding (delivery, task, workflow, implementation, runtime, manifest digest, family), with optional owner-reported elapsed time and furthest reached Workflow stage | Runtime/Execution result owner for outcome and elapsed time; Workflow owner for stage identity; Execution/Workflow owners for binding identity |
 | 2 | Review Finding | one bounded, non-empty, privacy-safe human-readable Finding assertion plus its source Review, Finding-specific scope, and exactly one typed affected target | source review lens; Workflow/Artifact/target owners supply coordinates |
 | 3 | Review Summary | one Review result: identity, lens, scope, reviewed Artifact, writer/reviewer invocations, and an optional observed review count | Workflow review owner |
 | 4 | Test Summary | implementation test pass/fail/skip counts and applicable duration for one test report | Implementation test owner; Artifact owner supplies report reference |
@@ -55,7 +55,7 @@ A **fact class** is a typed family of observation records with one stable meanin
 | 9 | Implementation Summary | one structural-coverage fact for a single dimension (line, branch, or function) and its report | structural coverage owner; Artifact owner supplies report reference |
 | 10 | System Design Summary | Fresh Reader result and deterministic verification result | Fresh Reader owner and deterministic verification owner |
 
-No fact class asserts design quality, reviewer effectiveness, ranking, recommendation, or causal inference. Observed activity (Role/Agent/model/tool calls and durations) is recorded as causal activity, not as a summary fact class; it carries no summary-derived causality.
+No fact class asserts design quality, reviewer effectiveness, ranking, recommendation, or causal inference. Observed activity (Role/Agent/model/tool calls and durations) is recorded as causal activity, not as a summary fact class; it carries no summary-derived causality. Model-role evaluation summarizes those activity facts; the wire never embeds a free-form or list-valued model summary.
 
 <a id="observation-catalog-4"></a>
 ## 4. Semantic Fields
@@ -74,6 +74,10 @@ A **semantic field** is a named attribute of a fact class, described here in tec
 | Workflow family | Delivery Summary, all family facts | classification | `implementation` or `system-design`; a fact belongs to one family |
 | Record identity | every fact record | identity | stable first-accepted record identity and dedup key |
 | Delivery outcome | Delivery Summary | status | closed terminal outcome category |
+| Delivery elapsed time | Delivery Summary | duration | owner-reported elapsed milliseconds from Delivery start to terminal outcome; nonnegative and unavailable when absent |
+| Delivery stage reached | Delivery Summary | classification | owner-reported furthest reached Workflow stage identity at terminal outcome; exact identity only, with no name parsing or inferred ordering |
+| Canonical model identity | recorded model-call activity | identity | provider-scoped canonical model identity supplied by the Runtime/provider owner; distinct from display names and request/response aliases |
+| Model-to-role attribution | recorded model-call activity | relationship | exact on-call tuple of canonical model identity, provider, version-local Role identity, Runtime identity, and Span identity; evaluation may summarize only recorded tuples |
 | Completeness state | summary and usage facts | completeness | closed completeness/applicability state |
 | Review identity | Review Finding, Review Summary | identity | review result identity |
 | Review lens | Review Finding, Review Summary | classification | closed review-lens category |
@@ -136,7 +140,7 @@ Each row is the technology-neutral profile of one fact class: what it means, how
 
 | Fact class | Identity | Applicability | Completeness | Unit | Privacy | Relationships | Missing meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Delivery Summary | distinct Delivery identity plus record identity | one record per Delivery; business binding coordinates required | summary state applies when completeness truth is asserted | outcome is a category; no numeric unit | classification and identity metadata only | Delivery→business binding; no causality from task grouping | a missing outcome or binding means no fact, never a default outcome |
+| Delivery Summary | distinct Delivery identity plus record identity | one record per Delivery; business binding coordinates required; elapsed time and reached stage are optional direct owner reports | summary state applies when completeness truth is asserted | outcome and stage are categories/identities; elapsed time is nonnegative milliseconds | classification, identity and bounded duration metadata only | Delivery→business binding and Delivery→reached-stage; no causality from task grouping | a missing outcome or binding means no fact; absent elapsed time or stage means unavailable, never zero or an inferred stage |
 | Review Finding | Finding assertion `(Finding identity, Finding scope)`; one typed target edge per record | exactly one affected target per record; multi-target repeats the complete assertion once per target | not applicable to the assertion itself | no numeric unit; Finding summary is bounded text | the Finding summary is the sole content scalar, privacy-safe; targets are identifiers only | Finding→source Review; Finding→affected target; Finding-specific scope node | a missing field rejects the record; it never yields a partial Finding |
 | Review Summary | Review identity plus record identity | ordinary or Recheck summary; a summary must carry lens, scope, Artifact and writer/reviewer invocations | `FINAL`, `LOWER_BOUND`, `NOT_APPLICABLE`, or `UNAVAILABLE` | observed count is a nonnegative integer; review total is a nonnegative integer | classification and identity metadata | Review→reviewed Artifact; writer/reviewer invocations→Roles | absent observed count means "no count fact", never zero |
 | Test Summary | record identity plus report Artifact reference | one record per applicable test report | completeness state applies | counts are nonnegative integers; duration is seconds | counts and duration only | Test Summary→report Artifact | missing duration means no duration fact |
@@ -173,7 +177,7 @@ Only an applicable final summary can prove a final zero or total. The four state
 
 ### Unit
 
-A quantity carries an exact, source-scoped unit. Usage quantities carry an exact unit (an ISO-4217 currency for money); token usage and native usage are distinct measurement families and never substitute for each other. Structural coverage carries a dimension and a covered/total pair. Compatible facts aggregate only under identical semantic version, kind, unit-or-currency, source, source identity, and completeness coordinates; no implicit conversion or cross-unit summation is permitted.
+A quantity carries an exact, source-scoped unit. Delivery elapsed time is an owner-reported nonnegative millisecond duration and never substitutes for an individual activity Span duration. Usage quantities carry an exact unit (an ISO-4217 currency for money); token usage and native usage are distinct measurement families and never substitute for each other. Structural coverage carries a dimension and a covered/total pair. Compatible facts aggregate only under identical semantic version, kind, unit-or-currency, source, source identity, and completeness coordinates; no implicit conversion or cross-unit summation is permitted.
 
 ### Privacy
 
@@ -181,7 +185,7 @@ The producer allow-list/redaction boundary and Admission both prohibit prompt an
 
 ### Missing meaning
 
-Missing is never zero, and absence is never reconstructed. An absent observed review count is "no count fact"; a present zero is a recorded zero. An absent usage or token quantity is unavailable, never zero. An absent lineage fact means lineage is unknown or not applicable, never a synthesized identity. An absent completeness claim means no claim, never an assumed final state. Consumers never reconstruct unavailable producer intent.
+Missing is never zero, and absence is never reconstructed. An absent observed review count is "no count fact"; a present zero is a recorded zero. An absent usage or token quantity is unavailable, never zero. An absent Delivery elapsed time or reached stage is unavailable, never zero or an inferred initial/terminal stage. An incomplete provider/model/Role/Runtime/Span attribution tuple is unavailable, never completed from aliases, ancestry or task grouping. An absent lineage fact means lineage is unknown or not applicable, never a synthesized identity. An absent completeness claim means no claim, never an assumed final state. Consumers never reconstruct unavailable producer intent.
 
 <a id="observation-catalog-7"></a>
 ## 7. Relationship Model
@@ -196,8 +200,10 @@ The objective review graph joins distinct Review, Finding, Artifact, Fix, Rechec
 - **Recheck → Review/Finding/Fix/iteration**: a Recheck references the prior Review being rechecked, the Finding addressed, the Fix under recheck (only when one is), and the iteration, in addition to its own invocations and Roles.
 - **Writer/reviewer/recheck invocation → Role**: each invocation references the version-local Role that performed it; the join goes through the lineage mapping, never through a display name or position.
 - **version-local Role → family lineage**: each known lineage maps one version-local Role to one family-scoped lineage identity.
+- **Delivery → reached stage**: a terminal Delivery Summary may carry the Workflow owner's exact furthest-reached stage identity; the consumer never orders or infers stages from names.
+- **model call → Role/Runtime**: a model-call activity may assert an exact provider/canonical-model/version-local-Role/Runtime/Span tuple; evaluation may group recorded tuples but never create an attribution from parentage or display names.
 
 <a id="observation-catalog-8"></a>
 ## 8. Compatibility and Aggregation
 
-Compatible facts aggregate only under identical coordinates: semantic/family version, measurement kind, unit-or-currency, source, source identity, and completeness. Incompatible groups remain separate; premium requests and other provider-native units remain distinct from ordinary requests and credits; money is never converted or cross-summed; reported and estimated usage sources remain separate. Structural coverage aggregates only under identical dimension, scope, tool, format, and report; line, branch, and function pairs never combine into a score. Accepted history is never rewritten, and aggregation never fabricates a value that no accepted fact reported.
+Compatible facts aggregate only under identical coordinates: semantic/family version, measurement kind, unit-or-currency, source, source identity, and completeness. Delivery elapsed time remains one direct contribution per Delivery and is grouped only by evaluation-declared cohorts; reached-stage facts remain exact Workflow stage identities. Model-role measures group only complete identical provider/canonical-model/version-local-Role/Runtime coordinates while retaining each Span identity as the contributing activity. Incompatible groups remain separate; premium requests and other provider-native units remain distinct from ordinary requests and credits; money is never converted or cross-summed; reported and estimated usage sources remain separate. Structural coverage aggregates only under identical dimension, scope, tool, format, and report; line, branch, and function pairs never combine into a score. Accepted history is never rewritten, and aggregation never fabricates a value that no accepted fact reported.

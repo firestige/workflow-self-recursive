@@ -1,7 +1,7 @@
 <a id="otel-observation-profile"></a>
 # OTel Observation Profile（中文翻译）
 
-> **DRAFT——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split；出处保留在 Git 历史中。它拥有 exact proposed OTel/OTLP wire mapping：pin、carrier、Resource、Scope、schema URL、standard GenAI mapping、closed EventName set、closed `agentops.*` registry、complete Review/Finding shape、C17/C27 oracle，以及 shape/identity/conflict rule。它不发布 machine schema、packaged registry、protobuf definition、fixture corpus、implementation 或 conformance claim，也不拥有任何 transport interaction flow 与 durable storage model。
+> **DRAFT——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 exact proposed OTel/OTLP wire mapping：pin、carrier、Resource、Scope、schema URL、standard GenAI mapping、closed EventName set、closed `agentops.*` registry、complete Review/Finding shape、C17/C27 oracle，以及 shape/identity/conflict rule。它不发布 machine schema、packaged registry、protobuf definition、fixture corpus、implementation 或 conformance claim，也不拥有任何 transport interaction flow 与 durable storage model。
 
 <a id="otel-profile-1"></a>
 ## 1. 元数据与权威性
@@ -11,8 +11,8 @@
 | 文档身份 | `observation.identity.002` |
 | 状态 | `DRAFT_NOT_PUBLISHED` |
 | 规范语言 | 英文 |
-| 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split；出处保留在 Git 历史中；下方 wire registry 与已采纳提案 byte-for-meaning 一致 |
-| Profile version | proposed `0.2.0`（已采纳提案，不是 release） |
+| 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 C55–C57 与 proposed profile `0.3.0` 的 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中 |
+| Profile version | proposed `0.3.0`（已采纳提案，不是 release） |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md)，以及 tech-neutral [Observation Catalog](observation-catalog.md) |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
@@ -27,7 +27,7 @@
 | 层次 | 本候选中的状态 | 已固定内容 | 当前可声称内容 |
 | --- | --- | --- | --- |
 | System semantic meaning 与 owner | 固定于 English Concept/Execution/Evidence Design 与 Observation Catalog | fact meaning、ownership、truth、privacy 与 lifecycle | promotion 后的 Design meaning |
-| Wire profile proposal | 已采纳的 normative-as-draft | exact pin、carrier、standard/custom split、十个 EventName、54 common + 10 Implementation + 6 System Design field、complete Review/Finding variant composition、relationship、placement、requiredness 与 exclusion | 只能把这些 exact proposal 引用为 `DRAFT_NOT_PUBLISHED` |
+| Wire profile proposal | 已采纳的 normative-as-draft | exact pin、carrier、standard/custom split、十个 EventName、57 common + 10 Implementation + 6 System Design field、complete Review/Finding variant composition、relationship、placement、requiredness 与 exclusion | 只能把这些 exact proposal 引用为 `DRAFT_NOT_PUBLISHED` |
 | Released physical Contract | 不存在 | 没有发布任何 physical content | 不得声称 schema、package 或 registry 已发布 |
 | Implementation conformance | 未证明 | 没有 implementation 获得认证 | executable validator 针对 released physical Contract 通过前不得声称 conformance |
 
@@ -60,8 +60,8 @@ Draft maturity 不是重新决定 selected mapping 的许可。反过来，valid
 | OTLP/protobuf | `v1.10.0` | official `.proto` decode 与 partial-success path |
 | Semantic conventions | `v1.41.1` | GenAI convention 仍为 Development；compatibility 限于这一 generation |
 | Schema URL | `https://opentelemetry.io/schemas/1.41.0` | exact tested scope schema URL |
-| Observation Profile | proposed version `0.2.0` | 已采纳 proposal，不是 release |
-| InstrumentationScope | name `io.agentops.dsh.observation`、version `0.2.0`、上述 schema URL | Trace 与 Log scope 都必须使用 |
+| Observation Profile | proposed version `0.3.0` | 已采纳 proposal，不是 release |
+| InstrumentationScope | name `io.agentops.dsh.observation`、version `0.3.0`、上述 schema URL | Trace 与 Log scope 都必须使用 |
 | Factual transport | 通过 official binary protobuf Trace/Log exporter 使用 OTLP/HTTP | stock DSH rc.6 OTLP/JSON 被禁用且不路由到 Evidence |
 | Sampling | Delivery-level head sampling；default probability `1` | sampled-out decision LogRecord 可携带 unsampled Trace context；不声称 durability/completeness |
 
@@ -76,7 +76,7 @@ Transport *flow* semantics——endpoint、per-batch partial success reporting�
 | --- | --- | --- |
 | Sampled Delivery | 一个 Trace；root Span name 以 `invoke_workflow` 开始；root kind `INTERNAL` | 一个 Delivery-to-Trace relationship；Delivery ID 绝不替代 Trace ID |
 | Workflow/Agent call | `gen_ai.operation.name=invoke_agent`；`gen_ai.agent.id`；conditional `gen_ai.agent.name` 与 `gen_ai.agent.version`；`INTERNAL` Span | invocation/Role Trace node；name 不建立 identity 或 lineage |
-| Model call | operation `chat` 或 `generate_content`；`gen_ai.provider.name`；`gen_ai.request.model`；conditional `gen_ai.response.model`；`CLIENT` Span | model Trace node；无 input/output content |
+| Model call | operation `chat` 或 `generate_content`；`gen_ai.provider.name`；`gen_ai.request.model`；conditional `gen_ai.response.model`；native Span start/end duration；C57 canonical model identity；断言 model-to-Role attribution 时带 C30；`CLIENT` Span | model Trace node 与 direct host-reported operational latency；断言时使用 exact provider/model/Role/Runtime attribution；无 input/output content，也无 free-form/list summary |
 | Tool call | `gen_ai.operation.name=execute_tool`；`gen_ai.tool.name`、`gen_ai.tool.type`、`gen_ai.tool.call.id`；`INTERNAL` Span | tool Trace node；无 argument 或 result |
 | Causality | parent Span ID 与 Span link | 仅 recorded causality；grouping 不创建 inferred edge |
 | Technical failure | Span Status 加可用时的 safe low-cardinality `error.type` | 仅 technical state；绝不是 Delivery outcome |
@@ -111,11 +111,11 @@ Proposed profile 恰好有这十个 EventName：
 <a id="otel-profile-7"></a>
 ## 7. Exact Closed `agentops.*` Draft Registries
 
-已采纳提案使用一个 closed common registry 加两个分别 closed 的 family registry。机械 identity 是 **54 common + 10 Implementation + 6 System Design = 70 total unique name**。一个 field name 恰好出现在一个 registry 中；conforming family profile 接纳 common registry 加其自身 family registry，并拒绝另一 family registry。`Source` 标识提供 scalar 的 semantic owner；Delivery Observation 仅映射它。`Privacy` 是 profile classification。此处所有 string 都在逻辑上 bounded；physical character set、maximum length 与 cardinality budget 仍是 publication work。`HC`、`LC` 与 `BC` 分别表示 high-、low- 与 bounded-cardinality class。
+已采纳提案使用一个 closed common registry 加两个分别 closed 的 family registry。机械 identity 是 **57 common + 10 Implementation + 6 System Design = 73 total unique name**。一个 field name 恰好出现在一个 registry 中；conforming family profile 接纳 common registry 加其自身 family registry，并拒绝另一 family registry。`Source` 标识提供 scalar 的 semantic owner；Delivery Observation 仅映射它。`Privacy` 是 profile classification。此处所有 string 都在逻辑上 bounded；physical character set、maximum length 与 cardinality budget 仍是 publication work。`HC`、`LC` 与 `BC` 分别表示 high-、low- 与 bounded-cardinality class。
 
 这些 field 所携带 fact 的 tech-neutral meaning、identity、applicability、completeness、unit、privacy、relationship 与 missingness semantics 由 [Observation Catalog](observation-catalog.md#observation-catalog-4) 拥有。本 profile 只拥有每个 field 的 exact wire mapping。
 
-### 7.1 Closed common registry — 54 个字段
+### 7.1 Closed common registry — 57 个字段
 
 | # | Exact field | Carrier / applicability | OTel type | Requiredness | Cardinality / closed values | Source | Privacy | Evidence landing |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -157,7 +157,7 @@ Proposed profile 恰好有这十个 EventName：
 | C36 | `agentops.writer.invocation.id` | review/artifact relation | string | conditional；assert writer relation 时 required | HC，nonempty invocation identity | Workflow invocation owner | metadata identity | explicit writer-invocation edge |
 | C37 | `agentops.reviewer.invocation.id` | review relation | string | review result 上 required | HC，nonempty invocation identity | Workflow invocation owner | metadata identity | explicit reviewer-invocation edge |
 | C38 | `agentops.recheck.invocation.id` | recheck relation | string | 与 C23 一起 required | HC，nonempty invocation identity | Workflow invocation owner | metadata identity | explicit recheck-invocation edge |
-| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT`（profile `0.2.0`） | Workflow control owner | factual classification | intervention contribution |
+| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT`（profile `0.3.0`） | Workflow control owner | factual classification | intervention contribution |
 | C40 | `agentops.observed.loop.count` | family summary | integer | applicable summary 报告 loop 时 required | BC nonnegative integer | Workflow owner | factual count | observed-loop contribution；绝非 quality inference |
 | C41 | `agentops.observed.intervention.count` | family summary | integer | applicable summary 报告 intervention 时 required | BC nonnegative integer | Workflow owner | factual count | observed-intervention contribution |
 | C42 | `agentops.usage.kind` | `usage` | string | required | LC enum `native_credit`、`request`、`premium_request`、`provider_native`、`money` | Runtime/provider usage owner | factual classification | native-usage compatibility key |
@@ -173,6 +173,9 @@ Proposed profile 恰好有这十个 EventName：
 | C52 | `agentops.finding.target.kind` | 每个 `review.finding` | string | required | LC enum `ARTIFACT`、`SECTION`、`COMPONENT`、`REQUIREMENT` | source review lens / target owner | classification metadata | typed Finding-to-target edge discriminator |
 | C53 | `agentops.finding.target.id` | 每个 `review.finding` | string | required | HC bounded nonempty owner-defined target identity；绝非 free text 或 parsed path | source review lens / target owner | metadata identity | affected target endpoint |
 | C54 | `agentops.finding.target.artifact.id` | `review.finding` affected target | string | `SECTION` 时 required；`ARTIFACT` 时 absent；`COMPONENT`/`REQUIREMENT` 只在 target 属于 Artifact 时 conditional | HC bounded nonempty containing Artifact identity | Artifact/target owner | metadata identity | scoped target 的 containing-Artifact endpoint；与 reviewed Artifact C28 不同 |
+| C55 | `agentops.delivery.elapsed_time_ms` | `delivery.summary` | double | conditional；仅当 Runtime/Execution result owner 报告 complete start-to-terminal elapsed measurement 时 present | BC nonnegative finite millisecond | Runtime/Execution result owner | factual duration | direct Delivery cycle-time contribution；absence 是 unavailable，绝不是 zero |
+| C56 | `agentops.delivery.stage.reached` | `delivery.summary` | string | conditional；仅当 Workflow owner 报告 terminal outcome 时 furthest reached stage 时 present | BC bounded nonempty exact Workflow stage identity；不解析 display name 或推断 order | Workflow owner | metadata identity | direct Delivery-to-reached-stage fact；absence 是 unavailable |
+| C57 | `agentops.model.id` | model-call Span | string | 断言 canonical model-to-Role attribution 时 required；同一 Span 上此时也要求 C30 | BC bounded nonempty provider-scoped canonical model identity；不得从 request/response alias 或 display name 推断 | Runtime/provider model owner | metadata identity | `(provider,C57,C30,C06,trace_id,span_id)` attribution tuple 中的 exact model coordinate |
 
 ### 7.2 Closed `implementation@1` registry — 10 个字段
 
@@ -327,13 +330,13 @@ C31 仍为 `PROPOSED_VALIDATED_BY_SPIKE`：concept.fixture.002 重建 actual rc.
 | Recheck on Finding 与 iteration | `review.finding` | §7.4 的 complete Recheck-on-Finding shape | source review lens 与 Workflow iteration owner | Recheck graph 加 exact Finding target context |
 | Recheck summary | `review.summary` | §7.4 的 complete Recheck-summary shape | source review lens 与 Workflow iteration owner | Review-level Recheck summary；per-Finding edge 保持分离 |
 | version-local Role 与 owner-known family lineage | relationship Event 加 `role.lineage` | Role activity 上 C30；每个 known/applicable lineage Event 上 C30+C31；asserted parent relation 时 C32 | Workflow Contract owner | local Role coordinate 加独立 immutable local→lineage mapping |
-| observed Role/Agent/model/tool call 与 duration | standard Span path | native `(trace_id, span_id)`、parent/link、applicable `gen_ai.*`、Role 适用时 C30 | Runtime/Workflow activity owner | Trace node/edge/duration；无 summary-derived causality |
+| observed Role/Agent/model/tool call 与 duration | standard Span path | native `(trace_id,span_id)`、parent/link、applicable `gen_ai.*`；断言 canonical model-to-Role attribution 时使用 C57+C30；Runtime C06 来自 sampled Delivery binding | Runtime/provider/Workflow activity owner | Trace node/edge/duration 与 exact provider/model/Role/Runtime attribution；无 summary-derived causality |
 | observed loops 与 interventions | family summary 加 `intervention` | C09、C11、C39–C41、C49=`implementation@1`（applicable 时） | Workflow control owner | 仅 observed factual contribution；无 quality/effectiveness inference |
-| Delivery outcome 与 native usage | `delivery.summary` 与 `usage` | C09–C11/C49 加 C42–C46；断言 completeness 时 `usage` 上的 C11 | Runtime/Execution result owner 与 Runtime/provider usage owner | Delivery fact 与 exact source-scoped usage group |
+| Delivery outcome、elapsed time、reached stage 与 native usage | `delivery.summary` 与 `usage` | C09–C11/C49；`delivery.summary` 上 conditional C55/C56；C42–C46，加断言 completeness 时 `usage` 上的 C11 | Runtime/Execution result、Workflow stage 与 Runtime/provider usage owner | 带 direct duration/stage contribution 的 Delivery terminal fact 与 exact source-scoped usage group |
 | System Design Review/Finding/Fix/Recheck/Role graph | 相同 complete base/variant、`role.lineage`、standard Span path | 相同 common shape 配 C49=`system-design@1` | System Design Workflow owner 与 source review lens | 相同 typed graph/content/target/activity landing；无 sibling Implementation field |
 | Fresh Reader result 与 Findings | `review.summary` 加零或多个 complete `review.finding` variant | `REVIEW_SUMMARY_BASE`+S01+S02；每个 Finding/Fix/Recheck 使用其 complete §7.4 shape 配 C49=`system-design@1` | Fresh Reader owner；source Fresh Reader recheck 拥有 disposition | Fresh Reader summary 加 exact human-readable Finding/source/target/recheck graph |
 | deterministic verification result 与 checks | `system_design.summary` | C09、C11、C28+C29、C49=`system-design@1`、S03–S06 | deterministic verification owner；Artifact owner 提供 report identity/digest | 带 result、passed/failed check 与 immutable report reference 的 verification-run fact |
-| System Design Delivery outcome、native usage、observed activity 与 family summary | `delivery.summary`、`usage`、standard Span 与 `system_design.summary` | 相同 applicable C09–C11、C30、C40–C46、C49=`system-design@1` group | Runtime/Workflow/activity/usage owner | System Design family coordinate 下的 exact factual contribution |
+| System Design Delivery outcome、elapsed time、reached stage、native usage、observed activity 与 family summary | `delivery.summary`、`usage`、standard Span 与 `system_design.summary` | 相同 applicable C09–C11、C30、C40–C49、C55–C57、C49=`system-design@1` group | Runtime/Workflow/activity/usage owner | System Design family coordinate 下的 exact factual contribution |
 
 ### 7.6 正向与负向组合示例
 
@@ -351,6 +354,8 @@ C31 仍为 `PROPOSED_VALIDATED_BY_SPIKE`：concept.fixture.002 重建 actual rc.
 | C17/C27 Recheck summary | 每个 record 携带 C27，并使用 C17=`0`、C17=`3` 或 C17 absent | 全部 accept；分别 landing Recheck 加 count `0`、count `3` 或无 observed-count contribution |
 | C17/C27 Finding family | ordinary Finding 与 Fix 省略两者；Recheck-on-Finding 省略 C17 并携带 C27 | 每个 exact shape 都 accept |
 | exact summary retries | 以 identical C09/digest 重复每个 valid ordinary/Recheck C17 form | complete no-op；无 duplicate Review、Recheck 或 observed-count contribution |
+| Delivery elapsed/stage fact | 一个 terminal `delivery.summary` 携带 C55=`812.5` 与 C56=`review`；两个值均为 owner-reported | accept；为该 Delivery landing 一个 direct elapsed-time contribution 与一个 exact reached-stage identity |
+| canonical model-to-Role attribution | 一个 model-call Span 携带 standard provider/request model field 加 C57 与 C30，且位于带 C06 的 sampled Delivery root 下 | accept；landing 一个 exact `(provider,C57,C30,C06,trace_id,span_id)` attribution tuple；evaluation 可聚合该 tuple，但不得编造 summary body |
 
 | Negative case | Violation | Admission result |
 | --- | --- | --- |
@@ -367,6 +372,8 @@ C31 仍为 `PROPOSED_VALIDATED_BY_SPIKE`：concept.fixture.002 重建 actual rc.
 | empty/unbounded Finding content | C50 empty、超过 physical bounded maximum，或 producer 标为 unbounded | 拒绝；绝不 truncate 或把 content 移到 body |
 | prohibited content | C50 包含 Prompt/message/source/diff/tool/credential/raw-error body material | producer 必须 redact 或省略 Observation；Admission 拒绝检测到的 violation；execution 不受影响 |
 | unknown relation/scope type | C52 不在其四成员 enum 内，或 target 由 parsing C14/text 编码 | 拒绝；无 fallback/extension map |
+| invalid Delivery A-class field | C55 为 negative/non-finite、C56 为 empty/unbounded，或任一 value 编码在 Event body/map 中 | 拒绝整个 `delivery.summary`；无 elapsed/stage contribution 或 partial Delivery landing |
+| incomplete model attribution | C57 present 但无 C30、缺少 standard provider identity，或从 display/request/response alias 推断 | 拒绝 custom attribution；不从 partial 或 inferred coordinate 投影 model-role tuple |
 
 <a id="otel-profile-8"></a>
 ## 8. Usage、Completeness、Sampling 与 Truth
@@ -375,7 +382,9 @@ Standard GenAI token field 与 custom native `usage` Event 是不同 measurement
 
 四个 completeness value 是 closed C11 vocabulary：`FINAL` 证明 applicable final total，并允许 explicitly reported zero；`LOWER_BOUND` 表示观察到 detail，但没有 complete applicable summary；`NOT_APPLICABLE` 表示 family/metric 不存在 value；`UNAVAILABLE` 表示 sampling、loss 或 missing summary 阻止 claim。Missing cost、token、count 或 activity 始终 unavailable，绝不是 zero。Completeness 与 missingness 的 tech-neutral meaning 由 [Observation Catalog](observation-catalog.md#observation-catalog-6) 拥有。
 
-下方五个示例共享 Scope profile `0.2.0`、C49=`implementation@1`、C11=`FINAL` 与 distinct stable C09 Event ID；这些 coordinate 是每个 logical record 的一部分，尽管表格聚焦 usage-specific field。
+C55 与 C56 是 terminal Delivery Summary 上相互独立的 optional direct fact。C55 absent 表示 elapsed time unavailable，而不是 zero；C56 absent 表示 reached stage unavailable，而不是 initial stage。C57 是 activity coordinate，不是 Delivery summary：缺少 complete standard-provider+C57+C30+C06+Span tuple 时，model-to-Role attribution 为 unavailable，且不得从 name、parentage 或 free-form/list summary 重建。
+
+下方五个示例共享 Scope profile `0.3.0`、C49=`implementation@1`、C11=`FINAL` 与 distinct stable C09 Event ID；这些 coordinate 是每个 logical record 的一部分，尽管表格聚焦 usage-specific field。
 
 | Example | Exact logical fields | Compatible grouping result |
 | --- | --- | --- |
@@ -406,7 +415,7 @@ Producer allow-list/redaction boundary 与 Admission 都禁止：
 - score、grade、ranking、recommendation 与 inferred causality；以及
 - replay、recompute 或 correction authority，以及把 Span Status 用作 Delivery outcome。
 
-C50 是唯一 human-readable Finding scalar。它是由 source review lens 撰写的 bounded nonempty paraphrase，不是 copied body。它可以用 privacy-safe 术语陈述 factual issue 与 impact，但不放宽上方任何禁止。Evidence 把 accepted scalar 作为 reported fact 原样存储并展示；不 generate、grade、summarize、reinterpret 或 infer。C51–C54 仅为 bounded identifier，不得携带 path、source text、requirement body 或 arbitrary label。
+C50 是唯一 human-readable Finding scalar。它是由 source review lens 撰写的 bounded nonempty paraphrase，不是 copied body。它可以用 privacy-safe 术语陈述 factual issue 与 impact，但不放宽上方任何禁止。Evidence 把 accepted scalar 作为 reported fact 原样存储并展示；不 generate、grade、summarize、reinterpret 或 infer。C51–C54 与 C56–C57 仅为 bounded identifier，不得携带 path、source text、requirement body、arbitrary label 或 model content；C55 仅为 bounded duration scalar。
 
 以下 fixture-only 或 unaccepted material 不在 registry 内：`agentops.phase.kind`、`agentops.duplicate.copy`、`agentops.invalid.reason`、`agentops.iteration`、`agentops.agent.outcome`、`agentops.workflow.stop_reason`、fixture `deployment.environment.name`、`workflow.log`、fixed fixture body text、`delivery.disposition` 与 `agentops.delivery.disposition`。任何 fixture occurrence 都不是 publication authority。
 
@@ -415,7 +424,7 @@ C50 是唯一 human-readable Finding scalar。它是由 source review lens 撰�
 <a id="otel-profile-10"></a>
 ## 10. Identity、Versioning 与 Compatibility
 
-Delivery、task、Workflow、implementation、Runtime、Manifest、Trace、Span、Event、Review、Finding、Finding scope、affected target/edge、Artifact、Fix、Recheck、Invocation、iteration、version-local Role 与 family-scoped Role-lineage identity 保持不同。Span identity 恰好是 `(trace_id, span_id)`；`span_id` 单独不全局充分，Trace ID 单独不标识 Span。Event identity 仍是 `agentops.event.id`。Review/Finding composition 与 relationship 遵循 §7.4 complete shape 与 typed edge，而非 entity-name reuse。`role.lineage` Event 仅在 owner 提供 known/applicable lineage 时发出；此时 C30 与 C31 都 required。Unknown/not-applicable lineage 不 emit lineage Event，也不 synthesize value。Name、display text、ordering 与 version 绝不建立 identity、scope、target 或 lineage。
+Delivery、task、Workflow、Workflow stage、implementation、Runtime、canonical model、Manifest、Trace、Span、Event、Review、Finding、Finding scope、affected target/edge、Artifact、Fix、Recheck、Invocation、iteration、version-local Role 与 family-scoped Role-lineage identity 保持不同。Span identity 恰好是 `(trace_id, span_id)`；`span_id` 单独不全局充分，Trace ID 单独不标识 Span。Event identity 仍是 `agentops.event.id`。Model-to-Role attribution 恰好是 `(provider,C57,C30,C06,trace_id,span_id)`，绝不从 name、alias、仅 ancestry 或 task grouping 推断。Review/Finding composition 与 relationship 遵循 §7.4 complete shape 与 typed edge，而非 entity-name reuse。`role.lineage` Event 仅在 owner 提供 known/applicable lineage 时发出；此时 C30 与 C31 都 required。Unknown/not-applicable lineage 不 emit lineage Event，也不 synthesize value。Name、display text、ordering 与 version 绝不建立 identity、scope、target 或 lineage。
 
 Manifest、lifecycle/result、Observation Profile、每个 Workflow-family schema 与 factual semantics 都 explicit versioned。不 rewrite accepted history。Compatibility 依据 exact profile/family/semantic coordinate 声明，绝不从 matching name 或 field spelling 推断。Transport-level version compatibility 与 compatibility failure handling 由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7) 拥有。
 
@@ -424,7 +433,7 @@ Manifest、lifecycle/result、Observation Profile、每个 Workflow-family schem
 
 本 profile 仅在以下条件满足时才可接受 affected review：
 
-- 其 exact pin、standard mapping、十个 EventName 与 54 common + 10 Implementation + 6 System Design registry name 通过 mechanical count 与 total-unique check（54 + 10 + 6 = 70 total unique name）；
+- 其 exact pin、standard mapping、十个 EventName 与 57 common + 10 Implementation + 6 System Design registry name 通过 mechanical count 与 total-unique check（57 + 10 + 6 = 73 total unique name）；
 - 每个 common/family registry row 恰好包含九个 Markdown column：row ID、field、carrier、type、requiredness、cardinality/value rule、source、privacy 与 Evidence landing；
 - fixture-only/prohibited field 不在 registry 中，且 `delivery.disposition` 仍在 wire profile 之外；
 - local/lineage pair rule 无歧义；并且
