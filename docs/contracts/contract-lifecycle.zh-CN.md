@@ -128,7 +128,7 @@ flowchart LR
 ## 8. 义务与下游 Gap
 
 - 发布 Contract 的机器表示是一个显式**义务**（`concept.obligation.001` 模式）：记录 owner、所需证据、return location 与 reopen condition。Contract 可以语义稳定（`REVIEW_CANDIDATE`）而机器表示义务仍开放。
-- 下游消费方按 Contract revision 跟踪 gap（`runner-EXT-003.x` 模式）。下游 gap 仅在所引用 revision 达到 `FROZEN` 且适用 conformance corpus 通过时关闭；通过弱化 Contract 来关闭 gap 是禁止的。
+- 下游消费方按 Contract revision 跟踪 gap（`runner.open-work.003.x` 模式）。下游 gap 仅在所引用 revision 达到 `FROZEN` 且适用 conformance corpus 通过时关闭；通过弱化 Contract 来关闭 gap 是禁止的。
 - 当下游 gap 的 reopen condition 满足时，gap 重新打开，所拥有的 Contract 回到相应状态。
 
 ## 9. 文档元数据模板

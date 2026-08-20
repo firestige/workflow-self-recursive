@@ -12,7 +12,7 @@
 - **一个状态机。** 每个 Contract 头部携带 `Lifecycle status`：`DRAFTING → REVIEW_CANDIDATE → FROZEN → DEPRECATED → SUPERSEDED`。只有 `FROZEN` 允许 physical-conformance 声明（§3–§5）。
 - **证据把关的转换。** 草案到发布需要语义 review、fresh reader、确定性验证、翻译 parity、机器表示发布与 publication binding（§4）。
 - **英文权威。** 语义文档以英文为权威；每个都有 `zh-CN` 非规范跟踪 companion，英文变更时整篇替换。
-- **显式义务。** 发布机器表示是受跟踪的义务（`concept.obligation.001` 模式）；下游消费方按精确 revision 跟踪 gap（`runner-EXT-003.x` 模式）（§8）。
+- **显式义务。** 发布机器表示是受跟踪的义务（`concept.obligation.001` 模式）；下游消费方按精确 revision 跟踪 gap（`runner.open-work.003.x` 模式）（§8）。
 
 ## 当前清单
 

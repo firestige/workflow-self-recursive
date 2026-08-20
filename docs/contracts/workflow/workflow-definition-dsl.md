@@ -300,7 +300,7 @@ The normative complete field set is the 8 JSON Schemas under `system-contracts/w
 
 ### 6.5 Recovery
 
-- Semantic recovery allows only (runner `runner-DRV-006`): known `continue`, known `restartFromSavepoint`, or explicit uncertainty entering `intervene` (durable Intervention); `fail` is for non-retryable failures.
+- Semantic recovery allows only (runner `runner.driver.006`): known `continue`, known `restartFromSavepoint`, or explicit uncertainty entering `intervene` (durable Intervention); `fail` is for non-retryable failures.
 - `noBlindReplay: true` is mandatory: blind replay is forbidden; checkpoint binding identities must be re-resolved before recovery, and mismatch fails closed.
 
 ### 6.6 Gate
@@ -444,7 +444,7 @@ The downstream must preserve upstream semantics and owns the authority to classi
 | Changing Action semantics, adding/removing/changing transitions/gates/terminals, changing reducer semantics, changing authority order or boundaries | **MAJOR (semantic change)** | requires a new Definition version + new Package major + new Snapshot; applies only to new Deliveries |
 | Adding a state field (with a default reducer) | compatible | — |
 | Removing a state field / changing reducer behavior | breaking | MAJOR |
-| Same identity, different content (digest mismatch) | forbidden | fail closed (runner `runner-DEC-002`, `concept.acceptance.012`) |
+| Same identity, different content (digest mismatch) | forbidden | fail closed (runner `runner.decision.002`, `concept.acceptance.012`) |
 | `latest`/bare-name selection | resolution-time only | resolved to `exactVersion` before the Manifest is created; alias movement affects only later Deliveries (agent-architecture §4 invariant 14) |
 
 ### 11.3 Conformance and versions
@@ -489,7 +489,7 @@ Any Runtime Profile claiming conformance must implement every capability the DSL
 | waits / checkpoints / terminal settlement | durable correlated resume, minimum checkpoint bindings (§9.2), checkpointed terminal proposal (existing runner scope) |
 | merge algorithm (R1–R3) and route resolution | recompute the frozen instruction bundle from the Snapshot; reject any mismatch |
 
-A capability a Definition declares but the Runtime cannot honor is a hard failure at admission/activation (fail closed), never a silent degradation. This list is the executable contract for the runner Host (`runner-IMP-002` / `runner-IMP-005`) and for the Host-consumption gap `runner-EXT-003.1`.
+A capability a Definition declares but the Runtime cannot honor is a hard failure at admission/activation (fail closed), never a silent degradation. This list is the executable contract for the runner Host (`runner.open-work.009` / `runner.open-work.012`) and for the Host-consumption gap `runner.open-work.003.1`.
 
 **Implementation ownership.** The first-party implementation of these capabilities is the runner (LangGraph Workflow Host): the DSL is compiled to LangGraph semantics and the Host owns scheduling, barrier/join, judgment dispatch, budget-evaluator invocation, and route resolution. DSH is the current host Adapter; its bundled workflow capability does not carry Workflow-orchestration semantics — it is precisely the capability runner replaces — so no host/Adapter-native workflow capability is part of this Contract.
 

@@ -128,7 +128,7 @@ The fast path changes the ordering of evidence, never the required set of gates.
 ## 8. Obligations and Downstream Gaps
 
 - Releasing a Contract's machine representation is an explicit **obligation** (the `concept.obligation.001` pattern): it records an owner, the required evidence, a return location, and a reopen condition. A Contract can be semantically stable (`REVIEW_CANDIDATE`) with its machine-representation obligation still open.
-- Downstream consumers track gaps against Contract revisions (the `runner-EXT-003.x` pattern). A downstream gap is closed only when the referenced revision reaches `FROZEN` and the applicable conformance corpus passes; closing a gap by weakening the Contract is forbidden.
+- Downstream consumers track gaps against Contract revisions (the `runner.open-work.003.x` pattern). A downstream gap is closed only when the referenced revision reaches `FROZEN` and the applicable conformance corpus passes; closing a gap by weakening the Contract is forbidden.
 - When a downstream gap's reopen condition is met, the gap reopens and the owning Contract returns to the appropriate state.
 
 ## 9. Document Metadata Template

@@ -299,7 +299,7 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 
 ### 6.5 Recovery
 
-- 语义恢复只允许三种（runner `runner-DRV-006`）：已知 `continue`、已知 `restartFromSavepoint`、或明确不确定性进入 `intervene`（durable Intervention）；`fail` 用于非重试失败。
+- 语义恢复只允许三种（runner `runner.driver.006`）：已知 `continue`、已知 `restartFromSavepoint`、或明确不确定性进入 `intervene`（durable Intervention）；`fail` 用于非重试失败。
 - `noBlindReplay: true` 强制：不允许盲目重放；恢复前必须重新解析 checkpoint 绑定身份，失配 fail closed。
 
 ### 6.6 Gate
@@ -443,7 +443,7 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 | 改变 Action 语义、增删/改变 transition/gate/terminal、改变 reducer 语义、改变 authority 顺序或边界 | **MAJOR（语义变更）** | 必须新 Definition 版本 + 新 Package major + 新 Snapshot；只用于新 Delivery |
 | state 新增字段（带默认 reducer） | 兼容 | — |
 | state 移除字段 / 改变 reducer 行为 | 破坏性 | MAJOR |
-| 同 identity 不同内容（digest 失配） | 禁止 | fail closed（runner `runner-DEC-002`、`concept.acceptance.012`） |
+| 同 identity 不同内容（digest 失配） | 禁止 | fail closed（runner `runner.decision.002`、`concept.acceptance.012`） |
 | `latest`/裸名选择 | 仅解析期 | 在 Manifest 创建前解析为 `exactVersion`；alias 移动只影响后续 Delivery（agent-architecture §4 不变量 14） |
 
 ### 11.3 Conformance 与版本
@@ -488,7 +488,7 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 | waits / checkpoints / terminal settlement | durable 关联 resume、最小 checkpoint 绑定（§9.2）、checkpointed terminal proposal（既有 runner 范围） |
 | 合并算法（R1–R3）与 route 解析 | 从 Snapshot 复算冻结指令束；任何失配拒绝 |
 
-Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是硬失败（fail closed），绝不静默降级。此清单是 runner Host（`runner-IMP-002` / `runner-IMP-005`）与 Host 消费 gap `runner-EXT-003.1` 的可执行契约。
+Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是硬失败（fail closed），绝不静默降级。此清单是 runner Host（`runner.open-work.009` / `runner.open-work.012`）与 Host 消费 gap `runner.open-work.003.1` 的可执行契约。
 
 **实现归属。** 这些能力的第一方实现是 runner（LangGraph Workflow Host）：DSL 编译为 LangGraph 语义，Host 拥有调度、barrier/join、判断分发、budget evaluator 调用与 route 解析。DSH 是当前宿主 Adapter；其自带 workflow 能力不承载 Workflow 编排语义——它正是 runner 要替换的能力——因此任何 Host/Adapter 原生的 workflow 能力都不是本 Contract 的一部分。
 
