@@ -115,6 +115,8 @@ The adopted proposal uses one closed common registry plus two separately closed 
 
 The tech-neutral meaning, identity, applicability, completeness, unit, privacy, relationship, and missingness semantics of the facts these fields carry are owned by the [Observation Catalog](observation-catalog.md#observation-catalog-4). This profile owns only the exact wire mapping of each field.
 
+Sections 7.1–7.4 are one shared producer/acceptor contract: Execution must emit only a complete permitted registry/shape composition, and Evidence Admission must validate that same composition before projection. Neither side may privately add, omit, reinterpret or repair a field, identity, relationship or conflict rule.
+
 ### 7.1 Closed common registry — 57 fields
 
 | # | Exact field | Carrier / applicability | OTel type | Requiredness | Cardinality / closed values | Source | Privacy | Evidence landing |
