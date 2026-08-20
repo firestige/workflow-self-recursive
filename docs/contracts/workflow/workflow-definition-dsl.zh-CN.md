@@ -234,7 +234,7 @@ Package 关注点拥有上述六条规范闭合规则、owned/referenced 资源�
 | --- | --- | --- |
 | `kind` / `schemaVersion` | 是 | `agentops.workflow-definition` / `agentops.workflow-dsl@X.Y.Z` |
 | `workflow.{id,name,version,purpose,contractVersion}` | 是 | Definition 独立版本身份（composition model §4.1） |
-| `state.fields[]` | 是 | 见 §4.2；`name` 模式 `^[a-z][a-z0-9_]*$` |
+| `state.fields[]` | 是 | 见 §4.2；`name` 模式 `^[a-z][A-Za-z0-9_]*$`（小写开头；camelCase 与 snake_case 均有效） |
 | `graph.start` | 是 | 必须是 node id |
 | `graph.nodes[]` | 是 | `id` + `action`（action 必须存在于 actions 文档）+ 可选 `checkpoint` |
 | `graph.edges[]` | 否 | `id/from/to` + 可选 `condition`；node 不得同时有静态出边与条件边 |
@@ -585,7 +585,7 @@ Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是�
 
 ## 14. 最小 Definition 示例
 
-完整示例位于 [`system-contracts/workflow-dsl/examples/minimal/`](../../../system-contracts/workflow-dsl/examples/minimal/)（`package.json` + 6 个文档 + 10 个 owned 资源文件），并为机械闭合校验提供输入（JSON、引用解析、词汇闭合、`allowedSuccessors` == 出边集、digest 匹配、无 LangGraph/Driver 物理字段）。它的物理 conformance 状态只能由 §12 要求的 schema/checker evidence 建立，不能由本文档预先声明。示例覆盖：
+完整示例位于 [`system-contracts/workflow-dsl/examples/minimal/`](../../../system-contracts/workflow-dsl/examples/minimal/)（`package.json` + 6 个文档 + 8 个 owned 资源文件），并为机械闭合校验提供输入（JSON Schema、引用解析、词汇闭合、`allowedSuccessors` == 出边集、digest 匹配、无 LangGraph/Driver 物理字段）。它的物理 conformance 状态只能由 §12 要求的 schema/checker evidence 建立，不能由本文档预先声明。示例覆盖：
 
 - **graph**：start → `node.intake` → `node.review`（并行双 lens）→ `node.aggregate`（条件边）→ `node.finalize` / `node.review`（re-review 环）/ `terminal:FAILED`；
 - **state + reducer**：`status`(overwrite)、`context`(merge)、`findings`(append)、`reviewIterations`(sum)、`aggregation`(overwrite)；
@@ -593,8 +593,8 @@ Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是�
 - **checkpoint**：`node.intake` 声明最小绑定集；
 - **Wait/recovery**：`wait.user-confirm`（user，resume=intake）、`wait.external-obligation`（external）；`recovery.default`(continue)、`recovery.review-restart`(restartFromSavepoint)、`recovery.intervene`；
 - **terminal**：`SUCCESS/FAILED/INCOMPLETE/CANCELLED`；
-- **Role route**：3 个 Role、5 条 route（含 blackbox/whitebox 两条隔离 route + parallel execution + aggregator join）；
-- **owned/referenced**：10 个 owned 资源（真实 digest）+ 5 个 referenced 资源（sourceLocator + 内容可比 identity）；
+- **Role route**：2 个 Role、4 条 route（含 blackbox/whitebox 两条隔离 route + parallel execution + aggregator join）；确定性 `action.finalize` 仍归 Runtime 且没有 Agent route；
+- **owned/referenced**：8 个 owned 资源（真实 digest）+ 6 个 referenced 资源（sourceLocator + 内容可比 identity，含 budget evaluator registration）；
 - **authority**：规范序 + fail-closed；handoffs 双向（上游 `handoff.verification` + 下游 `consume.design-obligation`）。
 
 示例中 `workflow.json` 的 graph 与 `actions.json` 的 `allowedSuccessors` 的逐项相等关系由 checker 验证 —— 这是 §6.2"successor 闭合"的机械证明。
