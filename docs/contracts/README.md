@@ -2,7 +2,7 @@
 
 English | [中文](README.zh-CN.md)
 
-`docs/contracts/` holds the semantic specification documents of every Agent Ops Ledger Contract. Each Contract is managed under one standard lifecycle defined in [Contract Lifecycle Management](contract-lifecycle.md); its normative machine representation (schemas, registries, fixtures, validators) lives in the `system-contracts/` submodule under the matching name.
+`docs/contracts/` holds the semantic specification documents of every workflow-self-recursive Contract. Each Contract is managed under one standard lifecycle defined in [Contract Lifecycle Management](contract-lifecycle.md); its normative machine representation (schemas, registries, fixtures, validators) lives in the `system-contracts/` submodule under the matching name.
 
 ## How Contracts are managed
 
@@ -10,7 +10,7 @@ English | [中文](README.zh-CN.md)
 - **One state machine.** Every Contract header carries a `Lifecycle status`: `DRAFTING → REVIEW_CANDIDATE → FROZEN → DEPRECATED → SUPERSEDED`. Only `FROZEN` admits physical-conformance claims (§3–§5).
 - **Evidence-gated transition.** Draft-to-published requires semantic review, fresh reader, deterministic verification, translation parity, machine-representation release, and a publication binding (§4).
 - **English authoritative.** Semantic documents are English-authoritative; each has a `zh-CN` non-normative tracking companion replaced wholesale on English change.
-- **Explicit obligations.** Releasing a machine representation is a tracked obligation (`EE-OBL-001` pattern); downstream consumers track gaps against exact revisions (`FPLG-EXT-003.x` pattern) (§8).
+- **Explicit obligations.** Releasing a machine representation is a tracked obligation (`EE-OBL-001` pattern); downstream consumers track gaps against exact revisions (`runner-EXT-003.x` pattern) (§8).
 
 ## Current register
 

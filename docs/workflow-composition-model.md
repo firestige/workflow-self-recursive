@@ -16,7 +16,7 @@
 
 ## 2. 核心结论
 
-在 Agent Ops Ledger 中，Workflow 不只是控制流。
+在 workflow-self-recursive 中，Workflow 不只是控制流。
 
 > Workflow 是配置组合的骨架；Agent、Prompt、Skill、模型、工具和 Driver binding 是依附于骨架、共同完成任务的血肉。
 

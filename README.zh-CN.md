@@ -1,14 +1,14 @@
-# Agent Ops Ledger
+# workflow-self-recursive
 
 [English](README.md) | 中文
 
-Agent Ops Ledger 是一个开源的 Agent 工作流架构：它通过小型、与宿主无关的执行边界运行工作流，并使每次运行都可检查。
+workflow-self-recursive 是一个开源的 Agent 工作流架构：它通过小型、与宿主无关的执行边界运行工作流，并使每次运行都可检查。
 
 它将每次交付（Delivery）绑定到 Workflow Package 的一个确定版本与摘要，保持运行时结果的权威性，并可通过 OpenTelemetry 记录最小必要范围的事实。初始设计以 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 作为首个运行时宿主；后续计划提供第一方 LangGraph 适配器。
 
 ## Developer preview
 
-Agent Ops Ledger 目前是以架构为先的开发者预览版，适用于个人或小团队的可信本地环境。本仓库当前发布设计、契约与组件边界，尚未提供可供最终用户运行的发行版。**后续会有破坏兼容性的变更。**
+workflow-self-recursive 目前是以架构为先的开发者预览版，适用于个人或小团队的可信本地环境。本仓库当前发布设计、契约与组件边界，尚未提供可供最终用户运行的发行版。**后续会有破坏兼容性的变更。**
 
 ## 架构
 

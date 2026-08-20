@@ -6,7 +6,7 @@
 
 ## 1. Purpose and Scope
 
-Every Contract in Agent Ops Ledger — Observation Catalog, OTel Observation Profile, Execution–Evidence Interaction Contract, Metric Catalog, Workflow Definition DSL, and future ones — follows one lifecycle so that:
+Every Contract in workflow-self-recursive — Observation Catalog, OTel Observation Profile, Execution–Evidence Interaction Contract, Metric Catalog, Workflow Definition DSL, and future ones — follows one lifecycle so that:
 
 - the state of every Contract is readable from its document header alone;
 - the transition from draft to published is gated by evidence, not by assertion;
@@ -81,7 +81,7 @@ All gates must pass; a failed gate returns the Contract to `DRAFTING` (if semant
 ### 4.2 Who runs the gates; transition authority
 
 - The **Contract author/owner** prepares the candidate and the gate evidence.
-- **Reviewers, fresh reader, and translation parity** (G1, G2, G4) are independent of the author; the author never self-assesses their own Contract (mirroring the FPLG prohibition of Profile self-assessment).
+- **Reviewers, fresh reader, and translation parity** (G1, G2, G4) are independent of the author; the author never self-assesses their own Contract (mirroring the runner prohibition of Profile self-assessment).
 - **Deterministic verification and publication binding** (G3, G5, G6) are mechanical steps that may be run by the author but must be reproducible by any verifier.
 - **Transition authority**: state transitions are approved by the **Contract owner** (the repository owner/team acting through the team-config authority; each Contract records its owner in its header or obligation register). The owner approves a transition based on the gate evidence; owner approval never substitutes for independent gate evidence. `DRAFTING → REVIEW_CANDIDATE` is an author self-declaration of semantic closure; `REVIEW_CANDIDATE → FROZEN` requires owner approval plus the independent evidence of G1–G6.
 
@@ -128,7 +128,7 @@ The fast path changes the ordering of evidence, never the required set of gates.
 ## 8. Obligations and Downstream Gaps
 
 - Releasing a Contract's machine representation is an explicit **obligation** (the `EE-OBL-001` pattern): it records an owner, the required evidence, a return location, and a reopen condition. A Contract can be semantically stable (`REVIEW_CANDIDATE`) with its machine-representation obligation still open.
-- Downstream consumers track gaps against Contract revisions (the `FPLG-EXT-003.x` pattern). A downstream gap is closed only when the referenced revision reaches `FROZEN` and the applicable conformance corpus passes; closing a gap by weakening the Contract is forbidden.
+- Downstream consumers track gaps against Contract revisions (the `runner-EXT-003.x` pattern). A downstream gap is closed only when the referenced revision reaches `FROZEN` and the applicable conformance corpus passes; closing a gap by weakening the Contract is forbidden.
 - When a downstream gap's reopen condition is met, the gap reopens and the owning Contract returns to the appropriate state.
 
 ## 9. Document Metadata Template

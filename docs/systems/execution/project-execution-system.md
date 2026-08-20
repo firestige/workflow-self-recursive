@@ -34,11 +34,11 @@
 
 Authority order is: confirmed user intent; normative Concept; current Execution semantics; Workflow composition model; the reviewed direction and feasibility evidence; the [Observation Catalog](../../contracts/observation/observation-catalog.md), [OTel Observation Profile](../../contracts/observation/otel-observation-profile.md), [Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md), and [Metric Catalog](../../contracts/evaluation/metric-catalog.md) only for their split draft companion scopes. The [Evidence System](../evidence/evidence-system.md) remains a peer owner. This document owns Execution Modules, Interfaces, Package-to-Delivery binding, custody/current-slot lifecycle, Runtime Adapter behavior, and outbound Observation behavior. It does not own Package publication policy, Evidence internals, Observation fact meaning, the payload registry, metric schema, or physical storage schema.
 
-The protected `system-design` and `implementation` Workflow Packages are initial verified distribution content and conformance fixtures, not redesign targets. Their existing semantics and organization remain unchanged. Existing FPLG profile/code is unchanged. No disposable workspace artifact is required to interpret this document; the identities above are provenance only.
+The protected `system-design` and `implementation` Workflow Packages are initial verified distribution content and conformance fixtures, not redesign targets. Their existing semantics and organization remain unchanged. Existing runner profile/code is unchanged. No disposable workspace artifact is required to interpret this document; the identities above are provenance only.
 <a id="ee-execution-2"></a>
 ## 2. Design Context
 
-Agent Ops Ledger runs valuable logical Workflows through a small host-neutral execution seam and optionally emits factual Observation. Execution is embedded per repository/workspace. DSH rc.6 is the first Runtime Adapter; DSH owns native Session and Workflow State and does not support resume. A later FPLG Adapter may retain richer pause/resume behavior privately without changing Core semantics.
+workflow-self-recursive runs valuable logical Workflows through a small host-neutral execution seam and optionally emits factual Observation. Execution is embedded per repository/workspace. DSH rc.6 is the first Runtime Adapter; DSH owns native Session and Workflow State and does not support resume. A later runner Adapter may retain richer pause/resume behavior privately without changing Core semantics.
 
 The first distribution contains the protected Implementation and System Design Workflow Packages. Contributors may publish other Packages conforming to the open Agent Ops Workflow composition model. GitHub is the first remote host, and the plugin may bundle the two initial Packages. GitHub and bundle are private Adapters at one Package Source seam.
 
@@ -72,7 +72,7 @@ A successful call first obtains `NEW` admission, resolves one exact local Packag
 
 In scope are generic Intake, exact/sticky-latest selectors, local hit, public GitHub miss/refresh, explicit bundle input, contributed conforming Packages, `MISSING/STAGING/READY` storage, ordinary format/required-resource/relationship/version/digest checks, DSH compatibility checks, immutable Manifest binding, existing current-slot recovery, DSH result validation, and unchanged Observation.
 
-Out of scope are Package ranking/fallback, ambient completion, authentication/authorization/RBAC, credentials for the public source, signing, hostile input isolation, injection defense, sandboxing, concurrent Package correctness, queueing/fairness, distributed locks, Package transaction/proof/hold protocols, automated eviction, production download/recovery guarantees, registry/marketplace, HA/failover, repository naming/layout, physical schema, another Runtime implementation, Evidence redesign, FPLG revision, and changes to the protected Packages.
+Out of scope are Package ranking/fallback, ambient completion, authentication/authorization/RBAC, credentials for the public source, signing, hostile input isolation, injection defense, sandboxing, concurrent Package correctness, queueing/fairness, distributed locks, Package transaction/proof/hold protocols, automated eviction, production download/recovery guarantees, registry/marketplace, HA/failover, repository naming/layout, physical schema, another Runtime implementation, Evidence redesign, runner revision, and changes to the protected Packages.
 
 Success means an implementer can build the path through the three existing Modules with simple state and typed results, without inventing another lifecycle before the Delivery Manifest.
 
@@ -120,7 +120,7 @@ flowchart LR
     Core -->|persist / run| M02
     M02 --> Runtime[private Runtime Adapter Interface]
     DSH[DSH Adapter and Session] --> Runtime
-    FPLG[Later FPLG Adapter] --> Runtime
+    runner[Later runner Adapter] --> Runtime
     M02 -. bounded facts after Manifest .-> M03[Delivery Observation]
     M01 -. exact bound facts .-> M03
     M03 -. best-effort OTLP .-> Evidence[Evidence Admission peer]
@@ -140,7 +140,7 @@ The result is a plain immutable value: `name`, `exactVersion`, `packageDigest`, 
 
 ### Runtime Interaction (`EE-EX-M02`), preserved and bounded
 
-M02 hides canonical worktree derivation, immediate exclusive admission, current-slot state, Manifest persistence, start uncertainty, Runtime invocation, inspection, recovery, final handling, authorized abandonment, and private FPLG lifecycle mapping. It remains the unique writer of custody/current-slot state and persister of the current Manifest. It does not interpret selectors, download Packages, or write Package Store state.
+M02 hides canonical worktree derivation, immediate exclusive admission, current-slot state, Manifest persistence, start uncertainty, Runtime invocation, inspection, recovery, final handling, authorized abandonment, and private runner lifecycle mapping. It remains the unique writer of custody/current-slot state and persister of the current Manifest. It does not interpret selectors, download Packages, or write Package Store state.
 
 The preview does not add a second pre-Manifest lifecycle. Before a Manifest exists, failure releases the ordinary in-process/OS-backed exclusive holder and returns. A process death releases that holder. If death occurs after the Manifest becomes visible, the existing occupied-slot recovery reads that Manifest on the next call. No `ARMED`/commit-unknown/reconciliation state is introduced.
 
@@ -160,7 +160,7 @@ For ordinary and Recheck summaries, owner input with a nonnegative observed coun
 
 - The **Package Source Interface** is real because GitHub and bundle are two Adapters. It accepts an exact or latest candidate request and returns candidate bytes plus ordinary version/digest metadata, or a typed not-found/fetch failure. It does not construct resolved values or Manifests.
 - The **Local Package Store** is private M01 state. Lookup exposes only `MISSING` or `READY`; `STAGING` is never addressable. The implementation may use a temporary directory and rename to publish a complete Package, but the System Design does not require a transaction manager or concurrent-writer protocol.
-- The **Runtime Adapter Interface** accepts a persisted exact Manifest binding. DSH and later FPLG differ privately; no native type crosses Core.
+- The **Runtime Adapter Interface** accepts a persisted exact Manifest binding. DSH and later runner differ privately; no native type crosses Core.
 
 Dependency direction is acyclic toward Core-owned meaning. Host does not orchestrate M01 internals; M02 never accesses Source/Store; source Adapters never construct Manifests; M01 does not depend on Evidence; DSH does not choose Package identity.
 
@@ -261,9 +261,9 @@ If M01 cannot construct a complete Manifest, Core releases the exclusive holder 
 
 The DSH Adapter validates that the persisted Manifest points to the exact local `READY` Package before native invocation. It does not scan ambient paths or replace resources. After invocation, existing `START_UNCERTAIN`, `START_FAILED`, `RESULT_UNRESOLVED`, terminal-result, final-handling, and exact authorized-abandonment rules remain. Disabled/refused/timed-out/tail-loss Observation changes no Runtime result or slot handling.
 
-### Later FPLG lifecycle
+### Later runner lifecycle
 
-FPLG satisfies the same Core-owned lifecycle meaning but may privately park resumable state, checkpoint, release physical custody, and reacquire valid custody. Those mechanics do not become DSH or public Core requirements, and this revision changes no FPLG profile/code.
+runner satisfies the same Core-owned lifecycle meaning but may privately park resumable state, checkpoint, release physical custody, and reacquire valid custody. Those mechanics do not become DSH or public Core requirements, and this revision changes no runner profile/code.
 
 <a id="ee-execution-8"></a>
 ## 8. Data, State, Identity, and Ownership
@@ -401,7 +401,7 @@ Concurrency scalability, adversarial security, authentication/authorization, pro
 | local Store residue/disk growth | temporary or old Packages consume disk | best-effort staging cleanup and manual cache removal; no automatic eviction | measured use requires managed retention/eviction |
 | DSH compatibility check is incomplete | failure could occur at activation | validate all declared required resources before effect; preserve honest Runtime errors | production Packages require new capability semantics |
 | trusted-preview context changes | current validation becomes insufficient | explicit scope and reopen triggers | untrusted source/operator, remote shared service, credentials, hostile tenant, or stronger DSH security boundary |
-| Observation/FPLG regression | unrelated authority could be disturbed | preserve M03 and Adapter-private FPLG semantics byte-for-meaning | control coupling, public resume, or FPLG code change |
+| Observation/runner regression | unrelated authority could be disturbed | preserve M03 and Adapter-private runner semantics byte-for-meaning | control coupling, public resume, or runner code change |
 
 <a id="ee-execution-13"></a>
 ## 13. Acceptance and Verification
@@ -445,7 +445,7 @@ Tests cross the M01, M02, and Runtime Adapter Interfaces and assert observable r
 | Count presence semantics | C17 zero/positive/omission remain distinct; invalid values and Finding carriers cannot land malformed count state | ordinary/Recheck zero/positive/absence and negative fixtures |
 | Role lineage and usage | local/lineage pair remains distinct; provider-native quantities remain exact kind/unit/source groups | lineage duplicate/conflict/privacy and usage compatibility fixtures |
 | Span/Event identity | Event ID and `(trace_id, span_id)` retain exact dedup/conflict meaning | new/identical/conflicting identity fixtures |
-| Later FPLG | private resume remains available without public resume/native leakage | contrasting DSH/FPLG lifecycle/type fixture |
+| Later runner | private resume remains available without public resume/native leakage | contrasting DSH/runner lifecycle/type fixture |
 
 <a id="ee-execution-14"></a>
 ## 14. Decisions, Downstream Work, and Rejected Alternatives
@@ -465,9 +465,9 @@ Tests cross the M01, M02, and Runtime Adapter Interfaces and assert observable r
 | `DEC-WI-09` | The preview adds no pre-Manifest lifecycle. Existing current-slot authority starts with persisted Manifest and preserves existing DSH uncertainty/recovery after that point. |
 | `DEC-WI-10` | No authentication, authorization, signing, injection defense, sandbox, concurrent Store protocol, distributed lock, HA, failover, or production recovery mechanism is designed until a stated trust/exposure/scale trigger changes. |
 
-Existing Execution decisions remain in force: three deep Modules; Runtime-owned Workflow outcome behind a Core-owned Adapter seam; one-current-slot lifecycle with no Execution history; standard-first allow-listed best-effort Observation; canonical worktree revalidation; conclusive handling of persisted Runtime uncertainty; and Observation Profile `0.2.0` semantics. This revision changes none of M03, Evidence, or FPLG semantics.
+Existing Execution decisions remain in force: three deep Modules; Runtime-owned Workflow outcome behind a Core-owned Adapter seam; one-current-slot lifecycle with no Execution history; standard-first allow-listed best-effort Observation; canonical worktree revalidation; conclusive handling of persisted Runtime uncertainty; and Observation Profile `0.2.0` semantics. This revision changes none of M03, Evidence, or runner semantics.
 
-Rejected for this preview: Host-owned Package import; Package import inside M02/DSH; a fourth Module; first-party Package allow-list; mutable alias in Manifest; automatic GitHub-to-bundle fallback; source/version fallback; ambient completion; opaque Prepared Binding; proof/capability identity; Package hold/reference-count/liveness transfer; commit-resolution state machine; concurrent cache correctness; automated eviction; authentication/authorization/security platform; registry/marketplace; HA/failover; DSH-native Core types; FPLG change.
+Rejected for this preview: Host-owned Package import; Package import inside M02/DSH; a fourth Module; first-party Package allow-list; mutable alias in Manifest; automatic GitHub-to-bundle fallback; source/version fallback; ambient completion; opaque Prepared Binding; proof/capability identity; Package hold/reference-count/liveness transfer; commit-resolution state machine; concurrent cache correctness; automated eviction; authentication/authorization/security platform; registry/marketplace; HA/failover; DSH-native Core types; runner change.
 
 ### Non-owning local view of Concept-owned downstream obligations
 
@@ -476,7 +476,7 @@ The Concept obligation register remains the owner-complete authority. The Execut
 | Obligation | Execution meaning | Return trigger |
 | --- | --- | --- |
 | `EE-OBL-010` | represent exact resolved Package/Manifest fields and typed errors without adding proof/transaction semantics | physical form enables re-resolution, ambient completion, native leakage, or pre-Delivery outcome |
-| `EE-OBL-011` | implement Core/M01/M02/M03 collaboration and named early-return branches | bypass, drift, wait/queue, new lifecycle/Module, Observation control, or FPLG change |
+| `EE-OBL-011` | implement Core/M01/M02/M03 collaboration and named early-return branches | bypass, drift, wait/queue, new lifecycle/Module, Observation control, or runner change |
 | `EE-OBL-012` | choose/publish the public repository Release asset and explicit bundle descriptors | mutable/ambiguous/incomplete asset, allow-list, rewrite, bypass, or fallback |
 | `EE-OBL-013` | implement `MISSING/STAGING/READY` Store and sticky alias-after-ready | partial hit, prior-ready loss, or a real requirement for concurrent writers/eviction |
 | `EE-OBL-014` | qualify complete protected/contributed Package projection through DSH without ambient completion | rewrite, post-effect rejection, missing capability, or native leak |
@@ -496,7 +496,7 @@ Recommended detailed-design order is:
 
 Module Detailed Design must explain executable control and data flow, not restate these decisions as a checklist. The M01 Interface is the primary import test surface; Source/Store test Adapters remain private. Implementation should prefer a temporary staging directory plus complete publish/rename, simple typed results, and ordinary cleanup. It must not add caller choreography, a Prepared handle, proof store, reference count, transaction manager, background reconciler, concurrent-writer schedule, credential flow, security scanner, automatic eviction, fallback, or ambient Package lookup.
 
-Return for a new System Design version only if evidence requires a new Module or semantic writer, Package rewrite, mutable active binding, source/version fallback, concurrent/shared Store correctness, automated eviction, authentication/authorization, hostile-source isolation, remote multi-user operation, HA/failover, changed current-slot semantics, public native type, Observation control dependency, or FPLG change.
+Return for a new System Design version only if evidence requires a new Module or semantic writer, Package rewrite, mutable active binding, source/version fallback, concurrent/shared Store correctness, automated eviction, authentication/authorization, hostile-source isolation, remote multi-user operation, HA/failover, changed current-slot semantics, public native type, Observation control dependency, or runner change.
 
 ### Document completion check
 
@@ -506,7 +506,7 @@ Return for a new System Design version only if evidence requires a new Module or
 - [x] `ResolvedWorkflowPackage` and `MISSING/STAGING/READY` replace the former proof/Prepared-hold/transaction machinery.
 - [x] M02 admission precedes Package work; only `NEW` prepares; preparation precedes Delivery creation; Manifest persistence precedes DSH effect; pre-Delivery failure creates no Delivery outcome or Observation.
 - [x] Exact/local-first/sticky-latest/no-fallback/no-ambient/open-contribution/DSH-first semantics remain.
-- [x] Existing current-slot recovery, M03 Observation, Evidence relationship, protected Packages, and FPLG semantics remain unchanged.
+- [x] Existing current-slot recovery, M03 Observation, Evidence relationship, protected Packages, and runner semantics remain unchanged.
 - [x] Acceptance is Interface-oriented and does not demand Spike, production security, concurrency schedule, transaction, response-loss, power-loss, eviction, or HA evidence.
 
 Publication remains governed by the external exact-byte publication record and the Concept-owned obligation register. These candidate bytes contain no Workflow routing authority.

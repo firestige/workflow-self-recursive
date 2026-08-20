@@ -17,9 +17,9 @@
 | This Contract does not define | Definition→Implementation compilation/execution, builder/authoring tools, physical directory names, LangGraph/Driver native APIs, Runtime-private state formats |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links stay paired with the companion [`workflow-definition-dsl.zh-CN.md`](workflow-definition-dsl.zh-CN.md) |
 
-**Explicitly not in scope** (consistent with FPLG §41):
+**Explicitly not in scope** (consistent with runner §41):
 
-1. No compilation/execution of "Definition → LangGraph `StateGraph`" — that is FPLG/Execution-layer work.
+1. No compilation/execution of "Definition → LangGraph `StateGraph`" — that is runner/Execution-layer work.
 2. No builder / simple-configuration authoring tool — the MVP starts directly from the machine-readable Definition.
 3. No reinvention of graph concepts — the DSL inherits the industry-standard graph primitives (node / edge / conditional edge / state schema / reducer / checkpoint / interrupt), aligned 1:1 with LangGraph semantics, without promoting its physical API identity.
 4. No pseudo-YAML — the meaning, allowed values, and constraints of every field are closed in this document and in the normative schemas (composition model §9/§230).
@@ -300,7 +300,7 @@ The normative complete field set is the 8 JSON Schemas under `system-contracts/w
 
 ### 6.5 Recovery
 
-- Semantic recovery allows only (FPLG `FPLG-DRV-006`): known `continue`, known `restartFromSavepoint`, or explicit uncertainty entering `intervene` (durable Intervention); `fail` is for non-retryable failures.
+- Semantic recovery allows only (runner `runner-DRV-006`): known `continue`, known `restartFromSavepoint`, or explicit uncertainty entering `intervene` (durable Intervention); `fail` is for non-retryable failures.
 - `noBlindReplay: true` is mandatory: blind replay is forbidden; checkpoint binding identities must be re-resolved before recovery, and mismatch fails closed.
 
 ### 6.6 Gate
@@ -444,7 +444,7 @@ The downstream must preserve upstream semantics and owns the authority to classi
 | Changing Action semantics, adding/removing/changing transitions/gates/terminals, changing reducer semantics, changing authority order or boundaries | **MAJOR (semantic change)** | requires a new Definition version + new Package major + new Snapshot; applies only to new Deliveries |
 | Adding a state field (with a default reducer) | compatible | — |
 | Removing a state field / changing reducer behavior | breaking | MAJOR |
-| Same identity, different content (digest mismatch) | forbidden | fail closed (FPLG `FPLG-DEC-002`, `EE-AC-012`) |
+| Same identity, different content (digest mismatch) | forbidden | fail closed (runner `runner-DEC-002`, `EE-AC-012`) |
 | `latest`/bare-name selection | resolution-time only | resolved to `exactVersion` before the Manifest is created; alias movement affects only later Deliveries (agent-architecture §4 invariant 14) |
 
 ### 11.3 Conformance and versions
@@ -486,12 +486,12 @@ Any Runtime Profile claiming conformance must implement every capability the DSL
 | runtime-authority actions (`responsibleAuthority.kind: runtime`) | execute the declared deterministic validator directly — no Agent session, prompt, model, or route |
 | budgets (`budgets[]`) | invoke the `evaluator` script registration point (content-addressed) to obtain the budget conclusion; on `onExhaustion` enter the declared terminal/wait/recovery path; exhaustion never relaxes a Gate |
 | planner selectors (`selector.kind: planner`) | validate the structured selection proposal against `proposalSchema` and `allowedTargets` before advancing |
-| waits / checkpoints / terminal settlement | durable correlated resume, minimum checkpoint bindings (§9.2), checkpointed terminal proposal (existing FPLG scope) |
+| waits / checkpoints / terminal settlement | durable correlated resume, minimum checkpoint bindings (§9.2), checkpointed terminal proposal (existing runner scope) |
 | merge algorithm (R1–R3) and route resolution | recompute the frozen instruction bundle from the Snapshot; reject any mismatch |
 
-A capability a Definition declares but the Runtime cannot honor is a hard failure at admission/activation (fail closed), never a silent degradation. This list is the executable contract for the FPLG Host (`FPLG-IMP-002` / `FPLG-IMP-005`) and for the Host-consumption gap `FPLG-EXT-003.1`.
+A capability a Definition declares but the Runtime cannot honor is a hard failure at admission/activation (fail closed), never a silent degradation. This list is the executable contract for the runner Host (`runner-IMP-002` / `runner-IMP-005`) and for the Host-consumption gap `runner-EXT-003.1`.
 
-**Implementation ownership.** The first-party implementation of these capabilities is the FPLG (LangGraph Workflow Host): the DSL is compiled to LangGraph semantics and the Host owns scheduling, barrier/join, judgment dispatch, budget-evaluator invocation, and route resolution. DSH is the current host Adapter; its bundled workflow capability does not carry Workflow-orchestration semantics — it is precisely the capability FPLG replaces — so no host/Adapter-native workflow capability is part of this Contract.
+**Implementation ownership.** The first-party implementation of these capabilities is the runner (LangGraph Workflow Host): the DSL is compiled to LangGraph semantics and the Host owns scheduling, barrier/join, judgment dispatch, budget-evaluator invocation, and route resolution. DSH is the current host Adapter; its bundled workflow capability does not carry Workflow-orchestration semantics — it is precisely the capability runner replaces — so no host/Adapter-native workflow capability is part of this Contract.
 
 ## 13. §14 Q12: Runtime Replacement Does Not Change Definition/Package/Snapshot Semantics
 
@@ -592,6 +592,6 @@ Rules: **zero** physical tokens in Definition/Package/Snapshot; `schemaVersion` 
 
 | Limitation | Status |
 | --- | --- |
-| Parallel actions cannot express per-branch roles (single `responsibleAuthority`); SD-09's three lenses use a nominal role with per-lens enforcement via `validation.review` + branch routes | accepted: parallelism is action-level orchestration initiated by the Runtime (`execution.mode: parallel` is v1; first-party implementation is the FPLG/LangGraph Workflow Host — scheduling, barrier, join, branch isolation; no host/Adapter-native workflow capability enters the Contract); single-action multi-role expression is not done; **multi-action concurrency** (graph-level parallelism) is a candidate extension |
+| Parallel actions cannot express per-branch roles (single `responsibleAuthority`); SD-09's three lenses use a nominal role with per-lens enforcement via `validation.review` + branch routes | accepted: parallelism is action-level orchestration initiated by the Runtime (`execution.mode: parallel` is v1; first-party implementation is the runner/LangGraph Workflow Host — scheduling, barrier, join, branch isolation; no host/Adapter-native workflow capability enters the Contract); single-action multi-role expression is not done; **multi-action concurrency** (graph-level parallelism) is a candidate extension |
 | Dynamic branch-subset activation (e.g. SD-09 recheck of only invalidated lenses) | accepted as Runtime scheduling detail, not workflow semantics |
 | Wait resume targets are fixed (`wait.resumeAction`); a logical wait that routes by a recorded `resume_action` is expressed as one wait per trigger Action | semantically equivalent; no DSL change |

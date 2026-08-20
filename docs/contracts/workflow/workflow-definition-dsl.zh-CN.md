@@ -16,9 +16,9 @@
 | 本 Contract 回答 | §4.3 推迟的两件事：**最终字段**（§5 + `system-contracts/workflow-dsl/schemas/` 规范 schema）与**合并算法**（§7，authority/组合顺序的可验证规则） |
 | 本 Contract 不定义 | Definition→Implementation 编译/执行、builder/authoring 工具、物理目录名、LangGraph/Driver 原生 API、Runtime 私有状态格式 |
 
-**明确不做**（与 FPLG §41 一致）：
+**明确不做**（与 runner §41 一致）：
 
-1. 不实现"Definition → LangGraph `StateGraph`"的编译与执行 —— 那是 FPLG/Execution 层动作。
+1. 不实现"Definition → LangGraph `StateGraph`"的编译与执行 —— 那是 runner/Execution 层动作。
 2. 不做 builder / 简单配置 authoring 工具 —— MVP 直接从机器可读 Definition 开始。
 3. 不重新设计 graph 概念 —— 继承行业通用 graph 原语（node / edge / conditional edge / state schema / reducer / checkpoint / interrupt），语义与 LangGraph 1:1 对齐但不提升其物理 API 身份。
 4. 不写成"伪 YAML" —— 每个字段的含义、允许值、约束在本文件与规范 schema 中闭合（composition model §9/§230）。
@@ -299,7 +299,7 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 
 ### 6.5 Recovery
 
-- 语义恢复只允许三种（FPLG `FPLG-DRV-006`）：已知 `continue`、已知 `restartFromSavepoint`、或明确不确定性进入 `intervene`（durable Intervention）；`fail` 用于非重试失败。
+- 语义恢复只允许三种（runner `runner-DRV-006`）：已知 `continue`、已知 `restartFromSavepoint`、或明确不确定性进入 `intervene`（durable Intervention）；`fail` 用于非重试失败。
 - `noBlindReplay: true` 强制：不允许盲目重放；恢复前必须重新解析 checkpoint 绑定身份，失配 fail closed。
 
 ### 6.6 Gate
@@ -443,7 +443,7 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 | 改变 Action 语义、增删/改变 transition/gate/terminal、改变 reducer 语义、改变 authority 顺序或边界 | **MAJOR（语义变更）** | 必须新 Definition 版本 + 新 Package major + 新 Snapshot；只用于新 Delivery |
 | state 新增字段（带默认 reducer） | 兼容 | — |
 | state 移除字段 / 改变 reducer 行为 | 破坏性 | MAJOR |
-| 同 identity 不同内容（digest 失配） | 禁止 | fail closed（FPLG `FPLG-DEC-002`、`EE-AC-012`） |
+| 同 identity 不同内容（digest 失配） | 禁止 | fail closed（runner `runner-DEC-002`、`EE-AC-012`） |
 | `latest`/裸名选择 | 仅解析期 | 在 Manifest 创建前解析为 `exactVersion`；alias 移动只影响后续 Delivery（agent-architecture §4 不变量 14） |
 
 ### 11.3 Conformance 与版本
@@ -485,12 +485,12 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 | runtime-authority action（`responsibleAuthority.kind: runtime`） | 直接执行声明的确定性 validator——无 Agent 会话、prompt、model 或 route |
 | budgets（`budgets[]`） | 调用 `evaluator` 脚本注册点（content-addressed）获得预算结论；按 `onExhaustion` 进入声明的 terminal/wait/recovery 路径；耗尽永不放松 Gate |
 | planner selector（`selector.kind: planner`） | 推进前校验结构化 selection proposal 符合 `proposalSchema` 且在 `allowedTargets` 内 |
-| waits / checkpoints / terminal settlement | durable 关联 resume、最小 checkpoint 绑定（§9.2）、checkpointed terminal proposal（既有 FPLG 范围） |
+| waits / checkpoints / terminal settlement | durable 关联 resume、最小 checkpoint 绑定（§9.2）、checkpointed terminal proposal（既有 runner 范围） |
 | 合并算法（R1–R3）与 route 解析 | 从 Snapshot 复算冻结指令束；任何失配拒绝 |
 
-Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是硬失败（fail closed），绝不静默降级。此清单是 FPLG Host（`FPLG-IMP-002` / `FPLG-IMP-005`）与 Host 消费 gap `FPLG-EXT-003.1` 的可执行契约。
+Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是硬失败（fail closed），绝不静默降级。此清单是 runner Host（`runner-IMP-002` / `runner-IMP-005`）与 Host 消费 gap `runner-EXT-003.1` 的可执行契约。
 
-**实现归属。** 这些能力的第一方实现是 FPLG（LangGraph Workflow Host）：DSL 编译为 LangGraph 语义，Host 拥有调度、barrier/join、判断分发、budget evaluator 调用与 route 解析。DSH 是当前宿主 Adapter；其自带 workflow 能力不承载 Workflow 编排语义——它正是 FPLG 要替换的能力——因此任何 Host/Adapter 原生的 workflow 能力都不是本 Contract 的一部分。
+**实现归属。** 这些能力的第一方实现是 runner（LangGraph Workflow Host）：DSL 编译为 LangGraph 语义，Host 拥有调度、barrier/join、判断分发、budget evaluator 调用与 route 解析。DSH 是当前宿主 Adapter；其自带 workflow 能力不承载 Workflow 编排语义——它正是 runner 要替换的能力——因此任何 Host/Adapter 原生的 workflow 能力都不是本 Contract 的一部分。
 
 ## 13. §14 验收第 12 问：换 Runtime 不改变 Definition/Package/Snapshot 语义
 
@@ -591,6 +591,6 @@ Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是�
 
 | 限制 | 状态 |
 | --- | --- |
-| 并行 Action 无法表达 per-branch role（单一 `responsibleAuthority`）；SD-09 三 lens 用 nominal role + `validation.review`/branch routes 逐 lens 强制 | 接受：并行是 Runtime 发起的 action 层编排（`execution.mode: parallel` 是 v1；第一方实现是 FPLG/LangGraph Workflow Host——调度、barrier、join、分支隔离；任何 Host/Adapter 原生的 workflow 能力不得进入 Contract）；单 action 多 role 表达不做；**多 action 并发**（graph 级并行）是候选扩展 |
+| 并行 Action 无法表达 per-branch role（单一 `responsibleAuthority`）；SD-09 三 lens 用 nominal role + `validation.review`/branch routes 逐 lens 强制 | 接受：并行是 Runtime 发起的 action 层编排（`execution.mode: parallel` 是 v1；第一方实现是 runner/LangGraph Workflow Host——调度、barrier、join、分支隔离；任何 Host/Adapter 原生的 workflow 能力不得进入 Contract）；单 action 多 role 表达不做；**多 action 并发**（graph 级并行）是候选扩展 |
 | 动态分支子集激活（如 SD-09 复检只跑失效 lens） | 接受为 Runtime 调度细节，非 workflow 语义 |
 | Wait resume 目标固定（`wait.resumeAction`）；按"记录的 resume_action"路由的逻辑 wait 表达为每触发 Action 一个 wait | 语义等价；不改 DSL |

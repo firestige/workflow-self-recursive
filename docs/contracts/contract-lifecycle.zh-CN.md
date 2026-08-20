@@ -6,7 +6,7 @@
 
 ## 1. 目的与范围
 
-Agent Ops Ledger 中的每个 Contract —— Observation Catalog、OTel Observation Profile、Execution–Evidence Interaction Contract、Metric Catalog、Workflow Definition DSL 以及未来的 —— 都遵循同一生命周期，以保证：
+workflow-self-recursive 中的每个 Contract —— Observation Catalog、OTel Observation Profile、Execution–Evidence Interaction Contract、Metric Catalog、Workflow Definition DSL 以及未来的 —— 都遵循同一生命周期，以保证：
 
 - 每个 Contract 的状态仅凭文档头部即可读取；
 - 从草案到发布的转换由证据把关，而不是由声明把关；
@@ -81,7 +81,7 @@ flowchart LR
 ### 4.2 谁运行 gate；转换 authority
 
 - **Contract 作者/owner** 准备候选与 gate 证据。
-- **Reviewer、fresh reader 与翻译 parity**（G1、G2、G4）独立于作者；作者绝不自我评估自己的 Contract（沿用 FPLG 对 Profile self-assessment 的禁止）。
+- **Reviewer、fresh reader 与翻译 parity**（G1、G2、G4）独立于作者；作者绝不自我评估自己的 Contract（沿用 runner 对 Profile self-assessment 的禁止）。
 - **确定性验证与 publication binding**（G3、G5、G6）是机械步骤，可由作者运行，但任何验证者必须可复现。
 - **转换 authority**：状态转换由 **Contract owner**（repository owner/team，经 team-config authority；每个 Contract 在头部或 obligation register 记录其 owner）批准。owner 基于 gate 证据批准转换；owner 的批准绝不替代独立 gate 证据。`DRAFTING → REVIEW_CANDIDATE` 是作者对语义闭合的自声明；`REVIEW_CANDIDATE → FROZEN` 需要 owner 批准加上 G1–G6 的独立证据。
 
@@ -128,7 +128,7 @@ flowchart LR
 ## 8. 义务与下游 Gap
 
 - 发布 Contract 的机器表示是一个显式**义务**（`EE-OBL-001` 模式）：记录 owner、所需证据、return location 与 reopen condition。Contract 可以语义稳定（`REVIEW_CANDIDATE`）而机器表示义务仍开放。
-- 下游消费方按 Contract revision 跟踪 gap（`FPLG-EXT-003.x` 模式）。下游 gap 仅在所引用 revision 达到 `FROZEN` 且适用 conformance corpus 通过时关闭；通过弱化 Contract 来关闭 gap 是禁止的。
+- 下游消费方按 Contract revision 跟踪 gap（`runner-EXT-003.x` 模式）。下游 gap 仅在所引用 revision 达到 `FROZEN` 且适用 conformance corpus 通过时关闭；通过弱化 Contract 来关闭 gap 是禁止的。
 - 当下游 gap 的 reopen condition 满足时，gap 重新打开，所拥有的 Contract 回到相应状态。
 
 ## 9. 文档元数据模板

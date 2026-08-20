@@ -1,5 +1,5 @@
 <a id="ee-concept"></a>
-# Agent Ops Ledger：概念架构
+# workflow-self-recursive：概念架构
 
 <a id="ee-concept-1"></a>
 ## 1. 元数据与权威
@@ -8,7 +8,7 @@
 | --- | --- |
 | 文档身份 | `EE-CONCEPT-001` |
 | 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。这些已变更字节在精确发布前需要新的确定性 parity/publication binding 以及用户或 reader review |
-| 提升后的权威 | Agent Ops Ledger 唯一的无版本概念权威 |
+| 提升后的权威 | workflow-self-recursive 唯一的无版本概念权威 |
 | 规范语言 | 英文 |
 | 翻译 | [`agent-architecture.zh-CN.md`](agent-architecture.zh-CN.md) 是非规范跟踪翻译。英文是唯一语义权威。每当英文某一节变更，其中文对应章节都从当前英文重新翻译并整章替换；中文维护不保留、也不增量演进旧中文措辞。 |
 | 已确认意图 | `EE-BRIEF`，SHA-256 `52773b19a4ca112d0fb8699c14885b30d0b5fdc1c61b6747e426b568175a4ba9` |
@@ -32,7 +32,7 @@
 <a id="ee-concept-2"></a>
 ## 2. 产品目的与上下文
 
-Agent Ops Ledger 通过小型、host-neutral 的执行 seam 运行有价值的 agent Workflow，并使实际发生的事实可检查。首个版本是面向个人或小团队、部署在可信本地环境中的第一方自由/开源 preview。当前直接目标是 Implementation 与 System Design 两个逻辑 Workflow，首先由 DeepSeek Harness（DSH）承载。部署不接收恶意租户或不可信操作者，初始 GitHub Workflow 仓库是 public。
+workflow-self-recursive 通过小型、host-neutral 的执行 seam 运行有价值的 agent Workflow，并使实际发生的事实可检查。首个版本是面向个人或小团队、部署在可信本地环境中的第一方自由/开源 preview。当前直接目标是 Implementation 与 System Design 两个逻辑 Workflow，首先由 DeepSeek Harness（DSH）承载。部署不接收恶意租户或不可信操作者，初始 GitHub Workflow 仓库是 public。
 
 产品包含两个 System：
 
@@ -51,7 +51,7 @@ flowchart LR
     E --> P[("PostgreSQL")]
     P --> G["Grafana 事实趋势"]
     P --> A["Agent Decisions"]
-    F["后续 FPLG Adapter<br/>私有 lifecycle"] --> X
+    F["后续 runner Adapter<br/>私有 lifecycle"] --> X
 ```
 
 Execution 与 Evidence 不共享数据库。Evidence 从不读取 worktree、Runtime checkpoint 或隐藏的 Workflow state；Execution 从不读取 Evidence 来决定进度或 outcome。
@@ -102,7 +102,7 @@ GitHub 与 plugin bundle 是 private Adapter，不是产品 System 或另一条�
 9. **内容最小化。** Prompt、message、tool argument/result、source、credential 和 error body 不跨越 Observation seam。
 10. **人工检查只呈现事实。** Preview 不评分、不排名、不推荐、不推断因果，也不自动修改 Workflow 行为。
 11. **System 可独立使用。** Execution 不依赖 Evidence 也能工作；Evidence 接收任何 conforming producer，且不成为 Execution storage。
-12. **Native lifecycle 保持私有。** DSH Session state 与后续 FPLG pause/resume/checkpoint 细节留在 Runtime Adapter 后。
+12. **Native lifecycle 保持私有。** DSH Session state 与后续 runner pause/resume/checkpoint 细节留在 Runtime Adapter 后。
 13. **Local-first exact resolution。** 有效的本地 exact 或 sticky-latest hit 不发远程请求。Miss 只能使用 configured source；不允许 source/version fallback 或 ambient completion。
 14. **Binding 不漂移。** `latest` 或裸 name 在创建 Manifest 前解析成 `exactVersion`。后续 alias 或 Release 变化只影响后续 Delivery。
 15. **简单 Store 可见性。** `STAGING` 内容绝不是 cache hit。Initial-fill 失败回到 `MISSING`；refresh staging 是 private side state，在已校验 replacement 就绪之前仍保持原 `READY` Package 与 sticky alias 可见。Preview 不自动 eviction。
@@ -136,7 +136,7 @@ Preview 包含 generic Workflow selection、exact/sticky-latest local-first reso
 
 Preview 假设个人或小团队在可信本地环境部署，第一方 Workflow 托管在 public 仓库，且不要求 concurrent Package-management correctness。并发防御仅限既有的 one-current-Delivery exclusivity：无法获得时立即返回 `CONTENDED`。
 
-非目标包括 authentication、authorization、RBAC、public Package path 的 credentials、signing、supply-chain assurance、malicious-Package 或 prompt-injection defense、sandboxing、multi-user coordination、concurrent cache writers、fairness、waiting/queueing、distributed locking、Package transaction 或 proof protocol、automated eviction、mirror、retry orchestration、HA、automatic failover/upgrade、registry federation、marketplace、ranking、recommendation、grading、causal inference、remote multi-user deployment、Evidence control feedback、repository naming/layout、physical schema、DSH resume 与 FPLG redesign。
+非目标包括 authentication、authorization、RBAC、public Package path 的 credentials、signing、supply-chain assurance、malicious-Package 或 prompt-injection defense、sandboxing、multi-user coordination、concurrent cache writers、fairness、waiting/queueing、distributed locking、Package transaction 或 proof protocol、automated eviction、mirror、retry orchestration、HA、automatic failover/upgrade、registry federation、marketplace、ranking、recommendation、grading、causal inference、remote multi-user deployment、Evidence control feedback、repository naming/layout、physical schema、DSH resume 与 runner redesign。
 
 Format、required-resource、relationship、version 与 digest 检查用于防御普通故障和配置错误，不是 security subsystem。未来若转向 untrusted source、shared remote service、携带 credential 的 private repository、hostile tenant、concurrent Package writer 或更强 DSH security capability，必须先作出新的 Concept/System Design 决策再增加相关机制。
 
@@ -160,7 +160,7 @@ Evidence 计划迁移到独立的 public repository，再以 submodule 形式接
 | Recovery | unknown Runtime start 保持 blocking；不 blind retry | 既有 durable launch disposition 与 exact recovery | AF-001 rebinding |
 | Consistency | 无 accepted/projection half-state 或 double contribution | 一个 PostgreSQL transaction 与 stable identity | AF-003 rebinding |
 | Privacy | prohibited body 不跨 Observation seam | producer allow-list/redaction 加 admission validation | AF-002 rebinding；production proof downstream |
-| Portability | DSH 与 FPLG 的差异留在一个 Core-owned seam 后 | Adapter-private lifecycle、opaque projection | design fixed；later FPLG implementation downstream |
+| Portability | DSH 与 runner 的差异留在一个 Core-owned seam 后 | Adapter-private lifecycle、opaque projection | design fixed；later runner implementation downstream |
 | Authority singularity | 一个 active graph，不存在 co-active legacy authority | versionless root、in-place Systems、quarantine | 需要 deterministic publication proof |
 | Translation fidelity | 中文传达完整英文含义 | stable anchor，按英文整章重译 | 需要 review 与 deterministic proof |
 | Honest lifecycle | draft/legacy artifact 不伪装成 conformance | draft banner、fixed/open matrix、conformance gate | deterministic now；physical publication downstream |
@@ -188,7 +188,7 @@ Concept 拥有该跨文档 trace metadata；链接的 System anchor 仍是唯一
 | `EE-AC-009` | `BR-PROBLEM` | `SC-06` | `BR-CONSTRAINTS`, `BR-QUALITY` | `CT-008`, `EE-EV-M01`, `EE-EV-M02` | Event identity 为 `agentops.event.id`；Span identity 恰为 `(trace_id, span_id)`；同 identity/同 digest repeat 为 no-op，conflict 不覆盖地 reject，accepted identity 与 initial projection atomic | 无 duplicate contribution、overwrite、cross-Trace Span-ID collision 或 half-state | Event/Span new/identical/conflicting duplicate 与 ambiguity fixture | `DESIGN_EVIDENCE_AVAILABLE` | AF-003 rebinding 加受影响 deterministic Span-identity check；implementation proof downstream | Evidence Admission validation owner | `docs/systems/evidence/evidence-system.md#ee-evidence-7` | `span_id` 或 Trace ID 单独成为 Span key、duplicate 双计、conflict overwrite 或 accepted/projection half-state |
 | `EE-AC-010` | `BR-PROBLEM` | `SC-08` | `BR-QUALITY` | `EE-EV-M02`, `EE-EV-M03` | curated view 只展示 recorded fact 与 provenance | score、rank、recommendation 或 causal inference 为零 | query/dashboard golden fixture | `IMPLEMENTATION_PLAN` | `EE-OBL-004` | Evidence App implementation owner | `docs/systems/evidence/evidence-system.md#ee-evidence-14` | presentation 引入 formula 或 inference |
 | `EE-AC-011` | `BR-PROBLEM` | `SC-05`, `SC-08` | `BR-CONSTRAINTS`, `BR-QUALITY` | `CT-011`, `EE-EV-M01`, `EE-EV-M02`, `EE-EV-M03` | Raw、accepted identity/provenance、Trace、factual projection 独立过期；过期 Trace 成为显式 unavailable detail | 四个可独立测试的 lifecycle class | retention/expiry fixture | `RUNTIME_HANDOFF` | `EE-OBL-006` | Evidence lifecycle validation owner | `docs/systems/evidence/evidence-system.md#ee-evidence-14` | coupled deletion、reconstruction 或 history rewrite |
-| `EE-AC-012` | `BR-PROBLEM` | `SC-10` | `BR-CONSTRAINTS`, `BR-QUALITY` | `EE-EX-M02`, `PATH-06` | native DSH/FPLG type 不跨 Core Interface；FPLG 私有保留 resume，DSH 仍无 resume | public resume/native-type leak 为零 | type scan 与 contrasting lifecycle fixture | `IMPLEMENTATION_PLAN` | `EE-OBL-002` | Execution Core implementation owner | `docs/systems/execution/project-execution-system.md#ee-execution-14` | public resume 或 native type 跨越 Core Interface |
+| `EE-AC-012` | `BR-PROBLEM` | `SC-10` | `BR-CONSTRAINTS`, `BR-QUALITY` | `EE-EX-M02`, `PATH-06` | native DSH/runner type 不跨 Core Interface；runner 私有保留 resume，DSH 仍无 resume | public resume/native-type leak 为零 | type scan 与 contrasting lifecycle fixture | `IMPLEMENTATION_PLAN` | `EE-OBL-002` | Execution Core implementation owner | `docs/systems/execution/project-execution-system.md#ee-execution-14` | public resume 或 native type 跨越 Core Interface |
 | `EE-AC-013` | `BR-PROBLEM` | `SC-08` | `BR-CONTEXT`, `BR-QUALITY` | `EE-EV-M01`, `EE-EV-M03` | loopback ingest 无需 app-level auth；same-origin anonymous Viewer 只读 curated view；database/raw/write route 不可达 | loopback 与 same-origin local-only；Viewer read-only | listener/origin/role/negative reachability fixture | `IMPLEMENTATION_PLAN` | `EE-OBL-004` | Evidence App implementation owner | `docs/systems/evidence/evidence-system.md#ee-evidence-14` | remote/multi-user exposure 或 Viewer 获得 raw/write/database access |
 | `EE-AC-014` | `BR-PROBLEM` | `BR-SCENARIOS` | `BR-ACCEPTANCE` | `EE-D-005`, `EE-SD-015`, `EE-SD-032`, `EE-SD-033` | 34 个精确 write 与 2 个 delete 原子发布；A bytes 不变；Python 恰为 67/2 named baseline failure，Node 158/0；legacy 不成为 co-active authority | 无 post-review byte drift、新/不同 failure、active legacy edge 或保留 legacy Concept path | SD-08 overlay/link/parity/baseline verification | `DESIGN_EVIDENCE_AVAILABLE` | external publication set/application record 与受影响 SD-08 result | publication verification owner | `docs/agent-architecture.md#ee-concept-7` | 发布前违反任一 threshold condition |
 | `EE-AC-015` | `BR-SCOPE` | `BR-SCENARIOS` | `EE-D-003` | `EE-U-007`, `EE-DO-001`, `EE-OBL-007` | public Evidence 有一个 repository authority，parent pin 一个 reviewed submodule commit | 一个 repository authority 与一个 pinned commit；无 cross-repository transaction | repository identity/release/commit/submodule-link proof | `RUNTIME_HANDOFF` | `EE-OBL-007` | Evidence repository release owner | `docs/systems/evidence/evidence-system.md#ee-evidence-14` | duplicate authority、unpinned code 或需要 cross-repository transaction |
@@ -224,7 +224,7 @@ Concept 拥有该跨文档 trace metadata；链接的 System anchor 仍是唯一
 | `EE-OBL-008` | Product license decision owner | `EE-AC-016`, `EE-U-006`, `EE-DO-002` | public Evidence release 使用一个 approved MIT 或 Apache-2.0 license 与 matching notice | recorded license decision 加 exact LICENSE/NOTICE review | license family 已限制，但 selection/approval 未完成 | product release workflow | `docs/agent-architecture.md#ee-concept-7` | 两种 allowed license 都不 legally compatible，或需要多个 conflicting license |
 | `EE-OBL-009` | Legacy physical cutover owner | `EE-SD-019`, `EE-SD-020`, `EE-SD-032`, `EE-SD-033`, `EE-AC-014` | quarantined legacy machine evidence 在 atomic downstream physical cutover 前保持 non-authoritative | exact A 257-member byte subset 与 16 B-legacy successor；complete inventory 与 atomic replacement/removal 或 authorized repair；新 digest；fresh Python/Node test baseline | quarantined known-red legacy evidence：Python 67/2 named baseline failure 与 Node 158/0；不是 conformance | legacy Contract implementation workflow | legacy physical cutover packet，pending downstream rebinding | partial cutover、hidden active edge、任何新/不同 failure 或 known failure 被错标 PASS |
 | `EE-OBL-010` | Workflow/Execution representation owner | resolved Package 与 simple Manifest；`EE-AC-WI-001`, `005`, `007` | 保持 exact Package field、phase-correct error 与 exact activation，不增加 proof/capability/transaction state | physical field、validator、valid/invalid binding fixture | representation 不存在 | Contract/implementation guidance | Concept register 与 Execution Design | re-resolution、ambient completion、native leak 或 pre-Delivery failure 变成 Delivery outcome |
-| `EE-OBL-011` | Execution Core implementation owner | `EE-EX-M01..M03` 与所有 `SC-WI-*` | 一个 prepare operation、simple Store、Manifest-before-DSH、immediate contention、unchanged Observation/FPLG | Interface-level import/contention/Manifest/DSH/result/privacy fixture | implementation 不存在 | Execution implementation guidance | Execution Design | bypass、drift、wait/queue、pre-Delivery outcome/Observation、ambient completion 或 FPLG/public change |
+| `EE-OBL-011` | Execution Core implementation owner | `EE-EX-M01..M03` 与所有 `SC-WI-*` | 一个 prepare operation、simple Store、Manifest-before-DSH、immediate contention、unchanged Observation/runner | Interface-level import/contention/Manifest/DSH/result/privacy fixture | implementation 不存在 | Execution implementation guidance | Execution Design | bypass、drift、wait/queue、pre-Delivery outcome/Observation、ambient completion 或 runner/public change |
 | `EE-OBL-012` | product/repository/plugin/Package release owner | GitHub first host、bundle common path、contribution | 选择 repository/layout，发布一个完整 versioned asset，治理 contribution，保护 initial corpus | repository、Release/asset、contribution、bundle evidence | publication 不存在 | repository/plugin release guidance | Concept 与 Execution Design | mutable/ambiguous/incomplete asset、allow-list、rewrite、bypass 或 fallback |
 | `EE-OBL-013` | Local Store implementation owner | exact/latest 与 `MISSING/STAGING/READY` | local-first、non-addressable candidate staging、initial failure→`MISSING`、refresh failure 保留 prior `READY`+alias、new-ready 后更新 alias、无 eviction | Store Interface initial-fill/refresh hit/miss/staging/ready/conflict/failure fixture | implementation 不存在 | Store implementation guidance | Execution Design | partial visibility、prior-ready/alias loss、需要 concurrent writer 或 eviction |
 | `EE-OBL-014` | DSH Adapter/provider qualification owner | exact activation/no ambient；`EE-AC-WI-007` | 选择 production binding，并在 effect 前 project complete Package | protected/contributed behavior 与 provider/no-default/result evidence | 只有 representative rc.6 evidence | Runtime Adapter guidance | Execution Design | rewrite、ambient substitution、post-effect rejection、missing capability 或 native leak |
@@ -263,6 +263,6 @@ Design acceptance 要求上表每行都有一个 semantic owner、evidence state
 | `EE-SD-037` | 裸 name 表示 sticky-local latest；exact/latest local hit 不访问 remote；每个成功结果为新 Delivery 冻结 `name`、`exactVersion`、`packageDigest`、`localPath`、`workflowId` |
 | `EE-SD-038` | 安装/用户配置选择一个 public GitHub source 或 explicit bundle input。Resolution 不 source/version fallback 或 ambient resource completion；source choice 是配置，不是 authorization/capability protocol |
 | `EE-SD-039` | GitHub 是第一个 host，使用一个 versioned Release asset；plugin bundle 是同一 Package Source seam 的 explicit Adapter；native source type 保持私有 |
-| `EE-SD-040` | Preview Store 只向 resolution 暴露 `MISSING` 与 `READY`，candidate `STAGING` 私有且不可 address。Initial failure 保持 `MISSING`；refresh failure 保持 prior `READY` Package 与 alias 不变；refresh success 在改变 alias 前发布新 exact Package。没有 automatic eviction、Package transaction lifecycle、Prepared hold、proof identity 或 commit-resolution subsystem。DSH state 仍由 Adapter 拥有，FPLG 不变 |
+| `EE-SD-040` | Preview Store 只向 resolution 暴露 `MISSING` 与 `READY`，candidate `STAGING` 私有且不可 address。Initial failure 保持 `MISSING`；refresh failure 保持 prior `READY` Package 与 alias 不变；refresh success 在改变 alias 前发布新 exact Package。没有 automatic eviction、Package transaction lifecycle、Prepared hold、proof identity 或 commit-resolution subsystem。DSH state 仍由 Adapter 拥有，runner 不变 |
 
 详细行为与验证义务见上方链接的三份 owner 文档。

@@ -34,11 +34,11 @@
 
 Authority order 为：已确认用户意图；规范 Concept；当前 Execution 语义；Workflow composition model；已审查方向与 feasibility evidence；[Observation Catalog](../../contracts/observation/observation-catalog.md)、[OTel Observation Profile](../../contracts/observation/otel-observation-profile.md)、[Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md) 与 [Metric Catalog](../../contracts/evaluation/metric-catalog.md) 仅在各自 split draft companion scope 内适用。[Evidence System](../evidence/evidence-system.md) 仍是 peer owner。本文拥有 Execution Module、Interface、Package-to-Delivery binding、custody/current-slot lifecycle、Runtime Adapter behavior 与 outbound Observation behavior。它不拥有 Package publication policy、Evidence internals、Observation fact meaning、payload registry、metric schema 或 physical storage schema。
 
-受保护的 `system-design` 与 `implementation` Workflow Package 是初始已验证分发内容和 conformance fixture，不是重新设计目标。其现有语义与组织保持不变。既有 FPLG profile/code 不变。理解本文不需要任何 disposable workspace artifact；以上 identity 只表示 provenance。
+受保护的 `system-design` 与 `implementation` Workflow Package 是初始已验证分发内容和 conformance fixture，不是重新设计目标。其现有语义与组织保持不变。既有 runner profile/code 不变。理解本文不需要任何 disposable workspace artifact；以上 identity 只表示 provenance。
 <a id="ee-execution-2"></a>
 ## 2. 设计上下文
 
-Agent Ops Ledger 通过小型、host-neutral 的 execution seam 运行有价值的 logical Workflow，并可选发出 factual Observation。Execution 嵌入每个 repository/workspace。DSH rc.6 是第一个 Runtime Adapter；DSH 拥有 native Session 与 Workflow State，且不支持 resume。后续 FPLG Adapter 可私有保留更丰富的 pause/resume 行为，而不改变 Core 语义。
+workflow-self-recursive 通过小型、host-neutral 的 execution seam 运行有价值的 logical Workflow，并可选发出 factual Observation。Execution 嵌入每个 repository/workspace。DSH rc.6 是第一个 Runtime Adapter；DSH 拥有 native Session 与 Workflow State，且不支持 resume。后续 runner Adapter 可私有保留更丰富的 pause/resume 行为，而不改变 Core 语义。
 
 首个分发包含受保护的 Implementation 与 System Design Workflow Package。贡献者可以发布其他符合开放 Agent Ops Workflow composition model 的 Package。GitHub 是第一个 remote host，plugin 可以 bundle 两个初始 Package。GitHub 与 bundle 是一个 Package Source seam 上的 private Adapter。
 
@@ -72,7 +72,7 @@ WorkflowSelector
 
 范围内包括 generic Intake、exact/sticky-latest selector、local hit、public GitHub miss/refresh、explicit bundle input、contributed conforming Package、`MISSING/STAGING/READY` storage、普通 format/required-resource/relationship/version/digest check、DSH compatibility check、immutable Manifest binding、existing current-slot recovery、DSH result validation 与 unchanged Observation。
 
-范围外包括 Package ranking/fallback、ambient completion、authentication/authorization/RBAC、public source credential、signing、hostile input isolation、injection defense、sandboxing、concurrent Package correctness、queueing/fairness、distributed lock、Package transaction/proof/hold protocol、automated eviction、production download/recovery guarantee、registry/marketplace、HA/failover、repository naming/layout、physical schema、另一 Runtime implementation、Evidence redesign、FPLG revision，以及对受保护 Package 的修改。
+范围外包括 Package ranking/fallback、ambient completion、authentication/authorization/RBAC、public source credential、signing、hostile input isolation、injection defense、sandboxing、concurrent Package correctness、queueing/fairness、distributed lock、Package transaction/proof/hold protocol、automated eviction、production download/recovery guarantee、registry/marketplace、HA/failover、repository naming/layout、physical schema、另一 Runtime implementation、Evidence redesign、runner revision，以及对受保护 Package 的修改。
 
 成功表示 implementer 能通过三个既有 Module、simple state 与 typed result 构建该路径，而无需在 Delivery Manifest 前发明另一 lifecycle。
 
@@ -120,7 +120,7 @@ flowchart LR
     Core -->|persist / run| M02
     M02 --> Runtime[private Runtime Adapter Interface]
     DSH[DSH Adapter 与 Session] --> Runtime
-    FPLG[后续 FPLG Adapter] --> Runtime
+    runner[后续 runner Adapter] --> Runtime
     M02 -. Manifest 后的有界事实 .-> M03[Delivery Observation]
     M01 -. exact bound fact .-> M03
     M03 -. best-effort OTLP .-> Evidence[Evidence Admission peer]
@@ -140,7 +140,7 @@ Result 是普通 immutable value：`name`、`exactVersion`、`packageDigest`、`
 
 ### Runtime Interaction（`EE-EX-M02`），保留并限定
 
-M02 隐藏 canonical worktree derivation、immediate exclusive admission、current-slot state、Manifest persistence、start uncertainty、Runtime invocation、inspection、recovery、final handling、authorized abandonment 与 private FPLG lifecycle mapping。它仍是 custody/current-slot state 的唯一 writer，也是 current Manifest 的 persister。它不解释 selector、不下载 Package、不写 Package Store state。
+M02 隐藏 canonical worktree derivation、immediate exclusive admission、current-slot state、Manifest persistence、start uncertainty、Runtime invocation、inspection、recovery、final handling、authorized abandonment 与 private runner lifecycle mapping。它仍是 custody/current-slot state 的唯一 writer，也是 current Manifest 的 persister。它不解释 selector、不下载 Package、不写 Package Store state。
 
 Preview 不增加第二个 pre-Manifest lifecycle。Manifest 存在前，failure 释放 ordinary in-process/OS-backed exclusive holder 并返回。Process death 释放 holder。若 death 发生在 Manifest 可见后，下次调用通过既有 occupied-slot recovery 读取 Manifest。不引入 `ARMED`/commit-unknown/reconciliation state。
 
@@ -160,7 +160,7 @@ Implementation fact 保留 typed test summary，并按 coverage scope/tool/forma
 
 - **Package Source Interface** 是真实 seam，因为有 GitHub 与 bundle 两个 Adapter。它接收 exact/latest candidate request，返回 candidate bytes 与普通 version/digest metadata，或 typed not-found/fetch failure；不构造 resolved value 或 Manifest。
 - **Local Package Store** 是 private M01 state。Lookup 只暴露 `MISSING` 或 `READY`；`STAGING` 不可 address。Implementation 可以使用 temporary directory 与 rename 发布完整 Package，但 System Design 不要求 transaction manager 或 concurrent-writer protocol。
-- **Runtime Adapter Interface** 接收 persisted exact Manifest binding。DSH 与后续 FPLG 私有不同；native type 不跨 Core。
+- **Runtime Adapter Interface** 接收 persisted exact Manifest binding。DSH 与后续 runner 私有不同；native type 不跨 Core。
 
 依赖 acyclic，指向 Core-owned meaning。Host 不编排 M01 internals；M02 不访问 Source/Store；source Adapter 不构造 Manifest；M01 不依赖 Evidence；DSH 不选择 Package identity。
 
@@ -261,9 +261,9 @@ Core 调用 M01 前，M02 尝试既有 per-worktree exclusive admission。Live/c
 
 DSH Adapter 在 native invocation 前校验 persisted Manifest 指向 exact local `READY` Package。它不扫描 ambient path，也不替换 resource。Invocation 后，既有 `START_UNCERTAIN`、`START_FAILED`、`RESULT_UNRESOLVED`、terminal-result、final-handling 与 exact authorized-abandonment rule 保持不变。Observation disabled/refused/timed-out/tail-loss 不改变 Runtime result 或 slot handling。
 
-### 后续 FPLG lifecycle
+### 后续 runner lifecycle
 
-FPLG 满足同一 Core-owned lifecycle meaning，但可以私有 park resumable state、checkpoint、release physical custody，并 reacquire valid custody。这些 mechanic 不成为 DSH 或 public Core requirement，本修订不改变 FPLG profile/code。
+runner 满足同一 Core-owned lifecycle meaning，但可以私有 park resumable state、checkpoint、release physical custody，并 reacquire valid custody。这些 mechanic 不成为 DSH 或 public Core requirement，本修订不改变 runner profile/code。
 
 <a id="ee-execution-8"></a>
 ## 8. 数据、状态、身份与 Ownership
@@ -401,7 +401,7 @@ Concurrency scalability、adversarial security、authentication/authorization、
 | Local Store residue/disk growth | temporary/old Package 占用磁盘 | best-effort staging cleanup 与 manual cache removal；无 automatic eviction | measured use 要求 managed retention/eviction |
 | DSH compatibility check 不完整 | failure 可能到 activation 才出现 | native effect 前校验所有 declared required resource；保留 honest Runtime error | production Package 要求新 capability semantics |
 | trusted-preview context 改变 | 当前 validation 不足 | explicit scope 与 reopen trigger | untrusted source/operator、remote shared service、credential、hostile tenant 或更强 DSH security boundary |
-| Observation/FPLG regression | unrelated authority 受扰动 | byte-for-meaning 保留 M03 与 Adapter-private FPLG semantics | control coupling、public resume 或 FPLG code change |
+| Observation/runner regression | unrelated authority 受扰动 | byte-for-meaning 保留 M03 与 Adapter-private runner semantics | control coupling、public resume 或 runner code change |
 
 <a id="ee-execution-13"></a>
 ## 13. 验收与验证
@@ -445,7 +445,7 @@ Test 跨越 M01、M02 与 Runtime Adapter Interface 并断言 observable result�
 | Count presence semantics | C17 zero/positive/omission 不同；invalid value 与 Finding carrier 不能落下 malformed count state | ordinary/Recheck zero/positive/absence 与 negative fixture |
 | Role lineage 与 usage | local/lineage pair 不同；provider-native quantity 保持 exact kind/unit/source group | lineage duplicate/conflict/privacy 与 usage compatibility fixture |
 | Span/Event identity | Event ID 与 `(trace_id, span_id)` 保持 exact dedup/conflict meaning | new/identical/conflicting identity fixture |
-| 后续 FPLG | private resume 保持可用，不 public resume/native leak | contrasting DSH/FPLG lifecycle/type fixture |
+| 后续 runner | private resume 保持可用，不 public resume/native leak | contrasting DSH/runner lifecycle/type fixture |
 
 <a id="ee-execution-14"></a>
 ## 14. 决策、下游工作与被拒方案
@@ -465,9 +465,9 @@ Test 跨越 M01、M02 与 Runtime Adapter Interface 并断言 observable result�
 | `DEC-WI-09` | Preview 不增加 pre-Manifest lifecycle。Existing current-slot authority 从 persisted Manifest 开始，并保留之后既有 DSH uncertainty/recovery |
 | `DEC-WI-10` | 在明确的 trust/exposure/scale trigger 变化前，不设计 authentication、authorization、signing、injection defense、sandbox、concurrent Store protocol、distributed lock、HA、failover 或 production recovery mechanism |
 
-既有 Execution decision 继续有效：三个 deep Module；Runtime-owned Workflow outcome 位于 Core-owned Adapter seam 后；one-current-slot lifecycle 且无 Execution history；standard-first allow-listed best-effort Observation；canonical worktree revalidation；对 persisted Runtime uncertainty 的 conclusive handling；Observation Profile `0.2.0` 语义。本修订不改变 M03、Evidence 或 FPLG 语义。
+既有 Execution decision 继续有效：三个 deep Module；Runtime-owned Workflow outcome 位于 Core-owned Adapter seam 后；one-current-slot lifecycle 且无 Execution history；standard-first allow-listed best-effort Observation；canonical worktree revalidation；对 persisted Runtime uncertainty 的 conclusive handling；Observation Profile `0.2.0` 语义。本修订不改变 M03、Evidence 或 runner 语义。
 
-本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；automatic GitHub-to-bundle fallback；source/version fallback；ambient completion；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；DSH-native Core type；FPLG change。
+本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；automatic GitHub-to-bundle fallback；source/version fallback；ambient completion；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；DSH-native Core type；runner change。
 
 ### Concept-owned 下游义务的非 owning 本地视图
 
@@ -476,7 +476,7 @@ Concept obligation register 仍是 owner-complete authority。Execution-local vi
 | 义务 | Execution 含义 | Return trigger |
 | --- | --- | --- |
 | `EE-OBL-010` | 表示 exact resolved Package/Manifest field 与 typed error，不增加 proof/transaction semantics | physical form 允许 re-resolution、ambient completion、native leakage 或 pre-Delivery outcome |
-| `EE-OBL-011` | 实现 Core/M01/M02/M03 collaboration 与具名 early-return branch | bypass、drift、wait/queue、新 lifecycle/Module、Observation control 或 FPLG change |
+| `EE-OBL-011` | 实现 Core/M01/M02/M03 collaboration 与具名 early-return branch | bypass、drift、wait/queue、新 lifecycle/Module、Observation control 或 runner change |
 | `EE-OBL-012` | 选择/发布 public repository Release asset 与 explicit bundle descriptor | mutable/ambiguous/incomplete asset、allow-list、rewrite、bypass 或 fallback |
 | `EE-OBL-013` | 实现 `MISSING/STAGING/READY` Store 与 sticky alias-after-ready | partial hit、prior-ready loss，或真实需要 concurrent writer/eviction |
 | `EE-OBL-014` | 通过 DSH qualification complete protected/contributed Package projection，且无 ambient completion | rewrite、post-effect rejection、missing capability 或 native leak |
@@ -496,7 +496,7 @@ Concept obligation register 仍是 owner-complete authority。Execution-local vi
 
 Module Detailed Design 必须说明可执行 control/data flow，而不是把这些 decision 重述成 checklist。M01 Interface 是主要 import test surface；Source/Store test Adapter 保持 private。Implementation 应优先使用 temporary staging directory 加 complete publish/rename、simple typed result 与 ordinary cleanup。不得增加 caller choreography、Prepared handle、proof store、reference count、transaction manager、background reconciler、concurrent-writer schedule、credential flow、security scanner、automatic eviction、fallback 或 ambient Package lookup。
 
-只有 evidence 要求新 Module/semantic writer、Package rewrite、mutable active binding、source/version fallback、concurrent/shared Store correctness、automated eviction、authentication/authorization、hostile-source isolation、remote multi-user operation、HA/failover、changed current-slot semantics、public native type、Observation control dependency 或 FPLG change 时，才返回创建新 System Design version。
+只有 evidence 要求新 Module/semantic writer、Package rewrite、mutable active binding、source/version fallback、concurrent/shared Store correctness、automated eviction、authentication/authorization、hostile-source isolation、remote multi-user operation、HA/failover、changed current-slot semantics、public native type、Observation control dependency 或 runner change 时，才返回创建新 System Design version。
 
 ### 文档完成检查
 
@@ -506,7 +506,7 @@ Module Detailed Design 必须说明可执行 control/data flow，而不是把这
 - [x] `ResolvedWorkflowPackage` 与 `MISSING/STAGING/READY` 替代原 proof/Prepared-hold/transaction machinery。
 - [x] M02 admission 先于 Package work；只有 `NEW` preparation；preparation 先于 Delivery creation；Manifest persistence 先于 DSH effect；pre-Delivery failure 不创建 Delivery outcome 或 Observation。
 - [x] Exact/local-first/sticky-latest/no-fallback/no-ambient/open-contribution/DSH-first 语义保留。
-- [x] Existing current-slot recovery、M03 Observation、Evidence relationship、protected Package、FPLG 语义不变。
+- [x] Existing current-slot recovery、M03 Observation、Evidence relationship、protected Package、runner 语义不变。
 - [x] Acceptance 面向 Interface，不要求 Spike、production security、concurrency schedule、transaction、response-loss、power-loss、eviction 或 HA evidence。
 
 Publication 仍受 external exact-byte publication record 与 Concept-owned obligation register 约束。这些候选字节不包含 Workflow routing authority。

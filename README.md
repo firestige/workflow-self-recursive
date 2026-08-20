@@ -1,14 +1,14 @@
-# Agent Ops Ledger
+# workflow-self-recursive
 
 English | [中文](README.zh-CN.md)
 
-Agent Ops Ledger is an open-source architecture for running agent workflows through a small, host-neutral execution boundary and making each run inspectable.
+workflow-self-recursive is an open-source architecture for running agent workflows through a small, host-neutral execution boundary and making each run inspectable.
 
 It binds each delivery to one resolved version and digest of a Workflow Package, keeps runtime results authoritative, and can record a minimal set of facts through OpenTelemetry. The initial design targets [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) as its first runtime host; a first-party LangGraph adapter is planned.
 
 ## Developer preview
 
-Agent Ops Ledger is currently an architecture-first developer preview for trusted local use by individuals and small teams. This repository publishes the design, contracts, and component boundaries; it does not yet provide a runnable end-user release. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+workflow-self-recursive is currently an architecture-first developer preview for trusted local use by individuals and small teams. This repository publishes the design, contracts, and component boundaries; it does not yet provide a runnable end-user release. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
 
 ## Architecture
 
