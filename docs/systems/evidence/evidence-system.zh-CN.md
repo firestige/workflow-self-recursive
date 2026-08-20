@@ -19,7 +19,7 @@
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | 可行性 | SD-06 aggregate，SHA-256 `c70303892e2d68f95e83b12c84940d9f3e41dad6f7a1e269b376da69e4adbf6e` |
 
-本文是 Evidence durable landing、accepted state、factual projection、query、presentation、lifecycle 与 local deployment 含义的唯一语义 owner。Execution binding、Runtime lifecycle、custody 与 outbound emission 是 opaque producer concern，由对等 Design 拥有。Observation fact meaning 由 Observation Catalog 命名，exact wire mapping 由 OTel Observation Profile 拥有，transport interaction 由 Interaction Contract 拥有，human metric reading 由 Metric Catalog 拥有；本 Design 不复制 70-field registry、complete-shape rule 或 metric schema。
+本文是 Evidence durable landing、accepted state、factual projection、query、presentation、lifecycle 与 local deployment 含义的唯一语义 owner。Execution binding、Runtime lifecycle、custody 与 outbound emission 是 opaque producer concern，由对等 Design 拥有。Observation fact meaning 由 Observation Catalog 命名，exact wire mapping 由 OTel Observation Profile 拥有，transport interaction 由 Interaction Contract 拥有，human metric reading 由 Metric Catalog 拥有；本 Design 不复制 73-field registry、complete-shape rule 或 metric schema。
 
 <a id="ee-evidence-2"></a>
 ## 2. 上下文、问题与范围
@@ -275,14 +275,14 @@ Backup/restore、任何扩展 trust boundary 的 TLS/auth、operational credenti
 | Trace expiry | factual trend 保留；detail 显式 unavailable | independent lifecycle | concept.fixture.003 retention case |
 | read-only consumer | curated read 成功；raw/write denied | least-privilege credential/view | concept.fixture.003 permission evidence |
 | local access profile | loopback ingest 在无 app auth 下工作；same-origin anonymous Grafana Viewer 只能读取 curated view | 固定 proxy/listener/role topology | 下游 listener、origin、anonymous-role 与 negative reachability test |
-| exact profile admission | 接纳 exact pin/Scope、十个 EventName 与 54 common 加 applicable 10 或 6 family field；拒绝 sibling-family/unlisted/fixture-only field | OTel Profile-linked closed validator | deterministic 54+10+6 count/unique/table-shape check 加 concept.fixture.002；machine validator/conformance 下游完成 |
+| exact profile admission | 接纳 exact pin/Scope、十个 EventName 与 57 common 加 applicable 10 或 6 family field；拒绝 sibling-family/unlisted/fixture-only field | OTel Profile-linked closed validator | deterministic 57+10+6 count/unique/table-shape check 加 concept.fixture.002；machine validator/conformance 下游完成 |
 | complete Review/Finding composition | ordinary Finding、Fix、Recheck-on-Finding 与 Recheck-summary 只从 exact complete shape landing | OTel Profile §7.4 named base/variant 与 record-level atomic projection | positive shape 加 missing-base/endpoint negative fixture |
 | C17 report presence | ordinary/Recheck summary 的 C17=`0`、positive C17 与 absent C17 分别 landing recorded zero、recorded positive 与 no count；invalid present value 或 Finding 上 C17 以 no partial Review/count state reject | Admission 可见的 field-presence selector；atomic Review/count projection | bilingual zero/positive/absence/retry positive 与 type/range/carrier/partial-state negative |
 | bounded Finding/target admission | source-lens summary nonempty/bounded/privacy-safe；每 record 一个 typed target；multi-target set order-independent 且 duplicate-safe | C50–C54 validation 与 target-edge identity | positive multi-target 加 empty/over-limit/prohibited/unknown-target/duplicate/conflict fixture |
 | Finding lifecycle identity domain | compatible target/lifecycle record 对 assertion/edge no-op reuse，并把 status/Fix/Recheck exactly once append；changed C50/C20/C51、target context、lifecycle endpoint、C17/C27 applicability、Event content 或 partial landing 都以 zero effect reject | separate OTel Profile identity 加一个 Admission transaction | OTel Profile §7.6 全部 positive/negative sequence、两种 arrival order 与 EN/ZH parity |
 | native usage admission | credit/request/premium/provider-native/money example 除非所有 compatibility coordinate 相同，否则保持 separate | exact kind/C43-unit-or-currency/source/source-ID/completeness key | incompatible-group example 与下游 fixture |
 | Role lineage admission | 不同 local ID 可共享一个 lineage；相同 display name 可保留 distinct lineage；incomplete pair 拒绝 | atomic admitted local/lineage pair 与 immutable mapping | concept.fixture.002 rebuilt protobuf/admission/duplicate/conflict evidence；`PROPOSED_VALIDATED_BY_SPIKE` |
-| disposition exclusion | 首个 profile 不接纳 `delivery.disposition` 或 `agentops.delivery.disposition` | ten-EventName/70-total-field allow-list | registry 与 negative fixture scan |
+| disposition exclusion | 首个 profile 不接纳 `delivery.disposition` 或 `agentops.delivery.disposition` | ten-EventName/73-total-field allow-list | registry 与 negative fixture scan |
 
 Design acceptance 要求无需读取 Execution internals 即可实现本文，同时 ingest semantics 与 peer Design/Contract draft 一致。Local-access acceptance 是 categorical：no application-level ingest authentication 与 same-origin anonymous Viewer 只允许用于 loopback-only preview；remote 或 multi-user exposure 将重开 security design。Production schema、migration、security、capacity 与 physical conformance evidence 仍属于下游。
 
