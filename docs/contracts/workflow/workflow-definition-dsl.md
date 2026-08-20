@@ -95,6 +95,21 @@ Shared definitions (identity / contentIdentity / sourceLocator / schemaRef / inl
 5. `authority.order` equals the canonical order and `conflictMode` is `fail-closed`;
 6. No ambient fallback: any missing resource, content-identity mismatch, or undeclared reference makes the Package **non-admissible** (admission/recovery fails explicitly or enters the Workflow's declared recovery path; it never re-resolves to another version).
 
+### 3.2 Package semantic ownership and machine-proof boundary
+
+The Package concern owns the six normative closure rules above, the owned/referenced resource lifecycle (§5.8 and §8), and Snapshot/State separation (§9). The schema concern owns their physical encodings in `package.schema.json`, the checker, fixtures, and published conformance evidence. Here, **machine-checkable** means that every rule has closed inputs, a deterministic predicate, and an explicit fail-closed outcome; it does not claim that a particular checker release already implements or passes the rule.
+
+| Closure rule | Closed machine input | Required result on mismatch | Physical proof owner |
+| --- | --- | --- | --- |
+| Document set | Package index plus the six declared documents, their `kind`, and `schemaVersion` | reject admission | schema/checker |
+| Definition identity | declared Definition identity plus bytes of `documents.workflow` | reject admission | schema/checker |
+| Resource reference closure | all route/artifact/template/selector resource references plus the Package resource index | reject undeclared references | schema/checker |
+| Owned/referenced shape and identity | owner, path or sourceLocator, contentIdentity, and resolved content | reject missing, mixed, floating, or mismatched bindings | schema/checker |
+| Authority declaration | declared authority order and conflict mode plus the canonical values in §7 | reject expansion, reordering, or non-fail-closed conflict handling | schema/checker |
+| No ambient fallback | the complete resolved closure and every attempted runtime binding | reject substitution or re-resolution; enter only a declared failure/recovery path | checker/admission |
+
+Consequently, completion of the Package semantic Contract is independent of the publication status of its physical validator. A Package may claim semantic conformance only when these inputs and outcomes are declared; it may claim physical conformance only with the schema/checker evidence required by §12.
+
 ## 4. Core Graph Semantics (industry standard, aligned 1:1 with LangGraph semantics)
 
 The graph semantics of this DSL align item by item with the industry-standard model (of which LangGraph semantics are a representative), retaining **semantics only**, never physical API:
@@ -550,7 +565,7 @@ Replacement boundary condition: the new Runtime must conform (§12.1 level 3) �
 
 ## 14. Minimal Definition Example
 
-The complete example lives at [`system-contracts/workflow-dsl/examples/minimal/`](../../../system-contracts/workflow-dsl/examples/minimal/) (`package.json` + 6 documents + 10 owned resource files) and has passed mechanical closure checks (JSON, reference resolution, closed vocabularies, `allowedSuccessors` == out-edge set, digest matching, no LangGraph/Driver physical fields). The example covers:
+The complete example lives at [`system-contracts/workflow-dsl/examples/minimal/`](../../../system-contracts/workflow-dsl/examples/minimal/) (`package.json` + 6 documents + 10 owned resource files) and supplies inputs for mechanical closure checks (JSON, reference resolution, closed vocabularies, `allowedSuccessors` == out-edge set, digest matching, no LangGraph/Driver physical fields). Its physical conformance status is established only by the schema/checker evidence required by §12, not by this semantic document. The example covers:
 
 - **graph**: start → `node.intake` → `node.review` (parallel dual lens) → `node.aggregate` (conditional edges) → `node.finalize` / `node.review` (re-review loop) / `terminal:FAILED`;
 - **state + reducers**: `status`(overwrite), `context`(merge), `findings`(append), `reviewIterations`(sum), `aggregation`(overwrite);

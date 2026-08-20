@@ -95,6 +95,21 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 5. `authority.order` 等于规范序，`conflictMode` 为 `fail-closed`；
 6. 不存在 ambient fallback：任何 route/资源缺失、内容身份失配、未声明引用都使 Package **不可准入**（admission/recovery 显式失败或进入 Workflow 声明的恢复路径，不能重新解析成另一版本）。
 
+### 3.2 Package 语义归属与机械证明边界
+
+Package 关注点拥有上述六条规范闭合规则、owned/referenced 资源生命周期（§5.8 与 §8）以及 Snapshot/State 分离（§9）。schema 关注点拥有它们在 `package.schema.json` 中的物理编码、checker、fixtures 与已发布的 conformance evidence。这里的**可机器校验**是指每条规则都有封闭输入、确定性谓词与显式的 fail-closed 结果；它不声称某个特定 checker 版本已经实现或通过该规则。
+
+| 闭合规则 | 封闭机器输入 | 失配时的必要结果 | 物理证明归属 |
+| --- | --- | --- | --- |
+| 文档集 | Package index、声明的六份文档及其 `kind`、`schemaVersion` | 拒绝准入 | schema/checker |
+| Definition 身份 | 声明的 Definition identity 与 `documents.workflow` 字节 | 拒绝准入 | schema/checker |
+| 资源引用闭合 | 所有 route/artifact/template/selector 资源引用与 Package resource index | 拒绝未声明引用 | schema/checker |
+| Owned/referenced 形态与身份 | owner、path 或 sourceLocator、contentIdentity 与解析后的内容 | 拒绝缺失、混用、浮动或不匹配的 binding | schema/checker |
+| Authority 声明 | 声明的 authority order、conflict mode 与 §7 的规范值 | 拒绝扩张、重排或非 fail-closed 的冲突处理 | schema/checker |
+| 禁止 ambient fallback | 完整的已解析闭包与每个尝试的运行时 binding | 拒绝替换或重新解析；只进入声明的失败/恢复路径 | checker/admission |
+
+因此，Package 语义 Contract 的完成不依赖其物理 validator 的发布状态。只有声明了这些输入与结果，Package 才能声称语义 conform；只有具备 §12 要求的 schema/checker evidence，才能声称物理 conform。
+
 ## 4. 核心 graph 语义（继承行业标准，1:1 对齐 LangGraph 语义）
 
 本 DSL 的 graph 语义与行业通用模型（LangGraph 语义是其代表）逐项对齐，但只保留**语义**，不保留任何物理 API。映射表：
@@ -550,7 +565,7 @@ Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是�
 
 ## 14. 最小 Definition 示例
 
-完整示例位于 [`system-contracts/workflow-dsl/examples/minimal/`](../../../system-contracts/workflow-dsl/examples/minimal/)（`package.json` + 6 个文档 + 10 个 owned 资源文件），并已通过机械闭包校验（JSON、引用解析、词汇闭合、`allowedSuccessors` == 出边集、digest 匹配、无 LangGraph/Driver 物理字段）。示例覆盖：
+完整示例位于 [`system-contracts/workflow-dsl/examples/minimal/`](../../../system-contracts/workflow-dsl/examples/minimal/)（`package.json` + 6 个文档 + 10 个 owned 资源文件），并为机械闭合校验提供输入（JSON、引用解析、词汇闭合、`allowedSuccessors` == 出边集、digest 匹配、无 LangGraph/Driver 物理字段）。它的物理 conformance 状态只能由 §12 要求的 schema/checker evidence 建立，不能由本文档预先声明。示例覆盖：
 
 - **graph**：start → `node.intake` → `node.review`（并行双 lens）→ `node.aggregate`（条件边）→ `node.finalize` / `node.review`（re-review 环）/ `terminal:FAILED`；
 - **state + reducer**：`status`(overwrite)、`context`(merge)、`findings`(append)、`reviewIterations`(sum)、`aggregation`(overwrite)；
