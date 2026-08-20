@@ -185,8 +185,8 @@ flowchart LR
 
 | Contract | 语义文档 | 机器表示 | Lifecycle status（规范化） | Revision | 未决义务 |
 | --- | --- | --- | --- | --- | --- |
-| Observation Catalog | [`observation/observation-catalog.md`](observation/observation-catalog.md) | `system-contracts/`（未发布） | `REVIEW_CANDIDATE` | split draft；profile 引用 `0.2.0` | 机器表示发布（`concept.obligation.001`） |
-| OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | 未发布 | `REVIEW_CANDIDATE` | proposed `0.2.0` | 机器表示发布（`concept.obligation.001`） |
+| Observation Catalog | [`observation/observation-catalog.md`](observation/observation-catalog.md) | [`system-contracts/observation/`](../../system-contracts/observation/)（候选，未发布） | `REVIEW_CANDIDATE` | split draft；profile 引用 `0.3.0` | 独立审查与物理发布（`concept.obligation.001`） |
+| OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | [`system-contracts/observation/`](../../system-contracts/observation/)（候选，未发布） | `REVIEW_CANDIDATE` | proposed `0.3.0` | 独立审查与物理发布（`concept.obligation.001`） |
 | Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | 未发布 | `REVIEW_CANDIDATE` | split draft | 机器表示发布（`concept.obligation.001`） |
 | Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | 未发布 | `REVIEW_CANDIDATE` | split draft | 机器表示发布（`concept.obligation.001`） |
 | Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/)（候选材料） | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@0.1.0` | Task 2 迁移（contract.gate.2/contract.gate.3 证据）→ 独立 contract.gate.1 review → 机器发布 → FROZEN |
