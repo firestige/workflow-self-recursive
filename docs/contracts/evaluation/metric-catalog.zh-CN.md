@@ -1,7 +1,7 @@
 <a id="metric-catalog"></a>
 # Metric Catalog（中文翻译）
 
-> **HUMAN SPECIFICATION——不是 MACHINE SCHEMA。** 本文件定义 MVP 15-metric Evaluation Catalog 的 human semantics。Metric-catalog machine schema 与 example instance 目前不存在；创建并验证该 representation 归 issue #44。与 [Observation Catalog](../observation/observation-catalog.md) 的 semantic link 是 human correspondence，绝不是 machine binding。
+> **HUMAN SPECIFICATION——不是 MACHINE SCHEMA。** 本文件定义 MVP 15-metric Evaluation Catalog 的 human semantics。其 candidate machine companion 位于 [`system-contracts/evaluation/`](../../../system-contracts/evaluation/)；两者目前都未发布。与 [Observation Catalog](../observation/observation-catalog.md) 的 semantic link 是 human correspondence，绝不是 machine binding。
 
 <a id="metric-catalog-1"></a>
 ## 1. 元数据与权威性
@@ -11,7 +11,7 @@
 | 文档身份 | `evaluation.identity.001` |
 | 状态 | `DRAFT_NOT_PUBLISHED` |
 | 规范语言 | 英文 |
-| Machine companion | 不存在；issue #44 拥有未来 `system-contracts/evaluation/` schema、example 与 validator |
+| Machine companion | [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) schema、example 与 validator；`REVIEW_CANDIDATE`，未发布 |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，proposed version `0.3.0` |
 | Owner | `evidence-governance-owner` |
@@ -38,10 +38,23 @@ Metric catalog 声明 evidence-governance owner 计算并发布的 measurement�
 - 实现 Projection-owned fact eligibility 或 BI rendering；或
 - 把 `question_refs`、evaluation cohort 或 formula 变成 Observation field。
 
-Issue #44 必须把这份 15-metric catalog 机器编码，包括 per-metric input reference、catalog-wide `metric_id` uniqueness 与 `value_semantics.missing` never-zero rule。该工作存在前，任何 file 或 legacy implementation 都不得声称 machine authority 或 conformance。
+Candidate machine companion 已编码这份 15-metric catalog，包括 per-metric input reference、catalog-wide `metric_id` uniqueness 与 `value_semantics.missing` never-zero rule。Validator 通过只证明 candidate consistency；在 applicable publication gate 与 owner approval 完成前，任何 file 或 implementation 都不得声称 published conformance。
 
 <a id="metric-catalog-3"></a>
 ## 3. Schema 字段语义
+
+Catalog envelope field：
+
+| Field | Target machine shape | Human 含义 |
+| --- | --- | --- |
+| `catalog_id` | fixed identifier | 将该 artifact 标识为 `agentops.evaluation.metric-catalog` |
+| `version` | `x.y.z` string | catalog envelope 与 validation surface 的 version |
+| `status` | `REVIEW_CANDIDATE` | Contract lifecycle state；绝不是 implementation 或 publication claim |
+| `semantic_authority` | fixed non-empty reference | 把 representation 绑定到本文件 identity |
+| `input_definitions` | `{input_id, source_layer, semantic_ref, binding}` 的 closed array | 声明可解析 semantic input 及其 owning layer；`binding` 始终是 `human-semantic-reference`，绝不是 wire binding 或 authority grant |
+| `metrics` | 精确 15 个 metric record | §5 声明的 MVP metric set |
+
+Metric record field：
 
 | Field | Target machine shape | Human 含义 |
 | --- | --- | --- |
@@ -58,6 +71,7 @@ Issue #44 必须把这份 15-metric catalog 机器编码，包括 per-metric inp
 | `filters` | unique string array | 约束哪些 record 进入 metric 的条件 |
 | `time_window` | non-empty string | metric 计算的时间范围与 event-time/as-of semantics |
 | `calculation` | non-empty string | 精确 computation，包括哪些内容作为 separate measure 发布 |
+| `input_refs` | 一个或多个 unique input identifier | 每个 metric 对 catalog closed `input_definitions` registry 的 reference；每个 reference 必须解析 |
 | `eligibility` | 一个或多个 string | record 进入 numerator 或 denominator 必须满足的 positive condition |
 | `exclusions` | string array | 将 record 从 metric 移除的条件 |
 | `minimum_sample` | integer ≥ 1 | eligible unit 的最小数量，低于该数量 metric 不发布 |

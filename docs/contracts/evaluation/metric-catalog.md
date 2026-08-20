@@ -1,7 +1,7 @@
 <a id="metric-catalog"></a>
 # Metric Catalog
 
-> **HUMAN SPECIFICATION — NOT A MACHINE SCHEMA.** This document defines the human semantics of the 15-metric MVP Evaluation Catalog. No metric-catalog machine schema or example instance exists yet; creating and validating that representation belongs to issue #44. The semantic links to the [Observation Catalog](../observation/observation-catalog.md) are human correspondences, never machine bindings.
+> **HUMAN SPECIFICATION — NOT A MACHINE SCHEMA.** This document defines the human semantics of the 15-metric MVP Evaluation Catalog. Its candidate machine companion is maintained under [`system-contracts/evaluation/`](../../../system-contracts/evaluation/); neither artifact is published yet. The semantic links to the [Observation Catalog](../observation/observation-catalog.md) are human correspondences, never machine bindings.
 
 <a id="metric-catalog-1"></a>
 ## 1. Metadata and Authority
@@ -11,7 +11,7 @@
 | Document identity | `evaluation.identity.001` |
 | Status | `DRAFT_NOT_PUBLISHED` |
 | Normative language | English |
-| Machine companion | absent; issue #44 owns the future `system-contracts/evaluation/` schema, example and validator |
+| Machine companion | [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) schema, example and validator; `REVIEW_CANDIDATE`, not published |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `0.3.0` |
 | Owner | `evidence-governance-owner` |
@@ -38,10 +38,23 @@ This document does not:
 - implement Projection-owned fact eligibility or BI rendering; or
 - turn `question_refs`, evaluation cohorts or formulas into Observation fields.
 
-Issue #44 must machine-encode this 15-metric catalog, including per-metric input references, catalog-wide `metric_id` uniqueness and the `value_semantics.missing` never-zero rule. Until that work exists, no file or legacy implementation may claim machine authority or conformance.
+The candidate machine companion encodes this 15-metric catalog, including per-metric input references, catalog-wide `metric_id` uniqueness and the `value_semantics.missing` never-zero rule. Passing its validator proves candidate consistency only; no file or implementation may claim published conformance before the applicable publication gates and owner approval.
 
 <a id="metric-catalog-3"></a>
 ## 3. Schema Field Semantics
+
+Catalog envelope fields:
+
+| Field | Target machine shape | Human meaning |
+| --- | --- | --- |
+| `catalog_id` | fixed identifier | identifies this artifact as `agentops.evaluation.metric-catalog` |
+| `version` | `x.y.z` string | version of the catalog envelope and validation surface |
+| `status` | `REVIEW_CANDIDATE` | Contract lifecycle state; never an implementation or publication claim |
+| `semantic_authority` | fixed non-empty reference | binds the representation to this document identity |
+| `input_definitions` | closed array of `{input_id, source_layer, semantic_ref, binding}` | declares resolvable semantic inputs and their owning layer; `binding` is always `human-semantic-reference`, never a wire binding or authority grant |
+| `metrics` | exactly 15 metric records | the MVP metric set declared in §5 |
+
+Metric record fields:
 
 | Field | Target machine shape | Human meaning |
 | --- | --- | --- |
@@ -58,6 +71,7 @@ Issue #44 must machine-encode this 15-metric catalog, including per-metric input
 | `filters` | unique string array | the conditions that constrain which records enter the metric |
 | `time_window` | non-empty string | the time frame and event-time/as-of semantics over which the metric is computed |
 | `calculation` | non-empty string | the exact computation, including what is published as separate measures |
+| `input_refs` | one or more unique input identifiers | per-metric references into the catalog's closed `input_definitions` registry; every reference must resolve |
 | `eligibility` | one or more strings | the positive conditions a record must meet to enter the numerator or denominator |
 | `exclusions` | string array | the conditions that remove a record from the metric |
 | `minimum_sample` | integer ≥ 1 | the minimum number of eligible units below which the metric is not published |
