@@ -10,7 +10,7 @@
 
 | 字段 | 内容 |
 | --- | --- |
-| 状态 | 按 [Contract Lifecycle Management](../contract-lifecycle.md) 为 `REVIEW_CANDIDATE`（快速路径 §4.3）；Contract revision `agentops.workflow-dsl@0.1.0` |
+| 状态 | 按 [Contract Lifecycle Management](../contract-lifecycle.md) 为 `REVIEW_CANDIDATE`（快速路径 §4.3）；Contract revision `agentops.workflow-dsl@1.0.0` |
 | 上层依据 | [`workflow-composition-model.md`](../../workflow-composition-model.md)（governing，尤其 §4、§6、§7、§8、§9、§11、§12、§13、§14）、[`agent-architecture.md`](../../agent-architecture.md)（§3 稳定概念、§4 cross-system invariants）、[`systems/runtime/first-party-langgraph-runtime-profile.md`](../../systems/runtime/first-party-langgraph-runtime-profile.md)（§3 范围，尤其 Builder/compiler 为 non-goal；§13–14 证据纪律） |
 | 对齐的 design-time 语义 | [`workflow-package/implementation/workflow.md`](../../../workflow-package/implementation/workflow.md)、`agents/routes.md`、`schemas/*.schema.md`、`templates/*.template.json`、`composition-conformance.md`；[`workflow-package/system-design/workflow.md`](../../../workflow-package/system-design/workflow.md)、`agents/routes.md`、`schemas/*.schema.md`（本文翻译并闭合它们的语义，不重定义） |
 | 本 Contract 回答 | §4.3 推迟的两件事：**最终字段**（§5 + `system-contracts/workflow-dsl/schemas/` 规范 schema）与**合并算法**（§7，authority/组合顺序的可验证规则） |
@@ -508,7 +508,8 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 | --- | --- |
 | Package 版本 | semver `MAJOR.MINOR.PATCH` |
 | Definition 版本 | 独立版本身份（`workflow.version`），与 Package 版本解耦（composition model §4.1） |
-| Contract 版本 | `agentops.workflow-dsl@X.Y.Z`；本文件 = `0.1.0`（pre-release） |
+| Contract 版本 | `agentops.workflow-dsl@X.Y.Z`；本文件 = first-release candidate `1.0.0`，在全部 gate 与 owner approval 通过前仍未发布 |
+| 先前 candidate | `agentops.workflow-dsl@0.1.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；Git history 持有 provenance，任何当前 resolver 或 compatibility range 都不得选择它 |
 | Snapshot | 绑定全部精确版本 + content identity；一个 Delivery 只绑一个 Snapshot |
 
 ### 11.2 兼容类别

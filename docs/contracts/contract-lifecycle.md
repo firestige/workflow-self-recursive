@@ -106,7 +106,7 @@ The fast path changes the ordering of evidence, never the required set of gates.
 
 ## 6. Versioning and Compatibility
 
-- Contract revision: `name@MAJOR.MINOR.PATCH` (e.g., `agentops.workflow-dsl@0.1.0`).
+- Contract revision: `name@MAJOR.MINOR.PATCH` (e.g., `agentops.workflow-dsl@1.0.0`).
 - `0.x` is pre-release: semantics may still shift after review; `1.0.0` is the first frozen revision.
 - Compatibility classes:
 
@@ -189,7 +189,7 @@ Status values used by pre-existing Contract documents (e.g., `DRAFT_NOT_PUBLISHE
 | OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | [`system-contracts/observation/`](../../system-contracts/observation/) (candidate, not released) | `REVIEW_CANDIDATE` | proposed `0.3.0` | independent review and physical release (`concept.obligation.001`) |
 | Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | not released | `REVIEW_CANDIDATE` | split draft | machine representation release (`concept.obligation.001`) |
 | Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | not released | `REVIEW_CANDIDATE` | split draft | machine representation release (`concept.obligation.001`) |
-| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/) (candidate material) | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@0.1.0` | Task 2 migration (contract.gate.2/contract.gate.3 evidence) → independent contract.gate.1 review → machine release → FROZEN |
+| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/) (`1.0.0` candidate, not released) | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@1.0.0` | independent contract.gate.1/gate.2/gate.4 evidence + owner approval → final binding → FROZEN |
 
 Notes:
 

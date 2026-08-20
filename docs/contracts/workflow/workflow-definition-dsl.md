@@ -10,7 +10,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `REVIEW_CANDIDATE` per [Contract Lifecycle Management](../contract-lifecycle.md) (fast path §4.3); Contract revision `agentops.workflow-dsl@0.1.0` |
+| Status | `REVIEW_CANDIDATE` per [Contract Lifecycle Management](../contract-lifecycle.md) (fast path §4.3); Contract revision `agentops.workflow-dsl@1.0.0` |
 | Upstream authority | [`workflow-composition-model.md`](../../workflow-composition-model.md) (governing, especially §4, §6, §7, §8, §9, §11, §12, §13, §14), [`agent-architecture.md`](../../agent-architecture.md) (§3 stable concepts, §4 cross-system invariants), [`systems/runtime/first-party-langgraph-runtime-profile.md`](../../systems/runtime/first-party-langgraph-runtime-profile.md) (§3 scope, especially Builder/compiler as non-goal; §13–14 evidence discipline) |
 | Aligned design-time semantics | [`workflow-package/implementation/workflow.md`](../../../workflow-package/implementation/workflow.md), `agents/routes.md`, `schemas/*.schema.md`, `templates/*.template.json`, `composition-conformance.md`; [`workflow-package/system-design/workflow.md`](../../../workflow-package/system-design/workflow.md), `agents/routes.md`, `schemas/*.schema.md` (this document translates and closes their semantics; it does not redefine them) |
 | This Contract answers | The two items deferred by §4.3: the **final fields** (§5 + the normative schemas under `system-contracts/workflow-dsl/schemas/`) and the **merge algorithm** (§7, the verifiable authority/composition-order rules) |
@@ -508,7 +508,8 @@ The downstream must preserve upstream semantics and owns the authority to classi
 | --- | --- |
 | Package version | semver `MAJOR.MINOR.PATCH` |
 | Definition version | independent version identity (`workflow.version`), decoupled from the Package version (composition model §4.1) |
-| Contract version | `agentops.workflow-dsl@X.Y.Z`; this document = `0.1.0` (pre-release) |
+| Contract version | `agentops.workflow-dsl@X.Y.Z`; this document = first-release candidate `1.0.0`, still unpublished until every gate and owner approval passes |
+| Prior candidate | `agentops.workflow-dsl@0.1.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`; Git history owns provenance and no current resolver or compatibility range may select it |
 | Snapshot | binds all exact versions + content identities; one Delivery binds one Snapshot |
 
 ### 11.2 Compatibility classes
