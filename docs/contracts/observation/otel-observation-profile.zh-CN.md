@@ -115,6 +115,8 @@ Proposed profile 恰好有这十个 EventName：
 
 这些 field 所携带 fact 的 tech-neutral meaning、identity、applicability、completeness、unit、privacy、relationship 与 missingness semantics 由 [Observation Catalog](observation-catalog.md#observation-catalog-4) 拥有。本 profile 只拥有每个 field 的 exact wire mapping。
 
+§7.1–§7.4 是一份 shared producer/acceptor contract：Execution 只能发射 complete permitted registry/shape composition，Evidence Admission 必须在 projection 前校验同一 composition。任一侧都不得私自 add、omit、reinterpret 或 repair field、identity、relationship 或 conflict rule。
+
 ### 7.1 Closed common registry — 57 个字段
 
 | # | Exact field | Carrier / applicability | OTel type | Requiredness | Cardinality / closed values | Source | Privacy | Evidence landing |
