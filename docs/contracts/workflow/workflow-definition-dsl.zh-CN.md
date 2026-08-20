@@ -31,6 +31,26 @@ Workflow Definition、机器表示、指令 authority 与 Package 组织是平�
 
 Definition 关注点是其十一个 DSL 子关注点的语义根；这些子关注点不再成为独立 Contract feature。机器 schema 只编码这些平级关注点拥有的语义，不能反转 authority 方向。Runtime 资源 binding 声明一条已准入 route 需要什么，绝不授予权限。DSH 或其他 selected Runtime 始终独占原生 tool visibility、授权提示、路径/网络/凭据 policy 与副作用执行。
 
+### 1.2 Definition 语义覆盖（v1）
+
+以下十一个子关注点共同构成一个 Definition 语义 surface。每项都有规范的机器可读声明与 fail-closed 规则；runner 只实现这些声明，不得增加、遗漏或重新解释它们。
+
+| 子关注点 | 规范声明 | 闭合的 v1 语义 | Runner 义务 |
+| --- | --- | --- | --- |
+| state | `state.fields[]` 与 reducer 定义 | 字段类型与 reducer 词汇闭合；写入只按声明的 reducer 合并 | 持久化与归约时不改变字段或 reducer 含义 |
+| flow | graph nodes、静态/条件 edges、terminals 与 Action `allowedSuccessors` | start 已声明、reachability 可校验，且精确合法 successor 集闭合；集合外 transition 失败 | 只编译已声明 edge，并拒绝非法推进 |
+| judge | `conditionalEdges[].judge`、closed predicate 或 non-recursive Planner Action | 确定性谓词只检查结构化 State；语义判断先返回符合 schema 的 classification，再选分支 | 调用已声明 judge 并校验结构化结果；绝不发明分支 |
+| parallel | Action `execution.mode: parallel`、branches 与 `join.barrier` | 静态 branch 集和 join barrier 显式；aggregation authority 已声明且禁止多数决 | 调度已声明 branch 并等待已声明 barrier |
+| loop | 已声明 graph cycle 加 progress State、budget、Gate 与 recovery binding | 只有已声明 cycle 可重复；相同失败会消耗 budget，禁止 blind replay | 保留 attempt identity、计算 progress/budget，并只走已声明 exit/recovery 路径 |
+| wait | `waits[]` 与 Action `waitPolicy` | 单一 correlated pending obligation、精确授权 resume、确定性 expiry、拒绝 stale/duplicate | 映射为原生 interrupt/resume，同时保持 correlation 与 fail-closed 行为 |
+| budget | `budgets[]`、evaluator registration、State counter 与 `onExhaustion` | resource dimension 与 evaluator 显式；耗尽永不放松 Gate | 调用已准入 evaluator、持久化消耗并进入声明的耗尽路径 |
+| recovery | `recovery[]`、`noBlindReplay`、checkpoint bindings 与 terminals | 只允许已知 continue/restart、显式 intervene 或不可重试 fail | 任何 retry/resume 前重新解析 binding 并拒绝失配 |
+| role | `roles[]`、Action `responsibleAuthority`、selector 与 routes | 责任、authority boundary、独立性与可准入 binding 均被声明；route requirement 不是 Provider grant | 只选择已准入 route；原生 grant 与副作用留给 selected Runtime/DSH |
+| action | `actions[]` input/result schema、authority、execution、selector、Gate 与 successor bindings | input、结构化 result、责任 authority、validation 与合法 continuation 都显式 | 执行已准入 binding，拒绝无效 result、Gate bypass 或 successor |
+| output | `artifacts[]`、templates、result schema、validators 与 terminal settlement | output shape、coverage/completion、lifecycle、validity 与 settlement 是已声明事实，不是自由文本成功声称 | 产出有版本的 Artifact、运行 validator，且只经声明的 terminal 结算 |
+
+完整性只相对于这个显式 v1 surface。§18.1 列为不支持的形态必须被拒绝或采用文档规定的 v1 替代建模，不能由 Runtime 猜测补齐。未来增加该形态属于 §11 与 §18 下的 Contract 演进，不是实现层解释。
+
 **明确不做**（与 runner §41 一致）：
 
 1. 不实现"Definition → LangGraph `StateGraph`"的编译与执行 —— 那是 runner/Execution 层动作。
