@@ -234,7 +234,7 @@ The normative complete field set is the 8 JSON Schemas under `system-contracts/w
 | --- | --- | --- |
 | `kind` / `schemaVersion` | yes | `agentops.workflow-definition` / `agentops.workflow-dsl@X.Y.Z` |
 | `workflow.{id,name,version,purpose,contractVersion}` | yes | independent Definition version identity (composition model §4.1) |
-| `state.fields[]` | yes | see §4.2; `name` pattern `^[a-z][a-z0-9_]*$` |
+| `state.fields[]` | yes | see §4.2; `name` pattern `^[a-z][A-Za-z0-9_]*$` (lowercase initial; camelCase and snake_case are both valid) |
 | `graph.start` | yes | must be a node id |
 | `graph.nodes[]` | yes | `id` + `action` (the action must exist in the actions document) + optional `checkpoint` |
 | `graph.edges[]` | no | `id/from/to` + optional `condition`; a node must not have both static out-edges and conditional edges |
@@ -585,7 +585,7 @@ Replacement boundary condition: the new Runtime must conform (§12.1 level 3) �
 
 ## 14. Minimal Definition Example
 
-The complete example lives at [`system-contracts/workflow-dsl/examples/minimal/`](../../../system-contracts/workflow-dsl/examples/minimal/) (`package.json` + 6 documents + 10 owned resource files) and supplies inputs for mechanical closure checks (JSON, reference resolution, closed vocabularies, `allowedSuccessors` == out-edge set, digest matching, no LangGraph/Driver physical fields). Its physical conformance status is established only by the schema/checker evidence required by §12, not by this semantic document. The example covers:
+The complete example lives at [`system-contracts/workflow-dsl/examples/minimal/`](../../../system-contracts/workflow-dsl/examples/minimal/) (`package.json` + 6 documents + 8 owned resource files) and supplies inputs for mechanical closure checks (JSON Schema, reference resolution, closed vocabularies, `allowedSuccessors` == out-edge set, digest matching, no LangGraph/Driver physical fields). Its physical conformance status is established only by the schema/checker evidence required by §12, not by this semantic document. The example covers:
 
 - **graph**: start → `node.intake` → `node.review` (parallel dual lens) → `node.aggregate` (conditional edges) → `node.finalize` / `node.review` (re-review loop) / `terminal:FAILED`;
 - **state + reducers**: `status`(overwrite), `context`(merge), `findings`(append), `reviewIterations`(sum), `aggregation`(overwrite);
@@ -593,8 +593,8 @@ The complete example lives at [`system-contracts/workflow-dsl/examples/minimal/`
 - **checkpoint**: `node.intake` declares the minimum binding set;
 - **Wait/recovery**: `wait.user-confirm` (user, resume=intake), `wait.external-obligation` (external); `recovery.default`(continue), `recovery.review-restart`(restartFromSavepoint), `recovery.intervene`;
 - **terminal**: `SUCCESS/FAILED/INCOMPLETE/CANCELLED`;
-- **Role route**: 3 Roles, 5 routes (including the blackbox/whitebox isolated routes with parallel execution + aggregator join);
-- **owned/referenced**: 10 owned resources (real digests) + 5 referenced resources (sourceLocator + content-comparable identity);
+- **Role route**: 2 Roles, 4 routes (including the blackbox/whitebox isolated routes with parallel execution + aggregator join); deterministic `action.finalize` remains Runtime-owned and has no Agent route;
+- **owned/referenced**: 8 owned resources (real digests) + 6 referenced resources (sourceLocator + content-comparable identity, including the budget evaluator registration);
 - **authority**: canonical order + fail-closed; bidirectional handoffs (upstream `handoff.verification` + downstream `consume.design-obligation`).
 
 The item-for-item equality between the graph in `workflow.json` and the `allowedSuccessors` in `actions.json` is verified by the checker — this is the mechanical proof of the §6.2 successor closure.
