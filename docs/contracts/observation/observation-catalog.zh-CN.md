@@ -1,7 +1,7 @@
 <a id="observation-catalog"></a>
 # Observation Catalog（中文翻译）
 
-> **DRAFT——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 Observation fact 的 technology-neutral meaning：fact class、semantic owner，以及 identity / applicability / completeness / unit / privacy / relationship / missingness semantics。它不包含任何 wire-level representation（无 machine field name、无 carrier 或 type mapping、无 concrete serialization）。Exact machine mapping 由 [OTel Observation Profile](otel-observation-profile.md) 拥有，以 profile version `0.3.0` 引用。
+> **REVIEW CANDIDATE——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 Observation fact 的 technology-neutral meaning：fact class、semantic owner，以及 identity / applicability / completeness / unit / privacy / relationship / missingness semantics。它不包含任何 wire-level representation（无 machine field name、无 carrier 或 type mapping、无 concrete serialization）。Exact machine mapping 由 [OTel Observation Profile](otel-observation-profile.md) 拥有，以 profile version `1.0.0` 引用。
 
 <a id="observation-catalog-1"></a>
 ## 1. 元数据与权威性
@@ -9,16 +9,18 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `observation.identity.001` |
-| 状态 | `DRAFT_NOT_PUBLISHED` |
+| 状态 | `REVIEW_CANDIDATE` |
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 elapsed time、reached stage 与 model-to-Role attribution 的 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中 |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](otel-observation-profile.md)，proposed version `0.3.0` |
+| Representation companion | [OTel Observation Profile](otel-observation-profile.md)，proposed version `1.0.0` |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
 本文件拥有 Observation fact *意味着什么* 以及谁拥有每个 fact。它不拥有 fact 如何编码、transport、admit、storage 或 query。当 OTel Observation Profile 中的 representation 与此处 meaning 冲突时，以本文件的 semantic owner anchor 为准。
+
+Profile `0.3.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；它仅作为 Git 历史中的 provenance 保留，不是可选择的 compatibility target。
 
 <a id="observation-catalog-2"></a>
 ## 2. 目的、所有权划分与阅读方式
@@ -28,7 +30,7 @@ Observation 是 Execution 发出、Evidence 接受的 versioned、allow-listed�
 | Concern | 唯一 owner |
 | --- | --- |
 | Fact meaning、semantic owner、truth、privacy、fact lifecycle semantics | 本文件，委托给 English Concept/Execution/Evidence Design |
-| Exact machine mapping（name、carrier、closed value set、complete shape） | [OTel Observation Profile](otel-observation-profile.md)，version `0.3.0` |
+| Exact machine mapping（name、carrier、closed value set、complete shape） | [OTel Observation Profile](otel-observation-profile.md)，version `1.0.0` |
 | Transport flow、endpoint、partial success、retry、ambiguous commit | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Admission、projection、durable storage、query | [Evidence System Design](../../systems/evidence/evidence-system.md) |
 | Producer mapping、privacy/redaction、export isolation | [Execution System Design](../../systems/execution/project-execution-system.md) |

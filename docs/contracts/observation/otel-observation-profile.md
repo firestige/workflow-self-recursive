@@ -1,7 +1,7 @@
 <a id="otel-observation-profile"></a>
 # OTel Observation Profile
 
-> **DRAFT — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the exact proposed OTel/OTLP wire mapping: pins, carriers, Resource, Scope, schema URL, standard GenAI mapping, the closed EventName set, the closed `agentops.*` registries, the complete Review/Finding shapes, the C17/C27 oracle, and the shape/identity/conflict rules. It does not publish a machine schema, packaged registry, protobuf definition, fixture corpus, implementation, or conformance claim, and it owns no transport interaction flow and no durable storage model.
+> **REVIEW CANDIDATE — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the exact candidate OTel/OTLP wire mapping: pins, carriers, Resource, Scope, schema URL, standard GenAI mapping, the closed EventName set, the closed `agentops.*` registries, the complete Review/Finding shapes, the C17/C27 oracle, and the shape/identity/conflict rules. Its machine schemas, packaged registry and fixture corpus are candidate material in `system-contracts/observation/`, not a release or conformance claim; it owns no durable storage model.
 
 <a id="otel-profile-1"></a>
 ## 1. Metadata and Authority
@@ -9,10 +9,10 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `observation.identity.002` |
-| Status | `DRAFT_NOT_PUBLISHED` |
+| Status | `REVIEW_CANDIDATE` |
 | Normative language | English |
-| Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment for C55–C57 and proposed profile `0.3.0`; provenance remains in Git history |
-| Profile version | proposed `0.3.0` (adopted proposal, not a release) |
+| Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment for C55–C57 and proposed profile `1.0.0`; provenance remains in Git history |
+| Profile version | proposed `1.0.0` (adopted proposal, not a release) |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md), and the tech-neutral [Observation Catalog](observation-catalog.md) |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
@@ -27,11 +27,13 @@ This document owns the one editable proposed wire registry, carrier placement, v
 | Layer | State in this candidate | What is fixed | What may be claimed |
 | --- | --- | --- | --- |
 | System semantic meaning and owner | fixed in the English Concept/Execution/Evidence Designs and the Observation Catalog | fact meaning, ownership, truth, privacy and lifecycle | Design meaning after promotion |
-| Wire profile proposal | adopted normative-as-draft | exact pins, carriers, standard/custom split, ten EventNames, 57 common + 10 Implementation + 6 System Design fields, complete Review/Finding variant composition, relationships, placement, requiredness and exclusions | this exact proposal may be cited only as `DRAFT_NOT_PUBLISHED` |
-| Released physical Contract | absent | nothing physical is released | no schema, package or registry publication claim |
+| Wire profile candidate | adopted normative candidate | exact pins, carriers, standard/custom split, ten EventNames, 57 common + 10 Implementation + 6 System Design fields, complete Review/Finding variant composition, relationships, placement, requiredness and exclusions | this exact candidate may be cited only as `REVIEW_CANDIDATE` |
+| Released physical Contract | absent; candidate package present | nothing physical is released | no schema, package or registry publication claim |
 | Implementation conformance | unproven | no implementation is certified | no conformance claim until executable validators pass the released physical Contract |
 
 Draft maturity is not permission to re-decide the selected mapping. Conversely, validated proposal evidence is not released physical Contract or production conformance evidence.
+
+Profile `0.3.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`; it remains provenance in Git history and is not a selectable compatibility target.
 
 <a id="otel-profile-3"></a>
 ## 3. Fixed / Proposed / Proof Boundary
@@ -60,8 +62,8 @@ Draft maturity is not permission to re-decide the selected mapping. Conversely, 
 | OTLP/protobuf | `v1.10.0` | official `.proto` decode and partial-success path |
 | Semantic conventions | `v1.41.1` | GenAI conventions remain Development; compatibility is limited to this generation |
 | Schema URL | `https://opentelemetry.io/schemas/1.41.0` | exact tested scope schema URL |
-| Observation Profile | proposed version `0.3.0` | adopted proposal, not a release |
-| InstrumentationScope | name `io.agentops.dsh.observation`, version `0.3.0`, schema URL above | required on Trace and Log scopes |
+| Observation Profile | proposed version `1.0.0` | adopted proposal, not a release |
+| InstrumentationScope | name `io.agentops.dsh.observation`, version `1.0.0`, schema URL above | required on Trace and Log scopes |
 | Factual transport | OTLP/HTTP through official binary protobuf Trace and Log exporters | stock DSH rc.6 OTLP/JSON is disabled and not routed to Evidence |
 | Sampling | Delivery-level head sampling; default probability `1` | sampled-out decision LogRecord may carry unsampled Trace context; no durability/completeness claim |
 
@@ -159,7 +161,7 @@ Sections 7.1–7.4 are one shared producer/acceptor contract: Execution must emi
 | C36 | `agentops.writer.invocation.id` | review/artifact relation | string | conditional; required when writer relation is asserted | HC, nonempty invocation identity | Workflow invocation owner | metadata identity | explicit writer-invocation edge |
 | C37 | `agentops.reviewer.invocation.id` | review relation | string | required on review result | HC, nonempty invocation identity | Workflow invocation owner | metadata identity | explicit reviewer-invocation edge |
 | C38 | `agentops.recheck.invocation.id` | recheck relation | string | required with C23 | HC, nonempty invocation identity | Workflow invocation owner | metadata identity | explicit recheck-invocation edge |
-| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT` for profile `0.3.0` | Workflow control owner | factual classification | intervention contribution |
+| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT` for profile `1.0.0` | Workflow control owner | factual classification | intervention contribution |
 | C40 | `agentops.observed.loop.count` | family summary | integer | required when applicable summary reports loops | BC nonnegative integer | Workflow owner | factual count | observed-loop contribution; never quality inference |
 | C41 | `agentops.observed.intervention.count` | family summary | integer | required when applicable summary reports interventions | BC nonnegative integer | Workflow owner | factual count | observed-intervention contribution |
 | C42 | `agentops.usage.kind` | `usage` | string | required | LC enum `native_credit`, `request`, `premium_request`, `provider_native`, `money` | Runtime/provider usage owner | factual classification | native-usage compatibility key |
@@ -386,7 +388,7 @@ The four completeness values are the closed C11 vocabulary: `FINAL` proves an ap
 
 C55 and C56 are independent optional direct facts on a terminal Delivery Summary. Absence of C55 means elapsed time is unavailable, not zero; absence of C56 means reached stage is unavailable, not an initial stage. C57 is an activity coordinate, not a Delivery summary: without the complete standard-provider+C57+C30+C06+Span tuple, model-to-Role attribution is unavailable and must not be reconstructed from names, parentage or a free-form/list summary.
 
-The five examples below share Scope profile `0.3.0`, C49=`implementation@1`, C11=`FINAL`, and distinct stable C09 Event IDs; those coordinates are part of each logical record even though the table focuses on the usage-specific fields.
+The five examples below share Scope profile `1.0.0`, C49=`implementation@1`, C11=`FINAL`, and distinct stable C09 Event IDs; those coordinates are part of each logical record even though the table focuses on the usage-specific fields.
 
 | Example | Exact logical fields | Compatible grouping result |
 | --- | --- | --- |
@@ -441,6 +443,6 @@ This profile is acceptable for affected review only when:
 - the local/lineage pair rule is unambiguous; and
 - every complete Review/Finding/Fix/Recheck shape passes the closed C17/C27 oracle and the positive/negative sequences in §7.6, including order-independent multi-target behavior, cross-target assertion conflicts, compatible assertion/edge reuse, separately keyed status/Fix/Recheck append, Event conflict and all-or-none landing;
 - every confirmed family fact and objective relationship resolves to one Event/standard-or-custom field/source/privacy/landing, usage examples remain incompatible where required, and Span duplicate/conflict examples obey `(trace_id, span_id)`;
-- `DRAFT_NOT_PUBLISHED`, absent physical publication and unproven conformance remain unmistakable.
+- `REVIEW_CANDIDATE`, absent physical publication and unproven conformance remain unmistakable.
 
 No current prototype, Spike result, legacy artifact or draft byte stream may claim released physical Contract or implementation conformance. Downstream publication and conformance obligations are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-8).

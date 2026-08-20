@@ -1,7 +1,7 @@
 <a id="interaction-contract"></a>
 # Execution–Evidence Interaction Contract（中文翻译）
 
-> **DRAFT——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，外加一个 post-split meaning amendment，记录为 `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`：外部 ingest response 是标准 OTLP aggregate success/partial-success，带 bounded rejected count/reason，且 `accepted`/`duplicate`/`conflict`/`rejected` 仅保留为 Admission-internal per-record disposition；出处保留在 Git 历史中。它拥有 Execution（producer）与 Evidence（acceptor）之间的 transport 与 interaction obligation：endpoint、internal per-record disposition、partial success、batch sibling isolation、retry/timeout/ambiguous commit、version compatibility、generic profile-invalid atomic rejection，以及 downstream publication/conformance obligation。它不拥有任何 wire registry、complete-shape 或 identity-tuple 细节，也不拥有任何 durable storage model。
+> **REVIEW CANDIDATE——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，外加一个 post-split meaning amendment，记录为 `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`：外部 ingest response 是标准 OTLP aggregate success/partial-success，带 bounded rejected count/reason，且 `accepted`/`duplicate`/`conflict`/`rejected` 仅保留为 Admission-internal per-record disposition；出处保留在 Git 历史中。它拥有 Execution（producer）与 Evidence（acceptor）之间的 transport 与 interaction obligation：endpoint、internal per-record disposition、partial success、batch sibling isolation、retry/timeout/ambiguous commit、version compatibility、generic profile-invalid atomic rejection，以及 downstream publication/conformance obligation。它不拥有任何 wire registry、complete-shape 或 identity-tuple 细节，也不拥有任何 durable storage model。
 
 <a id="interaction-contract-1"></a>
 ## 1. 元数据与权威性
@@ -9,11 +9,11 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `interaction.identity.001` |
-| 状态 | `DRAFT_NOT_PUBLISHED` |
+| 状态 | `REVIEW_CANDIDATE` |
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，外加一个 post-split meaning amendment，记录为 `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`（标准 OTLP aggregate ingest response；per-record disposition 仍为 Admission-internal）；出处保留在 Git 历史中 |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，proposed version `0.3.0` |
+| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，proposed version `1.0.0` |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
@@ -95,7 +95,7 @@ Version compatibility 逐 record 评估；一个 batch 可包含不同 family sc
 <a id="interaction-contract-8"></a>
 ## 8. Publication 与 Conformance 义务
 
-本 split 仍为 `DRAFT_NOT_PUBLISHED`。在 released physical Contract 发布且其 executable validator 通过之前，任何 implementation 或 physical artifact 不得声称 Contract conformance。
+本 split 为 `REVIEW_CANDIDATE`。Profile `0.3.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`。Candidate `1.0.0` machine schema、registry、fixture、validator 与 publication inventory 已位于 `system-contracts/observation/`，但尚未 release。在所有 lifecycle gate 与 owner approval 通过之前，任何 implementation 或 physical artifact 不得声称 Contract conformance。
 
 Downstream owner 仍必须发布并证明：
 

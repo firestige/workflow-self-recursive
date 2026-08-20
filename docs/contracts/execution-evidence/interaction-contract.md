@@ -1,7 +1,7 @@
 <a id="interaction-contract"></a>
 # Execution–Evidence Interaction Contract
 
-> **DRAFT — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus one post-split meaning amendment recorded as `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`: the external ingest response is the standard OTLP aggregate success/partial-success with bounded rejected counts/reasons, and `accepted`/`duplicate`/`conflict`/`rejected` remain Admission-internal per-record disposition only; provenance remains in Git history. It owns the transport and interaction obligations between Execution (producer) and Evidence (acceptor): endpoint, internal per-record disposition, partial success, batch sibling isolation, retry/timeout/ambiguous commit, version compatibility, generic profile-invalid atomic rejection, and downstream publication/conformance obligations. It owns no wire registry, no complete-shape or identity-tuple detail, and no durable storage model.
+> **REVIEW CANDIDATE — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus one post-split meaning amendment recorded as `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`: the external ingest response is the standard OTLP aggregate success/partial-success with bounded rejected counts/reasons, and `accepted`/`duplicate`/`conflict`/`rejected` remain Admission-internal per-record disposition only; provenance remains in Git history. It owns the transport and interaction obligations between Execution (producer) and Evidence (acceptor): endpoint, internal per-record disposition, partial success, batch sibling isolation, retry/timeout/ambiguous commit, version compatibility, generic profile-invalid atomic rejection, and downstream publication/conformance obligations. It owns no wire registry, no complete-shape or identity-tuple detail, and no durable storage model.
 
 <a id="interaction-contract-1"></a>
 ## 1. Metadata and Authority
@@ -9,11 +9,11 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `interaction.identity.001` |
-| Status | `DRAFT_NOT_PUBLISHED` |
+| Status | `REVIEW_CANDIDATE` |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus one post-split meaning amendment recorded as `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17` (standard OTLP aggregate ingest response; per-record disposition remains Admission-internal); provenance remains in Git history |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `0.3.0` |
+| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `1.0.0` |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
@@ -95,7 +95,7 @@ Version compatibility is evaluated per record; a batch may contain records of di
 <a id="interaction-contract-8"></a>
 ## 8. Publication and Conformance Obligations
 
-This split remains `DRAFT_NOT_PUBLISHED`. No implementation or physical artifact may claim Contract conformance until the released physical Contract is published and its executable validators pass.
+This split is `REVIEW_CANDIDATE`. Profile `0.3.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`. Candidate `1.0.0` machine schemas, registry, fixtures, validators, and publication inventory are present in `system-contracts/observation/`, but are not released. No implementation or physical artifact may claim Contract conformance until every lifecycle gate and owner approval pass.
 
 Downstream owners still must publish and prove:
 
