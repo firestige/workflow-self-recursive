@@ -1,7 +1,7 @@
 <a id="metric-catalog"></a>
 # Metric Catalog
 
-> **HUMAN SPECIFICATION — NOT A MACHINE SCHEMA.** This document explains, in human terms, the existing machine metric catalog schema `metric-catalog-0.1.0` at [`contracts/evaluation/metric-catalog-0.1.0.schema.json`](../../../contracts/evaluation/metric-catalog-0.1.0.schema.json). It does not modify that schema, does not invent new metrics, and does not add or remove machine-required fields. It states human-readable semantic links to the [Observation Catalog](../observation/observation-catalog.md); those links are semantic correspondences only, never a machine binding, and never a claim that a human input reference is currently a machine-required field.
+> **HUMAN SPECIFICATION — NOT A MACHINE SCHEMA.** This document defines the human semantics of the 15-metric MVP Evaluation Catalog. No metric-catalog machine schema or example instance exists yet; creating and validating that representation belongs to issue #44. The semantic links to the [Observation Catalog](../observation/observation-catalog.md) are human correspondences, never machine bindings.
 
 <a id="metric-catalog-1"></a>
 ## 1. Metadata and Authority
@@ -9,15 +9,15 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `evaluation.identity.001` |
-| Status | `DRAFT_NOT_PUBLISHED` (human explanatory companion to the `draft` machine schema) |
+| Status | `DRAFT_NOT_PUBLISHED` |
 | Normative language | English |
-| Machine authority | [`contracts/evaluation/metric-catalog-0.1.0.schema.json`](../../../contracts/evaluation/metric-catalog-0.1.0.schema.json) and the example instance [`contracts/examples/metric-catalog-0.1.0.json`](../../../contracts/examples/metric-catalog-0.1.0.json) |
+| Machine companion | absent; issue #44 owns the future `system-contracts/evaluation/` schema, example and validator |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
-| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `0.2.0` |
-| Owner | `evidence-governance-owner` (the example instance's `owner` value; the schema requires only a non-empty string) |
+| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `0.3.0` |
+| Owner | `evidence-governance-owner` |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
-The machine schema is the sole authority for what a metric record *is*. This document is the sole human explanation of what each field *means* and how each metric is intended to be read. When this document and the schema disagree, the schema wins.
+This document is the semantic authority for what each field and metric means and how it may be read. The future machine companion must encode these semantics; a mismatch is a representation defect and cannot silently redefine this document.
 
 <a id="metric-catalog-2"></a>
 ## 2. Purpose and Authority Boundary
@@ -26,27 +26,29 @@ The metric catalog declares the measurements an evidence-governance owner comput
 
 This document:
 
-- explains each schema field and each declared metric faithfully;
+- defines each target schema field and each of the 15 declared metrics;
 - states, per metric, which Observation Catalog fact classes and fields it draws on, as human semantic links;
+- owns metric formulas, reading rules, sample/coverage gates and evaluation-level cohort/task readings; and
 - records the hard boundaries the catalog itself imposes (no scores, no backfill, no causal claims, no cross-context comparison).
 
 This document does not:
 
-- alter the schema or the example instance;
-- add metrics or change a metric's status, calculation, gates, or refs;
-- claim that a metric's `question_refs` or dimensions are currently machine-required fields in the OTel Observation Profile.
+- publish a machine schema, example, validator, implementation or conformance claim;
+- redefine Observation facts, wire fields, Admission or Projection compatibility keys;
+- implement Projection-owned fact eligibility or BI rendering; or
+- turn `question_refs`, evaluation cohorts or formulas into Observation fields.
 
-The machine schema has not yet encoded several intended constraints — including the per-metric input references of §6, `metric_id` uniqueness within the catalog, and the `value_semantics.missing` never-zero rule — as machine rules. Encoding them is a deferred downstream obligation; until then the schema wins wherever it and this document disagree, and this revision does not change the schema or the example instance.
+Issue #44 must machine-encode this 15-metric catalog, including per-metric input references, catalog-wide `metric_id` uniqueness and the `value_semantics.missing` never-zero rule. Until that work exists, no file or legacy implementation may claim machine authority or conformance.
 
 <a id="metric-catalog-3"></a>
 ## 3. Schema Field Semantics
 
-| Field | Machine shape | Human meaning |
+| Field | Target machine shape | Human meaning |
 | --- | --- | --- |
 | `metric_id` | identifier | stable metric identifier, unique within the catalog |
 | `version` | `x.y.z` string | the metric definition's own version |
 | `name` | non-empty string | human-readable metric name |
-| `status` | `implemented` or `planned` | whether the metric is currently computed (`implemented`) or declared for later computation (`planned`); `implemented` is a quarantined legacy implementation declaration, never conformance |
+| `status` | `implemented` or `planned` | descriptive legacy readiness only; neither value proves current implementation or conformance |
 | `question_refs` | one or more `{question_id, version}` | the human evaluation question(s) this metric serves; these reference the Question Catalog, not Observation facts |
 | `evaluation_unit` | non-empty string | the unit of analysis the metric is computed over (task, packet, trajectory, call, fact, event) |
 | `value_semantics.kind` | `rate`, `count`, `duration`, `quantity`, `money`, or `state` | the kind of value the metric publishes |
@@ -64,7 +66,7 @@ The machine schema has not yet encoded several intended constraints — includin
 | `forbidden_inference` | one or more strings | the conclusions the metric must not be used to draw |
 | `owner` | non-empty string | the party responsible for the metric |
 
-`value_semantics` may carry additional properties (`additionalProperties: true`); this document explains only the required `kind`, `unit`, and `missing` fields.
+The future schema may add bounded representation metadata, but it may not weaken the required meaning of `kind`, `unit` or `missing` or admit arbitrary semantic extensions.
 
 <a id="metric-catalog-4"></a>
 ## 4. Metric Value Kinds
@@ -83,62 +85,101 @@ Rates report numerator and denominator. `money` and `quantity` metrics never con
 <a id="metric-catalog-5"></a>
 ## 5. Declared Metrics
 
-The schema's example instance declares exactly 20 metrics. The table is a faithful human summary; the machine instance remains authoritative for exact strings.
+The MVP catalog declares exactly 15 metrics. `Definition class` records why each metric survives the issue #43 scope decision: `DIRECT` uses already-declared facts, `B_TASK_READING` uses the task reading in §6.2, and `A_PROFILE_0.3` uses the Observation Profile `0.3.0` inputs closed by issue #61. It is a documentation audit column, not implementation status or a target machine-schema field.
 
-| metric_id | v | status | kind / unit | evaluation unit | calculation (summary) | min sample / coverage | question refs |
+| metric_id | v | definition class | kind / unit | evaluation unit | calculation | min sample / coverage | question refs |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| configuration-utility-profile | 0.1.0 | implemented | state / multi-dimensional profile | terminal task in one event-time configuration bundle within a comparable cohort | publish success, adjusted failure, latency, repair, reopen, reroute, handoff, overhead, escalation, intervention, availability, cost as separate measures | 20 / 0.8 | template-utility |
-| configuration-component-comparison | 0.1.0 | implemented | count / changed components | pair of evidence-ready profiles in same class/complexity/risk/cost basis/currency | exact identity diff across topology, policy, routing, prompts, skills, model binding, execution binding; publish deltas without causal claim | 20 / 0.8 | template-utility |
-| model-role-utility-profile | 0.1.0 | implemented | state / multi-dimensional profile | terminal task with one canonical provider/model/runtime attribution per role/responsibility | publish outcome, adjusted failure, retry, repair, reopen, escalation, latency, token, cost, intervention, reviewer-finding validity as separate measures; Pareto only among evidence-ready peers | 20 / 0.8 | model-role-cost-effectiveness |
-| role-template-qualified-outcome-rate | 0.1.0 | planned | rate / ratio | terminal task in one event-time role template within a comparable cohort | qualified-outcome tasks / eligible terminal tasks | 20 / 1.0 | template-utility |
-| role-template-rework-rate | 0.1.0 | planned | rate / ratio | implementation packet in one event-time role template | packets with ≥1 attributable repair / eligible packets | 20 / 1.0 | template-utility |
-| role-template-trajectory-partial-cost | 0.1.0 | planned | money / source currency | delivery trajectory in one event-time role template cohort | sum of linked same-currency attributable cost; coverage reports covered trajectories | 20 / 0.8 | template-utility |
-| role-model-task-outcome-rate | 0.1.0 | implemented | rate / ratio | terminal task with authoritative work-model attribution | tasks per terminal outcome / eligible attributed terminal tasks | 20 / 1.0 | model-role-cost-effectiveness |
-| packet-rework-rate | 0.1.0 | implemented | rate / ratio | governance 0.2 routed implementation packet | packets with repair-started / eligible packets | 1 / 1.0 | model-role-cost-effectiveness, task-execution-workflow |
-| packet-escalation-rate | 0.1.0 | implemented | rate / ratio | packet with known initial lane and escalation state | packets with recorded escalation / packets with known escalation state | 1 / 1.0 | model-role-cost-effectiveness, task-execution-workflow |
-| operational-latency-ms | 0.1.0 | implemented | duration / milliseconds | operational model call with host-reported duration | sum of eligible host-reported duration / contributing calls | 1 / 1.0 | model-role-cost-effectiveness, project-model-usage |
-| trajectory-partial-cost | 0.1.0 | implemented | money / source currency | delivery trajectory with linked host/provider-reported cost | sum of linked same-currency cost / covered trajectories | 20 / 0.8 | model-role-cost-effectiveness |
-| task-cohort-comparison-eligibility | 0.1.0 | implemented | rate / ratio | defined task | eligible terminal tasks / defined tasks, with exclusion reasons reported separately | 20 / 1.0 | template-utility, model-role-cost-effectiveness, evidence-decision-readiness |
-| delivery-stage-reach | 0.1.0 | implemented | rate / ratio | delivery trajectory | deliveries with direct stage fact / linked deliveries | 1 / 1.0 | task-execution-workflow |
-| delivery-terminal-outcome-rate | 0.1.0 | implemented | rate / ratio | explicitly terminated delivery trajectory | deliveries per terminal outcome / explicitly terminated deliveries | 1 / 1.0 | task-execution-workflow |
-| delivery-cycle-time-ms | 0.1.0 | implemented | duration / milliseconds | explicitly terminated delivery trajectory | sum of eligible elapsed ms / eligible terminated deliveries | 1 / 1.0 | task-execution-workflow |
-| operational-token-usage | 0.1.0 | implemented | quantity / tokens | operational model call with reported token usage | sum of reported input/output/total tokens within like-for-like cohorts | 1 / 1.0 | project-model-usage |
-| operational-attributable-cost | 0.1.0 | implemented | money / source currency | operational call with project-attributable reported cost | sum of same-source same-unit eligible cost values | 1 / 1.0 | project-model-usage |
-| operational-usage-availability | 0.1.0 | implemented | rate / ratio | eligible operational model call | calls with explicit applicable usage source / eligible model calls | 1 / 1.0 | project-model-usage, evidence-decision-readiness |
-| configuration-reference-coverage | 0.1.0 | implemented | rate / ratio | eligible operational event | eligible events with event-time configuration references / eligible events | 1 / 1.0 | evidence-decision-readiness |
-| direct-evidence-basis-rate | 0.1.0 | implemented | rate / ratio | eligible operational or delivery fact | facts with direct host/provider basis / eligible facts | 1 / 1.0 | evidence-decision-readiness |
+| model-role-utility-profile | 0.1.0 | A_PROFILE_0.3 | state / multi-dimensional profile | terminal task with one complete canonical provider/model/Role/Runtime attribution tuple per contributing call | publish outcome, adjusted failure, retry, repair, reopen, latency, token, cost, intervention and reviewer-finding validity as separate measures; each measure keeps its own eligibility, sample, coverage and unit; Pareto only among evidence-ready peers | 20 / 0.8 | model-role-cost-effectiveness |
+| role-template-rework-rate | 0.1.0 | B_TASK_READING | rate / ratio | eligible terminal task in one event-time role-template cohort | terminal tasks with at least one linked attributable repair / eligible terminal tasks; publish numerator and denominator | 20 / 1.0 | template-utility |
+| role-template-trajectory-partial-cost | 0.1.0 | B_TASK_READING | money / source currency | eligible terminal task trajectory in one event-time role-template cohort | sum linked provider/host-reported cost for covered task trajectories, separately by exact currency/source/cost basis; publish coverage | 20 / 0.8 | template-utility |
+| role-model-task-outcome-rate | 0.1.0 | DIRECT | rate / ratio | eligible terminal task with complete canonical model-role attribution | tasks in each unique task-outcome category / eligible attributed terminal tasks; publish numerator and denominator per category | 20 / 1.0 | model-role-cost-effectiveness |
+| packet-rework-rate | 0.1.0 | DIRECT | rate / ratio | governance `0.2` implementation packet | packets with at least one linked attributable repair / eligible packets; publish numerator and denominator | 1 / 1.0 | task-execution-workflow |
+| operational-latency-ms | 0.1.0 | A_PROFILE_0.3 | duration / milliseconds | operational model call with native host-reported Span duration | sum eligible call durations / contributing calls; also publish contributing-call count | 1 / 1.0 | model-role-cost-effectiveness, project-model-usage |
+| trajectory-partial-cost | 0.1.0 | DIRECT | money / source currency | Delivery trajectory with linked host/provider-reported cost | sum linked costs separately by exact source, unit/currency and cost basis / covered trajectories; publish coverage | 20 / 0.8 | model-role-cost-effectiveness |
+| task-cohort-comparison-eligibility | 0.1.0 | B_TASK_READING | rate / ratio | task in the declared defined-task snapshot | comparable eligible terminal tasks / defined tasks; publish every exclusion reason separately | 20 / 1.0 | evidence-decision-readiness |
+| delivery-stage-reach | 0.1.0 | A_PROFILE_0.3 | rate / ratio | Delivery trajectory | Deliveries with direct C56 reached-stage fact / linked terminal Deliveries; publish exact stage identities as separate dimensions | 1 / 1.0 | task-execution-workflow |
+| delivery-terminal-outcome-rate | 0.1.0 | DIRECT | rate / ratio | explicitly terminated Delivery trajectory | Deliveries in each recorded terminal outcome / explicitly terminated Deliveries; publish numerator and denominator per outcome | 1 / 1.0 | task-execution-workflow |
+| delivery-cycle-time-ms | 0.1.0 | A_PROFILE_0.3 | duration / milliseconds | explicitly terminated Delivery with direct C55 elapsed time | sum eligible C55 milliseconds / contributing terminal Deliveries; also publish contributing-Delivery count | 1 / 1.0 | task-execution-workflow |
+| operational-token-usage | 0.1.0 | DIRECT | quantity / tokens | operational model call with reported standard token usage | sum reported input/output token measures separately within identical cohorts; publish coverage; do not synthesize total tokens when absent | 1 / 1.0 | project-model-usage |
+| operational-attributable-cost | 0.1.0 | DIRECT | money / source currency | operational call with linked provider/host-reported project-attributable cost | sum only exact same-source, same-unit/currency and same-cost-basis values; publish coverage | 1 / 1.0 | project-model-usage |
+| operational-usage-availability | 0.1.0 | DIRECT | rate / ratio | eligible operational model call | calls with explicit applicable usage source / eligible model calls; publish numerator and denominator | 1 / 1.0 | project-model-usage, evidence-decision-readiness |
+| direct-evidence-basis-rate | 0.1.0 | DIRECT | rate / ratio | eligible operational or Delivery fact | facts with direct accepted host/provider basis / eligible facts; publish numerator and denominator | 1 / 1.0 | evidence-decision-readiness |
 
-Common exclusions across the catalog: infrastructure-aborted or infrastructure-failure attributed to the adjusted model/configuration quality, requirement or upstream dependency change, declared cohort exclusion, estimated cost, unattributed billing, mixed currency, unavailable or not-applicable values, unsupported contract records, and open (non-terminal) deliveries. Common eligibility: stable identity, event-time configuration/template known, comparable cohort, direct (host/provider) evidence, and same currency and cost basis for money.
+The five removed metrics are `configuration-utility-profile`, `configuration-component-comparison`, `configuration-reference-coverage`, `packet-escalation-rate`, and `role-template-qualified-outcome-rate`. They depend on C/D-class configuration, routing/escalation or qualified-outcome semantics that the MVP does not define; consumers must not preserve them as hidden measures or aliases.
+
+Common exclusions across the catalog: infrastructure abort/failure attributed to adjusted model or template quality; requirement or upstream dependency change; declared cohort exclusion; estimated or unattributed cost; mixed currency/unit/cost basis; unavailable or not-applicable values; unsupported contract records; incomplete attribution tuples; mixed task outcomes; and open/non-terminal Deliveries. Common eligibility: stable identity, exact event-time assignment where required, complete Projection-owned compatibility/eligibility attributes, comparable cohort, direct accepted host/provider evidence, and exact currency/source/cost basis for money.
 
 <a id="metric-catalog-6"></a>
 ## 6. Human Semantic Links to the Observation Catalog
 
-These are **human semantic correspondences** between a metric's inputs and the fact classes / semantic fields of the [Observation Catalog](../observation/observation-catalog.md). They are not machine bindings: the machine mapping is owned by the [OTel Observation Profile](../observation/otel-observation-profile.md), and several metric inputs are evaluation-level concepts with no dedicated machine-required field in the first wire profile.
-
-Delivery Summary provides Delivery outcome only. A terminal task outcome is an evaluation-level reading over one or more Delivery facts and is not the same fact as Delivery outcome. Delivery stage reach and Delivery cycle time depend only on quarantined legacy facts or evaluation-level inputs; the first wire profile has no elapsed-time or stage-reach fact, so this document must not claim those measures are computable from first-profile Observation facts.
+These are **human semantic correspondences** between metric inputs and the fact classes / semantic fields of the [Observation Catalog](../observation/observation-catalog.md). They are not machine bindings: exact representation is owned by the proposed [OTel Observation Profile `0.3.0`](../observation/otel-observation-profile.md), while evaluation-level task/cohort readings remain owned here.
 
 | Metric input concept | Observation Catalog fact class / semantic field | Binding note |
 | --- | --- | --- |
-| terminal task outcome | Delivery Summary → Delivery outcome (delivery-level input only); otherwise evaluation-level | terminal task outcome is not Delivery outcome; the profile carries only a Delivery outcome category, and task terminal classification has no dedicated first-profile wire fact |
+| terminal task outcome | Delivery Summary → Task identity, Delivery identity, Delivery outcome | task outcome is the fail-closed evaluation reading in §6.2, never a new Observation fact |
 | delivery trajectory / terminal state | Delivery Summary → Delivery identity, Delivery outcome | explicit termination is a Delivery outcome fact; open deliveries are excluded |
-| task cohort / task identity | Delivery Summary → Task identity | task is a grouping identity, never a causality authority |
-| task cohort / defined-task eligibility | Delivery Summary → Task identity (partial); otherwise evaluation-level | the profile carries task identity and terminal outcome; the defined-task set and cohort comparability/eligibility gate are evaluation-level concepts with no first-profile wire fact |
+| task cohort / task identity | Delivery Summary → Task identity | task is an exact grouping identity, never causality or ordering authority |
+| task cohort / defined-task eligibility | Task identity plus an immutable evaluation-level defined-task/membership/cohort snapshot | the snapshot is not an Observation field; without it, a defined-task denominator or open-Delivery exclusion cannot be claimed |
 | role / responsibility | Role identity; writer/reviewer/recheck role identities | a version-local Role identity; display name is not identity |
-| model call / provider / runtime | recorded causal activity; Usage → Usage source, Usage source identity | model identity is activity-level; the first profile records the call, not a model-identity summary field |
+| model call / provider / runtime | recorded model-call activity plus canonical model identity and model-to-Role attribution | use the complete provider+C57+C30+C06+Span tuple; no free-form/list summary or alias inference |
 | token usage | recorded causal activity token measurement | reported token measurement; absent is unavailable, never zero |
 | native usage / cost | Usage → Usage kind, Usage unit, Usage value | money only in minor units with an ISO currency; no conversion or price inference |
-| latency / cycle time | recorded causal activity duration; cycle time otherwise evaluation-level or quarantined legacy only | the first profile has no Delivery Summary elapsed-time fact; cycle time must not be claimed computable from first-profile Observation facts |
-| delivery stage reach | (evaluation-level concept; quarantined legacy facts only) | the first profile has no stage-reach fact; stage reach must not be claimed computable from first-profile Observation facts |
+| operational latency | recorded model-call activity native Span duration | direct host-reported call duration; distinct from Delivery elapsed time |
+| Delivery cycle time | Delivery Summary → Delivery elapsed time | direct C55 milliseconds; absence is unavailable, never zero |
+| Delivery stage reach | Delivery Summary → Delivery stage reached | direct C56 exact Workflow stage identity; no name parsing or inferred ordering |
 | rework / repair | Review Finding → Fix-to-Finding edge; Finding status contributions | a repair records observed re-entry, never defect severity or causal fault |
-| escalation / routing | (evaluation-level concept; no first-profile wire fact) | human link only — escalation is a governance routing concept |
 | reviewer finding validity | Review Finding → Finding summary, Finding status; Review Summary → Review observed count | validity is a human judgment over accepted Finding facts |
 | structural coverage | Implementation Summary → Coverage dimension / covered / total / scope / tool / format | one dimension per fact; pairs never combine into a score |
 | Fresh Reader result | System Design Summary → Fresh Reader result, Fresh Reader finding count | closed result category |
 | deterministic verification | System Design Summary → Verification result, Verification passed/failed checks | closed result category |
-| configuration bundle / reference | Workflow version / family schema (partial); otherwise evaluation-level | the profile carries workflow version and family, not a full configuration bundle; configuration reference coverage is therefore a human/evaluation-level link |
 | evidence basis (direct host/provider) | Usage → Usage source; recorded causal activity provenance | direct observation proves occurrence, not semantic correctness |
 
-Where a metric input has no corresponding Observation Catalog field (configuration bundle content, model identity, routing/escalation, qualified outcome protocol, terminal task classification, cycle time, stage reach), the link is declared as human-only and must never be presented as a machine-required field.
+### 6.1 A-class Profile `0.3.0` inputs
+
+The four A-class metrics are definition-ready only under these exact inputs:
+
+| Metric | Required direct input | Fail-closed missing rule |
+| --- | --- | --- |
+| `operational-latency-ms` | native model-call Span duration | absent/invalid duration excludes the call; never substitute C55 or zero |
+| `delivery-cycle-time-ms` | Delivery Summary C55 elapsed milliseconds | absent C55 excludes the Delivery from the duration numerator and contributing count; never derive from arrival time |
+| `delivery-stage-reach` | Delivery Summary C56 exact reached-stage identity | absent C56 excludes the Delivery from the reached-stage numerator; never infer a stage from workflow order or text |
+| `model-role-utility-profile` | complete provider+C57 canonical model+C30 Role+C06 Runtime+Span identity tuple | any missing coordinate makes attribution unavailable; never complete it from display names, aliases, ancestry alone or a summary body |
+
+### 6.2 B-class terminal-task and cohort reading
+
+Task terminal state is an evaluation reading, not an Observation fact. It is computed at one declared as-of cutoff as follows:
+
+1. The evaluation owner supplies an immutable **defined-task snapshot** containing exact Task identities, explicit Delivery membership, event-time cohort coordinates and the cutoff. The snapshot is an evaluation-level input; it is never backfilled from later facts.
+2. Each declared Delivery member is joined only by exact Delivery and Task identities. A member without an accepted terminal Delivery Summary at the cutoff is open/non-terminal; the whole task is ineligible for terminal-task metrics and receives exclusion reason `OPEN_DELIVERY`.
+3. For a task whose declared members all have terminal summaries, collect the exact recorded outcomes. If every outcome is identical, that value is the unique terminal task outcome. If values differ, no chronology or winner is inferred; the task receives `MIXED_DELIVERY_OUTCOMES` and is excluded from outcome numerators and eligible-terminal denominators.
+4. A task missing its exact membership, Task identity or required cohort coordinate receives `UNDEFINED_TASK_MEMBERSHIP`, `MISSING_TASK_IDENTITY` or `INCOMPLETE_COHORT_COORDINATES`; absence is never reconstructed.
+5. Comparable cohorts require exact equality on every dimension/filter declared by the metric, including event-time role-template assignment and provider/Runtime/currency/cost-basis coordinates where applicable. Cross-context values remain separate.
+
+`task-cohort-comparison-eligibility` uses all tasks in the immutable defined-task snapshot as its denominator and tasks passing rules 2–5 as its numerator; it publishes each exclusion reason separately. Other terminal-task metrics use only the passing set as their eligible denominator. This distinction prevents excluded/open tasks from disappearing from eligibility coverage while keeping them out of outcome, cost and rework formulas.
+
+### 6.3 Formula and Projection eligibility ownership
+
+This Catalog owns metric formulas: evaluation unit, numerator/denominator or separate measures, required projected attributes, exclusions, sample/coverage gates and forbidden inferences. `evidence.projection` owns fact-level compatibility keys and eligibility attributes derived from accepted facts. Evaluation consumes those attributes but cannot repair or override them; Projection cannot define a Metric formula; BI cannot change either layer.
+
+### 6.4 Per-metric input and eligibility map
+
+| Metric | Required projected/evaluation input | Metric-level eligibility and exclusions |
+| --- | --- | --- |
+| `model-role-utility-profile` | complete model-role tuple; unique terminal task outcome; linked duration/usage/repair/intervention/review facts | publish each available measure separately; exclude incomplete tuples, mixed/open tasks and incompatible cohorts; one unavailable measure never becomes zero or blocks unrelated measures |
+| `role-template-rework-rate` | defined-task snapshot; exact event-time role template; unique terminal task outcome; linked repair | exclude open/mixed/undefined tasks and backfilled/missing template assignment |
+| `role-template-trajectory-partial-cost` | same task/template inputs plus linked direct cost | exclude mixed currency/source/cost basis, estimated/unattributed cost and insufficient coverage |
+| `role-model-task-outcome-rate` | unique terminal task outcome plus complete model-role tuple | exclude open/mixed tasks and incomplete attribution; publish one numerator per outcome over one eligible denominator |
+| `packet-rework-rate` | exact packet identity and linked repair | exclude missing packet/repair identity and unsupported governance version |
+| `operational-latency-ms` | native model-call Span duration | exclude absent/invalid duration and incompatible provider/Runtime cohorts |
+| `trajectory-partial-cost` | exact Delivery linkage and direct reported cost | exclude estimated/unattributed or incompatible currency/source/cost basis; publish coverage |
+| `task-cohort-comparison-eligibility` | immutable defined-task snapshot and §6.2 classification | denominator includes every defined task; numerator includes only comparable eligible terminal tasks; publish exclusions |
+| `delivery-stage-reach` | terminal Delivery identity and C56 | denominator is linked terminal Deliveries; absent/invalid C56 is not a reached stage |
+| `delivery-terminal-outcome-rate` | terminal Delivery identity and exact outcome | one numerator per outcome over terminal Deliveries; no task-level inference |
+| `delivery-cycle-time-ms` | terminal Delivery identity and C55 | exclude absent/invalid C55; publish contributing count |
+| `operational-token-usage` | standard reported input/output token measurements | keep input/output separate; exclude absent/incompatible measurements; never synthesize missing total |
+| `operational-attributable-cost` | direct linked project-attributable cost | exact source/unit/currency/cost basis only; no estimate or conversion |
+| `operational-usage-availability` | eligible model-call identity and explicit applicable usage source | denominator retains eligible calls with missing usage; numerator requires explicit source; missing is not zero usage |
+| `direct-evidence-basis-rate` | eligible fact identity and accepted host/provider provenance | direct basis proves occurrence only; unsupported or inferred provenance is excluded |
 
 <a id="metric-catalog-7"></a>
 ## 7. Reading Rules and Forbidden Claims
