@@ -19,7 +19,7 @@ English | [中文](README.zh-CN.md)
 | Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `REVIEW_CANDIDATE` | split draft; profile cited at `0.3.0` |
 | OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `REVIEW_CANDIDATE` | proposed `0.3.0` |
 | Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `REVIEW_CANDIDATE` | split draft |
-| Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `REVIEW_CANDIDATE` | split draft |
+| Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `REVIEW_CANDIDATE` | `agentops.evaluation.metric-catalog@1.0.0`; machine candidate not released |
 | Workflow Definition DSL | [workflow/workflow-definition-dsl.md](workflow/workflow-definition-dsl.md) | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@0.1.0` |
 
 Status values are the normalized mapping per [Contract Lifecycle Management](contract-lifecycle.md) §9; the documents' own headers remain the primary source.

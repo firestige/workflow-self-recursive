@@ -9,15 +9,18 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `evaluation.identity.001` |
-| 状态 | `DRAFT_NOT_PUBLISHED` |
+| Contract revision | `agentops.evaluation.metric-catalog@1.0.0` |
+| 状态 | `REVIEW_CANDIDATE` |
 | 规范语言 | 英文 |
-| Machine companion | [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) schema、example 与 validator；`REVIEW_CANDIDATE`，未发布 |
+| Machine companion | [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) 1.0.0 schema、example、fixture、validator、version policy 与 publication inventory；candidate，未发布 |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
-| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，proposed version `0.3.0` |
+| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，candidate version `1.0.0` |
 | Owner | `evidence-governance-owner` |
 | 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
-本文件是每个 field 与 metric *意味着什么*、以及应如何阅读的 semantic authority。未来 machine companion 必须编码这些 semantics；不一致属于 representation defect，不得静默重定义本文件。
+本文件是每个 field 与 metric *意味着什么*、以及应如何阅读的 semantic authority。Candidate machine companion 必须编码这些 semantics；不一致属于 representation defect，不得静默重定义本文件。
+
+Metric Catalog `0.1.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；它仅作为 Git 历史中的 provenance 保留，不是可选择的 compatibility target。
 
 <a id="metric-catalog-2"></a>
 ## 2. 目的与权威边界
@@ -33,7 +36,7 @@ Metric catalog 声明 evidence-governance owner 计算并发布的 measurement�
 
 本文件不：
 
-- 发布 machine schema、example、validator、implementation 或 conformance claim；
+- release candidate machine schema、example、fixture 或 validator，或发布 implementation/conformance claim；
 - 重定义 Observation fact、wire field、Admission 或 Projection compatibility key；
 - 实现 Projection-owned fact eligibility 或 BI rendering；或
 - 把 `question_refs`、evaluation cohort 或 formula 变成 Observation field。
@@ -80,7 +83,7 @@ Metric record field：
 | `forbidden_inference` | 一个或多个 string | metric 不得被用于得出的 conclusion |
 | `owner` | non-empty string | 对 metric 负责的一方 |
 
-未来 schema 可增加 bounded representation metadata，但不得削弱 `kind`、`unit` 或 `missing` 的 required meaning，也不得接纳 arbitrary semantic extension。
+后续 schema revision 可增加 bounded representation metadata，但不得削弱 `kind`、`unit` 或 `missing` 的 required meaning，也不得接纳 arbitrary semantic extension。
 
 <a id="metric-catalog-4"></a>
 ## 4. Metric Value Kind
@@ -99,25 +102,25 @@ Rate 报告 numerator 与 denominator。`money` 与 `quantity` metric 绝不隐�
 <a id="metric-catalog-5"></a>
 ## 5. 已声明 Metric
 
-MVP catalog 精确声明 15 个 metric。`Definition class` 记录每个 metric 依据 issue #43 scope decision 存活的原因：`DIRECT` 使用已有 declared fact，`B_TASK_READING` 使用 §6.2 的 task reading，`A_PROFILE_0.3` 使用 issue #61 闭合的 Observation Profile `0.3.0` 输入。它是 documentation audit column，不是 implementation status 或 target machine-schema field。
+MVP catalog 精确声明 15 个 metric。`Definition class` 记录每个 metric 依据 issue #43 scope decision 存活的原因：`DIRECT` 使用已有 declared fact，`B_TASK_READING` 使用 §6.2 的 task reading，`A_PROFILE_1.0` 使用 issue #61 闭合的 Observation Profile `1.0.0` 输入。它是 documentation audit column，不是 implementation status 或 target machine-schema field。
 
 | metric_id | v | definition class | kind / unit | evaluation unit | calculation | min sample / coverage | question refs |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| model-role-utility-profile | 0.1.0 | A_PROFILE_0.3 | state / multi-dimensional profile | 每个 contributing call 都有一个 complete canonical provider/model/Role/Runtime attribution tuple 的 terminal task | 将 outcome、adjusted failure、retry、repair、reopen、latency、token、cost、intervention 与 reviewer-finding validity 作为 separate measure；每个 measure 保留自己的 eligibility、sample、coverage 与 unit；只在 evidence-ready peer 间做 Pareto | 20 / 0.8 | model-role-cost-effectiveness |
-| role-template-rework-rate | 0.1.0 | B_TASK_READING | rate / ratio | 一个 event-time role-template cohort 内的 eligible terminal task | 至少有一个 linked attributable repair 的 terminal task / eligible terminal task；发布 numerator 与 denominator | 20 / 1.0 | template-utility |
-| role-template-trajectory-partial-cost | 0.1.0 | B_TASK_READING | money / source currency | 一个 event-time role-template cohort 内的 eligible terminal task trajectory | 对 covered task trajectory 的 linked provider/host-reported cost 求和，按 exact currency/source/cost basis 分开；发布 coverage | 20 / 0.8 | template-utility |
-| role-model-task-outcome-rate | 0.1.0 | DIRECT | rate / ratio | 有 complete canonical model-role attribution 的 eligible terminal task | 每个 unique task-outcome category 中的 task / eligible attributed terminal task；每类发布 numerator 与 denominator | 20 / 1.0 | model-role-cost-effectiveness |
-| packet-rework-rate | 0.1.0 | DIRECT | rate / ratio | governance `0.2` implementation packet | 至少有一个 linked attributable repair 的 packet / eligible packet；发布 numerator 与 denominator | 1 / 1.0 | task-execution-workflow |
-| operational-latency-ms | 0.1.0 | A_PROFILE_0.3 | duration / milliseconds | 有 native host-reported Span duration 的 operational model call | eligible call duration 总和 / contributing call；同时发布 contributing-call count | 1 / 1.0 | model-role-cost-effectiveness, project-model-usage |
-| trajectory-partial-cost | 0.1.0 | DIRECT | money / source currency | 有 linked host/provider-reported cost 的 Delivery trajectory | 按 exact source、unit/currency 与 cost basis 分开求 linked cost 总和 / covered trajectory；发布 coverage | 20 / 0.8 | model-role-cost-effectiveness |
-| task-cohort-comparison-eligibility | 0.1.0 | B_TASK_READING | rate / ratio | declared defined-task snapshot 中的 task | comparable eligible terminal task / defined task；分别发布每个 exclusion reason | 20 / 1.0 | evidence-decision-readiness |
-| delivery-stage-reach | 0.1.0 | A_PROFILE_0.3 | rate / ratio | Delivery trajectory | 有 direct C56 reached-stage fact 的 Delivery / linked terminal Delivery；把 exact stage identity 作为 separate dimension 发布 | 1 / 1.0 | task-execution-workflow |
-| delivery-terminal-outcome-rate | 0.1.0 | DIRECT | rate / ratio | explicitly terminated Delivery trajectory | 每个 recorded terminal outcome 中的 Delivery / explicitly terminated Delivery；每个 outcome 发布 numerator 与 denominator | 1 / 1.0 | task-execution-workflow |
-| delivery-cycle-time-ms | 0.1.0 | A_PROFILE_0.3 | duration / milliseconds | 有 direct C55 elapsed time 的 explicitly terminated Delivery | eligible C55 millisecond 总和 / contributing terminal Delivery；同时发布 contributing-Delivery count | 1 / 1.0 | task-execution-workflow |
-| operational-token-usage | 0.1.0 | DIRECT | quantity / tokens | 有 reported standard token usage 的 operational model call | identical cohort 内分别求 reported input/output token measure 总和；发布 coverage；total token absent 时不 synthesize | 1 / 1.0 | project-model-usage |
-| operational-attributable-cost | 0.1.0 | DIRECT | money / source currency | 有 linked provider/host-reported project-attributable cost 的 operational call | 只求 exact same-source、same-unit/currency 与 same-cost-basis value 总和；发布 coverage | 1 / 1.0 | project-model-usage |
-| operational-usage-availability | 0.1.0 | DIRECT | rate / ratio | eligible operational model call | 有 explicit applicable usage source 的 call / eligible model call；发布 numerator 与 denominator | 1 / 1.0 | project-model-usage, evidence-decision-readiness |
-| direct-evidence-basis-rate | 0.1.0 | DIRECT | rate / ratio | eligible operational 或 Delivery fact | 有 direct accepted host/provider basis 的 fact / eligible fact；发布 numerator 与 denominator | 1 / 1.0 | evidence-decision-readiness |
+| model-role-utility-profile | 1.0.0 | A_PROFILE_1.0 | state / multi-dimensional profile | 每个 contributing call 都有一个 complete canonical provider/model/Role/Runtime attribution tuple 的 terminal task | 将 outcome、adjusted failure、retry、repair、reopen、latency、token、cost、intervention 与 reviewer-finding validity 作为 separate measure；每个 measure 保留自己的 eligibility、sample、coverage 与 unit；只在 evidence-ready peer 间做 Pareto | 20 / 0.8 | model-role-cost-effectiveness |
+| role-template-rework-rate | 1.0.0 | B_TASK_READING | rate / ratio | 一个 event-time role-template cohort 内的 eligible terminal task | 至少有一个 linked attributable repair 的 terminal task / eligible terminal task；发布 numerator 与 denominator | 20 / 1.0 | template-utility |
+| role-template-trajectory-partial-cost | 1.0.0 | B_TASK_READING | money / source currency | 一个 event-time role-template cohort 内的 eligible terminal task trajectory | 对 covered task trajectory 的 linked provider/host-reported cost 求和，按 exact currency/source/cost basis 分开；发布 coverage | 20 / 0.8 | template-utility |
+| role-model-task-outcome-rate | 1.0.0 | DIRECT | rate / ratio | 有 complete canonical model-role attribution 的 eligible terminal task | 每个 unique task-outcome category 中的 task / eligible attributed terminal task；每类发布 numerator 与 denominator | 20 / 1.0 | model-role-cost-effectiveness |
+| packet-rework-rate | 1.0.0 | DIRECT | rate / ratio | governance `0.2` implementation packet | 至少有一个 linked attributable repair 的 packet / eligible packet；发布 numerator 与 denominator | 1 / 1.0 | task-execution-workflow |
+| operational-latency-ms | 1.0.0 | A_PROFILE_1.0 | duration / milliseconds | 有 native host-reported Span duration 的 operational model call | eligible call duration 总和 / contributing call；同时发布 contributing-call count | 1 / 1.0 | model-role-cost-effectiveness, project-model-usage |
+| trajectory-partial-cost | 1.0.0 | DIRECT | money / source currency | 有 linked host/provider-reported cost 的 Delivery trajectory | 按 exact source、unit/currency 与 cost basis 分开求 linked cost 总和 / covered trajectory；发布 coverage | 20 / 0.8 | model-role-cost-effectiveness |
+| task-cohort-comparison-eligibility | 1.0.0 | B_TASK_READING | rate / ratio | declared defined-task snapshot 中的 task | comparable eligible terminal task / defined task；分别发布每个 exclusion reason | 20 / 1.0 | evidence-decision-readiness |
+| delivery-stage-reach | 1.0.0 | A_PROFILE_1.0 | rate / ratio | Delivery trajectory | 有 direct C56 reached-stage fact 的 Delivery / linked terminal Delivery；把 exact stage identity 作为 separate dimension 发布 | 1 / 1.0 | task-execution-workflow |
+| delivery-terminal-outcome-rate | 1.0.0 | DIRECT | rate / ratio | explicitly terminated Delivery trajectory | 每个 recorded terminal outcome 中的 Delivery / explicitly terminated Delivery；每个 outcome 发布 numerator 与 denominator | 1 / 1.0 | task-execution-workflow |
+| delivery-cycle-time-ms | 1.0.0 | A_PROFILE_1.0 | duration / milliseconds | 有 direct C55 elapsed time 的 explicitly terminated Delivery | eligible C55 millisecond 总和 / contributing terminal Delivery；同时发布 contributing-Delivery count | 1 / 1.0 | task-execution-workflow |
+| operational-token-usage | 1.0.0 | DIRECT | quantity / tokens | 有 reported standard token usage 的 operational model call | identical cohort 内分别求 reported input/output token measure 总和；发布 coverage；total token absent 时不 synthesize | 1 / 1.0 | project-model-usage |
+| operational-attributable-cost | 1.0.0 | DIRECT | money / source currency | 有 linked provider/host-reported project-attributable cost 的 operational call | 只求 exact same-source、same-unit/currency 与 same-cost-basis value 总和；发布 coverage | 1 / 1.0 | project-model-usage |
+| operational-usage-availability | 1.0.0 | DIRECT | rate / ratio | eligible operational model call | 有 explicit applicable usage source 的 call / eligible model call；发布 numerator 与 denominator | 1 / 1.0 | project-model-usage, evidence-decision-readiness |
+| direct-evidence-basis-rate | 1.0.0 | DIRECT | rate / ratio | eligible operational 或 Delivery fact | 有 direct accepted host/provider basis 的 fact / eligible fact；发布 numerator 与 denominator | 1 / 1.0 | evidence-decision-readiness |
 
 移除的五个 metric 是 `configuration-utility-profile`、`configuration-component-comparison`、`configuration-reference-coverage`、`packet-escalation-rate` 与 `role-template-qualified-outcome-rate`。它们依赖 MVP 未定义的 C/D-class configuration、routing/escalation 或 qualified-outcome semantics；consumer 不得把它们保留为 hidden measure 或 alias。
 
@@ -126,7 +129,7 @@ Catalog common exclusion：归因到 adjusted model 或 template quality 的 inf
 <a id="metric-catalog-6"></a>
 ## 6. 与 Observation Catalog 的 Human Semantic 关联
 
-这些是 metric input 与 [Observation Catalog](../observation/observation-catalog.md) fact class / semantic field 之间的 **human semantic correspondence**。它们不是 machine binding：exact representation 由 proposed [OTel Observation Profile `0.3.0`](../observation/otel-observation-profile.md) 拥有，evaluation-level task/cohort reading 仍由本文件拥有。
+这些是 metric input 与 [Observation Catalog](../observation/observation-catalog.md) fact class / semantic field 之间的 **human semantic correspondence**。它们不是 machine binding：exact representation 由 proposed [OTel Observation Profile `1.0.0`](../observation/otel-observation-profile.md) 拥有，evaluation-level task/cohort reading 仍由本文件拥有。
 
 | Metric input concept | Observation Catalog fact class / semantic field | Binding note |
 | --- | --- | --- |
@@ -148,7 +151,7 @@ Catalog common exclusion：归因到 adjusted model 或 template quality 的 inf
 | deterministic verification | System Design Summary → Verification result、Verification passed/failed checks | closed result category |
 | evidence basis (direct host/provider) | Usage → Usage source；recorded causal activity provenance | direct observation 证明 occurrence，而非 semantic correctness |
 
-### 6.1 A-class Profile `0.3.0` 输入
+### 6.1 A-class Profile `1.0.0` 输入
 
 四个 A-class metric 仅在以下 exact input 下 definition-ready：
 

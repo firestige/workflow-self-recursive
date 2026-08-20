@@ -9,15 +9,18 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `evaluation.identity.001` |
-| Status | `DRAFT_NOT_PUBLISHED` |
+| Contract revision | `agentops.evaluation.metric-catalog@1.0.0` |
+| Status | `REVIEW_CANDIDATE` |
 | Normative language | English |
-| Machine companion | [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) schema, example and validator; `REVIEW_CANDIDATE`, not published |
+| Machine companion | [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) 1.0.0 schema, example, fixtures, validator, version policy and publication inventory; candidate, not published |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
-| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `0.3.0` |
+| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), candidate version `1.0.0` |
 | Owner | `evidence-governance-owner` |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
-This document is the semantic authority for what each field and metric means and how it may be read. The future machine companion must encode these semantics; a mismatch is a representation defect and cannot silently redefine this document.
+This document is the semantic authority for what each field and metric means and how it may be read. The candidate machine companion must encode these semantics; a mismatch is a representation defect and cannot silently redefine this document.
+
+Metric Catalog `0.1.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`; it remains provenance in Git history and is not a selectable compatibility target.
 
 <a id="metric-catalog-2"></a>
 ## 2. Purpose and Authority Boundary
@@ -33,7 +36,7 @@ This document:
 
 This document does not:
 
-- publish a machine schema, example, validator, implementation or conformance claim;
+- release the candidate machine schema, example, fixtures or validator, or publish an implementation/conformance claim;
 - redefine Observation facts, wire fields, Admission or Projection compatibility keys;
 - implement Projection-owned fact eligibility or BI rendering; or
 - turn `question_refs`, evaluation cohorts or formulas into Observation fields.
@@ -80,7 +83,7 @@ Metric record fields:
 | `forbidden_inference` | one or more strings | the conclusions the metric must not be used to draw |
 | `owner` | non-empty string | the party responsible for the metric |
 
-The future schema may add bounded representation metadata, but it may not weaken the required meaning of `kind`, `unit` or `missing` or admit arbitrary semantic extensions.
+A later schema revision may add bounded representation metadata, but it may not weaken the required meaning of `kind`, `unit` or `missing` or admit arbitrary semantic extensions.
 
 <a id="metric-catalog-4"></a>
 ## 4. Metric Value Kinds
@@ -99,25 +102,25 @@ Rates report numerator and denominator. `money` and `quantity` metrics never con
 <a id="metric-catalog-5"></a>
 ## 5. Declared Metrics
 
-The MVP catalog declares exactly 15 metrics. `Definition class` records why each metric survives the issue #43 scope decision: `DIRECT` uses already-declared facts, `B_TASK_READING` uses the task reading in §6.2, and `A_PROFILE_0.3` uses the Observation Profile `0.3.0` inputs closed by issue #61. It is a documentation audit column, not implementation status or a target machine-schema field.
+The MVP catalog declares exactly 15 metrics. `Definition class` records why each metric survives the issue #43 scope decision: `DIRECT` uses already-declared facts, `B_TASK_READING` uses the task reading in §6.2, and `A_PROFILE_1.0` uses the Observation Profile `1.0.0` inputs closed by issue #61. It is a documentation audit column, not implementation status or a target machine-schema field.
 
 | metric_id | v | definition class | kind / unit | evaluation unit | calculation | min sample / coverage | question refs |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| model-role-utility-profile | 0.1.0 | A_PROFILE_0.3 | state / multi-dimensional profile | terminal task with one complete canonical provider/model/Role/Runtime attribution tuple per contributing call | publish outcome, adjusted failure, retry, repair, reopen, latency, token, cost, intervention and reviewer-finding validity as separate measures; each measure keeps its own eligibility, sample, coverage and unit; Pareto only among evidence-ready peers | 20 / 0.8 | model-role-cost-effectiveness |
-| role-template-rework-rate | 0.1.0 | B_TASK_READING | rate / ratio | eligible terminal task in one event-time role-template cohort | terminal tasks with at least one linked attributable repair / eligible terminal tasks; publish numerator and denominator | 20 / 1.0 | template-utility |
-| role-template-trajectory-partial-cost | 0.1.0 | B_TASK_READING | money / source currency | eligible terminal task trajectory in one event-time role-template cohort | sum linked provider/host-reported cost for covered task trajectories, separately by exact currency/source/cost basis; publish coverage | 20 / 0.8 | template-utility |
-| role-model-task-outcome-rate | 0.1.0 | DIRECT | rate / ratio | eligible terminal task with complete canonical model-role attribution | tasks in each unique task-outcome category / eligible attributed terminal tasks; publish numerator and denominator per category | 20 / 1.0 | model-role-cost-effectiveness |
-| packet-rework-rate | 0.1.0 | DIRECT | rate / ratio | governance `0.2` implementation packet | packets with at least one linked attributable repair / eligible packets; publish numerator and denominator | 1 / 1.0 | task-execution-workflow |
-| operational-latency-ms | 0.1.0 | A_PROFILE_0.3 | duration / milliseconds | operational model call with native host-reported Span duration | sum eligible call durations / contributing calls; also publish contributing-call count | 1 / 1.0 | model-role-cost-effectiveness, project-model-usage |
-| trajectory-partial-cost | 0.1.0 | DIRECT | money / source currency | Delivery trajectory with linked host/provider-reported cost | sum linked costs separately by exact source, unit/currency and cost basis / covered trajectories; publish coverage | 20 / 0.8 | model-role-cost-effectiveness |
-| task-cohort-comparison-eligibility | 0.1.0 | B_TASK_READING | rate / ratio | task in the declared defined-task snapshot | comparable eligible terminal tasks / defined tasks; publish every exclusion reason separately | 20 / 1.0 | evidence-decision-readiness |
-| delivery-stage-reach | 0.1.0 | A_PROFILE_0.3 | rate / ratio | Delivery trajectory | Deliveries with direct C56 reached-stage fact / linked terminal Deliveries; publish exact stage identities as separate dimensions | 1 / 1.0 | task-execution-workflow |
-| delivery-terminal-outcome-rate | 0.1.0 | DIRECT | rate / ratio | explicitly terminated Delivery trajectory | Deliveries in each recorded terminal outcome / explicitly terminated Deliveries; publish numerator and denominator per outcome | 1 / 1.0 | task-execution-workflow |
-| delivery-cycle-time-ms | 0.1.0 | A_PROFILE_0.3 | duration / milliseconds | explicitly terminated Delivery with direct C55 elapsed time | sum eligible C55 milliseconds / contributing terminal Deliveries; also publish contributing-Delivery count | 1 / 1.0 | task-execution-workflow |
-| operational-token-usage | 0.1.0 | DIRECT | quantity / tokens | operational model call with reported standard token usage | sum reported input/output token measures separately within identical cohorts; publish coverage; do not synthesize total tokens when absent | 1 / 1.0 | project-model-usage |
-| operational-attributable-cost | 0.1.0 | DIRECT | money / source currency | operational call with linked provider/host-reported project-attributable cost | sum only exact same-source, same-unit/currency and same-cost-basis values; publish coverage | 1 / 1.0 | project-model-usage |
-| operational-usage-availability | 0.1.0 | DIRECT | rate / ratio | eligible operational model call | calls with explicit applicable usage source / eligible model calls; publish numerator and denominator | 1 / 1.0 | project-model-usage, evidence-decision-readiness |
-| direct-evidence-basis-rate | 0.1.0 | DIRECT | rate / ratio | eligible operational or Delivery fact | facts with direct accepted host/provider basis / eligible facts; publish numerator and denominator | 1 / 1.0 | evidence-decision-readiness |
+| model-role-utility-profile | 1.0.0 | A_PROFILE_1.0 | state / multi-dimensional profile | terminal task with one complete canonical provider/model/Role/Runtime attribution tuple per contributing call | publish outcome, adjusted failure, retry, repair, reopen, latency, token, cost, intervention and reviewer-finding validity as separate measures; each measure keeps its own eligibility, sample, coverage and unit; Pareto only among evidence-ready peers | 20 / 0.8 | model-role-cost-effectiveness |
+| role-template-rework-rate | 1.0.0 | B_TASK_READING | rate / ratio | eligible terminal task in one event-time role-template cohort | terminal tasks with at least one linked attributable repair / eligible terminal tasks; publish numerator and denominator | 20 / 1.0 | template-utility |
+| role-template-trajectory-partial-cost | 1.0.0 | B_TASK_READING | money / source currency | eligible terminal task trajectory in one event-time role-template cohort | sum linked provider/host-reported cost for covered task trajectories, separately by exact currency/source/cost basis; publish coverage | 20 / 0.8 | template-utility |
+| role-model-task-outcome-rate | 1.0.0 | DIRECT | rate / ratio | eligible terminal task with complete canonical model-role attribution | tasks in each unique task-outcome category / eligible attributed terminal tasks; publish numerator and denominator per category | 20 / 1.0 | model-role-cost-effectiveness |
+| packet-rework-rate | 1.0.0 | DIRECT | rate / ratio | governance `0.2` implementation packet | packets with at least one linked attributable repair / eligible packets; publish numerator and denominator | 1 / 1.0 | task-execution-workflow |
+| operational-latency-ms | 1.0.0 | A_PROFILE_1.0 | duration / milliseconds | operational model call with native host-reported Span duration | sum eligible call durations / contributing calls; also publish contributing-call count | 1 / 1.0 | model-role-cost-effectiveness, project-model-usage |
+| trajectory-partial-cost | 1.0.0 | DIRECT | money / source currency | Delivery trajectory with linked host/provider-reported cost | sum linked costs separately by exact source, unit/currency and cost basis / covered trajectories; publish coverage | 20 / 0.8 | model-role-cost-effectiveness |
+| task-cohort-comparison-eligibility | 1.0.0 | B_TASK_READING | rate / ratio | task in the declared defined-task snapshot | comparable eligible terminal tasks / defined tasks; publish every exclusion reason separately | 20 / 1.0 | evidence-decision-readiness |
+| delivery-stage-reach | 1.0.0 | A_PROFILE_1.0 | rate / ratio | Delivery trajectory | Deliveries with direct C56 reached-stage fact / linked terminal Deliveries; publish exact stage identities as separate dimensions | 1 / 1.0 | task-execution-workflow |
+| delivery-terminal-outcome-rate | 1.0.0 | DIRECT | rate / ratio | explicitly terminated Delivery trajectory | Deliveries in each recorded terminal outcome / explicitly terminated Deliveries; publish numerator and denominator per outcome | 1 / 1.0 | task-execution-workflow |
+| delivery-cycle-time-ms | 1.0.0 | A_PROFILE_1.0 | duration / milliseconds | explicitly terminated Delivery with direct C55 elapsed time | sum eligible C55 milliseconds / contributing terminal Deliveries; also publish contributing-Delivery count | 1 / 1.0 | task-execution-workflow |
+| operational-token-usage | 1.0.0 | DIRECT | quantity / tokens | operational model call with reported standard token usage | sum reported input/output token measures separately within identical cohorts; publish coverage; do not synthesize total tokens when absent | 1 / 1.0 | project-model-usage |
+| operational-attributable-cost | 1.0.0 | DIRECT | money / source currency | operational call with linked provider/host-reported project-attributable cost | sum only exact same-source, same-unit/currency and same-cost-basis values; publish coverage | 1 / 1.0 | project-model-usage |
+| operational-usage-availability | 1.0.0 | DIRECT | rate / ratio | eligible operational model call | calls with explicit applicable usage source / eligible model calls; publish numerator and denominator | 1 / 1.0 | project-model-usage, evidence-decision-readiness |
+| direct-evidence-basis-rate | 1.0.0 | DIRECT | rate / ratio | eligible operational or Delivery fact | facts with direct accepted host/provider basis / eligible facts; publish numerator and denominator | 1 / 1.0 | evidence-decision-readiness |
 
 The five removed metrics are `configuration-utility-profile`, `configuration-component-comparison`, `configuration-reference-coverage`, `packet-escalation-rate`, and `role-template-qualified-outcome-rate`. They depend on C/D-class configuration, routing/escalation or qualified-outcome semantics that the MVP does not define; consumers must not preserve them as hidden measures or aliases.
 
@@ -126,7 +129,7 @@ Common exclusions across the catalog: infrastructure abort/failure attributed to
 <a id="metric-catalog-6"></a>
 ## 6. Human Semantic Links to the Observation Catalog
 
-These are **human semantic correspondences** between metric inputs and the fact classes / semantic fields of the [Observation Catalog](../observation/observation-catalog.md). They are not machine bindings: exact representation is owned by the proposed [OTel Observation Profile `0.3.0`](../observation/otel-observation-profile.md), while evaluation-level task/cohort readings remain owned here.
+These are **human semantic correspondences** between metric inputs and the fact classes / semantic fields of the [Observation Catalog](../observation/observation-catalog.md). They are not machine bindings: exact representation is owned by the proposed [OTel Observation Profile `1.0.0`](../observation/otel-observation-profile.md), while evaluation-level task/cohort readings remain owned here.
 
 | Metric input concept | Observation Catalog fact class / semantic field | Binding note |
 | --- | --- | --- |
@@ -148,7 +151,7 @@ These are **human semantic correspondences** between metric inputs and the fact 
 | deterministic verification | System Design Summary → Verification result, Verification passed/failed checks | closed result category |
 | evidence basis (direct host/provider) | Usage → Usage source; recorded causal activity provenance | direct observation proves occurrence, not semantic correctness |
 
-### 6.1 A-class Profile `0.3.0` inputs
+### 6.1 A-class Profile `1.0.0` inputs
 
 The four A-class metrics are definition-ready only under these exact inputs:
 
