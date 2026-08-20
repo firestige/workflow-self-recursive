@@ -13,7 +13,7 @@
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，外加一个 post-split meaning amendment，记录为 `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`（标准 OTLP aggregate ingest response；per-record disposition 仍为 Admission-internal）；出处保留在 Git 历史中 |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，proposed version `0.2.0` |
+| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，proposed version `0.3.0` |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |

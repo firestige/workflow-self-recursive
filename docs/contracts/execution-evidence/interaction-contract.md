@@ -13,7 +13,7 @@
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus one post-split meaning amendment recorded as `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17` (standard OTLP aggregate ingest response; per-record disposition remains Admission-internal); provenance remains in Git history |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `0.2.0` |
+| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `0.3.0` |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
