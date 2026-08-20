@@ -71,19 +71,19 @@ All gates must pass; a failed gate returns the Contract to `DRAFTING` (if semant
 
 | Gate | Requirement | Evidence |
 | --- | --- | --- |
-| G1 Semantic review | Independent adversarial review(s) of the semantics, sized to the Contract: small Contract = one independent review + one fresh reader; large Contract = three-lens review (problem–solution, architecture, quality). Findings must be closed by their source lens. | review results with dispositions |
-| G2 Fresh reader | A downstream implementer (not the author) can derive the machine representation and a conforming fixture set from the semantic document alone. | fresh-reader result |
-| G3 Deterministic verification | Document checks pass: stable anchors/IDs, headings/tables/links parity, closed vocabularies, no dangling references. Machine fixtures (positive/negative/recovery) pass against the machine representation. | deterministic check report; fixture run |
-| G4 Translation parity | The `zh-CN` companion is retranslated as a whole from the current English document; anchors, headings, tables, IDs, fields, enums, and links stay paired. | parity check |
-| G5 Machine representation released | Schemas/registries/fixtures/validators/version policy exist under `system-contracts/<contract>/` with the same revision as the semantic document. | file inventory + revision match |
-| G6 Publication binding | Exact revision + SHA-256 digest recorded in the publication record; prior revision literal marked `NON_RESOLVING_LEGACY_HISTORY_ONLY`. | publication record |
+| contract.gate.1 Semantic review | Independent adversarial review(s) of the semantics, sized to the Contract: small Contract = one independent review + one fresh reader; large Contract = three-lens review (problem–solution, architecture, quality). Findings must be closed by their source lens. | review results with dispositions |
+| contract.gate.2 Fresh reader | A downstream implementer (not the author) can derive the machine representation and a conforming fixture set from the semantic document alone. | fresh-reader result |
+| contract.gate.3 Deterministic verification | Document checks pass: stable anchors/IDs, headings/tables/links parity, closed vocabularies, no dangling references. Machine fixtures (positive/negative/recovery) pass against the machine representation. | deterministic check report; fixture run |
+| contract.gate.4 Translation parity | The `zh-CN` companion is retranslated as a whole from the current English document; anchors, headings, tables, IDs, fields, enums, and links stay paired. | parity check |
+| contract.gate.5 Machine representation released | Schemas/registries/fixtures/validators/version policy exist under `system-contracts/<contract>/` with the same revision as the semantic document. | file inventory + revision match |
+| contract.gate.6 Publication binding | Exact revision + SHA-256 digest recorded in the publication record; prior revision literal marked `NON_RESOLVING_LEGACY_HISTORY_ONLY`. | publication record |
 
 ### 4.2 Who runs the gates; transition authority
 
 - The **Contract author/owner** prepares the candidate and the gate evidence.
-- **Reviewers, fresh reader, and translation parity** (G1, G2, G4) are independent of the author; the author never self-assesses their own Contract (mirroring the runner prohibition of Profile self-assessment).
-- **Deterministic verification and publication binding** (G3, G5, G6) are mechanical steps that may be run by the author but must be reproducible by any verifier.
-- **Transition authority**: state transitions are approved by the **Contract owner** (the repository owner/team acting through the team-config authority; each Contract records its owner in its header or obligation register). The owner approves a transition based on the gate evidence; owner approval never substitutes for independent gate evidence. `DRAFTING → REVIEW_CANDIDATE` is an author self-declaration of semantic closure; `REVIEW_CANDIDATE → FROZEN` requires owner approval plus the independent evidence of G1–G6.
+- **Reviewers, fresh reader, and translation parity** (contract.gate.1, contract.gate.2, contract.gate.4) are independent of the author; the author never self-assesses their own Contract (mirroring the runner prohibition of Profile self-assessment).
+- **Deterministic verification and publication binding** (contract.gate.3, contract.gate.5, contract.gate.6) are mechanical steps that may be run by the author but must be reproducible by any verifier.
+- **Transition authority**: state transitions are approved by the **Contract owner** (the repository owner/team acting through the team-config authority; each Contract records its owner in its header or obligation register). The owner approves a transition based on the gate evidence; owner approval never substitutes for independent gate evidence. `DRAFTING → REVIEW_CANDIDATE` is an author self-declaration of semantic closure; `REVIEW_CANDIDATE → FROZEN` requires owner approval plus the independent evidence of contract.gate.1–contract.gate.6.
 
 ### 4.3 Fast path for unencumbered Contracts
 
@@ -91,9 +91,9 @@ A new Contract with no historical baggage — no released compatibility promise,
 
 1. The author declares semantic closure and moves the Contract to `REVIEW_CANDIDATE`.
 2. With owner approval, candidate-based downstream work proceeds in `REVIEW_CANDIDATE`: downstream migration, implementation spikes, and fixture authoring. Their outputs are design evidence, explicitly labeled, and never conformance claims.
-3. This downstream work doubles as gate evidence: a downstream implementer deriving the machine representation and fixtures from the semantic document is exactly G2 (fresh reader), and the fixture run is part of G3.
-4. The independent G1 review still runs — it may be small (one independent reviewer + one fresh reader) and may run after the validation work — and cannot be waived by the owner.
-5. When G1–G6 all pass, the Contract transitions to `FROZEN` in one step, and only then do conformance claims become admissible.
+3. This downstream work doubles as gate evidence: a downstream implementer deriving the machine representation and fixtures from the semantic document is exactly contract.gate.2 (fresh reader), and the fixture run is part of contract.gate.3.
+4. The independent contract.gate.1 review still runs — it may be small (one independent reviewer + one fresh reader) and may run after the validation work — and cannot be waived by the owner.
+5. When contract.gate.1–contract.gate.6 all pass, the Contract transitions to `FROZEN` in one step, and only then do conformance claims become admissible.
 
 The fast path changes the ordering of evidence, never the required set of gates. A Contract with released revisions or bound downstream Deliveries must follow the ordinary order (§10.2).
 
@@ -101,7 +101,7 @@ The fast path changes the ordering of evidence, never the required set of gates.
 
 - Publication is **pairwise**: the semantic document revision and the machine representation revision are published together with the same revision identity; publishing one without the other leaves the Contract unreleased.
 - The **publication record** binds the exact byte stream (SHA-256) and the exact revision; it lives with the machine representation (or a location named in the Contract header).
-- **Legacy isolation**: when a revision is superseded, its literal is marked `NON_RESOLVING_LEGACY_HISTORY_ONLY`; it is not resolvable as the current authority, and no parallel old authority document is retained. Git history owns provenance (mirroring the Concept `EE-AC-014` discipline).
+- **Legacy isolation**: when a revision is superseded, its literal is marked `NON_RESOLVING_LEGACY_HISTORY_ONLY`; it is not resolvable as the current authority, and no parallel old authority document is retained. Git history owns provenance (mirroring the Concept `concept.acceptance.014` discipline).
 - Publication does **not** create a second semantic owner: the Contract remains a representation of upstream semantics.
 
 ## 6. Versioning and Compatibility
@@ -127,7 +127,7 @@ The fast path changes the ordering of evidence, never the required set of gates.
 
 ## 8. Obligations and Downstream Gaps
 
-- Releasing a Contract's machine representation is an explicit **obligation** (the `EE-OBL-001` pattern): it records an owner, the required evidence, a return location, and a reopen condition. A Contract can be semantically stable (`REVIEW_CANDIDATE`) with its machine-representation obligation still open.
+- Releasing a Contract's machine representation is an explicit **obligation** (the `concept.obligation.001` pattern): it records an owner, the required evidence, a return location, and a reopen condition. A Contract can be semantically stable (`REVIEW_CANDIDATE`) with its machine-representation obligation still open.
 - Downstream consumers track gaps against Contract revisions (the `runner-EXT-003.x` pattern). A downstream gap is closed only when the referenced revision reaches `FROZEN` and the applicable conformance corpus passes; closing a gap by weakening the Contract is forbidden.
 - When a downstream gap's reopen condition is met, the gap reopens and the owning Contract returns to the appropriate state.
 
@@ -140,7 +140,7 @@ Every Contract semantic document starts with this header (extend with Contract-s
 | Contract revision | `name@MAJOR.MINOR.PATCH` |
 | Lifecycle status | `DRAFTING \| REVIEW_CANDIDATE \| FROZEN \| DEPRECATED \| SUPERSEDED` |
 | Normative language | English |
-| Translation | [`<name>.zh-CN.md`](<name>.zh-CN.md) — non-normative tracking translation; parity obligation per §4.1 G4 |
+| Translation | [`<name>.zh-CN.md`](<name>.zh-CN.md) — non-normative tracking translation; parity obligation per §4.1 contract.gate.4 |
 | Semantic authority | upstream owner document(s) |
 | Machine representation | `system-contracts/<contract>/` + revision |
 | Publication binding | (after FROZEN) revision + SHA-256 + record location |
@@ -162,7 +162,7 @@ Status values used by pre-existing Contract documents (e.g., `DRAFT_NOT_PUBLISHE
 1. Create `docs/contracts/<contract>/<name>.md` with the header template (§9); status `DRAFTING`.
 2. Close every field/vocabulary/rule meaning; no pseudo-specification (§230 discipline).
 3. Declare semantic closure and request review → `REVIEW_CANDIDATE`.
-4. Run gates G1–G6 (§4); on pass, record the publication binding (§5) → `FROZEN`.
+4. Run gates contract.gate.1–contract.gate.6 (§4); on pass, record the publication binding (§5) → `FROZEN`.
 5. Create the `zh-CN` companion as a wholesale translation at the same revision.
 
 ### 10.2 Revising a Frozen Contract
@@ -185,13 +185,13 @@ Status values used by pre-existing Contract documents (e.g., `DRAFT_NOT_PUBLISHE
 
 | Contract | Semantic document | Machine representation | Lifecycle status (normalized) | Revision | Open obligation |
 | --- | --- | --- | --- | --- | --- |
-| Observation Catalog | [`observation/observation-catalog.md`](observation/observation-catalog.md) | `system-contracts/` (not released) | `REVIEW_CANDIDATE` | split draft; profile cited at `0.2.0` | machine representation release (`EE-OBL-001`) |
-| OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | not released | `REVIEW_CANDIDATE` | proposed `0.2.0` | machine representation release (`EE-OBL-001`) |
-| Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | not released | `REVIEW_CANDIDATE` | split draft | machine representation release (`EE-OBL-001`) |
-| Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | not released | `REVIEW_CANDIDATE` | split draft | machine representation release (`EE-OBL-001`) |
-| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/) (candidate material) | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@0.1.0` | Task 2 migration (G2/G3 evidence) → independent G1 review → machine release → FROZEN |
+| Observation Catalog | [`observation/observation-catalog.md`](observation/observation-catalog.md) | `system-contracts/` (not released) | `REVIEW_CANDIDATE` | split draft; profile cited at `0.2.0` | machine representation release (`concept.obligation.001`) |
+| OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | not released | `REVIEW_CANDIDATE` | proposed `0.2.0` | machine representation release (`concept.obligation.001`) |
+| Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | not released | `REVIEW_CANDIDATE` | split draft | machine representation release (`concept.obligation.001`) |
+| Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | not released | `REVIEW_CANDIDATE` | split draft | machine representation release (`concept.obligation.001`) |
+| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/) (candidate material) | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@0.1.0` | Task 2 migration (contract.gate.2/contract.gate.3 evidence) → independent contract.gate.1 review → machine release → FROZEN |
 
 Notes:
 
 - The observation-family documents declare their own status values in their headers; the normalized column is a management mapping, not an override of their authority.
-- The Workflow Definition DSL is the first Contract drafted under this specification; it is `REVIEW_CANDIDATE` under the fast path (§4.3): the first-party Workflow migration (Task 2) proceeds as candidate-based validation and supplies the G2/G3 evidence for the later one-step freeze.
+- The Workflow Definition DSL is the first Contract drafted under this specification; it is `REVIEW_CANDIDATE` under the fast path (§4.3): the first-party Workflow migration (Task 2) proceeds as candidate-based validation and supplies the contract.gate.2/contract.gate.3 evidence for the later one-step freeze.

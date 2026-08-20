@@ -8,14 +8,14 @@
 
 | 字段 | 值 |
 | --- | --- |
-| 文档身份 | `EE-METRIC-CATALOG-SPEC-001` |
+| 文档身份 | `evaluation.identity.001` |
 | 状态 | `DRAFT_NOT_PUBLISHED`（`draft` machine schema 的 human explanatory companion） |
 | 规范语言 | 英文 |
 | Machine authority | [`contracts/evaluation/metric-catalog-0.1.0.schema.json`](../../../contracts/evaluation/metric-catalog-0.1.0.schema.json) 与 example instance [`contracts/examples/metric-catalog-0.1.0.json`](../../../contracts/examples/metric-catalog-0.1.0.json) |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，proposed version `0.2.0` |
 | Owner | `evidence-governance-owner`（example instance 的 `owner` 值；schema 只要求一个 non-empty string） |
-| 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `EE-AC-017`](../../agent-architecture.md) |
+| 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
 Machine schema 是 metric record *是什么* 的唯一权威。本文件是每个 field *意味着什么* 以及每个 metric 应如何阅读的唯一 human explanation。当本文件与 schema 不一致时，以 schema 为准。
 

@@ -6,7 +6,7 @@
 
 | 字段 | 值 |
 | --- | --- |
-| 文档身份 | `EE-EVIDENCE-001` |
+| 文档身份 | `evidence.identity.001` |
 | 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前已评审的 overlay 证据只适用于更早字节。这些已变更字节在作出任何精确发布 claim 前，需要新的确定性 parity/publication binding 以及用户或 reader review |
 | 规范语言 | 英文 |
 | 翻译 | 本文件是 [`evidence-system.md`](evidence-system.md) 的完整忠实非规范性翻译 |
@@ -55,7 +55,7 @@ Evidence 是面向技术成熟第一方用户的可选本地 System。它接收 
 | Local preview | 小型可信部署 | one App、PostgreSQL、proxied Grafana、loopback-only exposure |
 | Privacy | prohibited body 被拒绝/不保留 | profile validation、allow-list、bounded diagnostic/Raw |
 
-AF-003 在一个 pinned environment 中确认 atomic/idempotent local PostgreSQL slice 与 read-only consumer。AF-002 确认 representative emitter/profile semantics；其 rebuilt evidence 在用户修正后的 evidence threshold 下验证 proposed local-Role/family-lineage pair，同时针对已被取代的 old-evidence-rehash condition 在程序上保持 `INCONCLUSIVE`。二者都不证明 production capacity、security、retention default、released physical Contract 或 implementation conformance。
+concept.fixture.003 在一个 pinned environment 中确认 atomic/idempotent local PostgreSQL slice 与 read-only consumer。concept.fixture.002 确认 representative emitter/profile semantics；其 rebuilt evidence 在用户修正后的 evidence threshold 下验证 proposed local-Role/family-lineage pair，同时针对已被取代的 old-evidence-rehash condition 在程序上保持 `INCONCLUSIVE`。二者都不证明 production capacity、security、retention default、released physical Contract 或 implementation conformance。
 
 <a id="ee-evidence-4"></a>
 ## 4. 问题分解与结构
@@ -85,7 +85,7 @@ Admission 与 Projection 是分离 semantic owner，但在同一 transaction 内
 <a id="ee-evidence-5"></a>
 ## 5. System Module
 
-### Observation Admission（`EE-EV-M01`）
+### Observation Admission（`evidence.milestone.01`）
 
 Admission 校验 [OTel Observation Profile](../../contracts/observation/otel-observation-profile.md) 中的 exact supported OTLP Resource、InstrumentationScope、profile 与 Workflow-family coordinate；执行该 Profile 定义的 closed carrier/EventName/attribute registry 与 content minimization；解析 stable record identity；检测 duplicate/conflict；隔离 invalid sibling；协调 Projection；并按 [Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md) 报告 standard OTLP aggregate success 或 partial success。Technology-neutral fact meaning 与 semantic owner 位于 [Observation Catalog](../../contracts/observation/observation-catalog.md)；本 System Design 拥有 Evidence validation 与 durable landing meaning，不拥有 duplicate wire registry。
 
@@ -95,7 +95,7 @@ Admission 的 accepted/duplicate/conflict/rejected disposition 是 internal per-
 
 Admission 只从 logical record 决定 C17。ordinary/Recheck summary 上，present C17 必须是 nonnegative integer，并选择 counted form；absent C17 选择 valid no-observed-count-fact form。它不能也不会因“producer reported but omitted”而 reject absence。Finding shape 上的 C17、invalid present value 或其他 malformed shape 以 zero accepted Review/count effect reject。
 
-### Factual Projection（`EE-EV-M02`）
+### Factual Projection（`evidence.milestone.02`）
 
 Projection 从每个 accepted Span tuple 派生一个 normalized Trace node，并拥有 distinct durable landing：immutable Finding assertion/scope `(C18,C51)`、order-independent target edge、append-only status contribution `(C18,C51,C12)`、target-specific Fix relation 与 target-specific Recheck relation。Compatible lifecycle record 对 existing assertion/edge 执行 no-op reuse，同时在 Admission transaction 中把 new status/Fix/Recheck contribution exactly once append。Projection 还拥有 recorded Trace edge、Artifact/Invocation/Role 与 local-Role-to-family-lineage relationship、completeness-bearing family contribution 与 compatible aggregate。它原样存储 C50，绝不 generate、grade、rewrite 或 infer；它暴露 recorded status 与 provenance，不拥有 mutable current-status winner。
 
@@ -103,7 +103,7 @@ Projection 从每个 accepted Span tuple 派生一个 normalized Trace node，�
 
 Projection 只在 Admission transaction 内写 owner-scoped state。它绝不编辑 accepted observation、推断 unrecorded causality、给工作评分，或使用新公式 recompute history。
 
-### Query & Presentation（`EE-EV-M03`）
+### Query & Presentation（`evidence.milestone.03`）
 
 Query 返回携带 provenance、completeness、availability 与 expiry state 的 committed factual series 与 causal Trace view。它只从 accepted C17=`0` 显示 observed zero；absence 表示无 observed-count fact，绝不表示 zero。它不拥有 domain fact。Grafana 获得 curated read-only view；Agent Decisions 获得 curated causal shape。Saved dashboard 与 UI logic 不得定义 Metric formula 或重写 completeness。
 
@@ -265,23 +265,23 @@ Backup/restore、任何扩展 trust boundary 的 TLS/auth、operational credenti
 
 | 场景 | 预期结果 | 机制 | 证据 |
 | --- | --- | --- | --- |
-| valid record | accepted identity 与 required effect 同时可见 | one transaction | AF-003 atomic slice |
-| invalid sibling | valid sibling commit；invalid 不存任何内容 | per-record admission | AF-003 partial sibling case |
-| Event duplicate/conflict | Event ID/digest 下无 overwrite 或 double contribution | Event first-write identity | AF-003 duplicate/concurrency case |
+| valid record | accepted identity 与 required effect 同时可见 | one transaction | concept.fixture.003 atomic slice |
+| invalid sibling | valid sibling commit；invalid 不存任何内容 | per-record admission | concept.fixture.003 partial sibling case |
+| Event duplicate/conflict | Event ID/digest 下无 overwrite 或 double contribution | Event first-write identity | concept.fixture.003 duplicate/concurrency case |
 | Span duplicate/conflict | 相同 `(trace_id, span_id)` 加 digest 只有一个 node/effect；conflict 拒绝；不同 Trace 的相同 Span ID 保持不同 | Span tuple first-write identity 与 atomic Trace projection | deterministic new/identical/conflicting Span example；implementation fixture 下游完成 |
-| COMMIT response loss | retry 收敛到一个 complete slice | first-write-wins idempotency | AF-003 ambiguity case |
-| final zero/lower-bound/unavailable | query result 分离 | Projection-owned completeness | AF-003 truth fixture |
-| incompatible unit/source | 分离 group | compatibility key | AF-003 grouping case |
-| Trace expiry | factual trend 保留；detail 显式 unavailable | independent lifecycle | AF-003 retention case |
-| read-only consumer | curated read 成功；raw/write denied | least-privilege credential/view | AF-003 permission evidence |
+| COMMIT response loss | retry 收敛到一个 complete slice | first-write-wins idempotency | concept.fixture.003 ambiguity case |
+| final zero/lower-bound/unavailable | query result 分离 | Projection-owned completeness | concept.fixture.003 truth fixture |
+| incompatible unit/source | 分离 group | compatibility key | concept.fixture.003 grouping case |
+| Trace expiry | factual trend 保留；detail 显式 unavailable | independent lifecycle | concept.fixture.003 retention case |
+| read-only consumer | curated read 成功；raw/write denied | least-privilege credential/view | concept.fixture.003 permission evidence |
 | local access profile | loopback ingest 在无 app auth 下工作；same-origin anonymous Grafana Viewer 只能读取 curated view | 固定 proxy/listener/role topology | 下游 listener、origin、anonymous-role 与 negative reachability test |
-| exact profile admission | 接纳 exact pin/Scope、十个 EventName 与 54 common 加 applicable 10 或 6 family field；拒绝 sibling-family/unlisted/fixture-only field | OTel Profile-linked closed validator | deterministic 54+10+6 count/unique/table-shape check 加 AF-002；machine validator/conformance 下游完成 |
+| exact profile admission | 接纳 exact pin/Scope、十个 EventName 与 54 common 加 applicable 10 或 6 family field；拒绝 sibling-family/unlisted/fixture-only field | OTel Profile-linked closed validator | deterministic 54+10+6 count/unique/table-shape check 加 concept.fixture.002；machine validator/conformance 下游完成 |
 | complete Review/Finding composition | ordinary Finding、Fix、Recheck-on-Finding 与 Recheck-summary 只从 exact complete shape landing | OTel Profile §7.4 named base/variant 与 record-level atomic projection | positive shape 加 missing-base/endpoint negative fixture |
 | C17 report presence | ordinary/Recheck summary 的 C17=`0`、positive C17 与 absent C17 分别 landing recorded zero、recorded positive 与 no count；invalid present value 或 Finding 上 C17 以 no partial Review/count state reject | Admission 可见的 field-presence selector；atomic Review/count projection | bilingual zero/positive/absence/retry positive 与 type/range/carrier/partial-state negative |
 | bounded Finding/target admission | source-lens summary nonempty/bounded/privacy-safe；每 record 一个 typed target；multi-target set order-independent 且 duplicate-safe | C50–C54 validation 与 target-edge identity | positive multi-target 加 empty/over-limit/prohibited/unknown-target/duplicate/conflict fixture |
 | Finding lifecycle identity domain | compatible target/lifecycle record 对 assertion/edge no-op reuse，并把 status/Fix/Recheck exactly once append；changed C50/C20/C51、target context、lifecycle endpoint、C17/C27 applicability、Event content 或 partial landing 都以 zero effect reject | separate OTel Profile identity 加一个 Admission transaction | OTel Profile §7.6 全部 positive/negative sequence、两种 arrival order 与 EN/ZH parity |
 | native usage admission | credit/request/premium/provider-native/money example 除非所有 compatibility coordinate 相同，否则保持 separate | exact kind/C43-unit-or-currency/source/source-ID/completeness key | incompatible-group example 与下游 fixture |
-| Role lineage admission | 不同 local ID 可共享一个 lineage；相同 display name 可保留 distinct lineage；incomplete pair 拒绝 | atomic admitted local/lineage pair 与 immutable mapping | AF-002 rebuilt protobuf/admission/duplicate/conflict evidence；`PROPOSED_VALIDATED_BY_SPIKE` |
+| Role lineage admission | 不同 local ID 可共享一个 lineage；相同 display name 可保留 distinct lineage；incomplete pair 拒绝 | atomic admitted local/lineage pair 与 immutable mapping | concept.fixture.002 rebuilt protobuf/admission/duplicate/conflict evidence；`PROPOSED_VALIDATED_BY_SPIKE` |
 | disposition exclusion | 首个 profile 不接纳 `delivery.disposition` 或 `agentops.delivery.disposition` | ten-EventName/70-total-field allow-list | registry 与 negative fixture scan |
 
 Design acceptance 要求无需读取 Execution internals 即可实现本文，同时 ingest semantics 与 peer Design/Contract draft 一致。Local-access acceptance 是 categorical：no application-level ingest authentication 与 same-origin anonymous Viewer 只允许用于 loopback-only preview；remote 或 multi-user exposure 将重开 security design。Production schema、migration、security、capacity 与 physical conformance evidence 仍属于下游。
@@ -289,17 +289,17 @@ Design acceptance 要求无需读取 Execution internals 即可实现本文，�
 <a id="ee-evidence-14"></a>
 ## 14. 决策与下游义务
 
-唯一 owner-complete downstream obligation register 是 [Concept §8](../../agent-architecture.zh-CN.md#ee-concept-8)。下表只是 `EE-OBL-001,004,006..008` 的 local non-owning view；Concept register 中的 owner、current/required evidence、exact return 与 reopen field 为准。
+唯一 owner-complete downstream obligation register 是 [Concept §8](../../agent-architecture.zh-CN.md#ee-concept-8)。下表只是 `concept.obligation.001,004,006..008` 的 local non-owning view；Concept register 中的 owner、current/required evidence、exact return 与 reopen field 为准。
 
-Evidence 应用 `EE-SD-001`,`002`,`005`–`007`,`009`,`012`,`013`,`020`。拒绝方向包括 combined Execution/Evidence process、arbitrary telemetry lake、Collector-first topology、accepted-only staging/outbox、replay/recompute/correction、presentation formula、coupled retention、grading/inference、direct Grafana/PostgreSQL exposure 与历史迁移。
+Evidence 应用 `concept.decision.001`,`002`,`005`–`007`,`009`,`012`,`013`,`020`。拒绝方向包括 combined Execution/Evidence process、arbitrary telemetry lake、Collector-first topology、accepted-only staging/outbox、replay/recompute/correction、presentation formula、coupled retention、grading/inference、direct Grafana/PostgreSQL exposure 与历史迁移。
 
 | Obligation ID | Local summary | 所需证据 | Return/reopen condition |
 | --- | --- | --- | --- |
-| `EE-OBL-001` | physically publish 已采纳 Observation Catalog、OTel Profile 与 Interaction proposal | machine schema/package、encoded common/family registry、physical limit、complete-shape/multi-target/privacy/Span/usage fixture、validator 与 version/partial-success rule | representation 不能保留 complete Review/Finding composition、bounded content/target edge、carrier、lineage、usage、Span identity、truth、privacy 或 interaction semantics 时返回 |
-| `EE-OBL-004` | production Evidence App/PostgreSQL/Grafana | code、migration、complete-shape rejection、Finding target dedup/conflict、ambiguity/idempotency/query/permission/backup fixture | partial graph、mutable content/edge、duplicate target、inference、external exposure 或 topology change 时重开 |
-| `EE-OBL-006` | Evidence lifecycle validation | bounded workload、growth/query/expiry/retention/backup measurement | 只有 lifecycle meaning、ownership、topology 或 Interface 改变时重开 |
-| `EE-OBL-007` | public Evidence repository/submodule | repository identity、exact commit、build/test/release 与 parent-link proof | duplicate authority、unpinned code 或 cross-repository transaction 时重开 |
-| `EE-OBL-008` | MIT vs Apache-2.0 decision | dependency/right/patent/NOTICE review 与 approval | 两种允许 license 都不兼容时重开 |
+| `concept.obligation.001` | physically publish 已采纳 Observation Catalog、OTel Profile 与 Interaction proposal | machine schema/package、encoded common/family registry、physical limit、complete-shape/multi-target/privacy/Span/usage fixture、validator 与 version/partial-success rule | representation 不能保留 complete Review/Finding composition、bounded content/target edge、carrier、lineage、usage、Span identity、truth、privacy 或 interaction semantics 时返回 |
+| `concept.obligation.004` | production Evidence App/PostgreSQL/Grafana | code、migration、complete-shape rejection、Finding target dedup/conflict、ambiguity/idempotency/query/permission/backup fixture | partial graph、mutable content/edge、duplicate target、inference、external exposure 或 topology change 时重开 |
+| `concept.obligation.006` | Evidence lifecycle validation | bounded workload、growth/query/expiry/retention/backup measurement | 只有 lifecycle meaning、ownership、topology 或 Interface 改变时重开 |
+| `concept.obligation.007` | public Evidence repository/submodule | repository identity、exact commit、build/test/release 与 parent-link proof | duplicate authority、unpinned code 或 cross-repository transaction 时重开 |
+| `concept.obligation.008` | MIT vs Apache-2.0 decision | dependency/right/patent/NOTICE review 与 approval | 两种允许 license 都不兼容时重开 |
 
 任何当前 prototype、legacy bundle、split draft companion、human metric specification 或 Contract draft 都不能证明 physical conformance。
 

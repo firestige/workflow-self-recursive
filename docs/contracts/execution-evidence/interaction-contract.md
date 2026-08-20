@@ -8,7 +8,7 @@
 
 | Field | Value |
 | --- | --- |
-| Document identity | `EE-INTERACTION-001` |
+| Document identity | `interaction.identity.001` |
 | Status | `DRAFT_NOT_PUBLISHED` |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus one post-split meaning amendment recorded as `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17` (standard OTLP aggregate ingest response; per-record disposition remains Admission-internal); provenance remains in Git history |
@@ -16,7 +16,7 @@
 | Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `0.2.0` |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
-| Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `EE-AC-017`](../../agent-architecture.md) |
+| Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
 This document owns how Execution submits observations and how Evidence acknowledges them. It does not own what a fact means (Observation Catalog), how a fact is encoded (OTel Observation Profile), or how an accepted fact is durably stored and queried (Evidence System Design).
 

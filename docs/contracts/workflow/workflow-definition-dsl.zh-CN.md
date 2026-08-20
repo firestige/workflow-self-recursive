@@ -1,6 +1,6 @@
 # Agent Ops Workflow Definition DSL — Contract 面（中文翻译）
 
-> **状态：REVIEW_CANDIDATE，未发布，不可用于 conformance 声明。** 本文是 [`workflow-composition-model.md`](../../workflow-composition-model.md) §4.3 推迟的 **Workflow Contract 的 DSL 面**：最终字段与合并算法的定义源头。它把"机器可读 Workflow Definition"从设计原则变成闭合的机器可校验格式。语义已冻结为供下游验证的候选（快速路径，[Contract Lifecycle Management](../contract-lifecycle.md) §4.3）；在 schema、registry、fixtures 与验证证据发布之前，任何实现不得声称对该 Contract 的 physical conformance（沿用 `EE-OBL-001` 的诚实生命周期约定）。
+> **状态：REVIEW_CANDIDATE，未发布，不可用于 conformance 声明。** 本文是 [`workflow-composition-model.md`](../../workflow-composition-model.md) §4.3 推迟的 **Workflow Contract 的 DSL 面**：最终字段与合并算法的定义源头。它把"机器可读 Workflow Definition"从设计原则变成闭合的机器可校验格式。语义已冻结为供下游验证的候选（快速路径，[Contract Lifecycle Management](../contract-lifecycle.md) §4.3）；在 schema、registry、fixtures 与验证证据发布之前，任何实现不得声称对该 Contract 的 physical conformance（沿用 `concept.obligation.001` 的诚实生命周期约定）。
 >
 > **规范语言：英文。** 本文件是 [`workflow-definition-dsl.md`](workflow-definition-dsl.md) 的非规范跟踪翻译。每当英文章节变更，其中文对应章节从当前英文章节整体重译并整篇替换；中文维护不保留或增量演进先前的中文措辞。
 >
@@ -443,7 +443,7 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 | 改变 Action 语义、增删/改变 transition/gate/terminal、改变 reducer 语义、改变 authority 顺序或边界 | **MAJOR（语义变更）** | 必须新 Definition 版本 + 新 Package major + 新 Snapshot；只用于新 Delivery |
 | state 新增字段（带默认 reducer） | 兼容 | — |
 | state 移除字段 / 改变 reducer 行为 | 破坏性 | MAJOR |
-| 同 identity 不同内容（digest 失配） | 禁止 | fail closed（runner `runner-DEC-002`、`EE-AC-012`） |
+| 同 identity 不同内容（digest 失配） | 禁止 | fail closed（runner `runner-DEC-002`、`concept.acceptance.012`） |
 | `latest`/裸名选择 | 仅解析期 | 在 Manifest 创建前解析为 `exactVersion`；alias 移动只影响后续 Delivery（agent-architecture §4 不变量 14） |
 
 ### 11.3 Conformance 与版本

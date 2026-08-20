@@ -6,15 +6,15 @@
 
 | 字段 | 值 |
 | --- | --- |
-| 文档身份 | `EE-EXECUTION-001` |
+| 文档身份 | `execution.identity.001` |
 | 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。这些已变更字节在精确发布前需要新的确定性 parity/publication binding 以及用户或 reader review。 |
 | 精确发布绑定 | 外部 publication set/application record 必须用 SHA-256 绑定本字节流及配套 canonical Concept 字节流，记录适用的 review、SD-12、fresh-reader 与 deterministic-verification 证据，并证明精确安装。本文件有意不声明自身 digest 或配套文件 digest。 |
 | 提升后的权威 | 唯一的无版本英文 Project Execution System Design authority |
 | 规范语言 | 英文 |
 | 翻译 | [`project-execution-system.zh-CN.md`](project-execution-system.zh-CN.md) 是非规范跟踪翻译。英文是唯一语义权威。每当英文某一节变更，其中文对应章节都从当前英文重新翻译并整章替换；中文维护不保留、也不增量演进旧中文措辞。 |
 | Source authority commit | `575f4c3217ef5ff2ef2f8655e03ee147b16ac07b` |
-| Concept authority | [`EE-CONCEPT-001`](../../agent-architecture.md#ee-concept)，作为配套 member 原子提升 |
-| Prior canonical Execution baseline | `EE-EXECUTION-001`；Git blob `7c9e13846141f95dc04dc3c44534767113b7d19e`；SHA-256 `4d459b2a15a7ca5591d0fa493e0fb82b62dfe6f502fc703e21eab566727e66bb` |
+| Concept authority | [`concept.identity.001`](../../agent-architecture.md#ee-concept)，作为配套 member 原子提升 |
+| Prior canonical Execution baseline | `execution.identity.001`；Git blob `7c9e13846141f95dc04dc3c44534767113b7d19e`；SHA-256 `4d459b2a15a7ca5591d0fa493e0fb82b62dfe6f502fc703e21eab566727e66bb` |
 | Composition authority | [`docs/workflow-composition-model.md`](../../workflow-composition-model.md)；Git blob `b5412f5b9fc605f7d82d85fc3fc399f80b2fa25a`；SHA-256 `0df16622d8183eecaddc602cbe6800841a8be523de2d3b93b4c0540082092d03` |
 | 已确认意图 | `EE-WORKFLOW-IMPORT-BRIEF`；SHA-256 `7c9b1064084cf5f256f27bc5efd021bed0374910e1430586eebeb695344d4c6d` |
 | 已确认方向 | `EE-WORKFLOW-IMPORT-SKELETON`；SHA-256 `86a2a61a324d9bb7ca90108b433ded2f883bc91d9f60dadee87ac7d11feb8e46` |
@@ -126,7 +126,7 @@ flowchart LR
     M03 -. best-effort OTLP .-> Evidence[Evidence Admission peer]
 ```
 
-### Delivery Binding（`EE-EX-M01`），深化
+### Delivery Binding（`execution.milestone.01`），深化
 
 M01 隐藏 selector parsing、exact/sticky lookup、GitHub/bundle acquisition、staging、Package validation、DSH compatibility check、`READY` publication、alias update、resolved-value construction、Manifest content construction 与 result-binding check。其主要 caller-facing operation 是：
 
@@ -138,13 +138,13 @@ resolveWorkflowPackage(selector, configuredSource, runtimeTarget, refresh?)
 
 Result 是普通 immutable value：`name`、`exactVersion`、`packageDigest`、`localPath`、`workflowId`。它不是 capability、proof、hold 或 lifecycle state。M01 还根据 Delivery context 与该值构造 Manifest 内容，并依据 Manifest 校验 bounded Runtime result。Caller 从不自行协调 Source 或 Store step。
 
-### Runtime Interaction（`EE-EX-M02`），保留并限定
+### Runtime Interaction（`execution.milestone.02`），保留并限定
 
 M02 隐藏 canonical worktree derivation、immediate exclusive admission、current-slot state、Manifest persistence、start uncertainty、Runtime invocation、inspection、recovery、final handling、authorized abandonment 与 private runner lifecycle mapping。它仍是 custody/current-slot state 的唯一 writer，也是 current Manifest 的 persister。它不解释 selector、不下载 Package、不写 Package Store state。
 
 Preview 不增加第二个 pre-Manifest lifecycle。Manifest 存在前，failure 释放 ordinary in-process/OS-backed exclusive holder 并返回。Process death 释放 holder。若 death 发生在 Manifest 可见后，下次调用通过既有 occupied-slot recovery 读取 Manifest。不引入 `ARMED`/commit-unknown/reconciliation state。
 
-### Delivery Observation（`EE-EX-M03`），不变
+### Delivery Observation（`execution.milestone.03`），不变
 
 M03 把有界的实际 Delivery fact 映射为 adopted allow-listed standard-first Observation Profile，拥有 privacy/redaction 与 exporter isolation，只返回 diagnostic。它不拥有 source fact，也不控制 execution。Custody-only attempt 与 preparation rejection 不产生 Delivery Observation。Exact carrier/EventName/common/family registry 与 complete Review-family shape 由 [OTel Observation Profile](../../contracts/observation/otel-observation-profile.md) 拥有；technology-neutral fact meaning、identity、missingness、privacy、lineage、usage 与 relationship semantics 由 [Observation Catalog](../../contracts/observation/observation-catalog.md) 拥有；transport interaction 由 [Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md) 拥有。M03 不拥有 payload registry 或 Evidence durable storage semantics。
 
@@ -475,12 +475,12 @@ Concept obligation register 仍是 owner-complete authority。Execution-local vi
 
 | 义务 | Execution 含义 | Return trigger |
 | --- | --- | --- |
-| `EE-OBL-010` | 表示 exact resolved Package/Manifest field 与 typed error，不增加 proof/transaction semantics | physical form 允许 re-resolution、ambient completion、native leakage 或 pre-Delivery outcome |
-| `EE-OBL-011` | 实现 Core/M01/M02/M03 collaboration 与具名 early-return branch | bypass、drift、wait/queue、新 lifecycle/Module、Observation control 或 runner change |
-| `EE-OBL-012` | 选择/发布 public repository Release asset 与 explicit bundle descriptor | mutable/ambiguous/incomplete asset、allow-list、rewrite、bypass 或 fallback |
-| `EE-OBL-013` | 实现 `MISSING/STAGING/READY` Store 与 sticky alias-after-ready | partial hit、prior-ready loss，或真实需要 concurrent writer/eviction |
-| `EE-OBL-014` | 通过 DSH qualification complete protected/contributed Package projection，且无 ambient completion | rewrite、post-effect rejection、missing capability 或 native leak |
-| `EE-OBL-015` | 在当前 simple semantics 内选择 ordinary fetch/cache resource setting | measurement/context 要求不同 ownership/Interface/security/reliability semantics |
+| `concept.obligation.010` | 表示 exact resolved Package/Manifest field 与 typed error，不增加 proof/transaction semantics | physical form 允许 re-resolution、ambient completion、native leakage 或 pre-Delivery outcome |
+| `concept.obligation.011` | 实现 Core/M01/M02/M03 collaboration 与具名 early-return branch | bypass、drift、wait/queue、新 lifecycle/Module、Observation control 或 runner change |
+| `concept.obligation.012` | 选择/发布 public repository Release asset 与 explicit bundle descriptor | mutable/ambiguous/incomplete asset、allow-list、rewrite、bypass 或 fallback |
+| `concept.obligation.013` | 实现 `MISSING/STAGING/READY` Store 与 sticky alias-after-ready | partial hit、prior-ready loss，或真实需要 concurrent writer/eviction |
+| `concept.obligation.014` | 通过 DSH qualification complete protected/contributed Package projection，且无 ambient completion | rewrite、post-effect rejection、missing capability 或 native leak |
+| `concept.obligation.015` | 在当前 simple semantics 内选择 ordinary fetch/cache resource setting | measurement/context 要求不同 ownership/Interface/security/reliability semantics |
 
 本修订不包含 machine schema 修改。Observation meaning、wire profile、interaction flow 与 metric reading 由各自 split draft companion 处理；physical representation 另行处理，不能通过本 System Design 重开明确 MVP non-goal。
 

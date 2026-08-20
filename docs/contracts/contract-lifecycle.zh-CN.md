@@ -71,19 +71,19 @@ flowchart LR
 
 | Gate | 要求 | 证据 |
 | --- | --- | --- |
-| G1 语义 review | 按 Contract 规模裁剪的独立对抗 review：小型 Contract = 一次独立 review + 一次 fresh reader；大型 Contract = 三 lens review（problem–solution、architecture、quality）。Findings 必须由其 source lens 关闭。 | 带 disposition 的 review 结果 |
-| G2 Fresh reader | 下游实现者（非作者）仅凭语义文档即可推导出机器表示与一致的 fixture 集。 | fresh-reader 结果 |
-| G3 确定性验证 | 文档检查通过：稳定 anchors/IDs、headings/tables/links parity、词汇闭合、无悬空引用。机器 fixtures（positive/negative/recovery）对机器表示全绿。 | 确定性检查报告；fixture 运行 |
-| G4 翻译 parity | `zh-CN` companion 从当前英文文档整体重译；anchors、headings、tables、IDs、fields、enums 与 links 保持成对。 | parity 检查 |
-| G5 机器表示发布 | schemas/registries/fixtures/validators/version policy 存在于 `system-contracts/<contract>/` 且 revision 与语义文档一致。 | 文件清单 + revision 匹配 |
-| G6 Publication binding | 精确 revision + SHA-256 digest 记录在 publication record；先前 revision literal 标记为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`。 | publication record |
+| contract.gate.1 语义 review | 按 Contract 规模裁剪的独立对抗 review：小型 Contract = 一次独立 review + 一次 fresh reader；大型 Contract = 三 lens review（problem–solution、architecture、quality）。Findings 必须由其 source lens 关闭。 | 带 disposition 的 review 结果 |
+| contract.gate.2 Fresh reader | 下游实现者（非作者）仅凭语义文档即可推导出机器表示与一致的 fixture 集。 | fresh-reader 结果 |
+| contract.gate.3 确定性验证 | 文档检查通过：稳定 anchors/IDs、headings/tables/links parity、词汇闭合、无悬空引用。机器 fixtures（positive/negative/recovery）对机器表示全绿。 | 确定性检查报告；fixture 运行 |
+| contract.gate.4 翻译 parity | `zh-CN` companion 从当前英文文档整体重译；anchors、headings、tables、IDs、fields、enums 与 links 保持成对。 | parity 检查 |
+| contract.gate.5 机器表示发布 | schemas/registries/fixtures/validators/version policy 存在于 `system-contracts/<contract>/` 且 revision 与语义文档一致。 | 文件清单 + revision 匹配 |
+| contract.gate.6 Publication binding | 精确 revision + SHA-256 digest 记录在 publication record；先前 revision literal 标记为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`。 | publication record |
 
 ### 4.2 谁运行 gate；转换 authority
 
 - **Contract 作者/owner** 准备候选与 gate 证据。
-- **Reviewer、fresh reader 与翻译 parity**（G1、G2、G4）独立于作者；作者绝不自我评估自己的 Contract（沿用 runner 对 Profile self-assessment 的禁止）。
-- **确定性验证与 publication binding**（G3、G5、G6）是机械步骤，可由作者运行，但任何验证者必须可复现。
-- **转换 authority**：状态转换由 **Contract owner**（repository owner/team，经 team-config authority；每个 Contract 在头部或 obligation register 记录其 owner）批准。owner 基于 gate 证据批准转换；owner 的批准绝不替代独立 gate 证据。`DRAFTING → REVIEW_CANDIDATE` 是作者对语义闭合的自声明；`REVIEW_CANDIDATE → FROZEN` 需要 owner 批准加上 G1–G6 的独立证据。
+- **Reviewer、fresh reader 与翻译 parity**（contract.gate.1、contract.gate.2、contract.gate.4）独立于作者；作者绝不自我评估自己的 Contract（沿用 runner 对 Profile self-assessment 的禁止）。
+- **确定性验证与 publication binding**（contract.gate.3、contract.gate.5、contract.gate.6）是机械步骤，可由作者运行，但任何验证者必须可复现。
+- **转换 authority**：状态转换由 **Contract owner**（repository owner/team，经 team-config authority；每个 Contract 在头部或 obligation register 记录其 owner）批准。owner 基于 gate 证据批准转换；owner 的批准绝不替代独立 gate 证据。`DRAFTING → REVIEW_CANDIDATE` 是作者对语义闭合的自声明；`REVIEW_CANDIDATE → FROZEN` 需要 owner 批准加上 contract.gate.1–contract.gate.6 的独立证据。
 
 ### 4.3 无历史包袱 Contract 的快速路径
 
@@ -91,9 +91,9 @@ flowchart LR
 
 1. 作者声明语义闭合并把 Contract 移到 `REVIEW_CANDIDATE`。
 2. 经 owner 批准，candidate-based 下游工作在 `REVIEW_CANDIDATE` 下进行：下游迁移、实现 spike 与 fixture 编写。其产出是 design evidence，明确标注，绝不作为 conformance 声明。
-3. 这些下游工作同时充当 gate 证据：下游实现者仅凭语义文档推导机器表示与 fixtures 正是 G2（fresh reader），fixture 运行是 G3 的一部分。
-4. 独立 G1 review 仍然要跑——可以小（一个独立 reviewer + 一个 fresh reader），可以在验证工作之后进行——owner 不能豁免它。
-5. 当 G1–G6 全部通过时，Contract 一次性转换到 `FROZEN`，此后 conformance 声明才可准入。
+3. 这些下游工作同时充当 gate 证据：下游实现者仅凭语义文档推导机器表示与 fixtures 正是 contract.gate.2（fresh reader），fixture 运行是 contract.gate.3 的一部分。
+4. 独立 contract.gate.1 review 仍然要跑——可以小（一个独立 reviewer + 一个 fresh reader），可以在验证工作之后进行——owner 不能豁免它。
+5. 当 contract.gate.1–contract.gate.6 全部通过时，Contract 一次性转换到 `FROZEN`，此后 conformance 声明才可准入。
 
 快速路径改变的是证据的**顺序**，绝不是所需 gate 的**集合**。有已发布 revision 或已绑定下游 Delivery 的 Contract 必须走普通顺序（§10.2）。
 
@@ -101,7 +101,7 @@ flowchart LR
 
 - 发布是**成对的**：语义文档 revision 与机器表示 revision 以同一 revision identity 一起发布；只发布其一而不同步另一方，Contract 保持未发布。
 - **publication record** 绑定精确字节流（SHA-256）与精确 revision；它随机器表示存放（或位于 Contract 头部指定的位置）。
-- **Legacy 隔离**：revision 被取代时，其 literal 标记为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；它不可作为当前权威解析，也不保留并行的旧权威文档。Git history 拥有 provenance（沿用 Concept `EE-AC-014` 纪律）。
+- **Legacy 隔离**：revision 被取代时，其 literal 标记为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；它不可作为当前权威解析，也不保留并行的旧权威文档。Git history 拥有 provenance（沿用 Concept `concept.acceptance.014` 纪律）。
 - 发布**不**创造第二个语义 owner：Contract 仍是上游语义的 representation。
 
 ## 6. 版本与兼容
@@ -127,7 +127,7 @@ flowchart LR
 
 ## 8. 义务与下游 Gap
 
-- 发布 Contract 的机器表示是一个显式**义务**（`EE-OBL-001` 模式）：记录 owner、所需证据、return location 与 reopen condition。Contract 可以语义稳定（`REVIEW_CANDIDATE`）而机器表示义务仍开放。
+- 发布 Contract 的机器表示是一个显式**义务**（`concept.obligation.001` 模式）：记录 owner、所需证据、return location 与 reopen condition。Contract 可以语义稳定（`REVIEW_CANDIDATE`）而机器表示义务仍开放。
 - 下游消费方按 Contract revision 跟踪 gap（`runner-EXT-003.x` 模式）。下游 gap 仅在所引用 revision 达到 `FROZEN` 且适用 conformance corpus 通过时关闭；通过弱化 Contract 来关闭 gap 是禁止的。
 - 当下游 gap 的 reopen condition 满足时，gap 重新打开，所拥有的 Contract 回到相应状态。
 
@@ -140,7 +140,7 @@ flowchart LR
 | Contract revision | `name@MAJOR.MINOR.PATCH` |
 | Lifecycle status | `DRAFTING \| REVIEW_CANDIDATE \| FROZEN \| DEPRECATED \| SUPERSEDED` |
 | Normative language | English |
-| Translation | [`<name>.zh-CN.md`](<name>.zh-CN.md) —— 非规范跟踪翻译；parity 义务见 §4.1 G4 |
+| Translation | [`<name>.zh-CN.md`](<name>.zh-CN.md) —— 非规范跟踪翻译；parity 义务见 §4.1 contract.gate.4 |
 | Semantic authority | 上游 owner 文档 |
 | Machine representation | `system-contracts/<contract>/` + revision |
 | Publication binding | （FROZEN 后填写）revision + SHA-256 + record 位置 |
@@ -162,7 +162,7 @@ flowchart LR
 1. 创建 `docs/contracts/<contract>/<name>.md`，使用头部模板（§9）；状态 `DRAFTING`。
 2. 闭合每个字段/词汇表/规则的含义；不允许伪规范（§230 纪律）。
 3. 声明语义闭合并请求 review → `REVIEW_CANDIDATE`。
-4. 运行 gate G1–G6（§4）；通过后记录 publication binding（§5）→ `FROZEN`。
+4. 运行 gate contract.gate.1–contract.gate.6（§4）；通过后记录 publication binding（§5）→ `FROZEN`。
 5. 创建 `zh-CN` companion，作为同 revision 的整篇翻译。
 
 ### 10.2 修订已冻结 Contract
@@ -185,13 +185,13 @@ flowchart LR
 
 | Contract | 语义文档 | 机器表示 | Lifecycle status（规范化） | Revision | 未决义务 |
 | --- | --- | --- | --- | --- | --- |
-| Observation Catalog | [`observation/observation-catalog.md`](observation/observation-catalog.md) | `system-contracts/`（未发布） | `REVIEW_CANDIDATE` | split draft；profile 引用 `0.2.0` | 机器表示发布（`EE-OBL-001`） |
-| OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | 未发布 | `REVIEW_CANDIDATE` | proposed `0.2.0` | 机器表示发布（`EE-OBL-001`） |
-| Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | 未发布 | `REVIEW_CANDIDATE` | split draft | 机器表示发布（`EE-OBL-001`） |
-| Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | 未发布 | `REVIEW_CANDIDATE` | split draft | 机器表示发布（`EE-OBL-001`） |
-| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/)（候选材料） | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@0.1.0` | Task 2 迁移（G2/G3 证据）→ 独立 G1 review → 机器发布 → FROZEN |
+| Observation Catalog | [`observation/observation-catalog.md`](observation/observation-catalog.md) | `system-contracts/`（未发布） | `REVIEW_CANDIDATE` | split draft；profile 引用 `0.2.0` | 机器表示发布（`concept.obligation.001`） |
+| OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | 未发布 | `REVIEW_CANDIDATE` | proposed `0.2.0` | 机器表示发布（`concept.obligation.001`） |
+| Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | 未发布 | `REVIEW_CANDIDATE` | split draft | 机器表示发布（`concept.obligation.001`） |
+| Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | 未发布 | `REVIEW_CANDIDATE` | split draft | 机器表示发布（`concept.obligation.001`） |
+| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/)（候选材料） | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@0.1.0` | Task 2 迁移（contract.gate.2/contract.gate.3 证据）→ 独立 contract.gate.1 review → 机器发布 → FROZEN |
 
 注：
 
 - observation 系列文档在其头部声明各自的状态值；规范化列是管理映射，不覆盖它们的 authority。
-- Workflow Definition DSL 是本规范下起草的第一个 Contract；它在快速路径（§4.3）下为 `REVIEW_CANDIDATE`：first-party Workflow 迁移（Task 2）作为 candidate-based 验证进行，为后续一次性冻结提供 G2/G3 证据。
+- Workflow Definition DSL 是本规范下起草的第一个 Contract；它在快速路径（§4.3）下为 `REVIEW_CANDIDATE`：first-party Workflow 迁移（Task 2）作为 candidate-based 验证进行，为后续一次性冻结提供 contract.gate.2/contract.gate.3 证据。

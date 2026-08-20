@@ -6,7 +6,7 @@
 
 | Field | Value |
 | --- | --- |
-| Document identity | `EE-EVIDENCE-001` |
+| Document identity | `evidence.identity.001` |
 | Publication status | `WORKING_REVIEW_CANDIDATE`; prior reviewed overlay evidence applies to earlier bytes only. These changed bytes require fresh deterministic parity/publication binding and user or reader review before any exact publication claim |
 | Normative language | English |
 | Translation | [`evidence-system.zh-CN.md`](evidence-system.zh-CN.md), faithful and non-normative |
@@ -55,7 +55,7 @@ Non-goals are execution control, Runtime/worktree access, grading/ranking/recomm
 | Local preview | small trustworthy deployment | one App, PostgreSQL, proxied Grafana, loopback-only exposure |
 | Privacy | prohibited bodies are rejected/not retained | profile validation, allow-list, bounded diagnostics/Raw |
 
-AF-003 confirms the atomic/idempotent local PostgreSQL slice and read-only consumers in one pinned environment. AF-002 confirms the representative emitter/profile semantics; its rebuilt evidence validates the proposed local-Role/family-lineage pair under the user-corrected evidence threshold while remaining procedurally `INCONCLUSIVE` against its superseded old-evidence-rehash condition. Neither result proves production capacity, security, retention defaults, released physical Contract, or implementation conformance.
+concept.fixture.003 confirms the atomic/idempotent local PostgreSQL slice and read-only consumers in one pinned environment. concept.fixture.002 confirms the representative emitter/profile semantics; its rebuilt evidence validates the proposed local-Role/family-lineage pair under the user-corrected evidence threshold while remaining procedurally `INCONCLUSIVE` against its superseded old-evidence-rehash condition. Neither result proves production capacity, security, retention defaults, released physical Contract, or implementation conformance.
 
 <a id="ee-evidence-4"></a>
 ## 4. Problem Decomposition and Structure
@@ -85,7 +85,7 @@ Admission and Projection are separate semantic owners but collaborate inside one
 <a id="ee-evidence-5"></a>
 ## 5. System Modules
 
-### Observation Admission (`EE-EV-M01`)
+### Observation Admission (`evidence.milestone.01`)
 
 Admission validates the exact supported OTLP Resource, InstrumentationScope, profile and Workflow-family coordinates from the [OTel Observation Profile](../../contracts/observation/otel-observation-profile.md); enforces the closed carrier/EventName/attribute registry and content minimization defined there; resolves stable record identity; detects duplicate/conflict; isolates invalid siblings; coordinates Projection; and reports standard OTLP aggregate success or partial success as specified by the [Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md). The technology-neutral fact meanings and semantic owners are in the [Observation Catalog](../../contracts/observation/observation-catalog.md); this System Design owns Evidence validation and durable landing meaning, not a duplicate wire registry.
 
@@ -95,7 +95,7 @@ It is the sole writer of immutable accepted identity/provenance and any bounded 
 
 Admission decides C17 solely from the logical record. On ordinary/Recheck summary, present C17 must be a nonnegative integer and selects the counted form; absent C17 selects the valid no-observed-count-fact form. It cannot and does not reject absence as “producer reported but omitted.” C17 on a Finding shape, an invalid present value, or any other malformed shape rejects the record with zero accepted Review/count effects.
 
-### Factual Projection (`EE-EV-M02`)
+### Factual Projection (`evidence.milestone.02`)
 
 Projection derives one normalized Trace node per accepted Span tuple and owns distinct durable landings for immutable Finding assertion/scope `(C18,C51)`, order-independent target edges, append-only status contributions `(C18,C51,C12)`, target-specific Fix relations, and target-specific Recheck relations. Compatible lifecycle records reuse an existing assertion/edge as no-op while appending the new status/Fix/Recheck contribution exactly once in Admission's transaction. Projection also owns recorded Trace edges, Artifact/Invocation/Role and local-Role-to-family-lineage relationships, completeness-bearing family contributions and compatible aggregates. It stores C50 verbatim and never generates, grades, rewrites or infers it. It exposes recorded statuses and provenance; it owns no mutable current-status winner.
 
@@ -103,7 +103,7 @@ For an accepted summary, present C17 lands one observed-count contribution with 
 
 Projection writes only its owner-scoped state inside Admission's transaction. It never edits accepted observations, infers unrecorded causality, grades work, or recomputes history under new formulas.
 
-### Query & Presentation (`EE-EV-M03`)
+### Query & Presentation (`evidence.milestone.03`)
 
 Query returns committed factual series and causal Trace views with provenance, completeness, availability, and expiry state. It displays an observed zero only from an accepted C17=`0`; absence yields no observed-count fact, never a zero. It owns no domain facts. Grafana receives curated read-only views; Agent Decisions receives a curated causal shape. Saved dashboards and UI logic cannot define Metric formulas or rewrite completeness.
 
@@ -265,23 +265,23 @@ Backup/restore, TLS/auth for any expanded trust boundary, operational credential
 
 | Scenario | Expected outcome | Mechanism | Evidence |
 | --- | --- | --- | --- |
-| valid record | accepted identity and required effects visible together | one transaction | AF-003 atomic slice |
-| invalid sibling | valid sibling commits; invalid stores nothing | per-record admission | AF-003 partial sibling case |
-| Event duplicate/conflict | no overwrite or double contribution under Event ID/digest | Event first-write identity | AF-003 duplicate/concurrency cases |
+| valid record | accepted identity and required effects visible together | one transaction | concept.fixture.003 atomic slice |
+| invalid sibling | valid sibling commits; invalid stores nothing | per-record admission | concept.fixture.003 partial sibling case |
+| Event duplicate/conflict | no overwrite or double contribution under Event ID/digest | Event first-write identity | concept.fixture.003 duplicate/concurrency cases |
 | Span duplicate/conflict | same `(trace_id, span_id)` plus digest is one node/effect; conflict rejects; equal Span IDs across different Traces remain distinct | Span tuple first-write identity and atomic Trace projection | deterministic new/identical/conflicting Span examples; implementation fixture downstream |
-| COMMIT response loss | retry converges to one complete slice | first-write-wins idempotency | AF-003 ambiguity cases |
-| final zero/lower-bound/unavailable | distinct query results | Projection-owned completeness | AF-003 truth fixtures |
-| incompatible units/sources | separate groups | compatibility key | AF-003 grouping cases |
-| Trace expiry | factual trend remains; detail explicitly unavailable | independent lifecycles | AF-003 retention case |
-| read-only consumers | curated reads succeed; raw/write denied | least-privilege credentials/views | AF-003 permission evidence |
+| COMMIT response loss | retry converges to one complete slice | first-write-wins idempotency | concept.fixture.003 ambiguity cases |
+| final zero/lower-bound/unavailable | distinct query results | Projection-owned completeness | concept.fixture.003 truth fixtures |
+| incompatible units/sources | separate groups | compatibility key | concept.fixture.003 grouping cases |
+| Trace expiry | factual trend remains; detail explicitly unavailable | independent lifecycles | concept.fixture.003 retention case |
+| read-only consumers | curated reads succeed; raw/write denied | least-privilege credentials/views | concept.fixture.003 permission evidence |
 | local access profile | loopback ingest works without app auth; same-origin anonymous Grafana Viewer reads only curated views | fixed proxy/listener/role topology | downstream listener, origin, anonymous-role and negative reachability tests |
-| exact profile admission | exact pins/Scope, ten EventNames and 54 common + applicable 10 or 6 family fields are accepted; sibling-family/unlisted/fixture-only fields reject | OTel Profile-linked closed validator | deterministic 54+10+6 count/unique/table-shape checks plus AF-002; machine validator/conformance downstream |
+| exact profile admission | exact pins/Scope, ten EventNames and 54 common + applicable 10 or 6 family fields are accepted; sibling-family/unlisted/fixture-only fields reject | OTel Profile-linked closed validator | deterministic 54+10+6 count/unique/table-shape checks plus concept.fixture.002; machine validator/conformance downstream |
 | complete Review/Finding composition | ordinary Finding, Fix, Recheck-on-Finding and Recheck-summary land only from their exact complete shape | OTel Profile §7.4 named bases/variants and record-level atomic projection | positive shapes plus missing-base/endpoint negative fixtures |
 | C17 report presence | ordinary/Recheck summary C17=`0`, positive C17, and absent C17 land recorded zero, recorded positive, and no count respectively; invalid present value or C17 on Finding rejects with no partial Review/count state | field-presence selector visible to Admission; atomic Review/count projection | bilingual zero/positive/absence/retry positives and type/range/carrier/partial-state negatives |
 | bounded Finding/target admission | source-lens summary is nonempty/bounded/privacy-safe; one typed target per record; multi-target set is order-independent and duplicate-safe | C50–C54 validation and target-edge identity | positive multi-target plus empty/over-limit/prohibited/unknown-target/duplicate/conflict fixtures |
 | Finding lifecycle identity domains | compatible target/lifecycle records reuse assertion/edge as no-op and append status/Fix/Recheck exactly once; changed C50/C20/C51, target context, lifecycle endpoint, C17/C27 applicability, Event content, or partial landing rejects with zero effects | separate OTel Profile identities plus one Admission transaction | all OTel Profile §7.6 positive/negative sequences in both arrival orders and EN/ZH parity |
 | native usage admission | credit/request/premium/provider-native/money examples remain separate unless every compatibility coordinate matches | exact kind/C43-unit-or-currency/source/source-ID/completeness key | incompatible-group examples and downstream fixtures |
-| Role lineage admission | differing local IDs may share one lineage; same display names may retain distinct lineages; incomplete pair rejects | atomic admitted local/lineage pair and immutable mapping | AF-002 rebuilt protobuf/admission/duplicate/conflict evidence; `PROPOSED_VALIDATED_BY_SPIKE` |
+| Role lineage admission | differing local IDs may share one lineage; same display names may retain distinct lineages; incomplete pair rejects | atomic admitted local/lineage pair and immutable mapping | concept.fixture.002 rebuilt protobuf/admission/duplicate/conflict evidence; `PROPOSED_VALIDATED_BY_SPIKE` |
 | disposition exclusion | no `delivery.disposition` or `agentops.delivery.disposition` is admitted by the first profile | ten-EventName/70-total-field allow-list | registry and negative fixture scan |
 
 Design acceptance requires this document to be implementable without reading Execution internals, while ingest semantics agree with the peer Design and Contract draft. The local-access acceptance is categorical: no application-level ingest authentication and same-origin anonymous Viewer are permitted only on the loopback-only preview; remote or multi-user exposure reopens the security design. Production schema, migration, security, capacity, and physical conformance evidence remain downstream.
@@ -289,17 +289,17 @@ Design acceptance requires this document to be implementable without reading Exe
 <a id="ee-evidence-14"></a>
 ## 14. Decisions and Downstream Obligations
 
-The sole owner-complete downstream obligation register is [Concept §8](../../agent-architecture.md#ee-concept-8). The table below is a local non-owning view of `EE-OBL-001,004,006..008`; owner, current/required evidence, exact return and reopen fields in the Concept register govern.
+The sole owner-complete downstream obligation register is [Concept §8](../../agent-architecture.md#ee-concept-8). The table below is a local non-owning view of `concept.obligation.001,004,006..008`; owner, current/required evidence, exact return and reopen fields in the Concept register govern.
 
-Evidence applies `EE-SD-001`,`002`,`005`–`007`,`009`,`012`,`013`, and `020`. Rejected directions are a combined Execution/Evidence process, arbitrary telemetry lake, Collector-first topology, accepted-only staging/outbox, replay/recompute/correction, presentation formulas, coupled retention, grading/inference, direct Grafana/PostgreSQL exposure, and historical migration.
+Evidence applies `concept.decision.001`,`002`,`005`–`007`,`009`,`012`,`013`, and `020`. Rejected directions are a combined Execution/Evidence process, arbitrary telemetry lake, Collector-first topology, accepted-only staging/outbox, replay/recompute/correction, presentation formulas, coupled retention, grading/inference, direct Grafana/PostgreSQL exposure, and historical migration.
 
 | Obligation ID | Local summary | Required evidence | Return/reopen condition |
 | --- | --- | --- | --- |
-| `EE-OBL-001` | physically publish the adopted Observation Catalog, OTel Profile, and Interaction proposal | machine schemas/package, encoded common/family registries, physical limits, complete-shape/multi-target/privacy/Span/usage fixtures, validators and version/partial-success rules | return if representation cannot preserve complete Review/Finding composition, bounded content/target edges, carrier, lineage, usage, Span identity, truth, privacy, or interaction semantics |
-| `EE-OBL-004` | production Evidence App/PostgreSQL/Grafana | code, migrations, complete-shape rejection, Finding target dedup/conflict, ambiguity/idempotency/query/permission/backup fixtures | reopen on partial graph, mutable content/edge, duplicate target, inference, external exposure or topology change |
-| `EE-OBL-006` | Evidence lifecycle validation | bounded workload, growth/query/expiry/retention/backup measurements | reopen only if lifecycle meaning, ownership, topology or Interface changes |
-| `EE-OBL-007` | public Evidence repository/submodule | repository identity, exact commit, build/test/release and parent-link proof | reopen on duplicate authority, unpinned code or cross-repository transaction |
-| `EE-OBL-008` | MIT vs Apache-2.0 decision | dependency/right/patent/NOTICE review and approval | reopen if neither permitted license is compatible |
+| `concept.obligation.001` | physically publish the adopted Observation Catalog, OTel Profile, and Interaction proposal | machine schemas/package, encoded common/family registries, physical limits, complete-shape/multi-target/privacy/Span/usage fixtures, validators and version/partial-success rules | return if representation cannot preserve complete Review/Finding composition, bounded content/target edges, carrier, lineage, usage, Span identity, truth, privacy, or interaction semantics |
+| `concept.obligation.004` | production Evidence App/PostgreSQL/Grafana | code, migrations, complete-shape rejection, Finding target dedup/conflict, ambiguity/idempotency/query/permission/backup fixtures | reopen on partial graph, mutable content/edge, duplicate target, inference, external exposure or topology change |
+| `concept.obligation.006` | Evidence lifecycle validation | bounded workload, growth/query/expiry/retention/backup measurements | reopen only if lifecycle meaning, ownership, topology or Interface changes |
+| `concept.obligation.007` | public Evidence repository/submodule | repository identity, exact commit, build/test/release and parent-link proof | reopen on duplicate authority, unpinned code or cross-repository transaction |
+| `concept.obligation.008` | MIT vs Apache-2.0 decision | dependency/right/patent/NOTICE review and approval | reopen if neither permitted license is compatible |
 
 No current prototype, legacy bundle, split draft companion, human metric specification, or Contract draft establishes physical conformance.
 

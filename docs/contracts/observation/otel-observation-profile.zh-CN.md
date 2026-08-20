@@ -8,7 +8,7 @@
 
 | 字段 | 值 |
 | --- | --- |
-| 文档身份 | `EE-OBS-PROFILE-001` |
+| 文档身份 | `observation.identity.002` |
 | 状态 | `DRAFT_NOT_PUBLISHED` |
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split；出处保留在 Git 历史中；下方 wire registry 与已采纳提案 byte-for-meaning 一致 |
@@ -16,8 +16,8 @@
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md)，以及 tech-neutral [Observation Catalog](observation-catalog.md) |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
-| Profile evidence | AF-002 `PASS` 加 rebinding；在用户修正后的 evidence threshold 下，重建的 actual rc.6/protobuf assertion 全部 green |
-| 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `EE-AC-017`](../../agent-architecture.md) |
+| Profile evidence | concept.fixture.002 `PASS` 加 rebinding；在用户修正后的 evidence threshold 下，重建的 actual rc.6/protobuf assertion 全部 green |
+| 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
 本文件拥有唯一可编辑的 proposed wire registry、carrier placement、version、EventName 与 value vocabulary。它不能改变 Design-fixed meaning。Future physical-conformance obligation 由 [Execution–Evidence Interaction Contract §8](../execution-evidence/interaction-contract.md#interaction-contract-8) 拥有。每个 fact 与 field 的 tech-neutral meaning 由 [Observation Catalog](observation-catalog.md) 拥有；当 representation 与这些 semantics 冲突时，以 Catalog 的 semantic owner anchor 为准。当 representation 与某个 System Design 冲突时，以 English System owner anchor 为准。
 
@@ -38,25 +38,25 @@ Draft maturity 不是重新决定 selected mapping 的许可。反过来，valid
 
 | Item | 唯一 semantic owner | 已采纳 draft representation | 真正的 downstream proof |
 | --- | --- | --- | --- |
-| `CT-001` Delivery binding | [Execution §8](../../systems/execution/project-execution-system.md#ee-execution-8) | 一个 closed immutable Manifest shape | machine schema、limit、digest vector 与 binding fixture |
-| `CT-002` identity separation | [Concept §3](../../agent-architecture.md#ee-concept-3) | Delivery/task/Workflow/implementation/Runtime/Trace/event/Role/local-lineage identity 彼此不同 | cross-identity negative fixture |
-| `CT-003` result separation | [Execution §10](../../systems/execution/project-execution-system.md#ee-execution-10) | Runtime outcome、`START_FAILED`、administrative disposition 与 Span Status 保持不同 | lifecycle/result validator 与 mismatch fixture |
-| `CT-004` admission/custody | [Execution §7](../../systems/execution/project-execution-system.md#ee-execution-7) | 不含 native type 的 closed `CONTENDED`、`NEW`、`RECOVERY` meaning | contention/recovery/stale-authority fixture |
-| `CT-005` unresolved state | [Execution §§7–9](../../systems/execution/project-execution-system.md#ee-execution-7) | 显式 occupied unresolved state 与 authorized administrative closure；closure 不进入首个 Observation wire profile | crash/reconcile/authorization/no-history fixture |
-| `CT-006` Observation non-control/privacy | [Execution §§5,10](../../systems/execution/project-execution-system.md#ee-execution-5) | §§4–9 中 pinned、allow-listed、best-effort profile | production disable/loss/refusal/privacy fixture |
-| `CT-007` carrier | [Execution §5](../../systems/execution/project-execution-system.md#ee-execution-5) | 使用 §4 exact pin 的 official OTLP/HTTP binary protobuf Trace/Log exporter | packaged registry、interoperability 与 dual-emitter-absence proof |
-| `CT-008` atomic admission | [Evidence §§7–10](../../systems/evidence/evidence-system.md#ee-evidence-7) | first-accepted identity 加 canonical digest 与 per-record result | machine validator、concurrency 与 half-state fixture |
-| `CT-009` completeness | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | §8 exact four-state vocabulary | final-zero/lower-bound/loss fixture |
-| `CT-010` compatibility | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | explicit semantic/version/kind/unit-or-ISO-currency/source/source-identity coordinate | incompatible-group fixture |
-| `CT-011` lifecycle | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | 独立 Raw、accepted provenance、Trace 与 factual-projection lifecycle | retention/default/capacity proof |
-| `CT-012` prohibited semantics | [Concept §6](../../agent-architecture.md#ee-concept-6) | closed carrier/registry 与 §9 exclusion | schema scan 与 negative fixture |
+| `observation.contract.001` Delivery binding | [Execution §8](../../systems/execution/project-execution-system.md#ee-execution-8) | 一个 closed immutable Manifest shape | machine schema、limit、digest vector 与 binding fixture |
+| `observation.contract.002` identity separation | [Concept §3](../../agent-architecture.md#ee-concept-3) | Delivery/task/Workflow/implementation/Runtime/Trace/event/Role/local-lineage identity 彼此不同 | cross-identity negative fixture |
+| `observation.contract.003` result separation | [Execution §10](../../systems/execution/project-execution-system.md#ee-execution-10) | Runtime outcome、`START_FAILED`、administrative disposition 与 Span Status 保持不同 | lifecycle/result validator 与 mismatch fixture |
+| `observation.contract.004` admission/custody | [Execution §7](../../systems/execution/project-execution-system.md#ee-execution-7) | 不含 native type 的 closed `CONTENDED`、`NEW`、`RECOVERY` meaning | contention/recovery/stale-authority fixture |
+| `observation.contract.005` unresolved state | [Execution §§7–9](../../systems/execution/project-execution-system.md#ee-execution-7) | 显式 occupied unresolved state 与 authorized administrative closure；closure 不进入首个 Observation wire profile | crash/reconcile/authorization/no-history fixture |
+| `observation.contract.006` Observation non-control/privacy | [Execution §§5,10](../../systems/execution/project-execution-system.md#ee-execution-5) | §§4–9 中 pinned、allow-listed、best-effort profile | production disable/loss/refusal/privacy fixture |
+| `observation.contract.007` carrier | [Execution §5](../../systems/execution/project-execution-system.md#ee-execution-5) | 使用 §4 exact pin 的 official OTLP/HTTP binary protobuf Trace/Log exporter | packaged registry、interoperability 与 dual-emitter-absence proof |
+| `observation.contract.008` atomic admission | [Evidence §§7–10](../../systems/evidence/evidence-system.md#ee-evidence-7) | first-accepted identity 加 canonical digest 与 per-record result | machine validator、concurrency 与 half-state fixture |
+| `observation.contract.009` completeness | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | §8 exact four-state vocabulary | final-zero/lower-bound/loss fixture |
+| `observation.contract.010` compatibility | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | explicit semantic/version/kind/unit-or-ISO-currency/source/source-identity coordinate | incompatible-group fixture |
+| `observation.contract.011` lifecycle | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | 独立 Raw、accepted provenance、Trace 与 factual-projection lifecycle | retention/default/capacity proof |
+| `observation.contract.012` prohibited semantics | [Concept §6](../../agent-architecture.md#ee-concept-6) | closed carrier/registry 与 §9 exclusion | schema scan 与 negative fixture |
 
 <a id="otel-profile-4"></a>
 ## 4. 已采纳 Pin、Transport、Resource 与 Scope
 
 | Concern | 已采纳 draft proposal | Evidence boundary |
 | --- | --- | --- |
-| OTel Specification | `v1.56.0` | AF-002 exact source/archive generation |
+| OTel Specification | `v1.56.0` | concept.fixture.002 exact source/archive generation |
 | OTLP/protobuf | `v1.10.0` | official `.proto` decode 与 partial-success path |
 | Semantic conventions | `v1.41.1` | GenAI convention 仍为 Development；compatibility 限于这一 generation |
 | Schema URL | `https://opentelemetry.io/schemas/1.41.0` | exact tested scope schema URL |
@@ -311,7 +311,7 @@ Admission 在 Projection 前校验整个 selected shape、C17/C27 applicability�
 | local Role → family lineage | `role.lineage` 上的 C30+C31 | owner-known/applicable 时两者都 required；否则无 Event | name、version、position、compound ID | immutable local-to-lineage mapping |
 | Invocation activity | standard Span `(trace_id, span_id)`、`gen_ai.*`、Role 适用时 C30 | recorded standard Span path | 把 summary count 当 causality | Trace node/activity duration |
 
-C31 仍为 `PROPOSED_VALIDATED_BY_SPIKE`：AF-002 重建 actual rc.6/protobuf evidence 证明了其 string/high-cardinality identity behavior 与 relationship safety。C50–C54 与 complete composition rule 是 `RR-OTEL-CONTRACT-003` 下的 ordinary typed Contract Design；它们复用 existing string LogRecord attribute class 与 current bounded-summary/privacy/capacity assumption。不需要也不授权重复 Spike。这些行都不是 published conformance。
+C31 仍为 `PROPOSED_VALIDATED_BY_SPIKE`：concept.fixture.002 重建 actual rc.6/protobuf evidence 证明了其 string/high-cardinality identity behavior 与 relationship safety。C50–C54 与 complete composition rule 是 `RR-OTEL-CONTRACT-003` 下的 ordinary typed Contract Design；它们复用 existing string LogRecord attribute class 与 current bounded-summary/privacy/capacity assumption。不需要也不授权重复 Spike。这些行都不是 published conformance。
 
 ### 7.5 Family semantic 覆盖矩阵
 

@@ -8,7 +8,7 @@
 
 | Field | Value |
 | --- | --- |
-| Document identity | `EE-OBS-CATALOG-001` |
+| Document identity | `observation.identity.001` |
 | Status | `DRAFT_NOT_PUBLISHED` |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`; provenance remains in Git history; the semantic meaning below is byte-for-meaning identical to the adopted proposal |
@@ -16,7 +16,7 @@
 | Representation companion | [OTel Observation Profile](otel-observation-profile.md), proposed version `0.2.0` |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
-| Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `EE-AC-017`](../../agent-architecture.md) |
+| Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
 This document owns what the Observation facts *mean* and who owns each fact. It does not own how facts are encoded, transported, admitted, stored, or queried. When the representation in the OTel Observation Profile conflicts with a meaning here, this document's semantic owner anchors govern.
 

@@ -8,14 +8,14 @@
 
 | Field | Value |
 | --- | --- |
-| Document identity | `EE-METRIC-CATALOG-SPEC-001` |
+| Document identity | `evaluation.identity.001` |
 | Status | `DRAFT_NOT_PUBLISHED` (human explanatory companion to the `draft` machine schema) |
 | Normative language | English |
 | Machine authority | [`contracts/evaluation/metric-catalog-0.1.0.schema.json`](../../../contracts/evaluation/metric-catalog-0.1.0.schema.json) and the example instance [`contracts/examples/metric-catalog-0.1.0.json`](../../../contracts/examples/metric-catalog-0.1.0.json) |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `0.2.0` |
 | Owner | `evidence-governance-owner` (the example instance's `owner` value; the schema requires only a non-empty string) |
-| Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `EE-AC-017`](../../agent-architecture.md) |
+| Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
 The machine schema is the sole authority for what a metric record *is*. This document is the sole human explanation of what each field *means* and how each metric is intended to be read. When this document and the schema disagree, the schema wins.
 

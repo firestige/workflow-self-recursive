@@ -6,15 +6,15 @@
 
 | Field | Value |
 | --- | --- |
-| Document identity | `EE-EXECUTION-001` |
+| Document identity | `execution.identity.001` |
 | Publication status | `WORKING_REVIEW_CANDIDATE`; prior bounded review, translation, and fresh-reader closure apply to earlier bytes only. These changed bytes require fresh deterministic parity/publication binding and user or reader review before exact publication. |
 | Exact publication binding | The external publication set/application record must bind this byte stream and the companion canonical Concept byte stream by SHA-256, record the applicable review, SD-12, fresh-reader, and deterministic-verification evidence, and prove exact installation. This document intentionally declares no self-digest or companion digest. |
 | Authority after promotion | Sole versionless English Project Execution System Design authority |
 | Normative language | English |
 | Translation | [`project-execution-system.zh-CN.md`](project-execution-system.zh-CN.md) is a non-normative tracking translation. English is the sole semantic authority. Whenever an English section changes, its Chinese counterpart is retranslated from the current English section and replaced as a whole; Chinese maintenance does not preserve or incrementally evolve prior Chinese wording. |
 | Source authority commit | `575f4c3217ef5ff2ef2f8655e03ee147b16ac07b` |
-| Concept authority | [`EE-CONCEPT-001`](../../agent-architecture.md#ee-concept), promoted atomically as the companion member |
-| Prior canonical Execution baseline | `EE-EXECUTION-001`; Git blob `7c9e13846141f95dc04dc3c44534767113b7d19e`; SHA-256 `4d459b2a15a7ca5591d0fa493e0fb82b62dfe6f502fc703e21eab566727e66bb` |
+| Concept authority | [`concept.identity.001`](../../agent-architecture.md#ee-concept), promoted atomically as the companion member |
+| Prior canonical Execution baseline | `execution.identity.001`; Git blob `7c9e13846141f95dc04dc3c44534767113b7d19e`; SHA-256 `4d459b2a15a7ca5591d0fa493e0fb82b62dfe6f502fc703e21eab566727e66bb` |
 | Composition authority | [`docs/workflow-composition-model.md`](../../workflow-composition-model.md); Git blob `b5412f5b9fc605f7d82d85fc3fc399f80b2fa25a`; SHA-256 `0df16622d8183eecaddc602cbe6800841a8be523de2d3b93b4c0540082092d03` |
 | Confirmed intent | `EE-WORKFLOW-IMPORT-BRIEF`; SHA-256 `7c9b1064084cf5f256f27bc5efd021bed0374910e1430586eebeb695344d4c6d` |
 | Confirmed direction | `EE-WORKFLOW-IMPORT-SKELETON`; SHA-256 `86a2a61a324d9bb7ca90108b433ded2f883bc91d9f60dadee87ac7d11feb8e46` |
@@ -126,7 +126,7 @@ flowchart LR
     M03 -. best-effort OTLP .-> Evidence[Evidence Admission peer]
 ```
 
-### Delivery Binding (`EE-EX-M01`), deepened
+### Delivery Binding (`execution.milestone.01`), deepened
 
 M01 hides selector parsing, exact/sticky lookup, GitHub/bundle acquisition, staging, Package validation, DSH compatibility checks, `READY` publication, alias update, resolved-value construction, Manifest content construction, and result-binding checks. Its main caller-facing operation is:
 
@@ -138,13 +138,13 @@ resolveWorkflowPackage(selector, configuredSource, runtimeTarget, refresh?)
 
 The result is a plain immutable value: `name`, `exactVersion`, `packageDigest`, `localPath`, and `workflowId`. It is not a capability, proof, hold, or lifecycle state. M01 additionally constructs Manifest content from a Delivery context plus that value and validates a bounded Runtime result against the Manifest. Callers never coordinate Source or Store steps themselves.
 
-### Runtime Interaction (`EE-EX-M02`), preserved and bounded
+### Runtime Interaction (`execution.milestone.02`), preserved and bounded
 
 M02 hides canonical worktree derivation, immediate exclusive admission, current-slot state, Manifest persistence, start uncertainty, Runtime invocation, inspection, recovery, final handling, authorized abandonment, and private runner lifecycle mapping. It remains the unique writer of custody/current-slot state and persister of the current Manifest. It does not interpret selectors, download Packages, or write Package Store state.
 
 The preview does not add a second pre-Manifest lifecycle. Before a Manifest exists, failure releases the ordinary in-process/OS-backed exclusive holder and returns. A process death releases that holder. If death occurs after the Manifest becomes visible, the existing occupied-slot recovery reads that Manifest on the next call. No `ARMED`/commit-unknown/reconciliation state is introduced.
 
-### Delivery Observation (`EE-EX-M03`), unchanged
+### Delivery Observation (`execution.milestone.03`), unchanged
 
 M03 maps bounded actual Delivery facts to the adopted allow-listed standard-first Observation Profile, owns privacy/redaction and exporter isolation, and returns diagnostics only. It does not own source facts or control execution. Custody-only attempts and preparation rejection produce no Delivery Observation. The exact carrier/EventName/common/family registry and complete Review-family shapes are owned by the [OTel Observation Profile](../../contracts/observation/otel-observation-profile.md); technology-neutral fact meaning, identity, missingness, privacy, lineage, usage, and relationship semantics are owned by the [Observation Catalog](../../contracts/observation/observation-catalog.md); transport interaction is owned by the [Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md). M3 does not own the payload registry or Evidence durable storage semantics.
 
@@ -475,12 +475,12 @@ The Concept obligation register remains the owner-complete authority. The Execut
 
 | Obligation | Execution meaning | Return trigger |
 | --- | --- | --- |
-| `EE-OBL-010` | represent exact resolved Package/Manifest fields and typed errors without adding proof/transaction semantics | physical form enables re-resolution, ambient completion, native leakage, or pre-Delivery outcome |
-| `EE-OBL-011` | implement Core/M01/M02/M03 collaboration and named early-return branches | bypass, drift, wait/queue, new lifecycle/Module, Observation control, or runner change |
-| `EE-OBL-012` | choose/publish the public repository Release asset and explicit bundle descriptors | mutable/ambiguous/incomplete asset, allow-list, rewrite, bypass, or fallback |
-| `EE-OBL-013` | implement `MISSING/STAGING/READY` Store and sticky alias-after-ready | partial hit, prior-ready loss, or a real requirement for concurrent writers/eviction |
-| `EE-OBL-014` | qualify complete protected/contributed Package projection through DSH without ambient completion | rewrite, post-effect rejection, missing capability, or native leak |
-| `EE-OBL-015` | choose ordinary fetch/cache resource settings within current simple semantics | measurements or context require different ownership/Interface/security/reliability semantics |
+| `concept.obligation.010` | represent exact resolved Package/Manifest fields and typed errors without adding proof/transaction semantics | physical form enables re-resolution, ambient completion, native leakage, or pre-Delivery outcome |
+| `concept.obligation.011` | implement Core/M01/M02/M03 collaboration and named early-return branches | bypass, drift, wait/queue, new lifecycle/Module, Observation control, or runner change |
+| `concept.obligation.012` | choose/publish the public repository Release asset and explicit bundle descriptors | mutable/ambiguous/incomplete asset, allow-list, rewrite, bypass, or fallback |
+| `concept.obligation.013` | implement `MISSING/STAGING/READY` Store and sticky alias-after-ready | partial hit, prior-ready loss, or a real requirement for concurrent writers/eviction |
+| `concept.obligation.014` | qualify complete protected/contributed Package projection through DSH without ambient completion | rewrite, post-effect rejection, missing capability, or native leak |
+| `concept.obligation.015` | choose ordinary fetch/cache resource settings within current simple semantics | measurements or context require different ownership/Interface/security/reliability semantics |
 
 No machine schema modification is part of this revision. Observation meaning, wire profile, interaction flow, and metric reading are handled by their split draft companions; physical representation is handled separately and cannot reopen the explicit MVP non-goals through this System Design.
 

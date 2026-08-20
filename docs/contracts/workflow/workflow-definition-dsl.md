@@ -1,6 +1,6 @@
 # Agent Ops Workflow Definition DSL — Contract Surface
 
-> **Status: REVIEW_CANDIDATE, not published, no conformance claims.** This document is the **DSL surface of the Workflow Contract** deferred by [`workflow-composition-model.md`](../../workflow-composition-model.md) §4.3: the definition source for the final fields and the merge algorithm. It turns "machine-readable Workflow Definition" from a design principle into a closed, machine-checkable format. Semantics are frozen as a candidate for downstream validation (fast path, [Contract Lifecycle Management](../contract-lifecycle.md) §4.3); until the schemas, registry, fixtures, and validation evidence are published, no implementation may claim physical conformance to this Contract (following the honest-lifecycle convention of `EE-OBL-001`).
+> **Status: REVIEW_CANDIDATE, not published, no conformance claims.** This document is the **DSL surface of the Workflow Contract** deferred by [`workflow-composition-model.md`](../../workflow-composition-model.md) §4.3: the definition source for the final fields and the merge algorithm. It turns "machine-readable Workflow Definition" from a design principle into a closed, machine-checkable format. Semantics are frozen as a candidate for downstream validation (fast path, [Contract Lifecycle Management](../contract-lifecycle.md) §4.3); until the schemas, registry, fixtures, and validation evidence are published, no implementation may claim physical conformance to this Contract (following the honest-lifecycle convention of `concept.obligation.001`).
 >
 > **Normative language: English.** The Chinese file [`workflow-definition-dsl.zh-CN.md`](workflow-definition-dsl.zh-CN.md) is a non-normative tracking translation. Whenever an English section changes, its Chinese counterpart is retranslated from the current English section and replaced as a whole; Chinese maintenance does not preserve or incrementally evolve prior Chinese wording.
 >
@@ -444,7 +444,7 @@ The downstream must preserve upstream semantics and owns the authority to classi
 | Changing Action semantics, adding/removing/changing transitions/gates/terminals, changing reducer semantics, changing authority order or boundaries | **MAJOR (semantic change)** | requires a new Definition version + new Package major + new Snapshot; applies only to new Deliveries |
 | Adding a state field (with a default reducer) | compatible | — |
 | Removing a state field / changing reducer behavior | breaking | MAJOR |
-| Same identity, different content (digest mismatch) | forbidden | fail closed (runner `runner-DEC-002`, `EE-AC-012`) |
+| Same identity, different content (digest mismatch) | forbidden | fail closed (runner `runner-DEC-002`, `concept.acceptance.012`) |
 | `latest`/bare-name selection | resolution-time only | resolved to `exactVersion` before the Manifest is created; alias movement affects only later Deliveries (agent-architecture §4 invariant 14) |
 
 ### 11.3 Conformance and versions

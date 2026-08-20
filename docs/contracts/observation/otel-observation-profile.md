@@ -8,7 +8,7 @@
 
 | Field | Value |
 | --- | --- |
-| Document identity | `EE-OBS-PROFILE-001` |
+| Document identity | `observation.identity.002` |
 | Status | `DRAFT_NOT_PUBLISHED` |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`; provenance remains in Git history; the wire registry below is byte-for-meaning identical to the adopted proposal |
@@ -16,8 +16,8 @@
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md), and the tech-neutral [Observation Catalog](observation-catalog.md) |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
-| Profile evidence | AF-002 `PASS` plus rebinding; rebuilt actual rc.6/protobuf assertions are green under the corrected user evidence threshold |
-| Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `EE-AC-017`](../../agent-architecture.md) |
+| Profile evidence | concept.fixture.002 `PASS` plus rebinding; rebuilt actual rc.6/protobuf assertions are green under the corrected user evidence threshold |
+| Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
 This document owns the one editable proposed wire registry, carrier placement, versions, EventNames, and value vocabularies. It cannot change Design-fixed meaning. Future physical-conformance obligations are owned by the [Execution–Evidence Interaction Contract §8](../execution-evidence/interaction-contract.md#interaction-contract-8). The tech-neutral meaning of every fact and field is owned by the [Observation Catalog](observation-catalog.md); when a representation conflicts with that semantics, the Catalog's semantic owner anchors govern. The English System owner anchors govern when a representation conflicts with a System Design.
 
@@ -38,25 +38,25 @@ Draft maturity is not permission to re-decide the selected mapping. Conversely, 
 
 | Item | Sole semantic owner | Adopted draft representation | Genuine downstream proof |
 | --- | --- | --- | --- |
-| `CT-001` Delivery binding | [Execution §8](../../systems/execution/project-execution-system.md#ee-execution-8) | one closed immutable Manifest shape | machine schema, limits, digest vectors and binding fixtures |
-| `CT-002` identity separation | [Concept §3](../../agent-architecture.md#ee-concept-3) | distinct Delivery/task/Workflow/implementation/Runtime/Trace/event/Role/local-lineage identities | cross-identity negative fixtures |
-| `CT-003` result separation | [Execution §10](../../systems/execution/project-execution-system.md#ee-execution-10) | Runtime outcome, `START_FAILED`, administrative disposition and Span Status remain distinct | lifecycle/result validators and mismatch fixtures |
-| `CT-004` admission/custody | [Execution §7](../../systems/execution/project-execution-system.md#ee-execution-7) | closed `CONTENDED`, `NEW`, `RECOVERY` meanings without native types | contention/recovery/stale-authority fixtures |
-| `CT-005` unresolved state | [Execution §§7–9](../../systems/execution/project-execution-system.md#ee-execution-7) | explicit occupied unresolved state and authorized administrative closure; closure is outside the first Observation wire profile | crash/reconcile/authorization/no-history fixtures |
-| `CT-006` Observation non-control/privacy | [Execution §§5,10](../../systems/execution/project-execution-system.md#ee-execution-5) | the pinned, allow-listed, best-effort profile in §§4–9 | production disable/loss/refusal/privacy fixtures |
-| `CT-007` carrier | [Execution §5](../../systems/execution/project-execution-system.md#ee-execution-5) | official OTLP/HTTP binary protobuf Trace and Log exporters with exact §4 pins | packaged registry, interoperability and dual-emitter-absence proof |
-| `CT-008` atomic admission | [Evidence §§7–10](../../systems/evidence/evidence-system.md#ee-evidence-7) | first-accepted identity plus canonical digest and per-record results | machine validator, concurrency and half-state fixtures |
-| `CT-009` completeness | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | exact four-state vocabulary in §8 | final-zero/lower-bound/loss fixtures |
-| `CT-010` compatibility | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | explicit semantic/version/kind/unit-or-ISO-currency/source/source-identity coordinates | incompatible-group fixtures |
-| `CT-011` lifecycle | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | independent Raw, accepted provenance, Trace and factual-projection lifecycles | retention/default/capacity proof |
-| `CT-012` prohibited semantics | [Concept §6](../../agent-architecture.md#ee-concept-6) | closed carriers/registry and §9 exclusions | schema scan and negative fixtures |
+| `observation.contract.001` Delivery binding | [Execution §8](../../systems/execution/project-execution-system.md#ee-execution-8) | one closed immutable Manifest shape | machine schema, limits, digest vectors and binding fixtures |
+| `observation.contract.002` identity separation | [Concept §3](../../agent-architecture.md#ee-concept-3) | distinct Delivery/task/Workflow/implementation/Runtime/Trace/event/Role/local-lineage identities | cross-identity negative fixtures |
+| `observation.contract.003` result separation | [Execution §10](../../systems/execution/project-execution-system.md#ee-execution-10) | Runtime outcome, `START_FAILED`, administrative disposition and Span Status remain distinct | lifecycle/result validators and mismatch fixtures |
+| `observation.contract.004` admission/custody | [Execution §7](../../systems/execution/project-execution-system.md#ee-execution-7) | closed `CONTENDED`, `NEW`, `RECOVERY` meanings without native types | contention/recovery/stale-authority fixtures |
+| `observation.contract.005` unresolved state | [Execution §§7–9](../../systems/execution/project-execution-system.md#ee-execution-7) | explicit occupied unresolved state and authorized administrative closure; closure is outside the first Observation wire profile | crash/reconcile/authorization/no-history fixtures |
+| `observation.contract.006` Observation non-control/privacy | [Execution §§5,10](../../systems/execution/project-execution-system.md#ee-execution-5) | the pinned, allow-listed, best-effort profile in §§4–9 | production disable/loss/refusal/privacy fixtures |
+| `observation.contract.007` carrier | [Execution §5](../../systems/execution/project-execution-system.md#ee-execution-5) | official OTLP/HTTP binary protobuf Trace and Log exporters with exact §4 pins | packaged registry, interoperability and dual-emitter-absence proof |
+| `observation.contract.008` atomic admission | [Evidence §§7–10](../../systems/evidence/evidence-system.md#ee-evidence-7) | first-accepted identity plus canonical digest and per-record results | machine validator, concurrency and half-state fixtures |
+| `observation.contract.009` completeness | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | exact four-state vocabulary in §8 | final-zero/lower-bound/loss fixtures |
+| `observation.contract.010` compatibility | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | explicit semantic/version/kind/unit-or-ISO-currency/source/source-identity coordinates | incompatible-group fixtures |
+| `observation.contract.011` lifecycle | [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) | independent Raw, accepted provenance, Trace and factual-projection lifecycles | retention/default/capacity proof |
+| `observation.contract.012` prohibited semantics | [Concept §6](../../agent-architecture.md#ee-concept-6) | closed carriers/registry and §9 exclusions | schema scan and negative fixtures |
 
 <a id="otel-profile-4"></a>
 ## 4. Adopted Pins, Transport, Resource, and Scope
 
 | Concern | Adopted draft proposal | Evidence boundary |
 | --- | --- | --- |
-| OTel Specification | `v1.56.0` | AF-002 exact source/archive generation |
+| OTel Specification | `v1.56.0` | concept.fixture.002 exact source/archive generation |
 | OTLP/protobuf | `v1.10.0` | official `.proto` decode and partial-success path |
 | Semantic conventions | `v1.41.1` | GenAI conventions remain Development; compatibility is limited to this generation |
 | Schema URL | `https://opentelemetry.io/schemas/1.41.0` | exact tested scope schema URL |
@@ -311,7 +311,7 @@ Admission validates the entire selected shape, C17/C27 applicability, assertion 
 | local Role → family lineage | C30+C31 on `role.lineage` | both required when owner-known/applicable; otherwise no Event | name, version, position, compound ID | immutable local-to-lineage mapping |
 | Invocation activity | standard Span `(trace_id, span_id)`, `gen_ai.*`, C30 where Role applies | recorded standard Span path | summary count as causality | Trace node/activity duration |
 
-C31 remains `PROPOSED_VALIDATED_BY_SPIKE`: AF-002 rebuilt actual rc.6/protobuf evidence proved its string/high-cardinality identity behavior and relationship safety. C50–C54 and the complete composition rules are ordinary typed Contract Design under `RR-OTEL-CONTRACT-003`; they reuse the existing string LogRecord attribute class and current bounded-summary/privacy/capacity assumptions. No repeat Spike is required or authorized. None of these rows is published conformance.
+C31 remains `PROPOSED_VALIDATED_BY_SPIKE`: concept.fixture.002 rebuilt actual rc.6/protobuf evidence proved its string/high-cardinality identity behavior and relationship safety. C50–C54 and the complete composition rules are ordinary typed Contract Design under `RR-OTEL-CONTRACT-003`; they reuse the existing string LogRecord attribute class and current bounded-summary/privacy/capacity assumptions. No repeat Spike is required or authorized. None of these rows is published conformance.
 
 ### 7.5 Family semantic coverage matrix
 
