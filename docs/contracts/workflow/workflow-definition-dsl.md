@@ -31,6 +31,26 @@ The Workflow Definition, its machine representation, instruction authority, and 
 
 The Definition concern is the semantic root for its eleven DSL subconcerns, which do not become separate Contract features. Machine schemas encode these peer-owned semantics; they do not reverse the authority direction. Runtime resource bindings declare what an admitted route requires; they never grant it. DSH or another selected Runtime remains the sole owner of native tool visibility, approval prompts, path/network/credential policy, and effect enforcement.
 
+### 1.2 Definition semantic coverage (v1)
+
+The eleven subconcerns below are one Definition semantic surface. Each has a canonical machine-readable declaration and a fail-closed rule; the runner only realizes those declarations and may not add, omit, or reinterpret them.
+
+| Subconcern | Canonical declaration | Closed v1 semantics | Runner obligation |
+| --- | --- | --- | --- |
+| state | `state.fields[]` plus reducer definitions | closed field types and reducers; writes merge only by the declared reducer | persist and reduce without changing field or reducer meaning |
+| flow | graph nodes, static/conditional edges, terminals, and Action `allowedSuccessors` | start is declared, reachability is checkable, and the exact legal successor set is closed; out-of-set transitions fail | compile only declared edges and reject illegal advancement |
+| judge | `conditionalEdges[].judge`, closed predicates, or a non-recursive Planner Action | deterministic predicates inspect structured State; semantic judgment returns a schema-valid classification before branch selection | invoke the declared judge and validate its structured result; never invent a branch |
+| parallel | Action `execution.mode: parallel`, branches, and `join.barrier` | the static branch set and join barrier are explicit; aggregation authority is declared and majority decision is forbidden | schedule declared branches and wait for the declared barrier |
+| loop | declared graph cycles plus progress State, budget, Gate, and recovery bindings | only declared cycles may repeat; unchanged failure consumes budget and blind replay is forbidden | preserve attempt identity, evaluate progress/budget, and take only a declared exit/recovery path |
+| wait | `waits[]` plus Action `waitPolicy` | one correlated pending obligation, exact authorized resume, deterministic expiry, stale/duplicate rejection | map to native interrupt/resume while preserving correlation and fail-closed behavior |
+| budget | `budgets[]`, evaluator registration, State counter, and `onExhaustion` | resource dimension and evaluator are explicit; exhaustion never relaxes a Gate | call the admitted evaluator, persist consumption, and follow the declared exhaustion path |
+| recovery | `recovery[]`, `noBlindReplay`, checkpoint bindings, and terminals | only known continue/restart, explicit intervene, or non-retryable fail are legal | re-resolve bindings and reject mismatch before any retry or resume |
+| role | `roles[]`, Action `responsibleAuthority`, selectors, and routes | responsibility, authority boundary, independence, and admissible bindings are declared; a route requirement is not a Provider grant | select only an admitted route; leave native grants and effects to the selected Runtime/DSH |
+| action | `actions[]` input/result schemas, authority, execution, selector, Gate, and successor bindings | input, structured result, responsible authority, validation, and legal continuation are explicit | execute the admitted binding and reject invalid result, Gate bypass, or successor |
+| output | `artifacts[]`, templates, result schemas, validators, and terminal settlement | output shape, coverage/completion, lifecycle, validity, and settlement are declared facts rather than free-text success claims | materialize versioned Artifacts, run validators, and settle only through declared terminals |
+
+Completeness is relative to this explicit v1 surface. A shape listed as unsupported in §18.1 is rejected or modeled by the documented v1 alternative; it is not filled by Runtime guesswork. Adding that shape later is Contract evolution under §11 and §18, not an implementation-side interpretation.
+
 **Explicitly not in scope** (consistent with runner §41):
 
 1. No compilation/execution of "Definition → LangGraph `StateGraph`" — that is runner/Execution-layer work.
