@@ -46,12 +46,12 @@ Evidence 是面向技术成熟第一方用户的可选本地 System。它接收 
 
 | 驱动 | 必需结果 | Evidence 机制 |
 | --- | --- | --- |
-| 缺失不等于零（`SC-05`） | 只有 applicable final summary 证明 final zero/total | 每个 contribution/query 携带 completeness 与 population state |
-| Stable identity（`SC-06`） | identical retry 只贡献一次；conflict 不覆盖 | immutable content digest 与 first-write-wins |
+| 缺失不等于零（`evidence.scenario.02`） | 只有 applicable final summary 证明 final zero/total | 每个 contribution/query 携带 completeness 与 population state |
+| Stable identity（`evidence.scenario.03`） | identical retry 只贡献一次；conflict 不覆盖 | immutable content digest 与 first-write-wins |
 | Atomic truth | 不得 accepted identity 缺 required initial effect，也不得 effect 缺 accepted identity | 每个 valid record 一个 PostgreSQL transaction |
-| Compatible unit（`SC-07`） | incompatible kind/unit-or-ISO-currency/source/source-ID/completeness/version 不聚合 | Projection-owned compatibility key 与 eligibility |
-| Factual inspection（`SC-08`） | trend 与 recorded edge，无 grading/inference | curated view 与 explicit provenance/completeness |
-| Non-control（`SC-03`） | Evidence outage 不影响 Runtime result | 不向 Execution 提供 callback/receipt dependency |
+| Compatible unit（`evidence.scenario.04`） | incompatible kind/unit-or-ISO-currency/source/source-ID/completeness/version 不聚合 | Projection-owned compatibility key 与 eligibility |
+| Factual inspection（`evidence.scenario.05`） | trend 与 recorded edge，无 grading/inference | curated view 与 explicit provenance/completeness |
+| Non-control（`evidence.scenario.01`） | Evidence outage 不影响 Runtime result | 不向 Execution 提供 callback/receipt dependency |
 | Local preview | 小型可信部署 | one App、PostgreSQL、proxied Grafana、loopback-only exposure |
 | Privacy | prohibited body 被拒绝/不保留 | profile validation、allow-list、bounded diagnostic/Raw |
 
@@ -139,29 +139,29 @@ Commit 前不存在可见 accepted state。Projection effect 不得缺少其 acc
 <a id="ee-evidence-7"></a>
 ## 7. Duplicate、Failure 与 Retention 场景
 
-### Batch sibling isolation（`PATH-04A`）
+### Batch sibling isolation（`evidence.path.04a`）
 
 每条 record 独立校验。Valid sibling 可以 commit，invalid sibling 被拒绝。OTLP response 只报告 standard aggregate success 或 partial-success result，带 bounded rejected count/reason；不会创建 all-or-nothing batch transaction，也不暴露 internal per-record disposition label。
 
-### Identical 与 conflicting retry（`PATH-04B`）
+### Identical 与 conflicting retry（`evidence.path.04b`）
 
 对于 Event，相同 `agentops.event.id` 加 digest 在内部是 duplicate/already accepted 且不 mutation；该 Event ID 下 conflicting content 在内部被拒绝。对于 Span，相同 `(trace_id, span_id)` 加 digest 是 no-op，不产生第二个 Trace node/effect；该 tuple 下 conflicting accepted content 在内部被拒绝，且不覆盖第一个 Trace node。不同 Trace 中相同 `span_id` 不冲突。任何 retry 都不再次 contribution，external response 仍是 standard OTLP aggregate result。
 
 对 Finding，`(C18,C51)` 是 assertion identity，且 C18 first-binds C51；target 与 lifecycle fact 必须匹配 exact OTel Profile invariant subset。Changed C50/C20/invariant，或 same C18 changed C51，在添加 even a new target 前就 reject。`(C18,C51,C52,C53,C54-or-absent)` 是 target-edge identity。Compatible assertion/edge reuse no-op；distinct compatible target 任意顺序 insert once。Status、target-specific Fix 与 target-specific Recheck contribution 使用各自 OTel Profile §7.4 identity。Valid lifecycle record 在复用 assertion/edge 的同时原子 append new contribution；任一 endpoint/conflict failure 全部不创建。
 
-### Ambiguous commit response（`PATH-04C`）
+### Ambiguous commit response（`evidence.path.04c`）
 
 若 PostgreSQL 已 commit，但 App 或 response path 在 acknowledgement 前失败，后续 same-identity request 在内部收敛到 duplicate/already accepted。不需要 queue、replay worker 或 compensation，external response 不携带 per-record duplicate label。
 
-### Statement/process/database failure（`PATH-04D`）
+### Statement/process/database failure（`evidence.path.04d`）
 
 Commit 前失败会 rollback accepted identity 与所有 initial effect。后续 same-identity request 是 new。Reader 只能看到无状态或 complete slice，绝不会看到 half-state。
 
-### Sampling 或 emitter loss（`PATH-03`）
+### Sampling 或 emitter loss（`evidence.path.03`）
 
 缺失 detail 不能被解释为无活动。Independent sampling decision 与 completeness state 区分 unavailable、lower-bound 与 final data。Evidence 不从 dashboard 或 Runtime state 重建丢失事实。
 
-### Retention（`PATH-05`）
+### Retention（`evidence.path.05`）
 
 Raw debug data 可以最先 expire。Accepted identity/provenance 保持 immutable。Trace detail 可独立 expire，之后 query 显示 detail unavailable。Factual contribution/aggregate 可继续用于 trend。Retention 绝不把 lower-bound/unavailable 变成 final，也绝不 recompute old fact。
 

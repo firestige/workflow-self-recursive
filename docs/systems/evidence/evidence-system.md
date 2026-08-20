@@ -46,12 +46,12 @@ Non-goals are execution control, Runtime/worktree access, grading/ranking/recomm
 
 | Driver | Required outcome | Evidence mechanism |
 | --- | --- | --- |
-| Missing is not zero (`SC-05`) | only applicable final summary proves final zero/total | completeness and population state on every contribution/query |
-| Stable identity (`SC-06`) | identical retry contributes once; conflict never overwrites | immutable content digest and first-write-wins |
+| Missing is not zero (`evidence.scenario.02`) | only applicable final summary proves final zero/total | completeness and population state on every contribution/query |
+| Stable identity (`evidence.scenario.03`) | identical retry contributes once; conflict never overwrites | immutable content digest and first-write-wins |
 | Atomic truth | no accepted identity without all required initial effects, or effect without accepted identity | one PostgreSQL transaction per valid record |
-| Compatible units (`SC-07`) | incompatible kind/unit-or-ISO-currency/source/source-ID/completeness/version never aggregate | Projection-owned compatibility key and eligibility |
-| Factual inspection (`SC-08`) | trends and recorded edges without grading/inference | curated views and explicit provenance/completeness |
-| Non-control (`SC-03`) | Evidence outage never affects Runtime result | no callback/receipt dependency into Execution |
+| Compatible units (`evidence.scenario.04`) | incompatible kind/unit-or-ISO-currency/source/source-ID/completeness/version never aggregate | Projection-owned compatibility key and eligibility |
+| Factual inspection (`evidence.scenario.05`) | trends and recorded edges without grading/inference | curated views and explicit provenance/completeness |
+| Non-control (`evidence.scenario.01`) | Evidence outage never affects Runtime result | no callback/receipt dependency into Execution |
 | Local preview | small trustworthy deployment | one App, PostgreSQL, proxied Grafana, loopback-only exposure |
 | Privacy | prohibited bodies are rejected/not retained | profile validation, allow-list, bounded diagnostics/Raw |
 
@@ -139,29 +139,29 @@ No accepted state is visible before commit. Projection effects cannot exist with
 <a id="ee-evidence-7"></a>
 ## 7. Duplicate, Failure, and Retention Scenarios
 
-### Batch sibling isolation (`PATH-04A`)
+### Batch sibling isolation (`evidence.path.04a`)
 
 Each record is validated independently. A valid sibling may commit while an invalid sibling is rejected. The OTLP response reports only the standard aggregate success or partial-success result with bounded rejected counts/reasons; it does not create an all-or-nothing batch transaction and does not expose internal per-record disposition labels.
 
-### Identical and conflicting retries (`PATH-04B`)
+### Identical and conflicting retries (`evidence.path.04b`)
 
 For an Event, identical `agentops.event.id` plus digest is internally duplicate/already accepted without mutation; conflicting content under that Event ID is internally rejected. For a Span, identical `(trace_id, span_id)` plus digest is a no-op and creates no second Trace node/effect; conflicting accepted content under that tuple is internally rejected without overwriting the first Trace node. Equal `span_id` values in different Traces do not collide. Neither retry contributes again, and the external response remains the standard OTLP aggregate result.
 
 For a Finding, `(C18,C51)` is assertion identity and C18 first-binds C51; the exact OTel Profile invariant subset must match across targets and lifecycle facts. A changed C50/C20/invariant, or same C18 with changed C51, rejects before adding even a new target. `(C18,C51,C52,C53,C54-or-absent)` is target-edge identity. Compatible assertion/edge reuse is no-op; a distinct compatible target inserts once in either order. Status, target-specific Fix, and target-specific Recheck contributions use their separate OTel Profile §7.4 identities. A valid lifecycle record atomically appends its new contributions while reusing assertion/edge; any endpoint/conflict failure creates none.
 
-### Ambiguous commit response (`PATH-04C`)
+### Ambiguous commit response (`evidence.path.04c`)
 
 If PostgreSQL committed but the App or response path failed before acknowledgement, a later same-identity request converges internally to duplicate/already accepted. No queue, replay worker, or compensation is required, and the external response carries no per-record duplicate label.
 
-### Statement/process/database failure (`PATH-04D`)
+### Statement/process/database failure (`evidence.path.04d`)
 
 Failure before commit rolls back accepted identity and every initial effect. A later same-identity request is new. Readers see either no state or the complete slice; never a half-state.
 
-### Sampling or emitter loss (`PATH-03`)
+### Sampling or emitter loss (`evidence.path.03`)
 
 Absence of detail cannot be read as no activity. Independent sampling decisions and completeness state distinguish unavailable, lower-bound, and final data. Evidence does not reconstruct lost facts from dashboards or Runtime state.
 
-### Retention (`PATH-05`)
+### Retention (`evidence.path.05`)
 
 Raw debug data may expire first. Accepted identity/provenance remains immutable. Trace detail may expire independently, after which query reports detail unavailable. Factual contributions/aggregates may remain for trends. Retention never converts lower-bound/unavailable into final and never recomputes old facts.
 
