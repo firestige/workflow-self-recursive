@@ -17,6 +17,20 @@
 | This Contract does not define | Definition→Implementation compilation/execution, builder/authoring tools, physical directory names, LangGraph/Driver native APIs, Runtime-private state formats |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links stay paired with the companion [`workflow-definition-dsl.zh-CN.md`](workflow-definition-dsl.zh-CN.md) |
 
+### 1.1 Peer concern boundaries
+
+The Workflow Definition, its machine representation, instruction authority, and Package organization are peer concerns. They close one Contract surface and may share this document, but none is an implementation subfeature of another:
+
+| Concern | Owns | Does not own |
+| --- | --- | --- |
+| Workflow Definition | state, flow, judge, parallel, loop, wait, budget, recovery, Role, Action, and output semantics | schema/checker implementation, instruction composition, Package organization, Runtime execution |
+| Machine representation | the 8 JSON Schemas, closure/reference/vocabulary/forbidden-field checker, and minimal machine example | new semantic decisions or Runtime behavior |
+| Instruction authority | canonical order, Workflow-control constraint intersection, conflict handling, frozen merge proof, and authority custody chain | Provider tool grants, filesystem/network/credential permission, sandboxing, graph/domain semantics, Package storage layout, Driver-native precedence |
+| Package organization | closure rules, owned/referenced resource semantics, and Snapshot/State separation | resource-internal schemas or Definition→Implementation compilation |
+| runner implementation | compile and execute an admitted exact Definition/Snapshot without changing declared Action, transition, Gate, or terminal semantics | Contract authorship or re-selection of admitted authority |
+
+The Definition concern is the semantic root for its eleven DSL subconcerns, which do not become separate Contract features. Machine schemas encode these peer-owned semantics; they do not reverse the authority direction. Runtime resource bindings declare what an admitted route requires; they never grant it. DSH or another selected Runtime remains the sole owner of native tool visibility, approval prompts, path/network/credential policy, and effect enforcement.
+
 **Explicitly not in scope** (consistent with runner §41):
 
 1. No compilation/execution of "Definition → LangGraph `StateGraph`" — that is runner/Execution-layer work.
@@ -176,7 +190,7 @@ The normative complete field set is the 8 JSON Schemas under `system-contracts/w
 | `resources.referenced[]` | yes | owner=referenced must carry `sourceLocator` and must not carry `path` |
 | `authority.order` | yes | must equal the canonical order (§7.1) |
 | `authority.conflictMode` | yes | `const: "fail-closed"` |
-| `environmentRequirements[]` | no | environment capability declarations, no credentials |
+| `environmentRequirements[]` | no | compatibility prerequisites only; never credentials or authority grants |
 | `compatibility` | yes | `minContractVersion`/`maxContractVersion` (the Contract range this Package declares compatibility with) |
 
 ### 5.2 `agentops.workflow-definition` (`workflow.json`)
@@ -220,7 +234,7 @@ The normative complete field set is the 8 JSON Schemas under `system-contracts/w
 | `roles[]` | yes | — |
 | `id/name/responsibility` | yes | — |
 | `authorityBoundary.concerns[]` | yes | chosen from the closed concern vocabulary (§7.2); declares which concerns this Role prompt may instruct |
-| `authorityBoundary.writePermissions[]` | yes | `target` + `scope` (e.g., run-workspace write, finding write, approved-manifest commit) |
+| `authorityBoundary.writePermissions[]` | yes | Workflow artifact/result authorship boundary as `target` + `scope` (e.g., run-workspace write, finding write, approved-manifest commit); not a filesystem or Provider permission grant |
 | `authorityBoundary.prohibited[]` | yes | explicit prohibitions |
 | `independence` | no | `{isolation: session-isolated/shared, barrier, sharedRawEvidenceOnly}` |
 
@@ -234,10 +248,10 @@ The normative complete field set is the 8 JSON Schemas under `system-contracts/w
 | `agent.managedProjection` | yes | `const: "required"`: only managed projection of the frozen route is admitted; ambient/default substitution is forbidden |
 | `resources.rolePrompt` | yes | resource reference |
 | `resources.actionPrompts[]` | yes | `{action, prompt}`: one Action Prompt resource per action |
-| `resources.skills[]` / `tools[]` | no | resource reference lists |
-| `resources.model` / `driver` | yes | resource references |
-| `resources.sessionPolicy` | yes | `{freshness: fresh-per-episode/continuous-within-goal/resumable-within-admitted-dialogue, isolation: isolated/shared, resumeRule?}` |
-| `access[]` | yes | `{target, mode: read/write/execute}` |
+| `resources.skills[]` / `tools[]` | no | exact resource/dependency references; a tool reference does not grant native use |
+| `resources.model` / `driver` | yes | exact compatibility/dependency references, not authority layers |
+| `resources.sessionPolicy` | yes | Workflow session intent `{freshness: fresh-per-episode/continuous-within-goal/resumable-within-admitted-dialogue, isolation: isolated/shared, resumeRule?}`; native Session state remains Runtime-private |
+| `access[]` | yes | required Workflow data/Artifact access intent `{target, mode: read/write/execute}`; DSH Tool Policy independently authorizes the native effect |
 | `escalationAllowed` | yes | boolean |
 
 ### 5.6 `agentops.artifacts` (`artifacts.json`)
@@ -351,24 +365,37 @@ This Contract fixes the composition model §8 recommended order as the **only ad
 
 **Check rule R1 (order verifiable)**: every Package must declare this order in `package.authority.order`; a declaration that differs from the canonical order → **admission failure**. Rationale: allowing arbitrary orders would reintroduce the Driver-implicit-priority problem; the canonical order is this product's stable semantics.
 
-### 7.2 Constraint intersection
+### 7.2 Boundary classification and constraint intersection
 
-Each layer declares a **machine-readable authority boundary** (concern vocabulary):
+This Contract uses **authority** only for Workflow semantic control. It does not define or emulate an Agent Provider permission system:
 
-`responsibility | authority | write-permission | mission | method | transition-selection | gate | budget | terminal | data | session | tool | model | route`
+| Boundary class | Owner | Contract treatment |
+| --- | --- | --- |
+| Workflow semantic control | Workflow Action, Role, and admitted Route | machine-declared and subset-checkable here |
+| exact model/tool/Driver/session dependencies | Package/Route owner; selected Runtime Adapter validates compatibility | content-bound requirements only; never grants |
+| native tool visibility, approval, path/network/credential policy, and side-effect enforcement | DSH or another selected Runtime | passed through at the Adapter seam; not represented as portable authority |
+| authentication, authorization platform, RBAC, sandboxing, hostile-Package defense | outside the trusted local MVP | no schema or implementation in this Contract |
 
-- Role layer: `roles.authorityBoundary.concerns` + `writePermissions` + `prohibited`;
-- Action layer: `actions.gate/selector/allowedSuccessors/forbidden effects` (`escalation.cannotChange`, implicit role boundary);
-- Action Prompt / Skill / Artifact: DSL v1 requires the route's resource entries to declare `use` (consumption intent) and relies on the boundary rules of §7.3; full per-layer concern declarations are left to Task 2's Package migration (lossless to design-time semantics; only machine fields are added).
+The closed Role concern vocabulary is:
 
-**Check rule R2 (restrict only, never expand)**: the effective authority after composition = the **intersection** of all declared layers. Any later layer's declared boundary outside the space already declared by an earlier layer (e.g., a Skill whose `use` claims "decides transitions" while the Action's selector is deterministic) → static conflict → fail closed.
+`responsibility | authority | write-permission | mission | method | transition-selection | gate | budget | terminal | data | session | route`
 
-**Check rule R3 (missing fails)**: any instruction-bearing resource (Role prompt / Action Prompt / Skill) that is not bound in a route, or whose boundary is undeclared/not subset-comparable → admission failure (no "looks fine" default).
+Here `write-permission` means custody to author a declared Workflow Artifact/result class; it does not mean filesystem permission. The machine authority carriers are:
+
+- Action envelope: `responsibleAuthority`, `allowedRoutes`, `selector`, `gate`, `budget`, `allowedSuccessors`, and `escalation.cannotChange`;
+- Role envelope: `roles.authorityBoundary.concerns` + Workflow-artifact `writePermissions` + `prohibited`;
+- Route projection: an Action-authorized Route's declared Role identity, Action Prompt bindings when present, exact resource kinds/identities, Workflow `access` intent, and `managedProjection: required`.
+
+Action Prompt and Skill content receives **no independent authority**. A resource entry's `kind`, content identity, and `use` establish identity, classification, and descriptive consumption intent; `use` is not a permission language and is not translated into a DSH grant.
+
+**Check rule R2 (restrict only, never expand)**: effective Workflow authority is the intersection of the Action and applicable Role envelopes, projected through an Action-authorized Route. The Action's explicit `allowedRoutes` is the upper bound on Route/Role selection—including declared multi-lens or custody Routes whose Role differs from the nominal `responsibleAuthority`; an Action Prompt may be bound only through a Route listed by that Action. No Prompt, Skill, model, tool, Driver, session policy, or Adapter may add transition-selection, Gate, budget, terminal, successor, or escalation authority. Provider-native permission is deliberately outside this comparison.
+
+**Check rule R3 (missing fails)**: a Role Action without a declared responsible Role boundary, an instruction-bearing resource not bound through any Route, a Route missing its schema-required resources, an incorrect resource kind, or an unresolved content identity fails admission. Action Prompt cardinality is Package semantics: a Route may bind zero, one, or multiple prompts for an Action, but every declared binding must name an Action that explicitly allows that Route. Missing Provider tool availability is instead a typed Runtime-compatibility/preflight failure; native permission approval or denial remains the Provider's result and is never ambiently replaced.
 
 ### 7.3 Conflict determination and the honest boundary
 
-- **Machine-decidable part**: declared concern overreach, write-permission overreach (e.g., a Skill claiming to write production paths while the Role has no such permission), selector/planner conflicts, `allowedSuccessors` overreach, contradictory reducer semantics — all fail closed statically.
-- **Text-level conflicts** (contradictory natural-language instructions) are not fully decidable. This Contract's treatment: (a) every layer must declare machine boundaries so the decidable part is detected; (b) text-level contradictions are verified as **negative conformance scenarios** (the `conf.negative.authority` class); (c) resources with undeclared boundaries fail closed at admission. **Resolving** conflicts via the Driver's implicit override order is forbidden.
+- **Machine-decidable part**: an Action Prompt bound through an unauthorized Route, an unbound instruction resource, a missing/incorrect resource binding kind, selector/planner conflict, `allowedSuccessors` overreach, Workflow-artifact authorship overreach, and contradictory reducer semantics — all fail closed statically.
+- **Text-level conflicts** (contradictory natural-language instructions or a Prompt/Skill claiming control it cannot possess) are not fully decidable. They are verified as **negative conformance scenarios** (the `conf.negative.authority` class). The structured Action/Role/Route envelope remains authoritative regardless of the text, and the Runtime must not turn such text into control state. **Resolving** conflicts via Driver priority or a Provider permission setting is forbidden.
 
 ### 7.4 Driver has no priority
 
@@ -376,11 +403,24 @@ The Driver/session policy is **not an authority layer**: it cannot reorder, over
 
 ### 7.5 Merge result and recomputability
 
-The merge algorithm is deterministic: given (Package, Action, Route) → collect resources in canonical order (`rolePrompt → actionPrompts[action] → skills → model/tools/driver/sessionPolicy`) → boundary checks (R1–R3) → output the frozen instruction bundle (ordered resource references + content identities + authority proof). A verifier can independently recompute the same bundle; any mismatch fails closed. **R5**: merging modifies no resource content; it only produces the composition-order proof.
+The merge algorithm is deterministic: given (Package, Action, Route) → collect instruction resources in canonical order (`rolePrompt → actionPrompts[action] → skills`, with Artifact/user data last) and bind the exact model/tools/Driver/session requirements separately → boundary checks (R1–R3) → output the frozen instruction bundle (ordered instruction references + all dependency content identities + Workflow-authority proof). A verifier can independently recompute the same bundle; any mismatch fails closed. **R5**: merging modifies no resource content, grants no Provider permission, and only produces the composition-order proof.
 
 ### 7.6 Relation to the Package Snapshot
 
 The merge proof (authority order + boundary checks + resource content identities) is part of the Snapshot resolution closure (the "Authority order" and "Resolution proof" groups of `package-snapshot.schema.md`), frozen at admission and immutable during a run.
+
+### 7.7 Authority custody chain
+
+Authority passes through one closed custody chain; every transition narrows or freezes authority and none permits reinterpretation:
+
+```text
+configuration repository / Workflow owner
+  → Configuration Identity Authority
+  → Admission + Manifest
+  → runner activation / Runtime Profile seam
+```
+
+The repository and Workflow owner author the Definition, Package relationships, and exact resource versions. The Configuration Identity Authority resolves their explicit relationship closure into one immutable Package Snapshot. Admission decides admissibility and persists the Manifest that freezes the one exact Snapshot binding. The runner receives only that admitted binding, rechecks Workflow authority, dependency closure, selected-Runtime compatibility, and the merge proof before activation, then projects the request through the Runtime Adapter without ambient fallback or resource substitution. DSH owns its native Tool Policy and Native Tool Grant interaction; neither the runner nor this Contract fabricates a grant. A selected Driver is downstream of the frozen projection and never becomes an authority layer. Missing closure, changed content identity, merge-proof mismatch, or an unsupported required dependency fails closed before Workflow advancement.
 
 ## 8. Owned and Referenced (machine rules)
 
@@ -458,15 +498,15 @@ A Definition claiming conformance to `agentops.workflow-dsl@X.Y.Z` must: pass th
 | Level | Subject | Evidence |
 | --- | --- | --- |
 | Document conformance | a single DSL document | JSON Schema validation (`system-contracts/workflow-dsl/schemas/`) + `additionalProperties: false` closure |
-| Package conformance | the whole Package | document level + §3.1 closure + §7 merge proof + §8–§10 machine rules + **conformance corpus** (positive/negative/recovery scenarios, e.g., the 6 scenarios in `system-contracts/workflow-dsl/examples/minimal/validation.json`) |
+| Package conformance | the whole Package | document level + §3.1 closure + §7 merge proof + §8–§10 machine rules + **conformance corpus** (positive/negative/recovery scenarios, e.g., the 7 scenarios in `system-contracts/workflow-dsl/examples/minimal/validation.json`) |
 | Implementation/Runtime conformance | Runtime Profile / compile layer | compilation without changing Definition semantics, Snapshot-binding validation, passing the corpus, forbidden-field scan, no native-ID leakage; **no physical-conformance claim before schemas/registry/fixtures/validation evidence are published** |
 
 ### 12.2 Machine-check checklist (core items; the example checker implements these)
 
 1. JSON parses; kind/schemaVersion match;
-2. all references resolve (documents, owned paths, action/role/route/wait/budget/recovery/validator/artifact/resource ids);
-3. `allowedSuccessors` == graph out-edge set; a node does not mix static and conditional out-edges;
-4. closed vocabularies: reducer / predicate op / authority order / session freshness / isolation;
+2. all references resolve (documents, owned paths, action/role/route/wait/budget/recovery/validator/artifact/resource ids), and Route resource references have the required exact kind;
+3. Action→Route authorization and instruction-resource bindings satisfy R2/R3; `allowedSuccessors` == graph out-edge set; a node does not mix static and conditional out-edges;
+4. closed vocabularies: reducer / predicate op / Workflow authority concern / authority order / session freshness / isolation;
 5. owned and definition digests match; referenced sourceLocators complete;
 6. forbidden-field scan (Appendix C): no LangGraph/Driver physical tokens in any Definition.
 
@@ -474,9 +514,9 @@ A Definition claiming conformance to `agentops.workflow-dsl@X.Y.Z` must: pass th
 
 Every Package must declare at least: the legal main path (positive), illegal transition / overreach / missing resource / authority overreach (negative), Wait/resume correlation, budget exhaustion, crash recovery, cancellation (recovery). Corpus scenarios are part of the Package (`validation.conformance[]`) and must be executable by a Runtime or simulator.
 
-### 12.4 Runtime capability requirements
+### 12.4 Workflow execution capability requirements
 
-Any Runtime Profile claiming conformance must implement every capability the DSL can declare; the two first-party Definitions already exercise a subset. A conforming Runtime supports all of the following:
+Any Runtime Profile claiming conformance must implement every **Workflow execution** capability the DSL can declare; these are orchestration semantics, not Provider-native tool permissions. The two first-party Definitions already exercise a subset. A conforming Runtime supports all of the following:
 
 | DSL construct | Required Runtime capability |
 | --- | --- |

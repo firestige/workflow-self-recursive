@@ -15,6 +15,21 @@
 | 对齐的 design-time 语义 | [`workflow-package/implementation/workflow.md`](../../../workflow-package/implementation/workflow.md)、`agents/routes.md`、`schemas/*.schema.md`、`templates/*.template.json`、`composition-conformance.md`；[`workflow-package/system-design/workflow.md`](../../../workflow-package/system-design/workflow.md)、`agents/routes.md`、`schemas/*.schema.md`（本文翻译并闭合它们的语义，不重定义） |
 | 本 Contract 回答 | §4.3 推迟的两件事：**最终字段**（§5 + `system-contracts/workflow-dsl/schemas/` 规范 schema）与**合并算法**（§7，authority/组合顺序的可验证规则） |
 | 本 Contract 不定义 | Definition→Implementation 编译/执行、builder/authoring 工具、物理目录名、LangGraph/Driver 原生 API、Runtime 私有状态格式 |
+| 翻译 parity 义务 | 英中 companion 的 anchor、heading、table、ID、field、enum 与 link 保持配对；对应英文权威见 [`workflow-definition-dsl.md`](workflow-definition-dsl.md) |
+
+### 1.1 平级关注点边界
+
+Workflow Definition、机器表示、指令 authority 与 Package 组织是平级关注点。它们共同闭合一个 Contract surface，也可以共用本文，但任何一个都不是另一个的实现子特性：
+
+| 关注点 | 拥有 | 不拥有 |
+| --- | --- | --- |
+| Workflow Definition | state、flow、judge、parallel、loop、wait、budget、recovery、Role、Action 与 output 语义 | schema/checker 实现、指令组合、Package 组织、Runtime 执行 |
+| 机器表示 | 8 个 JSON Schema、closure/reference/vocabulary/forbidden-field checker 与最小机器示例 | 新的语义决策或 Runtime 行为 |
+| 指令 authority | 规范顺序、Workflow 控制约束交集、冲突处理、冻结 merge proof 与 authority custody chain | Provider tool grant、文件系统/网络/凭据权限、sandbox、graph/domain 语义、Package 存储布局、Driver 原生优先级 |
+| Package 组织 | closure 规则、owned/referenced 资源语义、Snapshot/State 分离 | 资源内部 schema 或 Definition→Implementation 编译 |
+| runner 实现 | 在不改变既有 Action、transition、Gate 或 terminal 语义的前提下编译和执行已准入的精确 Definition/Snapshot | Contract 创作或重新选择已准入 authority |
+
+Definition 关注点是其十一个 DSL 子关注点的语义根；这些子关注点不再成为独立 Contract feature。机器 schema 只编码这些平级关注点拥有的语义，不能反转 authority 方向。Runtime 资源 binding 声明一条已准入 route 需要什么，绝不授予权限。DSH 或其他 selected Runtime 始终独占原生 tool visibility、授权提示、路径/网络/凭据 policy 与副作用执行。
 
 **明确不做**（与 runner §41 一致）：
 
@@ -175,7 +190,7 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 | `resources.referenced[]` | 是 | owner=referenced 必须带 `sourceLocator`，不得带 `path` |
 | `authority.order` | 是 | 必须等于规范序（§7.1） |
 | `authority.conflictMode` | 是 | `const: "fail-closed"` |
-| `environmentRequirements[]` | 否 | 环境能力声明，不含凭据 |
+| `environmentRequirements[]` | 否 | 仅表示 compatibility 前提；绝不包含凭据或 authority grant |
 | `compatibility` | 是 | `minContractVersion`/`maxContractVersion`（本包声明兼容的 Contract 范围） |
 
 ### 5.2 `agentops.workflow-definition`（`workflow.json`）
@@ -219,7 +234,7 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 | `roles[]` | 是 | — |
 | `id/name/responsibility` | 是 | — |
 | `authorityBoundary.concerns[]` | 是 | 从闭合 concern 词汇表选择（§7.2），声明该 Role prompt 可指令的关切 |
-| `authorityBoundary.writePermissions[]` | 是 | `target` + `scope`（如 run-workspace 写、finding 写、approved-manifest commit） |
+| `authorityBoundary.writePermissions[]` | 是 | Workflow Artifact/result 创作边界，以 `target` + `scope` 表示（如 run-workspace 写、finding 写、approved-manifest commit）；不是文件系统或 Provider 权限 grant |
 | `authorityBoundary.prohibited[]` | 是 | 明确禁止项 |
 | `independence` | 否 | `{isolation: session-isolated/shared, barrier, sharedRawEvidenceOnly}` |
 
@@ -233,10 +248,10 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 | `agent.managedProjection` | 是 | `const: "required"`：只接受冻结 route 的 managed projection，禁止 ambient/default 替换 |
 | `resources.rolePrompt` | 是 | 资源引用 |
 | `resources.actionPrompts[]` | 是 | `{action, prompt}`：每个 action 绑定一个 Action Prompt 资源 |
-| `resources.skills[]` / `tools[]` | 否 | 资源引用列表 |
-| `resources.model` / `driver` | 是 | 资源引用 |
-| `resources.sessionPolicy` | 是 | `{freshness: fresh-per-episode/continuous-within-goal/resumable-within-admitted-dialogue, isolation: isolated/shared, resumeRule?}` |
-| `access[]` | 是 | `{target, mode: read/write/execute}` |
+| `resources.skills[]` / `tools[]` | 否 | 精确资源/依赖引用；tool 引用不授予原生使用权限 |
+| `resources.model` / `driver` | 是 | 精确 compatibility/依赖引用，不是 authority 层 |
+| `resources.sessionPolicy` | 是 | Workflow session 意图 `{freshness: fresh-per-episode/continuous-within-goal/resumable-within-admitted-dialogue, isolation: isolated/shared, resumeRule?}`；原生 Session state 仍为 Runtime 私有 |
+| `access[]` | 是 | 所需 Workflow 数据/Artifact 访问意图 `{target, mode: read/write/execute}`；原生副作用仍由 DSH Tool Policy 独立授权 |
 | `escalationAllowed` | 是 | bool |
 
 ### 5.6 `agentops.artifacts`（`artifacts.json`）
@@ -350,24 +365,37 @@ Workflow/Action authority → Role prompt → Action Prompt → Skill instructio
 
 **校验规则 R1（顺序可验证）**：每个 Package 必须在 `package.authority.order` 声明该顺序；声明与规范序不一致 → **准入失败**。理由：允许任意顺序会重新引入 Driver 隐式优先级问题；规范序是本产品的稳定语义。
 
-### 7.2 约束相交（constraint intersection）
+### 7.2 边界分类与约束交集
 
-每层声明**机器可读的 authority boundary**（concern 词汇表）：
+本 Contract 只用 **authority** 表示 Workflow 语义控制权，不定义或模拟 Agent Provider 权限系统：
 
-`responsibility | authority | write-permission | mission | method | transition-selection | gate | budget | terminal | data | session | tool | model | route`
+| 边界类别 | Owner | Contract 处理 |
+| --- | --- | --- |
+| Workflow 语义控制 | Workflow Action、Role 与已准入 Route | 在此机器声明并进行子集比较 |
+| 精确 model/tool/Driver/session 依赖 | Package/Route owner；selected Runtime Adapter 校验 compatibility | 仅为 content-bound requirement，绝不授予权限 |
+| 原生 tool visibility、授权、路径/网络/凭据 policy 与副作用执行 | DSH 或其他 selected Runtime | 在 Adapter seam 透传；不表示为可移植 authority |
+| authentication、authorization platform、RBAC、sandbox、恶意 Package 防御 | 可信本地 MVP 范围外 | 本 Contract 不提供 schema 或实现 |
 
-- Role 层：`roles.authorityBoundary.concerns` + `writePermissions` + `prohibited`；
-- Action 层：`actions.gate/selector/allowedSuccessors/forbidden effects`（`escalation.cannotChange`、角色边界隐含）；
-- Action Prompt / Skill / Artifact：本 DSL v1 要求通过 route 的资源条目声明 `use`（消费意图），并依赖 §7.3 的边界规则；完整逐层 concern 声明留给 Task 2 的 Package 迁移（对 design-time 语义无损，只增加机器字段）。
+闭合的 Role concern 词汇表是：
 
-**校验规则 R2（只许收窄，不许扩大）**：组合后的有效 authority = 各层声明的**交集**。任何后层声明的边界超出前层已声明空间（例如 Skill 的 `use` 声称"决定 transition"，而该 Action 的 selector 为 deterministic）→ 静态冲突 → fail closed。
+`responsibility | authority | write-permission | mission | method | transition-selection | gate | budget | terminal | data | session | route`
 
-**校验规则 R3（缺失即失败）**：任何指令承载资源（Role prompt / Action Prompt / Skill）若未在 route 中绑定、或其边界未声明/不可子集比较 → 准入失败（不依赖"看起来没问题"的默认）。
+这里的 `write-permission` 表示创作某类已声明 Workflow Artifact/result 的 custody，不表示文件系统权限。机器 authority carrier 是：
+
+- Action envelope：`responsibleAuthority`、`allowedRoutes`、`selector`、`gate`、`budget`、`allowedSuccessors` 与 `escalation.cannotChange`；
+- Role envelope：`roles.authorityBoundary.concerns` + Workflow Artifact `writePermissions` + `prohibited`；
+- Route projection：Action 授权 Route 的已声明 Role identity、存在时的 Action Prompt binding、精确资源 kind/identity、Workflow `access` 意图与 `managedProjection: required`。
+
+Action Prompt 与 Skill 内容**没有独立 authority**。资源条目的 `kind`、content identity 与 `use` 只建立身份、分类和描述性消费意图；`use` 不是权限语言，也不会转换成 DSH grant。
+
+**校验规则 R2（只许收窄，不许扩大）**：有效 Workflow authority 是 Action 与 applicable Role envelope 的交集，并通过 Action 授权的 Route 投影。Action 显式 `allowedRoutes` 是 Route/Role 选择的上限——包括 Role 与名义 `responsibleAuthority` 不同、但已声明的 multi-lens 或 custody Route；Action Prompt 只能经该 Action 列入的 Route 绑定。任何 Prompt、Skill、model、tool、Driver、session policy 或 Adapter 都不能增加 transition-selection、Gate、budget、terminal、successor 或 escalation authority。Provider 原生权限刻意不参与比较。
+
+**校验规则 R3（缺失即失败）**：Role Action 缺少已声明 responsible Role boundary、指令承载资源没有经任何 Route 绑定、Route 缺少 schema-required 资源、资源 kind 错误或 content identity 无法解析时，准入失败。Action Prompt 基数属于 Package 语义：一条 Route 可为一个 Action 绑定零个、一个或多个 Prompt，但每条已声明 binding 都必须指向显式允许该 Route 的 Action。缺少 Provider tool availability 则属于有类型的 Runtime compatibility/preflight failure；原生权限的批准或拒绝始终是 Provider 结果，绝不由 ambient replacement 补齐。
 
 ### 7.3 冲突判定与诚实边界
 
-- **机器可判定部分**：declared concern 越界、write permission 越界（如 Skill 声称写 production path 而 Role 无此写权限）、selector 与 planner 冲突、`allowedSuccessors` 越界、reducer 语义矛盾 —— 全部静态 fail closed。
-- **文本级冲突**（自然语言指令互相矛盾）不是完全可判定的。本 Contract 的处理是：(a) 每层必须声明机器边界使可判定部分被检出；(b) 文本级矛盾作为 **negative conformance 场景**（`conf.negative.authority` 类）验证；(c) 未声明边界的资源在准入时 fail closed。**不允许**用 Driver 的隐式覆盖顺序"解决"冲突。
+- **机器可判定部分**：Action Prompt 经未授权 Route 绑定、指令资源未绑定、必需资源 binding 缺失或 kind 错误、selector/planner 冲突、`allowedSuccessors` 越界、Workflow Artifact 创作权越界和 reducer 语义矛盾 —— 全部静态 fail closed。
+- **文本级冲突**（自然语言指令互相矛盾，或 Prompt/Skill 声称其不可能拥有的控制权）不是完全可判定的。它们通过 **negative conformance 场景**（`conf.negative.authority` 类）验证；无论文本如何，结构化 Action/Role/Route envelope 始终是权威，Runtime 不得把这类文本转换成控制状态。**不允许**用 Driver 优先级或 Provider 权限设置“解决”冲突。
 
 ### 7.4 Driver 无优先级
 
@@ -375,11 +403,24 @@ Driver/session policy **不是 authority 层**：不能重排、覆盖或替换�
 
 ### 7.5 合并结果与可复算性
 
-合并算法是确定性的：给定 (Package, Action, Route) → 按规范序收集资源（`rolePrompt → actionPrompts[action] → skills → model/tools/driver/sessionPolicy`）→ 边界检查（R1–R3）→ 输出冻结指令束（有序资源引用 + content identities + authority 证明）。验证器可独立复算同一指令束；任何失配 fail closed。**R5**：合并不修改任何资源内容；它只产生组合顺序证明。
+合并算法是确定性的：给定 (Package, Action, Route) → 按规范序收集指令资源（`rolePrompt → actionPrompts[action] → skills`，Artifact/user data 最后），并单独绑定精确 model/tools/Driver/session requirement → 边界检查（R1–R3）→ 输出冻结指令束（有序指令引用 + 全部依赖 content identity + Workflow authority 证明）。验证器可独立复算同一指令束；任何失配 fail closed。**R5**：合并不修改任何资源内容、不授予 Provider 权限，只产生组合顺序证明。
 
 ### 7.6 与 Package Snapshot 的关系
 
 合并证明（authority order + boundary checks + 资源 content identities）是 Snapshot 解析闭包的一部分（`package-snapshot.schema.md` 的 "Authority order" 与 "Resolution proof" 组），准入时冻结，运行中不可变。
+
+### 7.7 Authority 保管链
+
+Authority 只沿一条闭合保管链传递；每次传递只会收窄或冻结 authority，任何一层都不能重新解释：
+
+```text
+配置仓库 / Workflow owner
+  → Configuration Identity Authority
+  → Admission + Manifest
+  → runner activation / Runtime Profile seam
+```
+
+配置仓库与 Workflow owner 创作 Definition、Package 关系和精确资源版本。Configuration Identity Authority 把显式关系闭包解析成一个不可变 Package Snapshot。Admission 决定是否准入，并持久化 Manifest 来冻结唯一的精确 Snapshot binding。runner 只接收这份已准入 binding，在 activation 前重新核对 Workflow authority、依赖闭包、selected Runtime compatibility 与 merge proof，然后经 Runtime Adapter 投影请求，且不允许 ambient fallback 或资源替换。DSH 拥有原生 Tool Policy 与 Native Tool Grant 交互；runner 与本 Contract 都不伪造 grant。Selected Driver 位于冻结投影下游，永远不成为 authority 层。closure 缺失、content identity 改变、merge-proof 不匹配或必需依赖不受支持，都会在 Workflow 推进前 fail closed。
 
 ## 8. Owned 与 Referenced（机械规则）
 
@@ -457,15 +498,15 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 | 级 | 对象 | 证据 |
 | --- | --- | --- |
 | Document conformance | 单个 DSL 文档 | JSON Schema 校验（`system-contracts/workflow-dsl/schemas/`）+ `additionalProperties: false` 闭合 |
-| Package conformance | 整个 Package | 文档级 + §3.1 闭包 + §7 合并证明 + §8–§10 机械规则 + **conformance corpus**（positive/negative/recovery 场景，如 `system-contracts/workflow-dsl/examples/minimal/validation.json` 的 6 个场景） |
+| Package conformance | 整个 Package | 文档级 + §3.1 闭包 + §7 合并证明 + §8–§10 机械规则 + **conformance corpus**（positive/negative/recovery 场景，如 `system-contracts/workflow-dsl/examples/minimal/validation.json` 的 7 个场景） |
 | Implementation/Runtime conformance | Runtime Profile / 编译层 | 编译不改变 Definition 语义、Snapshot binding 校验、通过 corpus、禁止字段扫描、无原生 ID 泄漏；**schema/registry/fixtures/验证证据发布前不得声称 physical conformance** |
 
 ### 12.2 机械校验清单（示例 checker 已实现的核心项）
 
 1. JSON 可解析、kind/schemaVersion 匹配；
-2. 所有引用（documents、owned paths、action/role/route/wait/budget/recovery/validator/artifact/resource ids）可解析；
-3. `allowedSuccessors` == graph 出边集；node 不同时拥有静态出边与条件边；
-4. reducer / predicate op / authority order / session freshness / isolation 等词汇闭合；
+2. 所有引用（documents、owned paths、action/role/route/wait/budget/recovery/validator/artifact/resource ids）可解析，且 Route 资源引用具有所需精确 kind；
+3. Action→Route authorization 与指令资源 binding 满足 R2/R3；`allowedSuccessors` == graph 出边集；node 不同时拥有静态出边与条件边；
+4. reducer / predicate op / Workflow authority concern / authority order / session freshness / isolation 等词汇闭合；
 5. owned digest、definition digest 匹配；referenced sourceLocator 完整；
 6. 禁止物理字段扫描（附录 C）：Definition 中不得出现 LangGraph/Driver 物理 token。
 
@@ -473,9 +514,9 @@ State 由 Selected Runtime Profile 独占写入：current Action/attempt、已�
 
 每个 Package 至少声明：合法主路径（positive）、非法 transition / 越权 / 缺失资源 / authority 越界（negative）、Wait/resume 关联、预算耗尽、崩溃恢复、取消（recovery）。corpus 场景是 Package 的一部分（`validation.conformance[]`），运行时/模拟器必须可执行。
 
-### 12.4 Runtime 能力要求
+### 12.4 Workflow 执行能力要求
 
-任何声称 conformance 的 Runtime Profile 必须实现 DSL 能声明的每项能力；两个 first-party Definition 已经使用了其中一部分。conforming Runtime 必须支持：
+任何声称 conformance 的 Runtime Profile 必须实现 DSL 能声明的每项 **Workflow 执行**能力；这些是编排语义，不是 Provider 原生 tool 权限。两个 first-party Definition 已经使用了其中一部分。conforming Runtime 必须支持：
 
 | DSL 构造 | 必需的 Runtime 能力 |
 | --- | --- |
