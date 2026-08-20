@@ -32,7 +32,7 @@ GitHub default labels (`bug` reused as type; `documentation`, `enhancement`, `du
 
 ## Component — one per card (workstream mapping)
 
-`component:execution` · `component:evidence` · `component:evolution` · `component:contracts` · `component:workflow-package` · `component:meta` (mechanism improvements about this process itself).
+`component:execution` · `component:evidence` · `component:evolution` · `component:contracts` · `component:workflow-package` · `component:bi` (visualization / reporting surface) · `component:meta` (mechanism improvements about this process itself).
 
 ## Priority — one per card
 

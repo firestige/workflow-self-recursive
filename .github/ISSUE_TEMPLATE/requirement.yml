@@ -45,6 +45,7 @@ body:
         - evolution
         - contracts
         - workflow-package
+        - bi
         - meta
   - type: dropdown
     id: priority

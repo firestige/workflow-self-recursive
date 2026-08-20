@@ -23,6 +23,7 @@
     { "name": "component:evolution", "color": "D4C5F9", "description": "workstream: evolution" },
     { "name": "component:contracts", "color": "F9D0C4", "description": "workstream: system contracts" },
     { "name": "component:workflow-package", "color": "FEF2C0", "description": "workstream: workflow package" },
+    { "name": "component:bi", "color": "C2E0C6", "description": "workstream: BI / visualization" },
     { "name": "component:meta", "color": "EDEDED", "description": "mechanism improvements about this process itself" }
   ],
   "priority": [
