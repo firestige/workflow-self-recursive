@@ -1,7 +1,7 @@
 <a id="interaction-contract"></a>
 # Execution–Evidence Interaction Contract
 
-> **REVIEW CANDIDATE — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus one post-split meaning amendment recorded as `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`: the external ingest response is the standard OTLP aggregate success/partial-success with bounded rejected counts/reasons, and `accepted`/`duplicate`/`conflict`/`rejected` remain Admission-internal per-record disposition only; provenance remains in Git history. It owns the transport and interaction obligations between Execution (producer) and Evidence (acceptor): endpoint, internal per-record disposition, partial success, batch sibling isolation, retry/timeout/ambiguous commit, version compatibility, generic profile-invalid atomic rejection, and downstream publication/conformance obligations. It owns no wire registry, no complete-shape or identity-tuple detail, and no durable storage model.
+> **FROZEN — PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus one post-split meaning amendment recorded as `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`: the external ingest response is the standard OTLP aggregate success/partial-success with bounded rejected counts/reasons, and `accepted`/`duplicate`/`conflict`/`rejected` remain Admission-internal per-record disposition only; provenance remains in Git history. It owns the transport and interaction obligations between Execution (producer) and Evidence (acceptor): endpoint, internal per-record disposition, partial success, batch sibling isolation, retry/timeout/ambiguous commit, version compatibility, generic profile-invalid atomic rejection, and downstream publication/conformance obligations. It owns no wire registry, no complete-shape or identity-tuple detail, and no durable storage model.
 
 <a id="interaction-contract-1"></a>
 ## 1. Metadata and Authority
@@ -9,11 +9,11 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `interaction.identity.001` |
-| Status | `REVIEW_CANDIDATE` |
+| Status | `FROZEN` |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus one post-split meaning amendment recorded as `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17` (standard OTLP aggregate ingest response; per-record disposition remains Admission-internal); provenance remains in Git history |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), proposed version `1.0.0` |
+| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md), published version `1.0.0` |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
@@ -113,17 +113,13 @@ The MVP producer emits only the exact profile revision in its released combinati
 <a id="interaction-contract-8"></a>
 ## 8. Publication and Conformance Obligations
 
-This split is `REVIEW_CANDIDATE`. Profile `0.3.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`. Candidate `1.0.0` machine schemas, registry, fixtures, validators, and publication inventory are present in `system-contracts/observation/`, but are not released. No implementation or physical artifact may claim Contract conformance until every lifecycle gate and owner approval pass.
+This split is `FROZEN`. Profile `0.3.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`. The exact `1.0.0` machine schemas, registry, fixtures, bounded decoder/validator and publication inventory are released in `system-contracts/observation/` with a `VALIDATOR_ONLY` claim. This claim covers the published Contract package only; it does not certify a production emitter, acceptor, storage implementation or cross-implementation exchange.
 
-Downstream owners still must publish and prove:
+The published package proves the machine-schema/package layout, exact closed limits and encodings, machine-valid decoded forms, packaged fixture corpus, executable reference validators and release record. Downstream production owners still must prove:
 
-1. machine-schema language, filenames, package and registry layout;
-2. exact string character sets and maximum lengths, digest/canonicalization algorithms where not already fixed, cardinality budgets, batch/page limits and operational defaults;
-3. machine-valid Manifest, lifecycle/result, Observation Profile and family schemas encoding the exact registries, complete shapes, target relations, activity identity, and usage coordinates fixed by the [OTel Observation Profile](../observation/otel-observation-profile.md);
-4. packaged positive, negative, base/endpoint, multi-target, duplicate/conflict, partial-success, sampling, privacy, lineage, crash/recovery, completeness, usage and retention fixtures;
-5. physical storage tables, columns, indexes, constraints, migrations and retention defaults (owned by the Evidence System Design, not by this contract);
-6. production Adapter, Admission, Projection and App code, redaction and bounded diagnostics;
-7. executable validators, cross-implementation validation and release/publication record; and
-8. capacity, latency, queue/backpressure, security-expansion and retention tuning.
+1. physical storage tables, columns, indexes, constraints, migrations and retention defaults (owned by the Evidence System Design, not by this contract);
+2. production Adapter, Admission, Projection and App code, redaction and bounded diagnostics;
+3. cross-implementation producer/acceptor validation against this exact release; and
+4. capacity, latency, queue/backpressure, security-expansion and retention tuning.
 
 Downstream work may refine physical encoding and prove the proposal. It may not privately select another carrier, fact-class taxonomy, field meaning, lineage rule, standard/custom split, usage/missingness model, or privacy boundary without reopening System Design. The retained legacy implementation line remains quarantined legacy evidence and is not conformance proof; downstream physical cutover must inventory and atomically replace/remove or authorizedly repair the complete legacy graph, update all consumers and entrypoints, establish new digests, and validate a new baseline.

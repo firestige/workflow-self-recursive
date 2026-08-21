@@ -1,7 +1,7 @@
 <a id="interaction-contract"></a>
 # Execution–Evidence Interaction Contract（中文翻译）
 
-> **REVIEW CANDIDATE——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，外加一个 post-split meaning amendment，记录为 `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`：外部 ingest response 是标准 OTLP aggregate success/partial-success，带 bounded rejected count/reason，且 `accepted`/`duplicate`/`conflict`/`rejected` 仅保留为 Admission-internal per-record disposition；出处保留在 Git 历史中。它拥有 Execution（producer）与 Evidence（acceptor）之间的 transport 与 interaction obligation：endpoint、internal per-record disposition、partial success、batch sibling isolation、retry/timeout/ambiguous commit、version compatibility、generic profile-invalid atomic rejection，以及 downstream publication/conformance obligation。它不拥有任何 wire registry、complete-shape 或 identity-tuple 细节，也不拥有任何 durable storage model。
+> **FROZEN——已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，外加一个 post-split meaning amendment，记录为 `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`：外部 ingest response 是标准 OTLP aggregate success/partial-success，带 bounded rejected count/reason，且 `accepted`/`duplicate`/`conflict`/`rejected` 仅保留为 Admission-internal per-record disposition；出处保留在 Git 历史中。它拥有 Execution（producer）与 Evidence（acceptor）之间的 transport 与 interaction obligation：endpoint、internal per-record disposition、partial success、batch sibling isolation、retry/timeout/ambiguous commit、version compatibility、generic profile-invalid atomic rejection，以及 downstream publication/conformance obligation。它不拥有任何 wire registry、complete-shape 或 identity-tuple 细节，也不拥有任何 durable storage model。
 
 <a id="interaction-contract-1"></a>
 ## 1. 元数据与权威性
@@ -9,11 +9,11 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `interaction.identity.001` |
-| 状态 | `REVIEW_CANDIDATE` |
+| 状态 | `FROZEN` |
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，外加一个 post-split meaning amendment，记录为 `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`（标准 OTLP aggregate ingest response；per-record disposition 仍为 Admission-internal）；出处保留在 Git 历史中 |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，proposed version `1.0.0` |
+| Representation companion | [OTel Observation Profile](../observation/otel-observation-profile.md)，published version `1.0.0` |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
@@ -113,17 +113,13 @@ MVP producer 只 emit 其 released combination 中的 exact profile revision；a
 <a id="interaction-contract-8"></a>
 ## 8. Publication 与 Conformance 义务
 
-本 split 为 `REVIEW_CANDIDATE`。Profile `0.3.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`。Candidate `1.0.0` machine schema、registry、fixture、validator 与 publication inventory 已位于 `system-contracts/observation/`，但尚未 release。在所有 lifecycle gate 与 owner approval 通过之前，任何 implementation 或 physical artifact 不得声称 Contract conformance。
+本 split 为 `FROZEN`。Profile `0.3.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`。Exact `1.0.0` machine schema、registry、fixture、bounded decoder/validator 与 publication inventory 已在 `system-contracts/observation/` release，claim 为 `VALIDATOR_ONLY`。此 claim 只覆盖已发布 Contract package；它不认证 production emitter、acceptor、storage implementation 或 cross-implementation exchange。
 
-Downstream owner 仍必须发布并证明：
+已发布 package 证明 machine-schema/package layout、exact closed limit 与 encoding、machine-valid decoded form、packaged fixture corpus、executable reference validator 与 release record。Downstream production owner 仍必须证明：
 
-1. machine-schema language、filename、package 与 registry layout；
-2. exact string character set 与 maximum length、尚未固定的 digest/canonicalization algorithm、cardinality budget、batch/page limit 与 operational default；
-3. machine-valid Manifest、lifecycle/result、Observation Profile 与 family schema，编码 [OTel Observation Profile](../observation/otel-observation-profile.md) 所固定的 exact registry、complete shape、target relation、activity identity 与 usage coordinate；
-4. packaged positive、negative、base/endpoint、multi-target、duplicate/conflict、partial-success、sampling、privacy、lineage、crash/recovery、completeness、usage 与 retention fixture；
-5. physical storage table、column、index、constraint、migration 与 retention default（由 Evidence System Design 拥有，而非本 contract）；
-6. production Adapter、Admission、Projection 与 App code、redaction 与 bounded diagnostic；
-7. executable validator、cross-implementation validation 与 release/publication record；以及
-8. capacity、latency、queue/backpressure、security-expansion 与 retention tuning。
+1. physical storage table、column、index、constraint、migration 与 retention default（由 Evidence System Design 拥有，而非本 contract）；
+2. production Adapter、Admission、Projection 与 App code、redaction 与 bounded diagnostic；
+3. 针对这份 exact release 的 cross-implementation producer/acceptor validation；以及
+4. capacity、latency、queue/backpressure、security-expansion 与 retention tuning。
 
 Downstream work 可以细化 physical encoding 并证明提案。它不得在未 reopen System Design 的情况下私下选择另一个 carrier、fact-class taxonomy、field meaning、lineage rule、standard/custom split、usage/missingness model 或 privacy boundary。Retained legacy implementation line 继续是 quarantined legacy evidence，不是 conformance proof；downstream physical cutover 必须 inventory 并原子 replace/remove 或 authorizedly repair 完整 legacy graph，更新所有 consumer 与 entrypoint，建立新 digest，并验证新 baseline。

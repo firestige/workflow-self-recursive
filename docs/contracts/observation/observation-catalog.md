@@ -1,7 +1,7 @@
 <a id="observation-catalog"></a>
 # Observation Catalog
 
-> **REVIEW CANDIDATE — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the technology-neutral meaning of the Observation facts: fact classes, semantic owners, and the identity / applicability / completeness / unit / privacy / relationship / missingness semantics. It contains no wire-level representation (no machine field names, no carrier or type mapping, no concrete serialization). The exact machine mapping is owned by the [OTel Observation Profile](otel-observation-profile.md), cited by profile version `1.0.0`.
+> **FROZEN — PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the technology-neutral meaning of the Observation facts: fact classes, semantic owners, and the identity / applicability / completeness / unit / privacy / relationship / missingness semantics. It contains no wire-level representation (no machine field names, no carrier or type mapping, no concrete serialization). The exact machine mapping is owned by the published [OTel Observation Profile](otel-observation-profile.md), version `1.0.0`.
 
 <a id="observation-catalog-1"></a>
 ## 1. Metadata and Authority
@@ -9,11 +9,11 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `observation.identity.001` |
-| Status | `REVIEW_CANDIDATE` |
+| Status | `FROZEN` |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`; C55–C57 meaning and ownership resolve to [Concept §3](../../agent-architecture.md#ee-concept-3), [Execution §14](../../systems/execution/project-execution-system.md#ee-execution-14), and [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8); the historical amendment remains provenance only |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](otel-observation-profile.md), proposed version `1.0.0` |
+| Representation companion | [OTel Observation Profile](otel-observation-profile.md), published version `1.0.0` |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |

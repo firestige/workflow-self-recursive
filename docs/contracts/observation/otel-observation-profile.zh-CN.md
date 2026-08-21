@@ -1,7 +1,7 @@
 <a id="otel-observation-profile"></a>
 # OTel Observation Profile（中文翻译）
 
-> **REVIEW CANDIDATE——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 exact candidate OTel/OTLP wire mapping：pin、carrier、Resource、Scope、schema URL、standard GenAI mapping、closed EventName set、closed `agentops.*` registry、complete Review/Finding shape、C17/C27 oracle，以及 shape/identity/conflict rule。其 machine schema、packaged registry 与 fixture corpus 是 `system-contracts/observation/` 中的 candidate material，不是 release 或 conformance claim；它不拥有 durable storage model。
+> **FROZEN——已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 exact published OTel/OTLP wire mapping：pin、carrier、Resource、Scope、schema URL、standard GenAI mapping、closed EventName set、closed `agentops.*` registry、complete Review/Finding shape、C17/C27 oracle，以及 shape/identity/conflict rule。其 machine schema、packaged registry 与 fixture corpus 已在 `system-contracts/observation/` 发布，conformance claim 为 `VALIDATOR_ONLY`；它不拥有 durable storage model。
 
 <a id="otel-profile-1"></a>
 ## 1. 元数据与权威性
@@ -9,10 +9,10 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `observation.identity.002` |
-| 状态 | `REVIEW_CANDIDATE` |
+| 状态 | `FROZEN` |
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 C55–C57 与 proposed profile `1.0.0` 的 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中 |
-| Profile version | proposed `1.0.0`（已采纳提案，不是 release） |
+| Profile version | published `1.0.0` |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md)，以及 tech-neutral [Observation Catalog](observation-catalog.md) |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
@@ -24,14 +24,14 @@
 <a id="otel-profile-2"></a>
 ## 2. 成熟度模型
 
-| 层次 | 本候选中的状态 | 已固定内容 | 当前可声称内容 |
+| 层次 | 本 release 中的状态 | 已固定内容 | 当前可声称内容 |
 | --- | --- | --- | --- |
 | System semantic meaning 与 owner | 固定于 English Concept/Execution/Evidence Design 与 Observation Catalog | fact meaning、ownership、truth、privacy 与 lifecycle | promotion 后的 Design meaning |
-| Wire profile candidate | 已采纳的 normative candidate | exact pin、carrier、standard/custom split、十个 EventName、57 common + 10 Implementation + 6 System Design field、complete Review/Finding variant composition、relationship、placement、requiredness 与 exclusion | 只能把这些 exact candidate 引用为 `REVIEW_CANDIDATE` |
-| Released physical Contract | 不存在；candidate package 已存在 | 没有发布任何 physical content | 不得声称 schema、package 或 registry 已发布 |
-| Implementation conformance | 未证明 | 没有 implementation 获得认证 | executable validator 针对 released physical Contract 通过前不得声称 conformance |
+| Wire profile | 已冻结的 normative release | exact pin、carrier、standard/custom split、十个 EventName、57 common + 10 Implementation + 6 System Design field、complete Review/Finding variant composition、relationship、placement、requiredness 与 exclusion | 可将这份 exact release 引用为 `FROZEN` |
+| Released physical Contract | 已存在 | schema、registry、fixture、bounded decoder 与 validator 一同发布 | exact bound package 的 `VALIDATOR_ONLY` |
+| Production implementation conformance | 未证明 | 没有 production emitter、acceptor 或 storage implementation 获得认证 | 不作 production 或 cross-implementation conformance claim |
 
-Draft maturity 不是重新决定 selected mapping 的许可。反过来，validated proposal evidence 也不是 released physical Contract 或 production conformance evidence。
+Publication 不是重新决定 selected mapping 的许可。Bounded validator claim 也不是 production implementation 或 cross-implementation conformance evidence。
 
 Profile `0.3.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；它仅作为 Git 历史中的 provenance 保留，不是可选择的 compatibility target。
 
@@ -447,6 +447,6 @@ Manifest、lifecycle/result、Observation Profile、每个 Workflow-family schem
 - local/lineage pair rule 无歧义；并且
 - 每个 complete Review/Finding/Fix/Recheck shape 都通过 closed C17/C27 oracle 与 §7.6 的 positive/negative sequence，包括 order-independent multi-target behavior、cross-target assertion conflict、compatible assertion/edge reuse、separately keyed status/Fix/Recheck append、Event conflict 与 all-or-none landing；
 - 每个 confirmed family fact 与 objective relationship 都 resolve 到一个 Event/standard-or-custom field/source/privacy/landing，usage example 在 required 处保持 incompatible，Span duplicate/conflict example 遵循 `(trace_id, span_id)`；
-- `REVIEW_CANDIDATE`、absent physical publication 与 unproven conformance 保持 unmistakable。
+- `FROZEN`、published physical Contract 与 bounded `VALIDATOR_ONLY` claim，仍需与未证明的 production conformance 保持 unmistakable。
 
-任何 current prototype、Spike result、legacy artifact 或 draft byte stream 都不得声称 released physical Contract 或 implementation conformance。Downstream publication 与 conformance obligation 由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-8) 拥有。
+任何 current prototype、Spike result、legacy artifact 或未绑定 byte stream 都不得声称符合这份 released physical Contract。Downstream production 与 cross-implementation conformance obligation 由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-8) 拥有。

@@ -1,7 +1,7 @@
 <a id="otel-observation-profile"></a>
 # OTel Observation Profile
 
-> **REVIEW CANDIDATE — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the exact candidate OTel/OTLP wire mapping: pins, carriers, Resource, Scope, schema URL, standard GenAI mapping, the closed EventName set, the closed `agentops.*` registries, the complete Review/Finding shapes, the C17/C27 oracle, and the shape/identity/conflict rules. Its machine schemas, packaged registry and fixture corpus are candidate material in `system-contracts/observation/`, not a release or conformance claim; it owns no durable storage model.
+> **FROZEN — PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the exact published OTel/OTLP wire mapping: pins, carriers, Resource, Scope, schema URL, standard GenAI mapping, the closed EventName set, the closed `agentops.*` registries, the complete Review/Finding shapes, the C17/C27 oracle, and the shape/identity/conflict rules. Its machine schemas, packaged registry and fixture corpus are published in `system-contracts/observation/` with a `VALIDATOR_ONLY` conformance claim; it owns no durable storage model.
 
 <a id="otel-profile-1"></a>
 ## 1. Metadata and Authority
@@ -9,10 +9,10 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `observation.identity.002` |
-| Status | `REVIEW_CANDIDATE` |
+| Status | `FROZEN` |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment for C55–C57 and proposed profile `1.0.0`; provenance remains in Git history |
-| Profile version | proposed `1.0.0` (adopted proposal, not a release) |
+| Profile version | published `1.0.0` |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md), and the tech-neutral [Observation Catalog](observation-catalog.md) |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
@@ -24,14 +24,14 @@ This document owns the one editable proposed wire registry, carrier placement, v
 <a id="otel-profile-2"></a>
 ## 2. Maturity Model
 
-| Layer | State in this candidate | What is fixed | What may be claimed |
+| Layer | State in this release | What is fixed | What may be claimed |
 | --- | --- | --- | --- |
 | System semantic meaning and owner | fixed in the English Concept/Execution/Evidence Designs and the Observation Catalog | fact meaning, ownership, truth, privacy and lifecycle | Design meaning after promotion |
-| Wire profile candidate | adopted normative candidate | exact pins, carriers, standard/custom split, ten EventNames, 57 common + 10 Implementation + 6 System Design fields, complete Review/Finding variant composition, relationships, placement, requiredness and exclusions | this exact candidate may be cited only as `REVIEW_CANDIDATE` |
-| Released physical Contract | absent; candidate package present | nothing physical is released | no schema, package or registry publication claim |
-| Implementation conformance | unproven | no implementation is certified | no conformance claim until executable validators pass the released physical Contract |
+| Wire profile | frozen normative release | exact pins, carriers, standard/custom split, ten EventNames, 57 common + 10 Implementation + 6 System Design fields, complete Review/Finding variant composition, relationships, placement, requiredness and exclusions | this exact release may be cited as `FROZEN` |
+| Released physical Contract | present | schemas, registry, fixtures, bounded decoder and validator are published together | `VALIDATOR_ONLY` for the exact bound package |
+| Production implementation conformance | unproven | no production emitter, acceptor or storage implementation is certified | no production or cross-implementation conformance claim |
 
-Draft maturity is not permission to re-decide the selected mapping. Conversely, validated proposal evidence is not released physical Contract or production conformance evidence.
+Publication is not permission to re-decide the selected mapping. The bounded validator claim is not production implementation or cross-implementation conformance evidence.
 
 Profile `0.3.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`; it remains provenance in Git history and is not a selectable compatibility target.
 
@@ -447,6 +447,6 @@ This profile is acceptable for affected review only when:
 - the local/lineage pair rule is unambiguous; and
 - every complete Review/Finding/Fix/Recheck shape passes the closed C17/C27 oracle and the positive/negative sequences in §7.6, including order-independent multi-target behavior, cross-target assertion conflicts, compatible assertion/edge reuse, separately keyed status/Fix/Recheck append, Event conflict and all-or-none landing;
 - every confirmed family fact and objective relationship resolves to one Event/standard-or-custom field/source/privacy/landing, usage examples remain incompatible where required, and Span duplicate/conflict examples obey `(trace_id, span_id)`;
-- `REVIEW_CANDIDATE`, absent physical publication and unproven conformance remain unmistakable.
+- `FROZEN`, published physical Contract and the bounded `VALIDATOR_ONLY` claim remain unmistakable from unproven production conformance.
 
-No current prototype, Spike result, legacy artifact or draft byte stream may claim released physical Contract or implementation conformance. Downstream publication and conformance obligations are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-8).
+No current prototype, Spike result, legacy artifact or unbound byte stream may claim conformance with this released physical Contract. Downstream production and cross-implementation conformance obligations are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-8).

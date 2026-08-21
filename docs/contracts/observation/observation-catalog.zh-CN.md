@@ -1,7 +1,7 @@
 <a id="observation-catalog"></a>
 # Observation Catalog（中文翻译）
 
-> **REVIEW CANDIDATE——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 Observation fact 的 technology-neutral meaning：fact class、semantic owner，以及 identity / applicability / completeness / unit / privacy / relationship / missingness semantics。它不包含任何 wire-level representation（无 machine field name、无 carrier 或 type mapping、无 concrete serialization）。Exact machine mapping 由 [OTel Observation Profile](otel-observation-profile.md) 拥有，以 profile version `1.0.0` 引用。
+> **FROZEN——已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 Observation fact 的 technology-neutral meaning：fact class、semantic owner，以及 identity / applicability / completeness / unit / privacy / relationship / missingness semantics。它不包含任何 wire-level representation（无 machine field name、无 carrier 或 type mapping、无 concrete serialization）。Exact machine mapping 由已发布的 [OTel Observation Profile](otel-observation-profile.md) version `1.0.0` 拥有。
 
 <a id="observation-catalog-1"></a>
 ## 1. 元数据与权威性
@@ -9,11 +9,11 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `observation.identity.001` |
-| 状态 | `REVIEW_CANDIDATE` |
+| 状态 | `FROZEN` |
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split；C55–C57 meaning 与 ownership 解析到 [Concept §3](../../agent-architecture.md#ee-concept-3)、[Execution §14](../../systems/execution/project-execution-system.md#ee-execution-14) 和 [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8)；历史 amendment 仅保留 provenance |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md) |
-| Representation companion | [OTel Observation Profile](otel-observation-profile.md)，proposed version `1.0.0` |
+| Representation companion | [OTel Observation Profile](otel-observation-profile.md)，published version `1.0.0` |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
