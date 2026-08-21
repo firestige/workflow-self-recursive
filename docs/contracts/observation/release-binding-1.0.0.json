@@ -35,11 +35,11 @@
   "machine_package": {
     "repository": "firestige/system-contracts",
     "gitlink_path": "system-contracts",
-    "gitlink_commit": "1ed446dffcb1298e6bb5bb1979f2e2e93ddd1d34",
-    "content_revision": "sha256:c7c840ea76933413e0e89f3b17d1581288f6ddc5d9f3d6c91eafa599c74851aa",
+    "gitlink_commit": "4fca8f912befd3929bba998512e358c634a0e708",
+    "content_revision": "sha256:86d909d39e5a4ec929e25f7353f7a3cf34e3c52321eb56f9a4438fa5181b52d9",
     "publication_record": {
       "path": "observation/publication/publication-record-1.0.0.json",
-      "sha256": "2ec46962c3b2ce1533aeb1428bb3f7b499f4b42c10156be04702f4c82e681928"
+      "sha256": "33e5b8633c69fef09b6f1114b75746d0eef2304f7492a3a617cf053532aebdeb"
     },
     "compatibility_matrix": {
       "path": "observation/registries/compatibility-matrix-1.0.0.json",
