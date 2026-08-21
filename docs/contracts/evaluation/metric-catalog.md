@@ -55,6 +55,7 @@ Catalog envelope fields:
 | `status` | `REVIEW_CANDIDATE` | Contract lifecycle state; never an implementation or publication claim |
 | `semantic_authority` | fixed non-empty reference | binds the representation to this document identity |
 | `dependencies` | one exact closed Observation binding | binds `observation-contract@1.0.0` to its published semantic revision, machine revision, publication digest and gitlink commit; no SemVer inference |
+| `minimum_sample_policy` | one fixed rule | below `minimum_sample` the metric value is not published, while the complete coverage result remains published |
 | `coverage_policy` | one closed policy object | fixes result fields, states, threshold domain, exact comparison and the rule that coverage never gates publication |
 | `input_definitions` | closed array of `{input_id, source_layer, semantic_ref, binding}` | declares resolvable semantic inputs and their owning layer; `binding` is always `human-semantic-reference`, never a wire binding or authority grant |
 | `metrics` | exactly 14 metric records | the MVP metric set declared in §5 |
@@ -78,7 +79,7 @@ Metric record fields:
 | `input_refs` | one or more unique input identifiers | per-metric references into the catalog's closed `input_definitions` registry; every reference must resolve |
 | `eligibility` | one or more strings | the positive conditions a record must meet to enter the numerator or denominator |
 | `exclusions` | string array | the conditions that remove a record from the metric |
-| `minimum_sample` | integer ≥ 1 | the existing minimum-sample rule; this revision does not reinterpret it |
+| `minimum_sample` | integer ≥ 1 | the minimum eligible-unit count below which the metric value is not published; the coverage result is still published |
 | `coverage.denominator` | non-empty string | exact candidate population for coverage: identity, time window, cohort and base scope |
 | `coverage.numerator` | non-empty string | the denominator subset with all required direct inputs available |
 | `uncertainty` | one or more strings | the stated limitations and intervals |
@@ -187,14 +188,14 @@ Every metric result always publishes `numerator`, `denominator`, `raw_ratio`, `s
 - 0 < numerator < denominator → `PARTIAL`;
 - numerator = denominator → `FULL`.
 
-Coverage never gates publication and never hides, zeroes or rewrites an otherwise computable metric value. The default `LOW_COVERAGE` alert threshold is `0.10`; legal thresholds are `{0.00,0.01,...,0.99}`. Threshold 0 disables the alert. Otherwise, for denominator > 0, alert exactly when raw coverage is below threshold. No rounded value participates: for threshold hundredths `T ∈ [0,99]`, compare `100 × numerator < T × denominator`; equality does not alert. Threshold changes recalculate only the alert, never historical facts, value or coverage. This revision does not reinterpret `minimum_sample`.
+Coverage never gates publication and never hides, zeroes or rewrites an otherwise computable metric value. `minimum_sample` keeps its separate established behavior: below the declared eligible-unit count, the metric value is not published, while coverage numerator, denominator, raw ratio, state and alert are still published. The default `LOW_COVERAGE` alert threshold is `0.10`; legal thresholds are `{0.00,0.01,...,0.99}`. Threshold 0 disables the alert. Otherwise, for denominator > 0, alert exactly when raw coverage is below threshold. No rounded value participates: for threshold hundredths `T ∈ [0,99]`, compare `100 × numerator < T × denominator`; equality does not alert. Threshold changes recalculate only the alert, never historical facts, value or coverage.
 
 ### 6.5 Per-metric input and eligibility map
 
 | Metric | Required projected/evaluation input | Metric-level eligibility and exclusions |
 | --- | --- | --- |
 | `role-template-rework-rate` | defined-task snapshot; exact event-time role template; unique terminal task outcome; linked repair | exclude open/mixed/undefined tasks and backfilled/missing template assignment |
-| `role-template-trajectory-partial-cost` | same task/template inputs plus linked direct cost | exclude mixed currency/source/cost basis, estimated/unattributed cost and insufficient coverage |
+| `role-template-trajectory-partial-cost` | same task/template inputs plus linked direct cost | exclude mixed currency/source/cost basis and estimated/unattributed cost; partial coverage remains visible and does not exclude an otherwise computable value |
 | `role-model-task-outcome-rate` | unique terminal task outcome plus complete model-role tuple | exclude open/mixed tasks and incomplete attribution; publish one numerator per outcome over one eligible denominator |
 | `packet-rework-rate` | exact packet identity, supported governance revision and repair-attribution input | denominator is all in-scope eligible packets; a known no-repair packet remains covered and contributes 0; unavailable repair attribution affects coverage, not ordinary-negative classification |
 | `operational-latency-ms` | native model-call Span duration plus complete provider/model/role/runtime tuple | exclude absent/invalid duration or incomplete attribution; keep model-role cohorts exact |

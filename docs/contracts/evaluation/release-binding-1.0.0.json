@@ -4,23 +4,23 @@
   "status": "REVIEW_CANDIDATE",
   "superproject": {
     "repository": "firestige/workflow-self-recursive",
-    "content_revision": "sha256:46948128a5319cbc2b71b76fc21c257095e68020dc195055d9976ca81ee46cdc",
+    "content_revision": "sha256:05097400237ba3dd7b298a41b182bd1cc0ae1d8560ba3673b41a04f2423ee16a",
     "semantic": [
       {
         "path": "docs/contracts/evaluation/metric-catalog.md",
-        "sha256": "c1d676ed25167e1e88b6ece71b2010bf58213b7b5dc2085000a54e98f9b0a6d5"
+        "sha256": "70c0da51b3c37228253c2de842cc45c8c850b79c5d3325a2f26244d0bf0dfbe2"
       }
     ]
   },
   "machine_package": {
     "repository": "firestige/system-contracts",
     "gitlink_path": "system-contracts",
-    "gitlink_commit": "30762b67ef7cefd51b4b61a21bb5ae15ab00420d",
-    "content_revision": "sha256:24611eac15b4d6b2961aa197a3c21779aa5a6bb83a3c0e0ff0387c8daadb8764",
-    "catalog_semantic_digest": "sha256:5d7fb2b8416ab4fa08e7511287e9a34dc628fb1c99ff63271054a0117a7710a5",
+    "gitlink_commit": "e3b950b3ae2d2796a2ab2304fadd5d723932f907",
+    "content_revision": "sha256:6b30ad914634e5c5a58a5c02ab1ea47dcf61d81dc18e15ac3fd6d1c093bb9777",
+    "catalog_semantic_digest": "sha256:9bec66ff44e63e0f891c6b62162dcbe9252db1b169a30baa37fb4eb2994838ef",
     "publication_record": {
       "path": "evaluation/publication/publication-record-1.0.0.json",
-      "sha256": "cf3e9f244415981a22d07d9f9489f4a0b9314bb4d2e6c5b55373080176479e3b"
+      "sha256": "7d382846ffb24bd30f0c702ba6e67106a6521decb57b41ed3df0e9d86854d33f"
     }
   },
   "dependencies": [

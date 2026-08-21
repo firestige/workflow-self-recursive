@@ -55,6 +55,7 @@ Catalog envelope field：
 | `status` | `REVIEW_CANDIDATE` | Contract lifecycle state；绝不是 implementation 或 publication claim |
 | `semantic_authority` | fixed non-empty reference | 把 representation 绑定到本文件 identity |
 | `dependencies` | 一个 exact closed Observation binding | 把 `observation-contract@1.0.0` 绑定到其已发布 semantic revision、machine revision、publication digest 与 gitlink commit；无 SemVer inference |
+| `minimum_sample_policy` | 一个 fixed rule | 低于 `minimum_sample` 时 metric value 不发布，而 complete coverage result 仍发布 |
 | `coverage_policy` | 一个 closed policy object | 固定 result field、state、threshold domain、exact comparison，以及 coverage 绝不 gate publication 的规则 |
 | `input_definitions` | `{input_id, source_layer, semantic_ref, binding}` 的 closed array | 声明可解析 semantic input 及其 owning layer；`binding` 始终是 `human-semantic-reference`，绝不是 wire binding 或 authority grant |
 | `metrics` | 精确 14 个 metric record | §5 声明的 MVP metric set |
@@ -78,7 +79,7 @@ Metric record field：
 | `input_refs` | 一个或多个 unique input identifier | 每个 metric 对 catalog closed `input_definitions` registry 的 reference；每个 reference 必须解析 |
 | `eligibility` | 一个或多个 string | record 进入 numerator 或 denominator 必须满足的 positive condition |
 | `exclusions` | string array | 将 record 从 metric 移除的条件 |
-| `minimum_sample` | integer ≥ 1 | 既有 minimum-sample rule；本 revision 不重新解释它 |
+| `minimum_sample` | integer ≥ 1 | eligible-unit count 的 minimum；低于它时 metric value 不发布，但 coverage result 仍发布 |
 | `coverage.denominator` | non-empty string | coverage 的 exact candidate population：identity、time window、cohort 与 base scope |
 | `coverage.numerator` | non-empty string | denominator 中全部 required direct input 均可用的 subset |
 | `uncertainty` | 一个或多个 string | 陈述的 limitation 与 interval |
@@ -187,14 +188,14 @@ Task terminal state 是 evaluation reading，不是 Observation fact。它在一
 - 0 < numerator < denominator → `PARTIAL`；
 - numerator = denominator → `FULL`。
 
-Coverage 绝不 gate publication，也绝不隐藏、置零或改写 otherwise computable metric value。默认 `LOW_COVERAGE` alert threshold 是 `0.10`；合法 threshold 为 `{0.00,0.01,...,0.99}`。Threshold 0 关闭 alert。否则 denominator > 0 时，仅在 raw coverage 低于 threshold 时 alert。不用 rounded value 比较：threshold hundredths `T ∈ [0,99]` 时比较 `100 × numerator < T × denominator`；相等不 alert。Threshold change 只重算 alert，绝不改变 historical fact、value 或 coverage。本 revision 不重新解释 `minimum_sample`。
+Coverage 绝不 gate publication，也绝不隐藏、置零或改写 otherwise computable metric value。`minimum_sample` 保留其独立的既定行为：低于 declared eligible-unit count 时，metric value 不发布，但 coverage numerator、denominator、raw ratio、state 与 alert 仍发布。默认 `LOW_COVERAGE` alert threshold 是 `0.10`；合法 threshold 为 `{0.00,0.01,...,0.99}`。Threshold 0 关闭 alert。否则 denominator > 0 时，仅在 raw coverage 低于 threshold 时 alert。不用 rounded value 比较：threshold hundredths `T ∈ [0,99]` 时比较 `100 × numerator < T × denominator`；相等不 alert。Threshold change 只重算 alert，绝不改变 historical fact、value 或 coverage。
 
 ### 6.5 Per-metric input 与 eligibility map
 
 | Metric | Required projected/evaluation input | Metric-level eligibility and exclusions |
 | --- | --- | --- |
 | `role-template-rework-rate` | defined-task snapshot；exact event-time role template；unique terminal task outcome；linked repair | 排除 open/mixed/undefined task 与 backfilled/missing template assignment |
-| `role-template-trajectory-partial-cost` | 相同 task/template input 加 linked direct cost | 排除 mixed currency/source/cost basis、estimated/unattributed cost 与 insufficient coverage |
+| `role-template-trajectory-partial-cost` | 相同 task/template input 加 linked direct cost | 排除 mixed currency/source/cost basis 与 estimated/unattributed cost；partial coverage 保持可见，不排除 otherwise computable value |
 | `role-model-task-outcome-rate` | unique terminal task outcome 加 complete model-role tuple | 排除 open/mixed task 与 incomplete attribution；在一个 eligible denominator 上每个 outcome 发布一个 numerator |
 | `packet-rework-rate` | exact packet identity、supported governance revision 与 repair-attribution input | denominator 是全部 in-scope eligible packet；known no-repair packet 保持 covered 并贡献 0；unavailable repair attribution 影响 coverage，不是普通 negative classification |
 | `operational-latency-ms` | native model-call Span duration 加 complete provider/model/role/runtime tuple | 排除 absent/invalid duration 或 incomplete attribution；model-role cohort 保持 exact |
