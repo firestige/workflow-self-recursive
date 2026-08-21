@@ -106,7 +106,7 @@ flowchart LR
 
 ## 6. 版本与兼容
 
-- Contract revision：`name@MAJOR.MINOR.PATCH`（如 `agentops.workflow-dsl@0.1.0`）。
+- Contract revision：`name@MAJOR.MINOR.PATCH`（如 `agentops.workflow-dsl@1.0.0`）。
 - `0.x` 是 pre-release：review 后语义仍可能调整；`1.0.0` 是第一个冻结 revision。
 - 兼容类别：
 
@@ -189,7 +189,7 @@ flowchart LR
 | OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | [`system-contracts/observation/`](../../system-contracts/observation/)（候选，未发布） | `REVIEW_CANDIDATE` | proposed `0.3.0` | 独立审查与物理发布（`concept.obligation.001`） |
 | Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | 未发布 | `REVIEW_CANDIDATE` | split draft | 机器表示发布（`concept.obligation.001`） |
 | Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | 未发布 | `REVIEW_CANDIDATE` | split draft | 机器表示发布（`concept.obligation.001`） |
-| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/)（候选材料） | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@0.1.0` | Task 2 迁移（contract.gate.2/contract.gate.3 证据）→ 独立 contract.gate.1 review → 机器发布 → FROZEN |
+| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/)（`1.0.0` candidate，未发布） | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@1.0.0` | 独立 contract.gate.1/gate.2/gate.4 证据 + owner approval → final binding → FROZEN |
 
 注：
 
