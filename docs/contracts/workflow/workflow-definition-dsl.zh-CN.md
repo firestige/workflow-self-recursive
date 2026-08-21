@@ -1,672 +1,429 @@
-# Agent Ops Workflow Definition DSL — Contract 面（中文翻译）
+# Agent Ops Workflow Definition DSL — 契约表面
 
-> **状态：REVIEW_CANDIDATE，未发布，不可用于 conformance 声明。** 本文是 [`workflow-composition-model.md`](../../workflow-composition-model.md) §4.3 推迟的 **Workflow Contract 的 DSL 面**：最终字段与合并算法的定义源头。它把"机器可读 Workflow Definition"从设计原则变成闭合的机器可校验格式。语义已冻结为供下游验证的候选（快速路径，[Contract Lifecycle Management](../contract-lifecycle.md) §4.3）；在 schema、registry、fixtures 与验证证据发布之前，任何实现不得声称对该 Contract 的 physical conformance（沿用 `concept.obligation.001` 的诚实生命周期约定）。
+> **状态：FROZEN，已经发布。** Contract revision：`agentops.workflow-dsl@1.0.0`。本 revision 已纳入 [#77 Contract owner 决策](https://github.com/firestige/workflow-self-recursive/issues/77#issuecomment-5363955531)，通过 contract.gate.1–6，并获得 [Contract owner 明确批准](https://github.com/firestige/workflow-self-recursive/issues/77#issuecomment-5365978215)。Exact publication binding 记录于 `system-contracts/workflow-dsl/publication/publication-record-1.0.0.json`。
 >
-> **规范语言：英文。** 本文件是 [`workflow-definition-dsl.md`](workflow-definition-dsl.md) 的非规范跟踪翻译。每当英文章节变更，其中文对应章节从当前英文章节整体重译并整篇替换；中文维护不保留或增量演进先前的中文措辞。
+> **规范语言：English。** 本文件是 [`workflow-definition-dsl.md`](workflow-definition-dsl.md) 的非规范 wholesale translation。English 发生变化会使先前 translation evidence 失效。
 >
-> **归属**：本 Contract 文档位于 super project 的 `docs/contracts/workflow/`；其规范机器表示（JSON Schema、示例 Package、校验器）位于 [`system-contracts/workflow-dsl/`](../../../system-contracts/workflow-dsl/)。`workflow-package/` 只承载可执行 Workflow 及其资源，不承载 Contract。
+> **所有权。** English 文档拥有 portable Workflow Definition Contract。其 normative JSON Schemas、minimal Package/Snapshot、checker、canonicalization helper 与 executable fixture corpus 位于 [`system-contracts/workflow-dsl/`](../../../system-contracts/workflow-dsl/)。`workflow-package/` 存放 first-party consumer，不是第二个 Contract authority。
 
-## 1. 定位、范围与依赖
+## 1. 范围与权威
 
-| 字段 | 内容 |
+| 字段 | 值 |
 | --- | --- |
-| 状态 | 按 [Contract Lifecycle Management](../contract-lifecycle.md) 为 `REVIEW_CANDIDATE`（快速路径 §4.3）；Contract revision `agentops.workflow-dsl@0.1.0` |
-| 上层依据 | [`workflow-composition-model.md`](../../workflow-composition-model.md)（governing，尤其 §4、§6、§7、§8、§9、§11、§12、§13、§14）、[`agent-architecture.md`](../../agent-architecture.md)（§3 稳定概念、§4 cross-system invariants）、[`systems/runtime/first-party-langgraph-runtime-profile.md`](../../systems/runtime/first-party-langgraph-runtime-profile.md)（§3 范围，尤其 Builder/compiler 为 non-goal；§13–14 证据纪律） |
-| 对齐的 design-time 语义 | [`workflow-package/implementation/workflow.md`](../../../workflow-package/implementation/workflow.md)、`agents/routes.md`、`schemas/*.schema.md`、`templates/*.template.json`、`composition-conformance.md`；[`workflow-package/system-design/workflow.md`](../../../workflow-package/system-design/workflow.md)、`agents/routes.md`、`schemas/*.schema.md`（本文翻译并闭合它们的语义，不重定义） |
-| 本 Contract 回答 | §4.3 推迟的两件事：**最终字段**（§5 + `system-contracts/workflow-dsl/schemas/` 规范 schema）与**合并算法**（§7，authority/组合顺序的可验证规则） |
-| 本 Contract 不定义 | Definition→Implementation 编译/执行、builder/authoring 工具、物理目录名、LangGraph/Driver 原生 API、Runtime 私有状态格式 |
-| 翻译 parity 义务 | 英中 companion 的 anchor、heading、table、ID、field、enum 与 link 保持配对；对应英文权威见 [`workflow-definition-dsl.md`](workflow-definition-dsl.md) |
+| Contract revision | `agentops.workflow-dsl@1.0.0` |
+| Lifecycle | `FROZEN`；已发布；`conformance_claim=DEFINITION_AND_VALIDATOR_ONLY` |
+| Upstream authority | [`workflow-composition-model.md`](../../workflow-composition-model.md)、[`agent-architecture.md`](../../agent-architecture.md)、两份 first-party Workflow semantic document，以及 #77 最新 owner decision |
+| Machine representation | exact 同 revision 的 `system-contracts/workflow-dsl/` |
+| 本 Contract 拥有 | portable Definition 字段、graph/dataflow closure、Action/Role/Route authority、Package/Snapshot identity、canonicalization、typed Runtime event port 与 conformance input/oracle |
+| Runtime 拥有 | scheduling、persistence、attempt creation、retry execution、checkpoint storage、continuation restoration、provider adaptation、budget accounting 与 terminal settlement |
 
-### 1.1 平级关注点边界
+Contract 定义已准入 Runtime 必须保持什么，但不实现 Runtime。随附 fixture runner 只是当前 corpus 使用的抽象 operation test harness；它不是 scheduler、persistence engine、retry engine、continuation store 或 settlement engine。
 
-Workflow Definition、机器表示、指令 authority 与 Package 组织是平级关注点。它们共同闭合一个 Contract surface，也可以共用本文，但任何一个都不是另一个的实现子特性：
+### 1.1 分层隔离
 
-| 关注点 | 拥有 | 不拥有 |
+| 层 | 可变性 | Owner | Portable 内容 |
+| --- | --- | --- | --- |
+| Workflow Definition | versioned | Package owner | graph、Actions、Roles、Routes、Artifact declarations、validators、budgets、Wait declarations、event edges |
+| Workflow Package Snapshot | 每个 Delivery immutable | admission/configuration identity authority | exact Package/Definition/document/resource/route/graph identities 与 digests |
+| Workflow State | 每个 Delivery mutable | selected Runtime | current graph node、Action invocation/attempt facts、results、Artifact refs、budgets、pending Wait、terminal proposal |
+| Workflow Implementation | Runtime-private | selected Runtime | compiled graph、native callbacks/checkpoints/sessions |
+
+Definition 与 Snapshot 不包含 provider-native checkpoint、session、invocation 或 attempt identity。替换 Runtime 不得改变它们的 portable semantics。
+
+## 2. Normative document 与 schema 集合
+
+Package index 命名六份 Definition document。Snapshot 在 admission 时另行生成。
+
+| Kind | 典型文件 | Normative schema |
 | --- | --- | --- |
-| Workflow Definition | state、flow、judge、parallel、loop、wait、budget、recovery、Role、Action 与 output 语义 | schema/checker 实现、指令组合、Package 组织、Runtime 执行 |
-| 机器表示 | 8 个 JSON Schema、closure/reference/vocabulary/forbidden-field checker 与最小机器示例 | 新的语义决策或 Runtime 行为 |
-| 指令 authority | 规范顺序、Workflow 控制约束交集、冲突处理、冻结 merge proof 与 authority custody chain | Provider tool grant、文件系统/网络/凭据权限、sandbox、graph/domain 语义、Package 存储布局、Driver 原生优先级 |
-| Package 组织 | closure 规则、owned/referenced 资源语义、Snapshot/State 分离 | 资源内部 schema 或 Definition→Implementation 编译 |
-| runner 实现 | 在不改变既有 Action、transition、Gate 或 terminal 语义的前提下编译和执行已准入的精确 Definition/Snapshot | Contract 创作或重新选择已准入 authority |
+| `agentops.package` | `package.json` | `schemas/package.schema.json` |
+| `agentops.workflow-definition` | `workflow.json` | `schemas/workflow-definition.schema.json` |
+| `agentops.actions` | `actions.json` | `schemas/actions.schema.json` |
+| `agentops.roles` | `roles.json` | `schemas/roles.schema.json` |
+| `agentops.routes` | `routes.json` | `schemas/routes.schema.json` |
+| `agentops.artifacts` | `artifacts.json` | `schemas/artifacts.schema.json` |
+| `agentops.validation` | `validation.json` | `schemas/validation.schema.json` |
+| `agentops.workflow-package-snapshot` | admission output，例如 `snapshot.json` | `schemas/package-snapshot.schema.json` |
 
-Definition 关注点是其十一个 DSL 子关注点的语义根；这些子关注点不再成为独立 Contract feature。机器 schema 只编码这些平级关注点拥有的语义，不能反转 authority 方向。Runtime 资源 binding 声明一条已准入 route 需要什么，绝不授予权限。DSH 或其他 selected Runtime 始终独占原生 tool visibility、授权提示、路径/网络/凭据 policy 与副作用执行。
+`schemas/agentops.meta.schema.json` 是第九份 normative schema，提供共享 closed definition。全部 document 使用 JSON Schema draft-07，且每个 portable object boundary 都采用 `additionalProperties: false`。
 
-### 1.2 Definition 语义覆盖（v1）
+## 3. Identity、canonicalization、Package digest 与 Snapshot
 
-以下十一个子关注点共同构成一个 Definition 语义 surface。每项都有规范的机器可读声明与 fail-closed 规则；runner 只实现这些声明，不得增加、遗漏或重新解释它们。
+### 3.1 Canonical JSON
 
-| 子关注点 | 规范声明 | 闭合的 v1 语义 | Runner 义务 |
-| --- | --- | --- | --- |
-| state | `state.fields[]` 与 reducer 定义 | 字段类型与 reducer 词汇闭合；写入只按声明的 reducer 合并 | 持久化与归约时不改变字段或 reducer 含义 |
-| flow | graph nodes、静态/条件 edges、terminals 与 Action `allowedSuccessors` | start 已声明、reachability 可校验，且精确合法 successor 集闭合；集合外 transition 失败 | 只编译已声明 edge，并拒绝非法推进 |
-| judge | `conditionalEdges[].judge`、closed predicate 或 non-recursive Planner Action | 确定性谓词只检查结构化 State；语义判断先返回符合 schema 的 classification，再选分支 | 调用已声明 judge 并校验结构化结果；绝不发明分支 |
-| parallel | Action `execution.mode: parallel`、branches 与 `join.barrier` | 静态 branch 集和 join barrier 显式；aggregation authority 已声明且禁止多数决 | 调度已声明 branch 并等待已声明 barrier |
-| loop | 已声明 graph cycle 加 progress State、budget、Gate 与 recovery binding | 只有已声明 cycle 可重复；相同失败会消耗 budget，禁止 blind replay | 保留 attempt identity、计算 progress/budget，并只走已声明 exit/recovery 路径 |
-| wait | `waits[]` 与 Action `waitPolicy` | 单一 correlated pending obligation、精确授权 resume、确定性 expiry、拒绝 stale/duplicate | 映射为原生 interrupt/resume，同时保持 correlation 与 fail-closed 行为 |
-| budget | `budgets[]`、evaluator registration、State counter 与 `onExhaustion` | resource dimension 与 evaluator 显式；耗尽永不放松 Gate | 调用已准入 evaluator、持久化消耗并进入声明的耗尽路径 |
-| recovery | `recovery[]`、`noBlindReplay`、checkpoint bindings 与 terminals | 只允许已知 continue/restart、显式 intervene 或不可重试 fail | 任何 retry/resume 前重新解析 binding 并拒绝失配 |
-| role | `roles[]`、Action `responsibleAuthority`、selector 与 routes | 责任、authority boundary、独立性与可准入 binding 均被声明；route requirement 不是 Provider grant | 只选择已准入 route；原生 grant 与副作用留给 selected Runtime/DSH |
-| action | `actions[]` input/result schema、authority、execution、selector、Gate 与 successor bindings | input、结构化 result、责任 authority、validation 与合法 continuation 都显式 | 执行已准入 binding，拒绝无效 result、Gate bypass 或 successor |
-| output | `artifacts[]`、templates、result schema、validators 与 terminal settlement | output shape、coverage/completion、lifecycle、validity 与 settlement 是已声明事实，不是自由文本成功声称 | 产出有版本的 Artifact、运行 validator，且只经声明的 terminal 结算 |
+Canonicalization 作用于解析后的 JSON value，其中 number 表示为 IEEE-754 binary64 value：
 
-完整性只相对于这个显式 v1 surface。§18.1 列为不支持的形态必须被拒绝或采用文档规定的 v1 替代建模，不能由 Runtime 猜测补齐。未来增加该形态属于 §11 与 §18 下的 Contract 演进，不是实现层解释。
+1. 每个 string 与 object member name 必须只含 Unicode scalar value；lone UTF-16 surrogate 被拒绝；
+2. object member name 按 UTF-16 code-unit sequence 升序排列，与不带 comparator 的 ECMAScript `Array.prototype.sort` 一致；
+3. array 顺序严格保留；
+4. string、finite number、boolean 与 `null` 使用 ECMAScript `JSON.stringify` serialization；这包括其 exponent 拼写，negative zero 编码为 `0`；
+5. non-finite number、`undefined`、function 与其他非 JSON value 被拒绝；
+6. 不输出 whitespace。
 
-**明确不做**（与 runner §41 一致）：
+非 ECMAScript implementation 必须复现这些 exact UTF-16 ordering 与 binary64 serialization rule；不得替换成 Unicode code-point order、arbitrary-precision number serialization 或 host-default map order。
 
-1. 不实现"Definition → LangGraph `StateGraph`"的编译与执行 —— 那是 runner/Execution 层动作。
-2. 不做 builder / 简单配置 authoring 工具 —— MVP 直接从机器可读 Definition 开始。
-3. 不重新设计 graph 概念 —— 继承行业通用 graph 原语（node / edge / conditional edge / state schema / reducer / checkpoint / interrupt），语义与 LangGraph 1:1 对齐但不提升其物理 API 身份。
-4. 不写成"伪 YAML" —— 每个字段的含义、允许值、约束在本文件与规范 schema 中闭合（composition model §9/§230）。
+`canonical_digest(value) = "sha256:" + lowercase_hex(SHA-256(UTF-8(canonical_json(value))))`。
 
-**Definition 的语言中立性。** DSL 本身是开放的：Definition 内的人类可读文本（如 `purpose`、`meaning`、Prompt 与 Skill 资源内容）**不限制语种** —— 第三方 Workflow 作者可以使用他们选择的语言。第一方 Package 对人类可读文本遵循项目的英文优先政策。本文作为 Contract，无论任何 Definition 内使用何种语言，都以英文为权威。
+凡 Contract 指定 declaration order，array order 都具有语义；object member order 永无语义。
 
-## 2. 分层模型与物理表示中立
+### 3.2 Package digest
 
-### 2.1 四层语义
+`package.digest` 是完整 Package index 仅省略 `package.digest` 后的 canonical digest。因此 Package digest 在不形成自引用的前提下绑定 document path、resource index、authority declaration、environment requirement、compatibility range 与 Definition content identity。
 
-| 层 | 是什么 | 谁写 | 是否进 Package |
-| --- | --- | --- | --- |
-| **Workflow Definition** | 逻辑 Workflow 的版本化、技术中立、机器可读声明（graph / state schema / transition / Action / Gate / budget / Wait / recovery / terminal / Role route / Artifact template / validation / handoff） | Package owner | 是，canonical |
-| **Workflow Implementation** | 某 Runtime Profile 对 Definition 的可执行实现（第一方：编译为 LangGraph JS `StateGraph`） | Runtime/编译层 | 否，Runtime 私有编译产物 |
-| **Workflow Package Snapshot** | 一次 Delivery 对 Package 的不可变、完整、已解析 identity-and-relationship closure | Execution 准入 authority | 否（准入时产生） |
-| **Workflow State** | 一次 Delivery 的可变运行状态（current Action、结果、Artifact、预算、Wait、recovery、terminal proposal） | Selected Runtime Profile 独占 | 否 |
+`package.definition.contentIdentity` 另行绑定已声明 Workflow document 的 byte SHA-256。任一 digest 不匹配都拒绝 admission。
 
-定义层级的不变量：**Runtime 只接受编译后的 Implementation；Implementation 不得改变 Definition 声明的 Action、合法 transition、Gate 或终态语义**（composition model §4.2）。本 DSL 只定义 Definition 这一层的机器可读格式及其闭合规则。
+### 3.3 Snapshot 内容
 
-### 2.2 物理表示中立
+Snapshot 绑定：
 
-- **语义身份是字段与规则，不是字节。** 本 Contract 的 identity 是 §5–§11 的语义模型。
-- **规范编码是 JSON**（可被 JSON Schema draft-07 校验）。`system-contracts/workflow-dsl/schemas/` 目录中的 8 个 schema 文件是规范机器形式。
-- 其他物理编码（YAML/CBOR/…）只有在能**无损双向映射到规范 JSON 且往返后字段语义不变**时才允许作为表示；任何编码都不得引入 LangGraph/Driver 物理字段（附录 C）。
-- 禁止把 LangGraph 的物理 API 身份提升为 Contract canonical identity：`StateGraph` 类名、`langgraph.json`、原生 checkpoint/thread ID、原生 reducer 函数名等（composition model §12 坏味道、§13 红线）。这些属于 Implementation/编译层。
+- Snapshot identity 与 canonical digest；
+- exact Package name/version/digest；
+- exact Definition identity/version/content identity；
+- 六种 document kind 与 byte content identity；
+- 每个 owned/referenced resource identity、ownership class 与 content identity；
+- 每个 `Action → Role → Route` binding；
+- graph node、typed event-edge 与 terminal identity；
+- canonical authority order 与 merge proof；
+- portable continuation binding vocabulary；
+- `noAmbientFallback=true` 与 `allBindingsExact=true`。
 
-### 2.3 指令 authority 顺序（总纲）
+Snapshot digest 是仅省略 `snapshot.digest` 后的 canonical digest。State 不得改写 Snapshot。任何 binding 变化都会为新的 authorized Delivery 产生新 Snapshot。
 
-推荐的指令 authority 顺序（composition model §8）被本 Contract 固定为**规范序**，任何 Package 都必须声明且不得偏离（§7.1）：
+### 3.4 Portable continuation binding vocabulary
+
+每个 applicable checkpoint 绑定以下 exact portable fact：
+
+`delivery | snapshot | graphNode | action | attempt | inputBindings | artifactBindings | branchResults | budgets | pendingWait`
+
+`action` 是适用的 Action identity，包括相关 branch 或 aggregator Action。Provider checkpoint/session type 被禁止。Snapshot 记录此 vocabulary，Definition 在 applicable checkpointed node 上声明它；Runtime 拥有实际 value 与 storage。
+
+## 4. Action、Role、Route 与 authority
+
+### 4.1 Action 是可复用 task template
+
+每个 Action 声明 `id`、`name`、`purpose`、`resultSchema`、`responsibleAuthority` 与 `gate`；`inputSchema`、`allowedRoutes`、`escalation` 是条件字段。
+
+Action authority shape 恰好有两种：
+
+| Shape | Required authority | Agent binding |
+| --- | --- | --- |
+| Agent Action | `{kind:"role", role:<exact Role>}` | 一个或多个 allowed Route，全部携带同一个 responsible Role |
+| deterministic Action | `{kind:"runtime", validator:<exact deterministic validator>}` | 无 Role 且无 `allowedRoutes` |
+
+Action 永不携带 graph position、parallel branches、join configuration、Wait target、recovery target、successor set、invocation identity 或 attempt identity。每个实际 invocation 只继承其 Action envelope、适用时唯一 Role envelope 与 selected allowed Route 的交集。
+
+### 4.2 Role 与 Route
+
+Role 声明稳定 responsibility、closed Workflow authority concern set、Artifact/result write custody、prohibition 与可选 independence requirement。Write custody 不是 filesystem 或 provider permission grant。
+
+Route 把一个 Role 绑定到 exact Agent definition、Role prompt、Action prompts、Skills、model、tools、Driver、session intent 与 Workflow data-access intent。Route 对 Action 可准入，当且仅当：
+
+1. Route 列在该 Action 的 `allowedRoutes` 中；
+2. Route Role 等于 Action 的唯一 responsible Role；
+3. 每个 resource 都按 exact required kind 与 content identity 声明；
+4. 要求 managed projection；
+5. Route、Prompt、Skill、model、tool、Driver 或 session 都不能扩大 Action/Role authority。
+
+Provider tool visibility 与 native side-effect authorization 仍属于 Runtime/Adapter concern。
+
+### 4.3 Canonical instruction merge
+
+唯一可准入的 authority order 是：
 
 ```text
-Workflow/Action authority → Role prompt → Action Prompt → Skill instructions → Artifact/user content
+workflow_action → role_prompt → action_prompt → skill → artifact_user
 ```
 
-后者不能扩大前者 authority；Artifact 是被处理的数据，不因含有命令式文本而成为配置指令；冲突 fail closed，不依赖 Driver 隐式优先级。
+Merge algorithm 按此顺序收集 Route 的 exact instruction resource，单独绑定 model/tool/Driver/session dependency，求 Action 与 Role envelope 交集，校验 Route authorization 与 resource closure，并输出 immutable merge proof。它不改变 resource byte，也不授予 provider permission。缺失或矛盾 binding 均 fail closed。
 
-## 3. 文档集总览与 Package 闭合
+## 5. Graph 与 control routing
 
-一个符合本 DSL 的 Workflow Package 由 **1 个 Package Index + 6 个 Definition 文档**组成（物理文件可合并，但 authority 不得合并；`package.json` 的 `documents` 字段给出相对路径，本 Contract 不规定固定目录名）：
+### 5.1 Node kind
 
-| 文档 kind | 文件（示例） | 内容 | 规范 schema |
+Closed node vocabulary 是：
+
+`action | parallel | wait | wait-renewal | recovery | cleanup`
+
+Ordinary edge 只包含 `{id, from, to}`。`to` 是 exact node identity 或 `terminal:<exact terminal identity>`。没有 `routing` 的 node 最多有一个 ordinary success successor；显式 fan-out 只能由 parallel node 表示。有 `routing` 的 node 不得有 ordinary edge。`wait` 与 `wait-renewal` node 不得有 ordinary outgoing edge，因为其 successful continuation 是 recorded，而非 user-configurable。异常处理使用 typed event edge（§7），永不使用 Action target。
+
+### 5.2 Action node
+
+Action node 声明 `{id, kind:"action", action}`，以及可选 `budget`、`checkpoint`、`continuationSource` 与 `routing`。它把一个 graph position 绑定到一个可复用 Action。
+
+Recovery node 要求 `{id, kind:"recovery", recovery}`，并可选声明 `action`、`budget`、`checkpoint` 与 `continuationSource:true`。`recovery` 引用一个 declared recovery policy；可选 `action` 命名 explicit recovery work，但绝不是 continuation target。
+
+Cleanup node 要求 `{id, kind:"cleanup", disposition, action}`，并可选声明 `budget` 与 `checkpoint`。`disposition` 为 `cancellation | failure | continuation`；`action` 是在自身 authority 下执行 cleanup 的 ordinary Action。Cleanup closure 仍受 §7.3 约束。
+
+### 5.3 Strict deterministic result routing
+
+Mechanical branching 由 deterministic Action/validator 产生 top-level strict JSON boolean 或 closed enum property。Deterministic `routing` 声明：
+
+```json
+{
+  "kind": "deterministic",
+  "output": "routing",
+  "cases": [
+    {"value": "accept", "target": "node.accept"},
+    {"value": "revise", "target": "node.revise"}
+  ]
+}
+```
+
+Checker 证明 `output` 是 producing Action `resultSchema` 的 top-level property，且其类型为 boolean 或 closed enum。`cases` 对该 closed result vocabulary 构成 total single-valued mapping：每个 allowed boolean/enum value 恰好出现一次，不同 value 可以指向同一个 node。Inline result schema 直接检查；routing 使用 referenced result schema 时，该 schema 必须解析为 exact declared `schema` resource byte、通过 content digest 且在 admission 时 materialized。byte 不可用或不是 JSON 时 fail closed，禁止 ambient fetch。Missing、duplicate 或 extra case value 拒绝 admission。Action result value 缺失、malformed、type mismatch 或 out-of-set 会使 producing attempt 失败。Runtime 不 coercion、不遍历 arbitrary JSON path、不比较 object/array，也不把 malformed output 当成 `false`。
+
+### 5.4 Semantic routing 与 internal Planner
+
+Semantic routing 只暴露 user-owned business branch 与一个 built-in fallback choice：
+
+```json
+{
+  "kind": "semantic",
+  "branches": [
+    {"id": "branch.a", "meaning": "...", "target": "node.a"},
+    {"id": "branch.b", "meaning": "...", "target": "node.b"}
+  ],
+  "fallback": {"kind": "question", "target": "node.ask"}
+}
+```
+
+Runtime-internal Planner 是严格 `N → 1` closed-set classifier，闭集由 N 个已声明且 locally unique 的 business branch ID 加上 selected built-in fallback 组成。Duplicate branch ID 拒绝 admission。Definition 不暴露 classifier prompt、Planner Action、provider protocol、`proposalSchema`、`allowedTargets`、generic predicate、`ALL|SELECTED` 或 invalidation algorithm。
+
+- successful classification 恰好返回一个 declared branch ID；
+- 多个 plausible branch 仍只产生一个 ID；
+- business inability to classify 选择 built-in fallback；
+- out-of-set/malformed response 是 execution-format failure，不是 fallback；
+- transient provider/Driver/format failure 可在 budget 内重试 exact classifier invocation；
+- retry budget 耗尽通过 `budget-exhausted` 进入 `INCOMPLETE`；
+- deterministic non-retryable configuration failure 通过 `nonretryable-failure` 进入 `FAILED`。
+
+Semantic-routing node 构成 portable Planner invocation graph。Classifier invocation 之间的 self-cycle 与 mutual cycle 拒绝 admission。这是 static graph check，不是 Planner implementation。
+
+## 6. Parallel node、immutable result 与 join
+
+### 6.1 Parallel 是 graph composition
+
+Parallel node 声明：
+
+- `id`、`kind:"parallel"`；
+- 至少两个 `branches[]`，每个为 `{id, action, required:true}`；
+- positive integer `maxConcurrency`；
+- 恰好一个 `join`；
+- 可选 `budget`、`checkpoint`、`continuationSource` 与 post-join `routing`。
+
+该 node 没有 Action、Role、Route 或 responsible authority。每个 branch 引用一个单独声明的 Action。Runtime invocation/attempt identity 为 private，不能进入 Definition。
+
+MVP 全部 branch 都 required。不提供 optional-branch switch、dynamic branch creation、`ALL|SELECTED` activation 或 completion-order semantics。
+
+### 6.2 Barrier 与 branch result invariant
+
+Join barrier 是内建语义，只在每个 declared branch 都有且仅有一个与 current input binding 对应的 current、admitted、successful result 时关闭。`FAILED`、`INCOMPLETE`、`CANCELLED`、malformed、stale、duplicate-current 或 unadmitted outcome 都不是 join input。
+
+每个 branch result 都 immutable，由其 branch Action authority 拥有，并携带独立 identity/lineage。Branch 不 shared-write Workflow State、其他 branch result 或 aggregate output。Wall-clock completion order 不影响 result map、digest、route 或 authority。
+
+可以重试一个 exact failed branch invocation，同时复用其他仍 current 的 successful result。不存在 full-rerun mode；重跑全部 branch 只是分别调度所有相关 exact invocation。
+
+### 6.3 Closed join union
+
+| Join | Input | Producer/owner | Output |
 | --- | --- | --- | --- |
-| `agentops.package` | `package.json` | Package identity/purpose/status/ownership、document set、**owned/referenced 资源索引**、authority 声明、环境要求、兼容范围 | `schemas/package.schema.json` |
-| `agentops.workflow-definition` | `workflow.json` | workflow identity、state schema（reducer）、graph（nodes/edges/conditional edges/terminals）、waits、budgets、recovery、handoffs/consumedHandoffs | `schemas/workflow-definition.schema.json` |
-| `agentops.actions` | `actions.json` | Action catalog：input/result schema、responsibleAuthority、allowedRoutes、execution（single/parallel）、selector、escalation、gate、budget、wait、recovery | `schemas/actions.schema.json` |
-| `agentops.roles` | `roles.json` | Role 稳定职责、authority boundary（concerns/writePermissions/prohibited）、independence | `schemas/roles.schema.json` |
-| `agentops.routes` | `routes.json` | Role route → Agent binding：Role prompt、Agent definition、Action prompts、Skills、model、tools、Driver、session policy、access、escalation | `schemas/routes.schema.json` |
-| `agentops.artifacts` | `artifacts.json` | Output/intermediate Artifact template（一等资源：真实内容或固定引用）、section 覆盖、completion、lifecycle、dependency validity | `schemas/artifacts.schema.json` |
-| `agentops.validation` | `validation.json` | deterministic validators、aggregation 规则、review lens 定义、conformance corpus（positive/negative/recovery） | `schemas/validation.schema.json` |
+| `collect` | complete branch-ID → result-reference collection | parallel node identity 下的 deterministic Runtime join operator | 新 reference map；不复制或解释 body |
+| `reducer` | 每个 branch Action 的整个 decoded JSON result payload | parallel node identity 下的 deterministic Runtime join operator | 一个新 reduced result |
+| `aggregator` | complete read-only branch result map | 显式引用的 ordinary aggregator Action，仅使用自身 Action/Role/Route authority | 一个新的 aggregator-owned Artifact/result |
 
-共享定义（identity / contentIdentity / sourceLocator / schemaRef / inlineSchema / predicate / reducer / resourceRef / authorityOrder）在 `schemas/agentops.meta.schema.json`。
+Aggregator 不继承 branch authority，不改变 branch identity/owner/provenance/disposition，也不向 branch 反向授权。Natural-language Review/Finding/domain-priority aggregation 必须使用 explicit aggregator Action。
 
-### 3.1 Package 闭合规则（机械校验）
+### 6.4 Reducer vocabulary 与 exact rule
 
-1. `documents` 中的 6 个文件都存在且 `kind` 与 `schemaVersion` 匹配；
-2. `package.definition.contentIdentity` == `sha256(documents.workflow)`；
-3. 所有被 routes/artifacts/template/selector 引用的资源 id 都在 `resources.owned|referenced` 中声明；
-4. owned 资源的 `path` 存在且 `contentIdentity` == `sha256(path)`；referenced 资源必须带 `sourceLocator`，不得带 `path`；
-5. `authority.order` 等于规范序，`conflictMode` 为 `fail-closed`；
-6. 不存在 ambient fallback：任何 route/资源缺失、内容身份失配、未声明引用都使 Package **不可准入**（admission/recovery 显式失败或进入 Workflow 声明的恢复路径，不能重新解析成另一版本）。
+Closed reducer 如下：
 
-### 3.2 Package 语义归属与机械证明边界
-
-Package 关注点拥有上述六条规范闭合规则、owned/referenced 资源生命周期（§5.8 与 §8）以及 Snapshot/State 分离（§9）。schema 关注点拥有它们在 `package.schema.json` 中的物理编码、checker、fixtures 与已发布的 conformance evidence。这里的**可机器校验**是指每条规则都有封闭输入、确定性谓词与显式的 fail-closed 结果；它不声称某个特定 checker 版本已经实现或通过该规则。
-
-| 闭合规则 | 封闭机器输入 | 失配时的必要结果 | 物理证明归属 |
-| --- | --- | --- | --- |
-| 文档集 | Package index、声明的六份文档及其 `kind`、`schemaVersion` | 拒绝准入 | schema/checker |
-| Definition 身份 | 声明的 Definition identity 与 `documents.workflow` 字节 | 拒绝准入 | schema/checker |
-| 资源引用闭合 | 所有 route/artifact/template/selector 资源引用与 Package resource index | 拒绝未声明引用 | schema/checker |
-| Owned/referenced 形态与身份 | owner、path 或 sourceLocator、contentIdentity 与解析后的内容 | 拒绝缺失、混用、浮动或不匹配的 binding | schema/checker |
-| Authority 声明 | 声明的 authority order、conflict mode 与 §7 的规范值 | 拒绝扩张、重排或非 fail-closed 的冲突处理 | schema/checker |
-| 禁止 ambient fallback | 完整的已解析闭包与每个尝试的运行时 binding | 拒绝替换或重新解析；只进入声明的失败/恢复路径 | checker/admission |
-
-因此，Package 语义 Contract 的完成不依赖其物理 validator 的发布状态。只有声明了这些输入与结果，Package 才能声称语义 conform；只有具备 §12 要求的 schema/checker evidence，才能声称物理 conform。
-
-## 4. 核心 graph 语义（继承行业标准，1:1 对齐 LangGraph 语义）
-
-本 DSL 的 graph 语义与行业通用模型（LangGraph 语义是其代表）逐项对齐，但只保留**语义**，不保留任何物理 API。映射表：
-
-| 行业/LangGraph 语义 | 本 DSL 构造 | 说明 |
+| Operator | 整个 branch payload type | 规则 |
 | --- | --- | --- |
-| node | `graph.nodes[].id` + `action` | 图的执行单元；每个 node 绑定一个 Action |
-| edge（静态转移） | `graph.edges[]`（`from`/`to`/`condition`） | `to` 可以是 node 或 `terminal:<id>` |
-| conditional edge（条件函数） | `graph.conditionalEdges[]`（`judge` + `conditions[].when` 谓词 → `target`，`default`） | 分支结构归 Workflow；**判断**归 state 谓词或 Planner Action（§4.1） |
-| state schema | `state.fields[]`（name/type/items/schema/reducer） | 见 §4.2 reducer |
-| reducer（状态合并） | `reducer` 内建词汇 + custom | 见 §4.2 |
-| checkpoint（持久化） | `graph.nodes[].checkpoint`（mode + bindings） | 见 §4.3 |
-| interrupt / resume | `waits[]` + Action `waitPolicy` | 见 §4.4 |
-| terminal（END/终态） | `graph.terminals[]` + `terminal:<id>` 引用 | 见 §4.5 |
-| 并行分支 + barrier（Send 语义的静态形式） | Action `execution.mode: "parallel"`（branches + join.barrier） | 见 §4.6 |
+| `sum|min|max` | inclusive `[-9007199254740991, 9007199254740991]` 的 JSON safe integer | 按 branch declaration order 读取；`sum` 每个 intermediate 与 final value 都必须保持 safe |
+| `all|any` | strict JSON boolean | 按 branch declaration order 读取；不 coercion |
+| `set-union` | non-null JSON scalar array；numeric member 必须是 safe integer | 按 branch declaration order 与 array-index order 读取；按 JSON type + exact value 去重并保留首次出现 |
 
-### 4.1 谓词词汇表（closed）
+Branch set 非空。Type mismatch、missing current result、duplicate current result、unadmitted result 或 safe-integer overflow 使整个 join 以 non-retryable `FAILED` 失败，不产生 partial output。若需 object-field projection，必须使用单独 deterministic Action，或改用 aggregator。
 
-`predicate` 只允许三种组合子（`allOf` / `anyOf` / `not`）与原子断言 `{field, op, value}`，`op` 闭合为：
+## 7. Runtime continuation 与 typed event edge
 
-`eq | ne | gt | gte | lt | lte | exists | notExists | in | notIn | contains | notContains`
+### 7.1 Internal continuation 没有 user target
 
-- `field` 是 Workflow State 的点分路径（如 `aggregation.routing`）；
-- `exists/notExists` 不允许 `value`；其余 op 必须带 `value`；
-- `contains/notContains`：数组成员或字符串子串；
-- 语义超出词汇表的规则**不允许写成自由代码**，必须引用 deterministic validator 资源（`gate.deterministic` / `validator`）。
+以下行为恢复 exact recorded continuation，不暴露 configurable target：
 
-这保证条件边的语义在 Definition 层完全可判定、可机械校验；复杂判断显式委托给内容寻址的确定性校验器，而不是"看似可准入"的伪代码。
+- retryable Action 或 internal Planner failure；
+- 与 pending Wait 匹配的 authorized answer；
+- 从 exact checkpoint 进行 crash/process recovery；
+- 重试一个 exact parallel branch invocation。
 
-**条件边的判断 authority。** `conditionalEdges` 条目声明 `judge`：
-- `judge.kind: state`（默认）：`conditions[].when` 谓词对 Workflow State 求值（仅结构化结果）。
-- `judge.kind: planner`：runtime 先调用声明的 Planner Action 的 Agent 对（可能非结构化的）上下文做语义判断；Agent 返回符合 `resultSchema` 的结构化分类；runtime 校验后按 `conditions[].when` 对该分类选分支。判断归 agent，分支结构归 workflow。Planner Action 必须声明其 allowed routes 且保持非递归。
+Stale、mismatched 或 duplicate Wait answer 被拒绝且不产生 State effect，Wait 保持 pending。若 restoration 已开始但 continuation missing、corrupt、expired 或 binding-mismatched，则 source 发出 `continuation-invalid`。
 
-### 4.2 State 与 reducer（closed）
+### 7.2 Typed Runtime event vocabulary
 
-- state 字段类型闭合为 `string | integer | number | boolean | array | object | artifactRef`；array 需 `items`，object/artifactRef 可用 `schema` 固定引用；
-- **内建 reducer 词汇表**（语义闭合）：
+每个 event edge 为 `{id, from, event, to}`，只引用 graph/terminal identity。
 
-| reducer | 语义 |
-| --- | --- |
-| `overwrite`（默认） | 后写覆盖前写 |
-| `append` | 数组追加（可配合 dedup 规则）；用于 findings 等累积 |
-| `merge` | 对象浅合并 |
-| `keepFirst` | 只保留首次写入 |
-| `sum` / `max` / `min` | 数值聚合；用于预算/计数（如 `reviewIterations`） |
-| `custom` | 必须引用 content-addressed 的确定性 Package-owned 函数；其绑定发生在 Implementation/编译层 |
-
-- 同一字段的 reducer 是 Definition 语义的一部分：**改变 reducer 语义 = 语义变更（MAJOR）**（§11）。
-
-### 4.3 Checkpoint
-
-- node 可声明 `checkpoint.mode ∈ {always, on-wait, on-terminal-proposal, never}`（默认 `always`）与 `bindings`；
-- **最小绑定集**（契约要求，缺失即 fail closed）：`delivery, snapshot, actionAttempt, manifestRevision, gitTree`；可扩展 `artifactVersions, pendingWait, budgets, lastProgress`；
-- 物理 checkpoint ID / thread ID 是 Runtime 私有，**不是**产品 Workflow identity（composition model §12 坏味道）。
-
-### 4.4 Wait / interrupt / resume
-
-- `waits[]` 声明：`kind ∈ {user, external, spike}`、`triggerAction`、`resumeAction`、`resumeSchema`、`correlation {identitySource, staleRejected: true, duplicateRejected: true}`、`expiry`；
-- Action 通过 `waitPolicy {kind, wait}` 绑定 Wait；
-- 语义规则：一次 Wait 只绑定**一个**待决测量/决定或**一个**协调请求；只有 exact authorized pending answer 才能恢复；stale/mismatched/duplicate answer 无效果（fail closed）；expiry 是确定性策略事件（可续期恢复或进入 `INCOMPLETE`），**expiry 不是成功也不是静默取消**；
-- Definition 声明 Wait 语义；Implementation 层把它编译为 Runtime 的 interrupt/resume 机制。
-
-### 4.5 Terminal
-
-- `graph.terminals[]`：`id`（如 `SUCCESS`）、`kind ∈ {success, failure, incomplete, cancelled, custom}`、`meaning`、`validation[]`（引用 validators）、`proposalCheckpoint`（默认 true：终态先形成 checkpointed terminal proposal，再 settlement）；
-- 边目标用 `terminal:<id>` 引用；预算耗尽/取消/不可重试失败通过**运行时强制的 terminal 转移**进入（不是普通边），见 §6.4。
-
-### 4.6 并行分支与 barrier（v1 范围）
-
-- Action `execution.mode: "parallel"`：`branches[]`（每条 `route` + `isolation ∈ {session-isolated, shared}` + `required`）+ `join`（`mode ∈ {all, aggregator}`，`barrier: true` 强制）；
-- 语义规则：并行分支在 barrier 之前**互相隔离**（session 隔离、看不到彼此结论；共享原始证据 ≠ 共享结论）；join 必须显式声明（`all` 或 `aggregator` 动作）；aggregation 规则在 `validation.aggregation` 声明；
-- v1 不引入动态 fan-out（Send）构造：静态并行分支 + state reducer 已覆盖两个 first-party Workflow（IM-12 双 lens、SD-09 三 lens）。动态 fan-out 是候选扩展，需要 Contract revision 才能进入（避免半闭合伪 YAML）。
-
-## 5. 最终字段（§4.3 推迟问题之一）
-
-规范字段全集以 `system-contracts/workflow-dsl/schemas/` 下 8 个 JSON Schema 为权威。本节给出每个文档 kind 的**字段目录**（name / 必填 / 含义与约束），供人类阅读；机器校验以 schema 为准。任何字段含义未闭合、或 schema 未覆盖的字段，都使文档不合法（`additionalProperties: false` 强制闭合）。
-
-### 5.1 `agentops.package`（`package.json`）
-
-| 字段 | 必填 | 含义与约束 |
+| Event | Exact source applicability | Compatible targets |
 | --- | --- | --- |
-| `kind` | 是 | `const: "agentops.package"` |
-| `schemaVersion` | 是 | `agentops.workflow-dsl@X.Y.Z` |
-| `package.name` | 是 | `^[a-z][a-z0-9-]*$` |
-| `package.version` | 是 | semver `MAJOR.MINOR.PATCH` |
-| `package.purpose` | 是 | 解决的问题与成功/终态含义 |
-| `package.status` | 是 | `DRAFT \| CONFIRMED \| DEPRECATED` |
-| `package.admissibility` | 否 | `ADMISSIBLE \| DESIGN_REFERENCE \| EXAMPLE_NON_ADMISSIBLE`；非 ADMISSIBLE 不得准入为生产 Snapshot |
-| `package.ownership` | 是 | `owner` + `authoritySource` |
-| `package.definition` | 是 | `name/version/contentIdentity`；contentIdentity 必须等于 workflow 文档的 sha256 |
-| `documents` | 是 | 6 个文档相对路径（workflow/actions/roles/routes/artifacts/validation） |
-| `resources.owned[]` | 是 | 见 §5.8；owner=owned 必须带 `path`，不得带 `sourceLocator` |
-| `resources.referenced[]` | 是 | owner=referenced 必须带 `sourceLocator`，不得带 `path` |
-| `authority.order` | 是 | 必须等于规范序（§7.1） |
-| `authority.conflictMode` | 是 | `const: "fail-closed"` |
-| `environmentRequirements[]` | 否 | 仅表示 compatibility 前提；绝不包含凭据或 authority grant |
-| `compatibility` | 是 | `minContractVersion`/`maxContractVersion`（本包声明兼容的 Contract 范围） |
+| `budget-exhausted` | 恰好每个 bound budget node，加上每个 `wait-renewal`；其他 source 禁止 | ordinary/parallel/recovery → Wait、recovery 或 `incomplete` terminal；wait-renewal → `incomplete`；cancellation cleanup → `cancelled`；failure/continuation cleanup → `failure` |
+| `wait-expired` | 恰好每个 `wait`；其他 source 禁止 | expiry-handling action/recovery、同 logical Wait renewal，或 `incomplete` terminal |
+| `cancelled` | 每个 non-terminal node | ordinary source → cancellation cleanup 或 `cancelled`；cancellation cleanup → `cancelled`；failure/continuation cleanup → `failure` |
+| `nonretryable-failure` | 每个 Action、parallel deterministic operator/join、wait-renewal、recovery effect 与 cleanup；pure Wait 禁止 | ordinary source → failure cleanup 或 `failure`；cancellation cleanup → `cancelled`；failure/continuation cleanup → `failure` |
+| `continuation-invalid` | 恰好每个标记为 possible resume/restore/recovery source 的 node；cleanup 与其他 node 禁止 | continuation/failure cleanup 或 `failure` terminal |
 
-### 5.2 `agentops.workflow-definition`（`workflow.json`）
+每个 applicable `(source,event)` 恰好有一条 edge。Missing、duplicate、prohibited、unknown-target 或 incompatible-target edge 都拒绝 admission。Normal success/business routing 不能使用 event port。
 
-| 字段 | 必填 | 含义与约束 |
-| --- | --- | --- |
-| `kind` / `schemaVersion` | 是 | `agentops.workflow-definition` / `agentops.workflow-dsl@X.Y.Z` |
-| `workflow.{id,name,version,purpose,contractVersion}` | 是 | Definition 独立版本身份（composition model §4.1） |
-| `state.fields[]` | 是 | 见 §4.2；`name` 模式 `^[a-z][A-Za-z0-9_]*$`（小写开头；camelCase 与 snake_case 均有效） |
-| `graph.start` | 是 | 必须是 node id |
-| `graph.nodes[]` | 是 | `id` + `action`（action 必须存在于 actions 文档）+ 可选 `checkpoint` |
-| `graph.edges[]` | 否 | `id/from/to` + 可选 `condition`；node 不得同时有静态出边与条件边 |
-| `graph.conditionalEdges[]` | 否 | `id/source/judge?/conditions[]/default`；conditions 至少 1 条；`judge` = state 谓词或 Planner Action（§4.1） |
-| `graph.terminals[]` | 是 | `id/kind/meaning` + 可选 `validation[]`/`proposalCheckpoint` |
-| `waits[]` | 否 | 见 §4.4 |
-| `budgets[]` | 否 | `id/scope/resource`（`time|tokens|context|custom`，custom 需 `resourceName`）+ `evaluator`（脚本注册点，schemaRef）+ `onExhaustion` + 可选 `action`/`accounting`；**配置中无数值额度**（§6.4） |
-| `recovery[]` | 否 | `id/mode` + 可选 `scope/action/condition`；`noBlindReplay: true` 强制 |
-| `handoffs[]` | 否 | 上游 handoff 声明；`semanticOnly: true` 强制，禁止下游控制字段（§10） |
-| `consumedHandoffs[]` | 否 | 下游消费声明；`mustNotWeaken: true` 强制，`preservesSemantics` 字节保真（§10） |
+### 7.3 Cleanup closure 与 sticky disposition
 
-### 5.3 `agentops.actions`（`actions.json`）
+Cancellation cleanup 只能到达 `cancelled` terminal。Failure 与 continuation cleanup 只能到达 `failure` terminal。Cleanup failure、cancellation 或 budget exhaustion 只追加 evidence，不能改变 original disposition，也不能启动 unbounded cleanup cycle。Cleanup `budget-exhausted` edge 按 sticky disposition 直接终止。
 
-| 字段 | 必填 | 含义与约束 |
-| --- | --- | --- |
-| `actions[]` | 是 | — |
-| `id/name/purpose` | 是 | — |
-| `inputSchema` / `resultSchema` | 否 / 是 | `schemaOrInline`：固定引用（schemaRef）或受限内联 schema |
-| `responsibleAuthority` | 是 | `{kind: role, role}`（Agent Action，composition model §11）或 `{kind: runtime, validator}`（纯确定性 Action，Runtime authority） |
-| `allowedRoutes[]` | 仅 role action | Agent Action（`kind: role`）：≥1 条 roles/routes 文档声明的 route id。Runtime Action（`kind: runtime`）不声明——它们没有 Agent 绑定 |
-| `execution` | 是 | `{mode: single}` 或 `{mode: parallel, branches[], join{barrier: true}}`（§4.6） |
-| `selector` | 是 | `{kind: deterministic}` 或 `{kind: planner, action, proposalSchema, allowedTargets, nonRecursive: true}`（§6.3） |
-| `allowedSuccessors[]` | 是（≥1） | 必须**等于**该 Action 所在 node 的 graph 出边集（§6.2 机械校验） |
-| `escalation` | 否 | `{allowed, scope: "route-within-allowed", cannotChange[]}`（§6.9） |
-| `gate` | 是 | `preconditions[]/postconditions[]`（谓词）+ `deterministic[]`（validator 引用）+ `freeTextBypass: "prohibited"` |
-| `budget` / `waitPolicy` / `recovery` | 否 | 引用 workflow 文档中声明的 budget/wait/recovery id |
+当前 Delivery 的 `nonretryable-failure` path 不能再次到达调度原 failed Action 或 deterministic operator 的 node。恢复该能力要求修正 configuration/environment 并启动新的 authorized Delivery。
 
-### 5.4 `agentops.roles`（`roles.json`）
+Runtime disposition 与 terminal kind 是不同层：`INCOMPLETE` 只由 `incomplete` terminal settlement，`FAILED` 只由 `failure`，`CANCELLED` 只由 `cancelled`。
 
-| 字段 | 必填 | 含义与约束 |
-| --- | --- | --- |
-| `roles[]` | 是 | — |
-| `id/name/responsibility` | 是 | — |
-| `authorityBoundary.concerns[]` | 是 | 从闭合 concern 词汇表选择（§7.2），声明该 Role prompt 可指令的关切 |
-| `authorityBoundary.writePermissions[]` | 是 | Workflow Artifact/result 创作边界，以 `target` + `scope` 表示（如 run-workspace 写、finding 写、approved-manifest commit）；不是文件系统或 Provider 权限 grant |
-| `authorityBoundary.prohibited[]` | 是 | 明确禁止项 |
-| `independence` | 否 | `{isolation: session-isolated/shared, barrier, sharedRawEvidenceOnly}` |
+### 7.4 Wait 与 bounded renewal
 
-### 5.5 `agentops.routes`（`routes.json`）
+Wait declaration 携带 `id`、`kind`、`purpose`、适用时 exact answer schema，以及要求 stale/duplicate rejection 的 correlation rule。它不携带 trigger/resume/restart Action target。
 
-| 字段 | 必填 | 含义与约束 |
-| --- | --- | --- |
-| `routes[]` | 是 | — |
-| `id/role` | 是 | role 必须存在于 roles 文档 |
-| `agent.definition` | 是 | 资源引用（agent-definition） |
-| `agent.managedProjection` | 是 | `const: "required"`：只接受冻结 route 的 managed projection，禁止 ambient/default 替换 |
-| `resources.rolePrompt` | 是 | 资源引用 |
-| `resources.actionPrompts[]` | 是 | `{action, prompt}`：每个 action 绑定一个 Action Prompt 资源 |
-| `resources.skills[]` / `tools[]` | 否 | 精确资源/依赖引用；tool 引用不授予原生使用权限 |
-| `resources.model` / `driver` | 是 | 精确 compatibility/依赖引用，不是 authority 层 |
-| `resources.sessionPolicy` | 是 | Workflow session 意图 `{freshness: fresh-per-episode/continuous-within-goal/resumable-within-admitted-dialogue, isolation: isolated/shared, resumeRule?}`；原生 Session state 仍为 Runtime 私有 |
-| `access[]` | 是 | 所需 Workflow 数据/Artifact 访问意图 `{target, mode: read/write/execute}`；原生副作用仍由 DSH Tool Policy 独立授权 |
-| `escalationAllowed` | 是 | bool |
+`wait-renewal` node 引用同一 logical Wait 并声明 nonnegative `maxRenewals`。Initial count 是 `0`。当 `count < maxRenewals` 时，successful renewal 原子增加 persisted count，创建新的 request identity/version，保持 continuation，并 deterministic return 到同一 Wait。这个 built-in return 不是 user-reconnectable event edge。
 
-### 5.6 `agentops.artifacts`（`artifacts.json`）
+当 `count >= maxRenewals` 时不创建 request；renewal node 发出唯一 `budget-exhausted` edge 到 exact `incomplete` terminal。`maxRenewals=0` 表示首次 expiry 后不 renewal。
 
-| 字段 | 必填 | 含义与约束 |
-| --- | --- | --- |
-| `artifacts[]` | 是 | — |
-| `id/name/kind` | 是 | `kind ∈ {output, intermediate}` |
-| `template` | 是 | **oneOf**：`{content}`（真实模板内容，name-only 永不合法）或 `{reference}`（固定资源引用，content identity 精确） |
-| `sections[]` | 否 | `{topic, questions[], completionCondition, naRule?}`：暴露真实目录/topic 与可判定完成条件 |
-| `lifecycle` | 是 | `{states[], storageKind: RUN_WORKSPACE/REPOSITORY_DELIVERABLE, retentionClass}` |
-| `dependencyValidity` | 否 | `CURRENT/STALE_PENDING_IMPACT/INVALIDATED/REVALIDATED` |
-| `producedBy` / `consumedBy[]` | 否 | action 引用 |
+## 8. State、budget、recovery、terminal 与 Artifact 字段
 
-### 5.7 `agentops.validation`（`validation.json`）
+### 8.1 Workflow State declaration
 
-| 字段 | 必填 | 含义与约束 |
-| --- | --- | --- |
-| `validators[]` | 是 | `{id, purpose, input, output, deterministic: true}` |
-| `aggregation[]` | 是 | `{id, scope(action), rule ∈ {no-voting, merge-common-cause, preserve-provenance}, arbiter(role), prohibited[]}` |
-| `review[]` | 是 | `{id, lens, role, isolation: "session-isolated", barrier: true, admission.findingShape}` |
-| `conformance[]` | 是 | `{id, class ∈ {positive, negative, recovery}, scenario, preconditions, expected}` |
+`state.fields[]` 声明 name、closed JSON-oriented type、可选 items/schema、requiredness 与 description。它不声明 shared-write reducer。已删除的 `overwrite`、`append`、`merge`、`keepFirst`、custom reducer、writer precedence、last-write-wins、parallel append 与 shallow-merge 字段均 invalid。
 
-### 5.8 资源条目（owned / referenced）
+Mutable Workflow State 归 Runtime 所有。Parallel branch data 只能通过 immutable result identity 与 declared join 穿过 barrier。
 
-| 字段 | 必填 | 含义与约束 |
-| --- | --- | --- |
-| `id` | 是 | 稳定 identity |
-| `kind` | 是 | `role-prompt/action-prompt/skill/template/schema/validator/agent-definition/tool/model/driver/cli/conformance/artifact-template/documentation` |
-| `owner` | 是 | `owned \| referenced` |
-| `path` | owned 时 | 包内相对路径；必须存在且 digest 匹配 |
-| `sourceLocator` | referenced 时 | `{repository, path, ref?}`；Snapshot 中不得为浮动 alias |
-| `contentIdentity` | 是 | `sha256:<64 hex>`；owned=文件真实 digest；referenced=内容可比身份 |
-| `use` | 是 | 该资源被谁消费、为何 |
+### 8.2 Budget
 
-## 6. 语义规则（按概念）
+Budget 声明 exact identity、resource dimension（`time|tokens|context|custom`）、适用时 custom name、content-addressed deterministic evaluator registration 与 accounting meaning。Numeric limit 保持为已准入 project/runtime policy。Graph node 绑定 budget；其 exact `budget-exhausted` edge 拥有 target。Budget 永不放松 Gate。
 
-### 6.1 Action
+### 8.3 Recovery
 
-- 每个 Action 有明确输入、结构化结果与 responsible authority：Agent Action 指定 Role（`responsibleAuthority.kind=role`）；纯确定性 Action 指定 Runtime authority（`kind=runtime` + deterministic validator）。
-- Agent 只能**提议**结果；合法性与有效性是两个不同 Gate（composition model §7）：选择合法（route/selector）由 Runtime 校验，结果有效由 result schema + gate 校验。Agent 自由文本不能绕过 Gate。
+Portable recovery policy vocabulary 为 `continue | checkpoint-recovery | intervene | fail`，并始终要求 `noBlindReplay:true`。Recovery 不声明 Action target 或 generic predicate。Effect 发生前重新校验 exact continuation/checkpoint binding。
 
-### 6.2 Transition 与 successor 闭合
+### 8.4 Terminal
 
-- Workflow 决定合法 successor 集合；`allowedSuccessors` 必须与 graph 出边集**逐项相等**（机械校验；示例 checker 已实现该规则）。
-- Planner 或任何 selector 只能在该集合内选择 next Action/route；越界 proposal 被拒绝且不推进 State。
+Terminal 声明 exact `id`、`kind`、`meaning`、可选 validator 与 checkpointed-proposal behavior。`kind` 为 `success|failure|incomplete|cancelled|custom`；standard Runtime disposition 只使用 compatible standard kind。同 kind 可以有多个 terminal。
 
-### 6.3 Selector
+### 8.5 Artifact
 
-- `deterministic`：Runtime 直接求值声明边/条件边（不需要 Agent）。
-- `planner`：Workflow 通过一个**显式 Planner Action** 调用其 Agent，要求返回结构化 selection proposal（符合 `proposalSchema`）；Runtime 校验 proposal 属于 `allowedTargets` 后才推进。Planner Action 自身必须声明 allowed routes，且 `nonRecursive: true`（Planner 不能选择自身）。
-- 同一 Planner 模式服务于**语义分支判断**：`judge.kind: planner` 的条件边用 Planner Action 的结构化分类决定走哪个分支（§4.1）。由于 Agent 输出常为非结构化文本，确定性谓词只适用于结构化状态/结果；任何需要理解语义的判断归 Planner Action。
-- "Planner 决定 next action" ≠ "Planner 发明流程"：确定性流程由配置固定。
+Artifact 仍是 immutable versioned output/intermediate，携带 real inline template content 或 exact resource reference、lifecycle、可选 section coverage 与 dependency validity，以及 exact producing/consuming Action。Parallel node 自身不能获得 Agent authority，也不能修改 branch-owned Artifact。
 
-### 6.4 Budget
+## 9. 最终 machine 字段
 
-- budget 声明**资源维度**（闭合集 `time | tokens | context | custom`；custom 维度如 attempts/iterations 需声明 `resourceName`）+ **evaluator**：content-addressed **脚本注册点**（`schemaRef`），runtime 调用它获得预算结论。**配置中永不出现数值额度**；精确额度是 project/runtime policy，在准入时绑定（这是 Implementation Workflow 的既有实践：配置绑定注册点，runtime 调用脚本）。
-- `onExhaustion ∈ {incomplete, wait, recovery}`；预算消耗进入 Workflow State（如 `attempts` 用 `sum` reducer 累积）；**耗尽永不放松 Gate**；耗尽进入声明的 terminal/wait/recovery 路径（如 `terminal:INCOMPLETE`，保留当前状态、理由与 resume Action）。
-- 重试保留同一 Goal/rung 内容身份、获得新 attempt identity；无新诊断的重复失败消耗预算且不构成进展。
+JSON Schemas 是 normative。本 catalog 让 downstream reader 无需猜测即可推出其组织。
 
-### 6.5 Recovery
+### 9.1 Package index
 
-- 语义恢复只允许三种（runner `runner.driver.006`）：已知 `continue`、已知 `restartFromSavepoint`、或明确不确定性进入 `intervene`（durable Intervention）；`fail` 用于非重试失败。
-- `noBlindReplay: true` 强制：不允许盲目重放；恢复前必须重新解析 checkpoint 绑定身份，失配 fail closed。
+Required top-level field：`kind`、`schemaVersion`、`package`、`documents`、`resources`、`authority`、`compatibility`；`environmentRequirements` 可选。
 
-### 6.6 Gate
+`package` 要求 `name`、`version`、`digest`、`purpose`、`status`、`ownership` 与 `definition`；`admissibility` 可选。`documents` 恰好命名 Workflow/Actions/Roles/Routes/Artifacts/Validation。Resource 分为不相交的 `owned` 与 `referenced` array。Authority order 为 constant，conflict mode 为 `fail-closed`。
 
-- `preconditions` / `postconditions` 为谓词；`deterministic[]` 引用确定性校验器；`freeTextBypass: "prohibited"` 强制。
-- 缺失资源、非法 transition、Driver substitution、Runtime drift 一律 fail closed 或形成可见事实（composition model §14 问 11）。
+### 9.2 Workflow document
 
-### 6.7 Artifact template（一等资源）
+Required：`kind`、`schemaVersion`、`workflow`、`state`、`graph`。Optional：`waits`、`budgets`、`recovery`、`handoffs`、`consumedHandoffs`。
 
-- Output/intermediate Artifact template 必须**有真实内容或固定引用**（§5.6）；只在清单写名字不闭合（composition model §4.3/§12）。
-- Template 规定产物覆盖面（topic/questions/completion/naRule）；**不承担** Workflow transition 或 Agent 提问顺序。
-- Artifact 是数据；其生命周期状态（WORKING→…→SUPERSEDED）与 dependency validity（CURRENT→STALE_PENDING_IMPACT→…）遵循 `artifact-lifecycle.md` 语义：不可变版本、无原地覆盖、变更先进入待影响分析。
+`graph` 要求 `start`、`nodes`、`edges`、`eventEdges` 与 `terminals`。Node-specific field 由 §5–§7 的 node-kind union 闭合。Handoff 保持 upstream semantic-only authority 与 byte-faithful downstream consumption；不能携带 downstream Action/Gate/Wait/terminal control。
 
-### 6.8 Aggregation / Review
+### 9.3 Action/Role/Route/Artifact document
 
-- 并行结果**不靠多数票**；`validation.aggregation` 声明 rule/arbiter/prohibited；唯一裁定 authority 显式。
-- 声称独立的 lens 必须 `isolation: session-isolated` + `barrier: true`；共享原始证据 ≠ 共享结论（composition model §11）。
-- Finding 准入：severity/disposition 由 source lens 决定；aggregator 不能关闭 Finding、不能擅自改 severity。
+- Action 使用 §4.1 的两种 authority shape，不含 graph composition 或 Runtime-private identity。
+- Role 包含 responsibility、authority boundary 与可选 independence。
+- Route 包含 exact Agent/resources/session/access projection，永不授予 provider permission。
+- Artifact 包含 exact template、lifecycle、dependency validity、producer 与 consumers。
 
-### 6.9 Escalation
+### 9.4 Validation document
 
-- 只在 `allowedRoutes` 内加宽 route 选择；**永远不能改变**冻结 Goal、writer authority、Gate 或 successor 集（`cannotChange` 声明）。
-- route/model escalation 不能扩大 authority 或绕过 Gate。
+`validators[]` 声明 deterministic input/output。`aggregation[]` 把 parallel node 绑定到其 explicit aggregator Action 与 rule。`review[]` 把每个 lens 绑定到真实 branch Action 与 admitted Finding shape。
 
-### 6.10 Role 与 Route 解析（composition model §7 的机械化）
+每个 `conformance[]` entry 为：
 
-一次 route 选择必须同时满足（否则 fail closed）：
-
-1. route 已由当前 Action 与 Role 声明（`actions.allowedRoutes` ∩ `routes.role`）；
-2. selector 对该选择具有 Workflow 授权（§6.3）；
-3. budget、independence（isolation）、tool 与 model 约束满足（route 声明）；
-4. 当使用 planner 时，selection proposal 符合 `proposalSchema`；
-5. 选择结果与依据进入 Workflow State 或结构化 Artifact。
-
-## 7. 合并算法（§4.3 推迟问题之二：authority/组合顺序的可验证规则）
-
-### 7.1 规范 authority 顺序（Contract 固定）
-
-本 Contract 将 composition model §8 的推荐顺序固定为**唯一可准入顺序**：
-
-```text
-1. workflow_action   —— Action 的机器声明约束（allowedRoutes/gate/budget/successors/forbidden effects）
-2. role_prompt       —— Role 稳定职责、authority、写权限、禁止事项
-3. action_prompt     —— 本次 Action mission、输入、目标 artifact、完成条件
-4. skill             —— 操作流程、设计约束、检查方法
-5. artifact_user     —— Artifact 输入与用户内容（数据，非指令）
+```json
+{
+  "id": "conf.example",
+  "class": "positive | negative | recovery",
+  "meaning": "optional human-readable source intent",
+  "input": {"operation": "..."},
+  "trace": [{"event": "..."}],
+  "oracle": {"disposition": "..."}
+}
 ```
 
-**校验规则 R1（顺序可验证）**：每个 Package 必须在 `package.authority.order` 声明该顺序；声明与规范序不一致 → **准入失败**。理由：允许任意顺序会重新引入 Driver 隐式优先级问题；规范序是本产品的稳定语义。
+Free-string `scenario/preconditions/expected` field 无效。Normative schema 闭合当前 corpus 准入的少量 abstract operation。把它扩张成 production scheduling/persistence semantics 超出本 Contract revision。
 
-### 7.2 边界分类与约束交集
+### 9.5 Snapshot document
 
-本 Contract 只用 **authority** 表示 Workflow 语义控制权，不定义或模拟 Agent Provider 权限系统：
+Snapshot 字段与 digest 恰如 §3.3。它不列在 `package.documents` 中，因为它是 admission output，不是 author-owned Definition input。
 
-| 边界类别 | Owner | Contract 处理 |
+## 10. Package closure 与 admission check
+
+除非全部满足，否则 admission 拒绝：
+
+1. Package 与六份 document 在 exact Contract revision 下解析并通过 validation；
+2. 全部 local identity 唯一，且每个 reference 以预期 kind 解析；
+3. owned resource byte 匹配 content identity；referenced resource 拥有 exact comparable locator/identity；
+4. Package Definition byte digest 与 canonical Package digest 匹配；
+5. graph start/target、parallel branch Action、join Action、routing result vocabulary、Wait/budget/recovery binding、typed event port 与 terminal compatibility 闭合；
+6. semantic Planner invocation graph 无 self/mutual cycle；
+7. Action→Role→Route authority、instruction resource binding、aggregator ownership 与 review Action ownership 闭合；
+8. Snapshot document/resource/route/graph/authority binding、merge proof 与 canonical digest 匹配；
+9. forbidden Runtime/provider-native field 不存在；
+10. positive、negative、recovery fixture class 齐全，且 executable trace/oracle check 通过。
+
+任何 mismatch 都不存在 ambient fallback 或 substitution。
+
+## 11. Conformance 与 fixture-harness boundary
+
+| Level | Subject | Required evidence |
 | --- | --- | --- |
-| Workflow 语义控制 | Workflow Action、Role 与已准入 Route | 在此机器声明并进行子集比较 |
-| 精确 model/tool/Driver/session 依赖 | Package/Route owner；selected Runtime Adapter 校验 compatibility | 仅为 content-bound requirement，绝不授予权限 |
-| 原生 tool visibility、授权、路径/网络/凭据 policy 与副作用执行 | DSH 或其他 selected Runtime | 在 Adapter seam 透传；不表示为可移植 authority |
-| authentication、authorization platform、RBAC、sandbox、恶意 Package 防御 | 可信本地 MVP 范围外 | 本 Contract 不提供 schema 或实现 |
+| Document | 单份 JSON document | normative schema pass |
+| Package | Package + Definition closure + Snapshot candidate | checker pass、exact digests、executable positive/negative/recovery fixtures |
+| Runtime | 后续 implementation lifecycle 中的 selected implementation | 保持 admitted Definition/Snapshot，并通过 applicable Contract corpus，且不泄漏 native identity |
 
-闭合的 Role concern 词汇表是：
+Checked-in corpus runner 只计算当前 fixture 声明的 abstract input 并比较 produced trace/oracle。Runtime conformance 需要后续 Runtime/Execution evidence；本 Contract repository 不提供它。
 
-`responsibility | authority | write-permission | mission | method | transition-selection | gate | budget | terminal | data | session | route`
+Revision 处于 `REVIEW_CANDIDATE` 或未发布期间，不得声明 physical conformance。
 
-这里的 `write-permission` 表示创作某类已声明 Workflow Artifact/result 的 custody，不表示文件系统权限。机器 authority carrier 是：
+## 12. Version 与 compatibility
 
-- Action envelope：`responsibleAuthority`、`allowedRoutes`、`selector`、`gate`、`budget`、`allowedSuccessors` 与 `escalation.cannotChange`；
-- Role envelope：`roles.authorityBoundary.concerns` + Workflow Artifact `writePermissions` + `prohibited`；
-- Route projection：Action 授权 Route 的已声明 Role identity、存在时的 Action Prompt binding、精确资源 kind/identity、Workflow `access` 意图与 `managedProjection: required`。
+- `agentops.workflow-dsl@0.1.0` 是 `NON_RESOLVING_LEGACY_HISTORY_ONLY`。
+- `agentops.workflow-dsl@1.0.0` 是 first-release candidate，在 frozen publication 前保持 non-resolving。
+- 一个 Delivery 绑定一个 exact Snapshot 与 Contract revision；
+- same identity/different content fail closed；
+- `latest` 等 alias 只可在 resolution 前使用，不能进入 Snapshot；
+- semantic change、closed-vocabulary change、removed field、changed authority、changed graph/event compatibility 或 changed canonicalization 要求 MAJOR revision；
+- optional backward-compatible addition 可用 MINOR；non-semantic correction 可用 PATCH。
 
-Action Prompt 与 Skill 内容**没有独立 authority**。资源条目的 `kind`、content identity 与 `use` 只建立身份、分类和描述性消费意图；`use` 不是权限语言，也不会转换成 DSH grant。
+SemVer 永不授权 Runtime 隐式扩大 admitted exact binding。
 
-**校验规则 R2（只许收窄，不许扩大）**：有效 Workflow authority 是 Action 与 applicable Role envelope 的交集，并通过 Action 授权的 Route 投影。Action 显式 `allowedRoutes` 是 Route/Role 选择的上限——包括 Role 与名义 `responsibleAuthority` 不同、但已声明的 multi-lens 或 custody Route；Action Prompt 只能经该 Action 列入的 Route 绑定。任何 Prompt、Skill、model、tool、Driver、session policy 或 Adapter 都不能增加 transition-selection、Gate、budget、terminal、successor 或 escalation authority。Provider 原生权限刻意不参与比较。
+## 13. First-party migration obligation
 
-**校验规则 R3（缺失即失败）**：Role Action 缺少已声明 responsible Role boundary、指令承载资源没有经任何 Route 绑定、Route 缺少 schema-required 资源、资源 kind 错误或 content identity 无法解析时，准入失败。Action Prompt 基数属于 Package 语义：一条 Route 可为一个 Action 绑定零个、一个或多个 Prompt，但每条已声明 binding 都必须指向显式允许该 Route 的 Action。缺少 Provider tool availability 则属于有类型的 Runtime compatibility/preflight failure；原生权限的批准或拒绝始终是 Provider 结果，绝不由 ambient replacement 补齐。
+两套 first-party Definition 是 Contract consumer，必须通过相同 schema/checker rule：
 
-### 7.3 冲突判定与诚实边界
+- System Design 保留 `node.sd-09` 为 parallel node，删除 nominal `action.sd-09`，创建独立的 Problem–Solution、Architecture、Quality & Acceptance Reviewer Action，并保留 `action.sd-10` 为 explicit Finding Aggregator；
+- Implementation 把其 multi-lens/multi-owner parallel work 移到 graph parallel node，并使用独立 branch Action 与 explicit join ownership；
+- 每个旧 generic predicate 都由 producing deterministic Action 的 top-level strict boolean/closed-enum result routing 替代；若需要语义判断，则使用 semantic routing；
+- 删除 Wait/retry/crash target，改用 recorded continuation 与 exact typed event edge；
+- generator output 必须 byte/digest reproducible，且缺失的 System Design `resources/runtime-custodian.role.md` boundary resource 必须可解析且不得创建 Agent Role。
 
-- **机器可判定部分**：Action Prompt 经未授权 Route 绑定、指令资源未绑定、必需资源 binding 缺失或 kind 错误、selector/planner 冲突、`allowedSuccessors` 越界、Workflow Artifact 创作权越界和 reducer 语义矛盾 —— 全部静态 fail closed。
-- **文本级冲突**（自然语言指令互相矛盾，或 Prompt/Skill 声称其不可能拥有的控制权）不是完全可判定的。它们通过 **negative conformance 场景**（`conf.negative.authority` 类）验证；无论文本如何，结构化 Action/Role/Route envelope 始终是权威，Runtime 不得把这类文本转换成控制状态。**不允许**用 Driver 优先级或 Provider 权限设置“解决”冲突。
+这些 migration 证明 consumer expressibility。它们不实现或测试计划在后续 iteration 开发的 production Runtime。
 
-### 7.4 Driver 无优先级
+## 14. Portable Builder projection
 
-Driver/session policy **不是 authority 层**：不能重排、覆盖或替换合并结果。合并结果是传给 Driver 的**冻结指令束**（含各资源 content identity），Driver 只能投影，不能反向取得 Workflow 控制权（composition model §5 权责表）。
+Visual Builder 可以渲染 Action、parallel、Wait、renewal、recovery、cleanup 与 terminal node，以及 normal/typed event port。它必须生成相同 portable JSON，并由相同 schema/checker 验证。它是 authoring projection，不是 semantic 或 authority owner。
 
-### 7.5 合并结果与可复算性
+## 15. Forbidden portable field
 
-合并算法是确定性的：给定 (Package, Action, Route) → 按规范序收集指令资源（`rolePrompt → actionPrompts[action] → skills`，Artifact/user data 最后），并单独绑定精确 model/tools/Driver/session requirement → 边界检查（R1–R3）→ 输出冻结指令束（有序指令引用 + 全部依赖 content identity + Workflow authority 证明）。验证器可独立复算同一指令束；任何失配 fail closed。**R5**：合并不修改任何资源内容、不授予 Provider 权限，只产生组合顺序证明。
+Definition、Package、Snapshot 拒绝 Runtime/provider-native identity 与 API，包括代表性 token：
 
-### 7.6 与 Package Snapshot 的关系
+`stategraph | langgraph | langgraph.json | checkpoint_id | thread_id | memorysaver | sqlitesaver | invocationId | attemptId | providerCheckpoint | sessionId`
 
-合并证明（authority order + boundary checks + 资源 content identities）是 Snapshot 解析闭包的一部分（`package-snapshot.schema.md` 的 "Authority order" 与 "Resolution proof" 组），准入时冻结，运行中不可变。
+它们还拒绝已删除 user surface：
 
-### 7.7 Authority 保管链
+`predicate field/op/value | JSON-path routing | shared State reducer | writer precedence | last-write-wins | parallel append | shallow merge | Action execution.mode=parallel | per-branch Role | optional branch | implicit aggregator | resumeAction | restartAction | targetActionId | ALL | SELECTED`
 
-Authority 只沿一条闭合保管链传递；每次传递只会收窄或冻结 authority，任何一层都不能重新解释：
+## 16. Change discipline
 
-```text
-配置仓库 / Workflow owner
-  → Configuration Identity Authority
-  → Admission + Manifest
-  → runner activation / Runtime Profile seam
-```
-
-配置仓库与 Workflow owner 创作 Definition、Package 关系和精确资源版本。Configuration Identity Authority 把显式关系闭包解析成一个不可变 Package Snapshot。Admission 决定是否准入，并持久化 Manifest 来冻结唯一的精确 Snapshot binding。runner 只接收这份已准入 binding，在 activation 前重新核对 Workflow authority、依赖闭包、selected Runtime compatibility 与 merge proof，然后经 Runtime Adapter 投影请求，且不允许 ambient fallback 或资源替换。DSH 拥有原生 Tool Policy 与 Native Tool Grant 交互；runner 与本 Contract 都不伪造 grant。Selected Driver 位于冻结投影下游，永远不成为 authority 层。closure 缺失、content identity 改变、merge-proof 不匹配或必需依赖不受支持，都会在 Workflow 推进前 fail closed。
-
-## 8. Owned 与 Referenced（机械规则）
-
-| 规则 | owned | referenced |
-| --- | --- | --- |
-| 维护位置 | 包内；owner、版本、位置可发现 | 包外；不复制创作权 |
-| 身份 | `contentIdentity == sha256(path)`，机械校验 | `sourceLocator + contentIdentity` 内容可比；Snapshot 中禁止浮动 alias（`latest`/裸名） |
-| 消费 | route/artifact/template 引用其 id | 同左 |
-| 失效 | 文件缺失/digest 失配 → 准入失败 | 内容身份不可解析/失配 → 准入或 recovery 显式失败 |
-
-机械校验：`resources.owned` 的 path 存在且 digest 匹配；`resources.referenced` 的 sourceLocator 完整且 identity 可比较；任何 route/资源引用未声明 → fail closed；不允许环境默认值、CLI 当前设置或 Driver fallback 替换（composition model §4.4）。
-
-## 9. Package Snapshot 与 Workflow State 分离（机械规则）
-
-### 9.1 Snapshot（不可变）
-
-准入时冻结，内容至少包括：Package identity/version/digest、Definition identity、全部 owned/referenced 资源 content identity、route bindings（Action→Role→route→Agent/Prompt/Skill/model/tool/Driver/session identity）、authority 声明与合并证明、environment requirements、resolution proof（无 ambient fallback）。**State 变化不能改写 Snapshot**；配置更新必须产生新 Snapshot，用于新 Delivery。
-
-### 9.2 Workflow State（可变）与 Checkpoint 绑定
-
-State 由 Selected Runtime Profile 独占写入：current Action/attempt、已完成结果、Artifact 引用、预算消耗、Wait、recovery 信息、terminal proposal。每个持久化 checkpoint 必须绑定最小集（§4.3）：`delivery, snapshot, actionAttempt, manifestRevision, gitTree`（+ 适用的 artifact versions / pending wait / budgets / last progress）。
-
-### 9.3 机械规则
-
-1. checkpoint 的 Snapshot identity 与当前 Delivery 的 Snapshot 不一致 → fail closed，进入显式 reconciliation/`INCOMPLETE`；
-2. 恢复时重新解析所有绑定身份；缺失、损坏、同 identity 不同内容、Git tree 漂移 → fail closed；不得从"最新文件"猜测状态；
-3. `UNMANAGED_SIMULATION` 可以使用相同字段形状，但只能报告 `SIMULATION_PASSED/FAILED/INCOMPLETE`，不能写入正式 State、不能发布正式 terminal（`IM-DEC-001`）。
-
-## 10. 跨 Workflow Handoff Authority（机械规则）
-
-### 10.1 上游（handoffs）
-
-上游 Artifact 只在其领域内定义**事实、语义约束、未闭合义务与失效条件**。`handoffs[]` 的字段集被 schema 限制为 `semanticOnly`（`domainSemantics / invalidationConditions / semanticDependency / requiredEvidence / returnLocation / reopenCondition`），**禁止**任何下游 Action/Gate/Wait/terminal 字段（schema 层 `additionalProperties: false` + `semanticOnly: true` 强制）。上游不能用 Artifact 内容替下游定义流程。
-
-### 10.2 下游（consumedHandoffs）
-
-下游必须保留上游语义，并拥有把义务分类与映射到自身生命周期的 authority。`consumedHandoffs[]` 声明：`classification / owner / affectedLocal / preservesSemantics{semanticDependency, reopenCondition} / mustNotWeaken: true`。
-
-### 10.3 机械规则
-
-1. **字节保真**：`preservesSemantics` 的两个字段必须与上游 handoff 的对应字段**逐字节相等**（上游包可解析时校验）；不等 → fail closed；
-2. 下游不能静默弱化、改写或冒充已满足义务；下游结果若推翻冻结的上游语义 → 当前 Delivery 停止并请求新上游 Artifact 版本；
-3. 具体义务类别/字段/路由由消费它的 Package 决定，不由本 Contract 统一枚举（composition model §4.6）。
-
-## 11. 版本兼容策略
-
-### 11.1 版本轴
-
-| 轴 | 规则 |
-| --- | --- |
-| Package 版本 | semver `MAJOR.MINOR.PATCH` |
-| Definition 版本 | 独立版本身份（`workflow.version`），与 Package 版本解耦（composition model §4.1） |
-| Contract 版本 | `agentops.workflow-dsl@X.Y.Z`；本文件 = `0.1.0`（pre-release） |
-| Snapshot | 绑定全部精确版本 + content identity；一个 Delivery 只绑一个 Snapshot |
-
-### 11.2 兼容类别
-
-| 变更 | 类别 | 规则 |
-| --- | --- | --- |
-| 新增可选字段/资源、新增 Action/node（不改既有语义）、文本修正 | MINOR/PATCH，向后兼容 | 既有 Snapshot/Delivery 不受影响 |
-| 改变 Action 语义、增删/改变 transition/gate/terminal、改变 reducer 语义、改变 authority 顺序或边界 | **MAJOR（语义变更）** | 必须新 Definition 版本 + 新 Package major + 新 Snapshot；只用于新 Delivery |
-| state 新增字段（带默认 reducer） | 兼容 | — |
-| state 移除字段 / 改变 reducer 行为 | 破坏性 | MAJOR |
-| 同 identity 不同内容（digest 失配） | 禁止 | fail closed（runner `runner.decision.002`、`concept.acceptance.012`） |
-| `latest`/裸名选择 | 仅解析期 | 在 Manifest 创建前解析为 `exactVersion`；alias 移动只影响后续 Delivery（agent-architecture §4 不变量 14） |
-
-### 11.3 Conformance 与版本
-
-一个 Definition 声称 conforms 到 `agentops.workflow-dsl@X.Y.Z` 必须：通过该版本 schema 校验 + 通过闭包/合并/§8–§10 机械规则 + 通过 conformance corpus；Runtime Profile 声称 conforms 必须：把 Definition 编译为 Implementation 而不改变 Action/transition/Gate/terminal 语义、校验 Snapshot binding、通过 corpus、不泄漏原生 ID（§12）。
-
-## 12. Conformance 要求
-
-### 12.1 三级 conformance
-
-| 级 | 对象 | 证据 |
-| --- | --- | --- |
-| Document conformance | 单个 DSL 文档 | JSON Schema 校验（`system-contracts/workflow-dsl/schemas/`）+ `additionalProperties: false` 闭合 |
-| Package conformance | 整个 Package | 文档级 + §3.1 闭包 + §7 合并证明 + §8–§10 机械规则 + **conformance corpus**（positive/negative/recovery 场景，如 `system-contracts/workflow-dsl/examples/minimal/validation.json` 的 7 个场景） |
-| Implementation/Runtime conformance | Runtime Profile / 编译层 | 编译不改变 Definition 语义、Snapshot binding 校验、通过 corpus、禁止字段扫描、无原生 ID 泄漏；**schema/registry/fixtures/验证证据发布前不得声称 physical conformance** |
-
-### 12.2 机械校验清单（示例 checker 已实现的核心项）
-
-1. JSON 可解析、kind/schemaVersion 匹配；
-2. 所有引用（documents、owned paths、action/role/route/wait/budget/recovery/validator/artifact/resource ids）可解析，且 Route 资源引用具有所需精确 kind；
-3. Action→Route authorization 与指令资源 binding 满足 R2/R3；`allowedSuccessors` == graph 出边集；node 不同时拥有静态出边与条件边；
-4. reducer / predicate op / Workflow authority concern / authority order / session freshness / isolation 等词汇闭合；
-5. owned digest、definition digest 匹配；referenced sourceLocator 完整；
-6. 禁止物理字段扫描（附录 C）：Definition 中不得出现 LangGraph/Driver 物理 token。
-
-### 12.3 Conformance corpus
-
-每个 Package 至少声明：合法主路径（positive）、非法 transition / 越权 / 缺失资源 / authority 越界（negative）、Wait/resume 关联、预算耗尽、崩溃恢复、取消（recovery）。corpus 场景是 Package 的一部分（`validation.conformance[]`），运行时/模拟器必须可执行。
-
-### 12.4 Workflow 执行能力要求
-
-任何声称 conformance 的 Runtime Profile 必须实现 DSL 能声明的每项 **Workflow 执行**能力；这些是编排语义，不是 Provider 原生 tool 权限。两个 first-party Definition 已经使用了其中一部分。conforming Runtime 必须支持：
-
-| DSL 构造 | 必需的 Runtime 能力 |
-| --- | --- |
-| 条件边，`judge.kind: state` | 对 Workflow State 确定性求值闭合词汇谓词 |
-| 条件边，`judge.kind: planner` | 调度声明的 Planner Action 的 Agent 对（可能非结构化的）上下文做语义判断；校验返回的结构化分类符合 `resultSchema`；再按 `conditions[].when` 对该分类选分支；目标必须在源 Action 的 `allowedSuccessors` 内 |
-| 并行执行（`execution.mode: parallel`） | 调度全部 required 分支（session-isolated 或 shared），强制执行 `barrier`，再应用声明的 `join`（`all` 或 `aggregator` action）；分支隔离在 barrier 关闭前必须成立 |
-| runtime-authority action（`responsibleAuthority.kind: runtime`） | 直接执行声明的确定性 validator——无 Agent 会话、prompt、model 或 route |
-| budgets（`budgets[]`） | 调用 `evaluator` 脚本注册点（content-addressed）获得预算结论；按 `onExhaustion` 进入声明的 terminal/wait/recovery 路径；耗尽永不放松 Gate |
-| planner selector（`selector.kind: planner`） | 推进前校验结构化 selection proposal 符合 `proposalSchema` 且在 `allowedTargets` 内 |
-| waits / checkpoints / terminal settlement | durable 关联 resume、最小 checkpoint 绑定（§9.2）、checkpointed terminal proposal（既有 runner 范围） |
-| 合并算法（R1–R3）与 route 解析 | 从 Snapshot 复算冻结指令束；任何失配拒绝 |
-
-Definition 声明了但 Runtime 无法兑现的能力，在准入/激活时是硬失败（fail closed），绝不静默降级。此清单是 runner Host（`runner.open-work.009` / `runner.open-work.012`）与 Host 消费 gap `runner.open-work.003.1` 的可执行契约。
-
-**实现归属。** 这些能力的第一方实现是 runner（LangGraph Workflow Host）：DSL 编译为 LangGraph 语义，Host 拥有调度、barrier/join、判断分发、budget evaluator 调用与 route 解析。DSH 是当前宿主 Adapter；其自带 workflow 能力不承载 Workflow 编排语义——它正是 runner 要替换的能力——因此任何 Host/Adapter 原生的 workflow 能力都不是本 Contract 的一部分。
-
-## 13. §14 验收第 12 问：换 Runtime 不改变 Definition/Package/Snapshot 语义
-
-> "如果替换 LangGraph 或某个 Driver，哪些 Contract、Artifact 和 Workflow 语义仍保持不变？" —— **回答：是，全部 Definition/Package/Snapshot 语义保持不变。**
-
-| 层 | 是否受 Runtime 替换影响 | 原因 |
-| --- | --- | --- |
-| Workflow Definition（graph/state/transition/Action/Gate/budget/Wait/recovery/terminal/route/artifact/handoff） | **不变** | DSL 只含语义字段与闭合词汇，零 LangGraph/Driver 物理字段（附录 C 扫描强制） |
-| Package（index/owned/referenced/authority/合并证明） | **不变** | 资源与身份闭包不引用 Runtime |
-| Package Snapshot | **不变** | 准入时冻结的 identity-and-relationship closure 与 Runtime 无关 |
-| Workflow State 语义（分离、checkpoint 最小绑定、Wait/resume、terminal settlement 规则） | **不变** | Contract 声明语义；物理 checkpoint/thread/interrupt ID 是 Runtime 私有 |
-| Workflow Implementation | **变** | 编译产物（如 LangGraph `StateGraph`）随 Runtime 更换重新编译 |
-| Driver 投影 | **变** | 冻结指令束的投影方式随 Driver 更换 |
-
-替换的边界条件：新 Runtime 必须 conforms（§12.1 第三级）—— 编译不改变 Definition 语义、接受同一 Snapshot binding、不引入 ambient fallback。因此替换 LangGraph 或某个 Driver 不需要改 Definition、Package 或 Snapshot（composition model §13："可以替换实现，而不改变 Workflow Package、Snapshot 和 State 的概念关系"）。
-
-## 14. 最小 Definition 示例
-
-完整示例位于 [`system-contracts/workflow-dsl/examples/minimal/`](../../../system-contracts/workflow-dsl/examples/minimal/)（`package.json` + 6 个文档 + 8 个 owned 资源文件），并为机械闭合校验提供输入（JSON Schema、引用解析、词汇闭合、`allowedSuccessors` == 出边集、digest 匹配、无 LangGraph/Driver 物理字段）。它的物理 conformance 状态只能由 §12 要求的 schema/checker evidence 建立，不能由本文档预先声明。示例覆盖：
-
-- **graph**：start → `node.intake` → `node.review`（并行双 lens）→ `node.aggregate`（条件边）→ `node.finalize` / `node.review`（re-review 环）/ `terminal:FAILED`；
-- **state + reducer**：`status`(overwrite)、`context`(merge)、`findings`(append)、`reviewIterations`(sum)、`aggregation`(overwrite)；
-- **conditional edge**：`cedge.aggregate` 三个谓词 + default；
-- **checkpoint**：`node.intake` 声明最小绑定集；
-- **Wait/recovery**：`wait.user-confirm`（user，resume=intake）、`wait.external-obligation`（external）；`recovery.default`(continue)、`recovery.review-restart`(restartFromSavepoint)、`recovery.intervene`；
-- **terminal**：`SUCCESS/FAILED/INCOMPLETE/CANCELLED`；
-- **Role route**：2 个 Role、4 条 route（含 blackbox/whitebox 两条隔离 route + parallel execution + aggregator join）；确定性 `action.finalize` 仍归 Runtime 且没有 Agent route；
-- **owned/referenced**：8 个 owned 资源（真实 digest）+ 6 个 referenced 资源（sourceLocator + 内容可比 identity，含 budget evaluator registration）；
-- **authority**：规范序 + fail-closed；handoffs 双向（上游 `handoff.verification` + 下游 `consume.design-obligation`）。
-
-示例中 `workflow.json` 的 graph 与 `actions.json` 的 `allowedSuccessors` 的逐项相等关系由 checker 验证 —— 这是 §6.2"successor 闭合"的机械证明。
-
-## 15. 附录 A：Implementation workflow.md → DSL 无损映射
-
-对照 `workflow-package/implementation/workflow.md`（Action/transition/Gate/Wait/预算/恢复/terminal 全部可无损表达）：
-
-| workflow.md 元素 | DSL 表达 |
-| --- | --- |
-| IM-01..IM-18 Action Catalog（§4） | `actions.json` 每个 IM-* 一个 action：input/result schema、responsibleAuthority（role，如 Goal Facilitator）、allowedRoutes、gate、budget、waitPolicy、recovery |
-| Transition Authority 表（§3，"图示不得覆盖本表"） | `workflow.json` 的 edges/conditionalEdges：每行"valid condition/result → successor"是一个带 condition 的边或条件边分支；确定性条件 = 谓词 |
-| IM-01/IM-02 等 "fact-consuming Action → IM-01R" | 边 + condition（如缺事实 → `IM-01R`）；IM-01R 的 "return only to recorded Action" = 边目标精确 + Wait/external 关联 |
-| IM-06 "deterministic Workflow selector" | `selector: {kind: "deterministic"}`（无 Planner Agent） |
-| Planner/语义选择（composition model §6） | `selector: {kind: "planner", action, proposalSchema, allowedTargets, nonRecursive}` |
-| `WAITING_FOR_USER` / `WAITING_FOR_EXTERNAL`（§10） | `waits[]` kind=user/external + `resumeAction` 精确 + correlation stale/duplicate 拒绝 |
-| 预算耗尽 → 可恢复 `INCOMPLETE`（§10） | `budgets[]` `onExhaustion: "incomplete"` → `terminal:INCOMPLETE`（保留状态，永不放松 Gate） |
-| `INCOMPLETE/CANCELLED/FAILED/VERIFIED_IMPLEMENTATION_READY`（§1） | `graph.terminals[]`（success=VERIFIED_IMPLEMENTATION_READY 等）；终态先 checkpointed proposal |
-| IM-12 双 lens 并行隔离 + barrier（§4） | `action.review` 式：`execution.mode: "parallel"` + branches(isolation: session-isolated) + join(aggregator, barrier) |
-| IM-13 Aggregation（§4） | `validation.aggregation`：preserve-provenance、arbiter、prohibited（voting/severity/finding closure） |
-| Finding severity/disposition（§7） | `validation.review` admission（findingShape）+ `validation.validators` 校验 source-lens-valid disposition |
-| IM-11/IM-16/IM-18 CLI 确定性 Gate（§4、§12） | `responsibleAuthority: {kind: "runtime", validator}` + `gate.deterministic[]` 引用 Package CLI 校验器 |
-| Git/commit 边界（§5、§11、§16） | gate postconditions + terminal validation + `escalation.cannotChange`；无默认 publish/merge |
-| Artifact lifecycle/dependency validity（§9、artifact-lifecycle.md） | `artifacts.json` lifecycle + dependencyValidity + retentionClass；checkpoint bindings 含 artifactVersions/gitTree |
-| 上游义务分类（§2） | `consumedHandoffs[]`：classification/owner/affectedLocal/preservesSemantics/mustNotWeaken |
-| 停止 on design-semantic change（§1、§10） | §10.3 规则：推翻冻结上游语义 → 停止 Delivery，请求新版本 |
-| Route Invariants（routes.md） | routes schema：managedProjection required、writer 隔离、session freshness/isolation、escalationAllowed |
-
-## 16. 附录 B：System Design workflow.md → DSL 无损映射
-
-对照 `workflow-package/system-design/workflow.md`：
-
-| workflow.md 元素 | DSL 表达 |
-| --- | --- |
-| SD-01..SD-15 Action Catalog（§4） | `actions.json` 每个 SD-* 一个 action |
-| SD-01R 只返回 recorded requester（§4） | Wait/external + resume_lens 精确关联（边目标 + correlation） |
-| SD-03 "Runtime 持久化 wait、验证 identity、冻结 artifact"（§4） | `wait.user-confirm` + gate postconditions（冻结证明） |
-| SD-06/SD-12 `WAITING_FOR_SPIKE`（§4、§11） | `waits[]` kind=spike + correlation（exact request identity/content digest）+ expiry policy + resumeAction |
-| SD-09 三 lens 并行隔离 + barrier（§4、§9） | `execution.mode: "parallel"` 三分支（session-isolated）+ join(aggregator=SD-10, barrier) |
-| SD-10 路由（evidence→SD-01R、Brief→SD-11H、skeleton→SD-04、draft→SD-11、冲突→SD-11H） | `conditionalEdges` 谓词（对 aggregation 结构化结果的 routing 字段）+ 边精确目标 |
-| SD-11H Human Decision Admission（§8 六条件） | `waits[]` kind=user + resumeSchema（Decision Record schema）+ gate preconditions（证据耗尽、方向冲突、owner 正确、材料完整） |
-| SD-14/SD-15 "Runtime deterministic validator; no Agent Role"（§4） | `responsibleAuthority: {kind: "runtime", validator}`；`validators[]` 引用 |
-| SD-11 非无条件返回 SD-09（return_action 校验） | edges/conditionalEdges 精确目标 + `allowedSuccessors` 相等校验 |
-| Unknown Classification（§5 CONFIRMED/DERIVABLE/DESIGN_EXPLORATION/TO_BE_MEASURED/DEFERRED/USER_DECISION_REQUIRED/BLOCKED） | state 字段（枚举值）+ 谓词条件边 + waits（USER_DECISION_REQUIRED→user wait；BLOCKED→external wait/incomplete） |
-| 预算（§10）与 INCOMPLETE 记录 | `budgets[]` + `terminal:INCOMPLETE` 保留 resume Action/所需输入 |
-| Wait expiry 语义（§11） | waits.expiry（renewal/INCOMPLETE；expiry 不是成功/静默取消） |
-| 下游义务 handoff（§6、§12） | `handoffs[]`（semanticOnly；owner/evidence/return/reopen 完整）+ 下游 `consumedHandoffs[]` 字节保真 |
-| 会话与 Review 规则（§9） | routes.sessionPolicy（fresh-per-episode/isolated）+ roles.independence（barrier） |
-| SD-15 cleanup Gate（§4） | terminal validation + gate.deterministic（无中间文件、Git 无 workflow 中间物） |
-
-## 17. 附录 C：禁止的物理字段与扫描规则
-
-以下 token **不得**出现在任何 Definition 文档（字段名或字符串值）中。扫描规则：对文档全部字符串小写后做子串匹配，命中即 fail closed。它们只允许存在于 Implementation/编译层。
-
-| 类别 | 禁止 token（示例，非穷尽） |
-| --- | --- |
-| LangGraph 类/API | `stategraph`, `langgraph.json`, `langgraph`, `annotations.root`, `add_messages`, `last_value`, `send api`, `memorysaver`, `sqlitesaver`, `checkpoint_id`, `thread_id`, `interrupt(` |
-| Driver 原生 | `codex`, `copilot`（作为字段身份/值；正文描述性提及不在此列——扫描对象是机器字段与资源身份） |
-| 原生 checkpoint/thread | 任何以原生 checkpoint/thread 身份充当产品 identity 的字段 |
-
-规则：Definition/Package/Snapshot 中**零**物理 token；`schemaVersion` 只引用 `agentops.workflow-dsl@X.Y.Z`；Runtime 私有身份（原生 checkpoint ID、thread ID、会话句柄）永远不进入 Manifest/Evidence（agent-architecture §4 不变量 9、12）。
-
-## 18. 变更与演进
-
-- 本 Contract 是 DSL 面的**定义源头**：Task 2（`workflow-machine-definition`）把两个 first-party Workflow 迁移为符合本 DSL 的机器可读 Definition，语义与 design-time 文档保持一致（"使文档反向迁就 Runtime 私有格式"是禁止项，composition model §9）。
-- 物理表示、graph 词汇、reducer 词汇、谓词 op、authority 顺序的任何变化都必须走 Contract revision（`agentops.workflow-dsl@X.Y.Z`），不能以 Package 内字段漂移实现。
-- 动态 fan-out、更多 selector 类型、多租户/安全机制属于明确排除项或候选扩展，需要新的 Contract 决策后才能进入。
-
-### 18.1 已知限制（Task 2 迁移中验证）
-
-| 限制 | 状态 |
-| --- | --- |
-| 并行 Action 无法表达 per-branch role（单一 `responsibleAuthority`）；SD-09 三 lens 用 nominal role + `validation.review`/branch routes 逐 lens 强制 | 接受：并行是 Runtime 发起的 action 层编排（`execution.mode: parallel` 是 v1；第一方实现是 runner/LangGraph Workflow Host——调度、barrier、join、分支隔离；任何 Host/Adapter 原生的 workflow 能力不得进入 Contract）；单 action 多 role 表达不做；**多 action 并发**（graph 级并行）是候选扩展 |
-| 动态分支子集激活（如 SD-09 复检只跑失效 lens） | 接受为 Runtime 调度细节，非 workflow 语义 |
-| Wait resume 目标固定（`wait.resumeAction`）；按"记录的 resume_action"路由的逻辑 wait 表达为每触发 Action 一个 wait | 语义等价；不改 DSL |
+本 candidate 仅限 #77 owner decision 与 pre-existing English authority。Reviewer 可以报告 contradiction、schema companion defect、Runtime implementation concern 或 enhancement，但在无需 owner review 的前提下，只有 authority-linked blocker 与 schema companion defect 可以改变当前 candidate。任何新增 required identity、event、Artifact kind、admission condition 或 normative obligation 都需要 exact authority citation 与新的 publication candidate binding。
