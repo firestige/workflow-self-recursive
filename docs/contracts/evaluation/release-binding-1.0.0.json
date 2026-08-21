@@ -1,0 +1,36 @@
+{
+  "binding_version": "1.0.0",
+  "coordinate": "agentops.evaluation.metric-catalog@1.0.0",
+  "status": "REVIEW_CANDIDATE",
+  "superproject": {
+    "repository": "firestige/workflow-self-recursive",
+    "content_revision": "sha256:46948128a5319cbc2b71b76fc21c257095e68020dc195055d9976ca81ee46cdc",
+    "semantic": [
+      {
+        "path": "docs/contracts/evaluation/metric-catalog.md",
+        "sha256": "c1d676ed25167e1e88b6ece71b2010bf58213b7b5dc2085000a54e98f9b0a6d5"
+      }
+    ]
+  },
+  "machine_package": {
+    "repository": "firestige/system-contracts",
+    "gitlink_path": "system-contracts",
+    "gitlink_commit": "30762b67ef7cefd51b4b61a21bb5ae15ab00420d",
+    "content_revision": "sha256:24611eac15b4d6b2961aa197a3c21779aa5a6bb83a3c0e0ff0387c8daadb8764",
+    "catalog_semantic_digest": "sha256:5d7fb2b8416ab4fa08e7511287e9a34dc628fb1c99ff63271054a0117a7710a5",
+    "publication_record": {
+      "path": "evaluation/publication/publication-record-1.0.0.json",
+      "sha256": "cf3e9f244415981a22d07d9f9489f4a0b9314bb4d2e6c5b55373080176479e3b"
+    }
+  },
+  "dependencies": [
+    {
+      "coordinate": "observation-contract@1.0.0",
+      "status": "PUBLISHED",
+      "semantic_revision": "sha256:1a3fea6d202bf08a36aaf76abc3c6601fa71dc6c581715f9c74d11456f2ae735",
+      "machine_revision": "sha256:cf5b6c54af452085f66cf3c28b7ffb14e58451b926a97fa317b9a92a18c8d774",
+      "publication_sha256": "04a4658118ebbb31507eae56f0300ab1035fb7b369ee9b7301dbae3b5a519755",
+      "gitlink_commit": "3d60d16c954b325e7d3eb3148d5ace33880641e8"
+    }
+  ]
+}
