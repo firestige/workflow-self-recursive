@@ -16,11 +16,11 @@ English | [中文](README.zh-CN.md)
 
 | Contract | Semantic document | Lifecycle status | Revision |
 | --- | --- | --- | --- |
-| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `REVIEW_CANDIDATE` | first-release candidate; profile cited at `1.0.0` |
-| OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `REVIEW_CANDIDATE` | candidate `1.0.0`; machine package not released |
-| Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `REVIEW_CANDIDATE` | candidate `1.0.0` interaction schema; not released |
-| Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `REVIEW_CANDIDATE` | split draft |
-| Workflow Definition DSL | [workflow/workflow-definition-dsl.md](workflow/workflow-definition-dsl.md) | `REVIEW_CANDIDATE` | first-release candidate `agentops.workflow-dsl@1.0.0` |
+| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `FROZEN` | published `observation-contract@1.0.0`; `VALIDATOR_ONLY` |
+| OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `FROZEN` | published profile `1.0.0`; `VALIDATOR_ONLY` |
+| Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `FROZEN` | published interaction schema `1.0.0`; `VALIDATOR_ONLY` |
+| Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `FROZEN` | published `agentops.evaluation.metric-catalog@1.0.0`; `VALIDATOR_ONLY` |
+| Workflow Definition DSL | [workflow/workflow-definition-dsl.md](workflow/workflow-definition-dsl.md) | `FROZEN` | published `agentops.workflow-dsl@1.0.0`; `VALIDATOR_ONLY` |
 
 Status values are the normalized mapping per [Contract Lifecycle Management](contract-lifecycle.md) §9; the documents' own headers remain the primary source.
 

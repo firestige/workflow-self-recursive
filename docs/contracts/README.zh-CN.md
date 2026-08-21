@@ -18,11 +18,11 @@
 
 | Contract | 语义文档 | Lifecycle status | Revision |
 | --- | --- | --- | --- |
-| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `REVIEW_CANDIDATE` | split draft；profile 引用 `0.3.0` |
-| OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `REVIEW_CANDIDATE` | proposed `0.3.0` |
-| Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `REVIEW_CANDIDATE` | split draft |
-| Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `REVIEW_CANDIDATE` | split draft |
-| Workflow Definition DSL | [workflow/workflow-definition-dsl.md](workflow/workflow-definition-dsl.md) | `REVIEW_CANDIDATE` | first-release candidate `agentops.workflow-dsl@1.0.0` |
+| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `FROZEN` | 已发布 `observation-contract@1.0.0`；`VALIDATOR_ONLY` |
+| OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `FROZEN` | 已发布 profile `1.0.0`；`VALIDATOR_ONLY` |
+| Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `FROZEN` | 已发布 interaction schema `1.0.0`；`VALIDATOR_ONLY` |
+| Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `FROZEN` | 已发布 `agentops.evaluation.metric-catalog@1.0.0`；`VALIDATOR_ONLY` |
+| Workflow Definition DSL | [workflow/workflow-definition-dsl.md](workflow/workflow-definition-dsl.md) | `FROZEN` | 已发布 `agentops.workflow-dsl@1.0.0`；`VALIDATOR_ONLY` |
 
 状态值是 [Contract Lifecycle Management](contract-lifecycle.md) §9 的规范化映射；各文档自身头部仍是主要来源。
 
