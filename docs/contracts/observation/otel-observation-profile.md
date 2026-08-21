@@ -71,6 +71,8 @@ The OTel Resource carries standard `service.name` and `service.version`. Admissi
 
 Transport *flow* semantics — the single base URL, standard paths, signal-specific full/partial/error mapping, duplicate/conflict/rejected disposition, retry, timeout, and ambiguous-commit convergence — are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md), not by this profile. This profile fixes the physical transport pins and the one-logical-Span-to-one-OTLP-Span / one-logical-Event-to-one-OTLP-LogRecord carrier mapping; Resource and Scope envelopes are never record-count units.
 
+The interaction owner also fixes request grouping: each request is homogeneous by signal, this exact profile version and one exact Workflow family/schema coordinate. Applicable Event C49 values and sampled Delivery-root C08 values must agree with that group; a request containing different explicit groups fails as a global batch-shape error rather than creating a cross-family logical record.
+
 <a id="otel-profile-5"></a>
 ## 5. Standard-first Trace and Log Mapping
 
@@ -87,6 +89,8 @@ Transport *flow* semantics — the single base URL, standard paths, signal-speci
 | Root business binding | common registry C01–C08 in §7.1 | query-critical scalar Manifest projection only; no complete Manifest copy |
 
 A sampled Delivery root requires `agentops.delivery.id`, `agentops.workflow.id`, `agentops.workflow.version`, `agentops.implementation.id`, `agentops.runtime.id`, `agentops.manifest.digest`, and `agentops.workflow.family`; `agentops.task.id` is conditional.
+
+The decoded logical Span shape preserves the official native carrier fields that participate in profile validation and canonical content identity: Trace/Span IDs, name, kind, start/end nanoseconds, optional parent Span ID and trace state, flags, recorded Span links, and Span Status code. A model call requires `CLIENT` kind plus native start/end time; Delivery-root, Agent and Tool Spans require `INTERNAL` kind. Unsupported Span Events, Link attributes, dropped native fields or a free-form Status message reject instead of being silently discarded. The complete decoded logical Span, including these native fields, is the content compared under the `(trace_id,span_id)` identity rule.
 
 <a id="otel-profile-6"></a>
 ## 6. Exact Closed EventName Set

@@ -71,6 +71,8 @@ OTel Resource 携带标准 `service.name` 与 `service.version`。Admission 持�
 
 Transport *flow* semantics——single base URL、standard path、signal-specific full/partial/error mapping、duplicate/conflict/rejected disposition、retry、timeout 与 ambiguous-commit convergence——由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) 拥有，而非本 profile。本 profile 固定 physical transport pin，以及 one-logical-Span-to-one-OTLP-Span / one-logical-Event-to-one-OTLP-LogRecord carrier mapping；Resource 与 Scope envelope 绝不是 record-count unit。
 
+interaction owner 还固定 request grouping：每个 request 按 signal、本 exact profile version 与一个 exact Workflow family/schema coordinate 保持 homogeneous。适用的 Event C49 与 sampled Delivery-root C08 必须同该 group 一致；包含不同显式 group 的 request 作为 global batch-shape error 失败，而不是形成 cross-family logical record。
+
 <a id="otel-profile-5"></a>
 ## 5. Standard-first Trace 与 Log Mapping
 
@@ -87,6 +89,8 @@ Transport *flow* semantics——single base URL、standard path、signal-specifi
 | Root business binding | §7.1 中的 common registry C01–C08 | 仅 query-critical scalar Manifest projection；无 complete Manifest copy |
 
 Sampled Delivery root 要求 `agentops.delivery.id`、`agentops.workflow.id`、`agentops.workflow.version`、`agentops.implementation.id`、`agentops.runtime.id`、`agentops.manifest.digest` 与 `agentops.workflow.family`；`agentops.task.id` 为 conditional。
+
+decoded logical Span shape 保留参与 profile validation 与 canonical content identity 的 official native carrier field：Trace/Span ID、name、kind、start/end nanosecond、optional parent Span ID 与 trace state、flags、recorded Span link，以及 Span Status code。model call 要求 `CLIENT` kind 加 native start/end time；Delivery-root、Agent 与 Tool Span 要求 `INTERNAL` kind。unsupported Span Event、Link attribute、dropped native field 或 free-form Status message 必须拒绝，不能静默丢弃。包含这些 native field 的 complete decoded logical Span，是 `(trace_id,span_id)` identity rule 下比较的 content。
 
 <a id="otel-profile-6"></a>
 ## 6. Exact Closed EventName 集合

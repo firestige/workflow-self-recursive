@@ -43,6 +43,8 @@ Factual transport 是 OTLP/HTTP，通过 official binary protobuf Trace 与 Log 
 
 Evidence 恰好暴露一个 configured、loopback-only HTTP base URL。同一 base 后追加 standard OTLP path：`/v1/traces` 接受 `ExportTraceServiceRequest`，`/v1/logs` 接受 `ExportLogsServiceRequest`，两者均使用 `Content-Type: application/x-protobuf`。Alternate ingest path、OTLP/JSON path、第二个 signal-specific base URL 或 remote-bound listener 均不 conform。首个 local-only release 不要求该 loopback interface 上的 application-level authentication。不存在外部可访问的 database listener，也不存在从 Evidence 到 Execution 的反向 interface。
 
+producer 按 signal、exact profile version 与 exact Workflow family/schema coordinate 对每个 request 分组。一个 request 必须 family-homogeneous：只有所有显式 family coordinate 都解析到同一 group 时，才可以批量承载多个 Delivery 的 record；不同 group 必须拆为不同 request。逻辑 conformance form 中的 `request.family_schema` 记录该 grouping assertion，并不是 alternate OTLP header。mixed-family request 属于 per-record Admission 之前的 global batch-shape failure。此 grouping requirement 约束 Contract surface；生产 exporter batching 仍是下游实现工作。
+
 `ingest` interface：
 
 | Interface | Input | Result / error | Invariant |

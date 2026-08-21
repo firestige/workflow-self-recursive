@@ -43,6 +43,8 @@ The factual transport is OTLP/HTTP through official binary protobuf Trace and Lo
 
 Evidence exposes exactly one configured loopback-only HTTP base URL. Standard OTLP paths are appended to that same base: `/v1/traces` accepts `ExportTraceServiceRequest` and `/v1/logs` accepts `ExportLogsServiceRequest`, each with `Content-Type: application/x-protobuf`. No alternate ingest path, OTLP/JSON path, second signal-specific base URL, or remotely bound listener is conforming. The first local-only release requires no application-level authentication on this loopback interface. There is no externally reachable database listener and no reverse interface from Evidence to Execution.
 
+The producer groups each request by signal, exact profile version and exact Workflow family/schema coordinate. One request is family-homogeneous: it may batch records from multiple Deliveries only when all explicit family coordinates resolve to the same group; different groups are split into different requests. `request.family_schema` in the logical conformance form records that grouping assertion and is not an alternate OTLP header. A mixed-family request is a global batch-shape failure before per-record Admission. This grouping requirement constrains the Contract surface; production exporter batching remains downstream implementation work.
+
 The `ingest` interface:
 
 | Interface | Input | Result / error | Invariants |

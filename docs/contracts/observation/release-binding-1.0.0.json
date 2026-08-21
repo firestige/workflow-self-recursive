@@ -4,30 +4,42 @@
   "status": "REVIEW_CANDIDATE",
   "superproject": {
     "repository": "firestige/workflow-self-recursive",
-    "content_revision": "sha256:aa63124e2295c25d7fff34f472a654fb52421c7eafaf0c53cb14ce01f561c8bd",
+    "content_revision": "sha256:c6735597a0e8502d45cd26ea6a11487aafbb95d6a53528ce61768baa54c573a9",
     "semantic": [
+      {
+        "path": "docs/agent-architecture.md",
+        "sha256": "ed281b86fc6e5f51c0c5186fe18a25d89a0b4bb4872649ff893ce481996a325b"
+      },
+      {
+        "path": "docs/systems/execution/project-execution-system.md",
+        "sha256": "8291c94fbccb66ba83c2c00153234d6983f4771786121e02616dc176dd330449"
+      },
+      {
+        "path": "docs/systems/evidence/evidence-system.md",
+        "sha256": "ac2cfab25ec397fd0defb0e5388f5f5ff11506d057e8093ed131daf32d5a8dcb"
+      },
       {
         "path": "docs/contracts/observation/observation-catalog.md",
         "sha256": "90c4dcb6c9afa79f066b927aa828e10ca5d0722017210786d3ac700d88a4aa0e"
       },
       {
         "path": "docs/contracts/observation/otel-observation-profile.md",
-        "sha256": "4858d9a51f8dc2e54eaf536c5acb48e2d212c1b15dbe17381e7accd95fd99f32"
+        "sha256": "50840e08a96f380ba1d998f5df6dc9424c4884e23892f63e5496b8d5a45969ef"
       },
       {
         "path": "docs/contracts/execution-evidence/interaction-contract.md",
-        "sha256": "eb46445f17273144a153644f360b2e2506fabbcce0a02fc043a60395a83df151"
+        "sha256": "b0416580ea71e920e55da27a2b423893581b82a5734266a3e0a158b3ca04d58e"
       }
     ]
   },
   "machine_package": {
     "repository": "firestige/system-contracts",
     "gitlink_path": "system-contracts",
-    "gitlink_commit": "05bc9ef5a7d5f6176a1535581fb95ab9d5c1addf",
-    "content_revision": "sha256:e425c8ddda0c73bfead7f064f6d0abda603b5d519c73c346107c0d311b40ec37",
+    "gitlink_commit": "b7df9f02e88d6f4644572aeb7a39dddeab677b0b",
+    "content_revision": "sha256:07af031d44a7b2b93b1c7ef17d5826361e04fcbf97342f9356ed09c6b7c08482",
     "publication_record": {
       "path": "observation/publication/publication-record-1.0.0.json",
-      "sha256": "7083004ac30069b5f420c32f0834a2208eacc4f0ac0442b37bb2ab88c8bd7eed"
+      "sha256": "788bafb749bb2b4813f03fc2b5d16c89359eab9d820f8b2bec9a384562660440"
     },
     "compatibility_matrix": {
       "path": "observation/registries/compatibility-matrix-1.0.0.json",
