@@ -64,12 +64,12 @@ Profile `0.3.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；它仅作为 Git 历�
 | Schema URL | `https://opentelemetry.io/schemas/1.41.0` | exact tested scope schema URL |
 | Observation Profile | proposed version `1.0.0` | 已采纳 proposal，不是 release |
 | InstrumentationScope | name `io.agentops.dsh.observation`、version `1.0.0`、上述 schema URL | Trace 与 Log scope 都必须使用 |
-| Factual transport | 通过 official binary protobuf Trace/Log exporter 使用 OTLP/HTTP | stock DSH rc.6 OTLP/JSON 被禁用且不路由到 Evidence |
+| Factual transport | 一个 loopback HTTP base；official binary protobuf Trace exporter 使用 `/v1/traces`，Log exporter 使用 `/v1/logs`；`application/x-protobuf` | stock DSH rc.6 OTLP/JSON 与 alternate path 被禁用且不路由到 Evidence |
 | Sampling | Delivery-level head sampling；default probability `1` | sampled-out decision LogRecord 可携带 unsampled Trace context；不声称 durability/completeness |
 
 OTel Resource 携带标准 `service.name` 与 `service.version`。Admission 持久化 immutable producer Resource、profile、Scope 与 Workflow-family provenance。Exact DSH rc.6 和 Node SDK package version 仍是 reference-emitter evidence，而不是 portable wire requirement。Fixture `deployment.environment.name` 不属于本 profile。
 
-Transport *flow* semantics——endpoint、per-batch partial success reporting、duplicate/conflict/rejected disposition、retry、timeout 与 ambiguous-commit convergence——由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) 拥有，而非本 profile。本 profile 只固定上方的 physical transport pin。
+Transport *flow* semantics——single base URL、standard path、signal-specific full/partial/error mapping、duplicate/conflict/rejected disposition、retry、timeout 与 ambiguous-commit convergence——由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) 拥有，而非本 profile。本 profile 固定 physical transport pin，以及 one-logical-Span-to-one-OTLP-Span / one-logical-Event-to-one-OTLP-LogRecord carrier mapping；Resource 与 Scope envelope 绝不是 record-count unit。
 
 <a id="otel-profile-5"></a>
 ## 5. Standard-first Trace 与 Log Mapping
@@ -430,7 +430,7 @@ C50 是唯一 human-readable Finding scalar。它是由 source review lens 撰�
 
 Delivery、task、Workflow、Workflow stage、implementation、Runtime、canonical model、Manifest、Trace、Span、Event、Review、Finding、Finding scope、affected target/edge、Artifact、Fix、Recheck、Invocation、iteration、version-local Role 与 family-scoped Role-lineage identity 保持不同。Span identity 恰好是 `(trace_id, span_id)`；`span_id` 单独不全局充分，Trace ID 单独不标识 Span。Event identity 仍是 `agentops.event.id`。Model-to-Role attribution 恰好是 `(provider,C57,C30,C06,trace_id,span_id)`，绝不从 name、alias、仅 ancestry 或 task grouping 推断。Review/Finding composition 与 relationship 遵循 §7.4 complete shape 与 typed edge，而非 entity-name reuse。`role.lineage` Event 仅在 owner 提供 known/applicable lineage 时发出；此时 C30 与 C31 都 required。Unknown/not-applicable lineage 不 emit lineage Event，也不 synthesize value。Name、display text、ordering 与 version 绝不建立 identity、scope、target 或 lineage。
 
-Manifest、lifecycle/result、Observation Profile、每个 Workflow-family schema 与 factual semantics 都 explicit versioned。不 rewrite accepted history。Compatibility 依据 exact profile/family/semantic coordinate 声明，绝不从 matching name 或 field spelling 推断。Transport-level version compatibility 与 compatibility failure handling 由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7) 拥有。
+Manifest、lifecycle/result、Observation Profile、每个 Workflow-family schema 与 factual semantics 都 explicit versioned。不 rewrite accepted history。Super Project release 绑定 exact revision 与 SHA-256 digest。Producer emission 与 acceptor admission 只覆盖 exact released tuple，或 closed compatibility matrix 中带 historical fixture 与 joint-gate evidence 的 entry；PATCH/MINOR 绝不通过推断扩大支持。Unlisted combination fail closed，每个 conformance claim 继续绑定 exact revision/digest。Transport-level compatibility failure handling 由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7) 拥有。
 
 <a id="otel-profile-11"></a>
 ## 11. Profile 验收与移交

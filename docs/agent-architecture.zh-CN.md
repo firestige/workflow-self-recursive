@@ -86,6 +86,8 @@ GitHub 与 plugin bundle 是 private Adapter，不是产品 System 或另一条�
 | Version-local Role identity | 一个 Workflow/family version 内的 Role identity；display name 不是 identity | Workflow Contract；由 Execution 传输 |
 | Role lineage identity | owner 定义、family-scoped、用于关联不同 Workflow version 中 Role 的 identity；与 local Role identity 不同 | Workflow Contract；由 Evidence admission/projection |
 
+MVP 保留三个供 Evaluation/BI 直接消费的 owner fact，而不是 Observation 派生解释：Delivery elapsed time 是 Runtime/Execution result owner 提供的完整 start-to-terminal measurement；reached stage 是 Workflow owner 提供的 terminal outcome 时最远 exact stage；canonical model identity 是 Runtime/provider ownership 提供的 provider-scoped model identity，且只对 model-call attribution 有意义。Observation 可将这些事实编码并传输为 C55、C56、C57，但不排列 stage、不计算 elapsed time、不 canonicalize alias，也不接管其 meaning。
+
 各 identity axis 保持分离。Delivery ID 不是 Trace ID；logical Workflow ID 不是 implementation ID；task ID 不是 retry token；opaque Runtime correlation 不是 public Workflow state。Selector 或 configured source 不是 Package identity；sticky latest 不是 exact binding；GitHub Release、asset、tag 或 commit 不是 Core canonical identity；resolved Package 不是 Delivery identity；DSH Session identity 不是 public Workflow state。
 
 <a id="ee-concept-4"></a>
@@ -257,7 +259,7 @@ Design acceptance 要求上表每行都有一个 semantic owner、evidence state
 | `concept.decision.016` | physical conformance 需要 published schema、registry、fixture 与 validation |
 | `concept.decision.017` | Publication 使用冻结的 Python 67/2 与 Node 158/0 baseline-result/delta Gate；只允许两个具名 legacy failure |
 | `concept.decision.018` | EFCR digest mismatch 与两个 frozen historical authority literal 保持 quarantined legacy/non-conformance evidence |
-| `concept.decision.019` | 采用 Observation Profile `0.3.0`，固定精确 OTel/OTLP/semconv pin、10 EventName 与 closed 57-common/10-Implementation/6-System-Design registry；Review summary、Finding、Fix、Recheck 使用完整 named base-plus-variant shape；每个 Finding 携带 bounded privacy-safe factual summary、Finding-specific scope 与一个 typed artifact/section/component/requirement target，multi-target 每个 edge 一条完整 record；固定 typed review graph、source-scoped native usage 与 Span tuple identity；`agentops.role.lineage.id` 在既有 `role.lineage` 上与 local Role ID 配对，administrative disposition 留在首个 wire profile 外 |
+| `concept.decision.019` | 采用 proposed Profile `1.0.0` 所编码的 Observation semantics；Profile `0.3.0` 仅为 non-resolving legacy history。Exact OTel/OTLP/semconv pin、10 EventName 与 closed 57-common/10-Implementation/6-System-Design registry 包含 owner-supplied C55–C57；Review summary、Finding、Fix、Recheck 使用完整 named base-plus-variant shape；每个 Finding 携带 bounded privacy-safe factual summary、Finding-specific scope 与一个 typed artifact/section/component/requirement target，multi-target 每个 edge 一条完整 record；固定 typed review graph、source-scoped native usage 与 Span tuple identity；`agentops.role.lineage.id` 在既有 `role.lineage` 上与 local Role ID 配对，administrative disposition 留在首个 wire profile 外 |
 | `concept.decision.020` | Workflow Package 遵循一个开放 Agent Ops composition model；admission 基于 exact closure 与 selected Runtime compatibility，而非 Package ownership/name |
 | `concept.decision.021` | Canonical worktree admission 先执行。`CONTENDED` 与 `RECOVERY` 不执行新 selector Package work；只有 `NEW` 在创建 Delivery Manifest 前解析并校验 Package。任何 preparation failure 都释放 ordinary holder，并在 Delivery 存在前返回 |
 | `concept.decision.022` | 裸 name 表示 sticky-local latest；exact/latest local hit 不访问 remote；每个成功结果为新 Delivery 冻结 `name`、`exactVersion`、`packageDigest`、`localPath`、`workflowId` |

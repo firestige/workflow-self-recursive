@@ -181,6 +181,8 @@ Raw debug data 可以最先 expire。Accepted identity/provenance 保持 immutab
 | Compatible aggregate | Projection | eligible compatible contribution 的合并 | 仅随相同 semantic accepted contribution 演进 |
 | Curated view/config | Query & Presentation | read shape，不是 fact authority | 可替换且不 rewrite fact |
 
+对于 C55、C56、C57，Evidence 只拥有 exact owner-supplied value 与 provenance 的 admission、storage 和 factual projection。它绝不从 timestamp 计算 elapsed time，不从 observed event 推断 reached-stage order，不把 model request/response alias 转成 canonical model，也不 backfill 缺失的 owner fact。Missing 保持 unavailable。C57 只在 model-call Span 上 admission，并同时具备 provider、local Role、C06 Runtime root binding 与 Span identity tuple。
+
 Stable Observation identity 区别于 Delivery、Trace、Span、task、Workflow、implementation、Runtime、Manifest 与 Artifact identity。Accepted content 携带 required relationship；不得从 display grouping 推断。
 
 Completeness value：

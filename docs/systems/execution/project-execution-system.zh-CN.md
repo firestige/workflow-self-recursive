@@ -144,11 +144,11 @@ M02 隐藏 canonical worktree derivation、immediate exclusive admission、curre
 
 Preview 不增加第二个 pre-Manifest lifecycle。Manifest 存在前，failure 释放 ordinary in-process/OS-backed exclusive holder 并返回。Process death 释放 holder。若 death 发生在 Manifest 可见后，下次调用通过既有 occupied-slot recovery 读取 Manifest。不引入 `ARMED`/commit-unknown/reconciliation state。
 
-### Delivery Observation（`execution.milestone.03`），不变
+### Delivery Observation（`execution.milestone.03`）
 
 M03 把有界的实际 Delivery fact 映射为 adopted allow-listed standard-first Observation Profile，拥有 privacy/redaction 与 exporter isolation，只返回 diagnostic。它不拥有 source fact，也不控制 execution。Custody-only attempt 与 preparation rejection 不产生 Delivery Observation。Exact carrier/EventName/common/family registry 与 complete Review-family shape 由 [OTel Observation Profile](../../contracts/observation/otel-observation-profile.md) 拥有；technology-neutral fact meaning、identity、missingness、privacy、lineage、usage 与 relationship semantics 由 [Observation Catalog](../../contracts/observation/observation-catalog.md) 拥有；transport interaction 由 [Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md) 拥有。M03 不拥有 payload registry 或 Evidence durable storage semantics。
 
-具体而言，profile `0.3.0` 保留 official OTLP/HTTP binary protobuf Trace/Log export、一个 sampled Delivery root 及嵌套 Workflow/Agent/model/tool Span、10 个 EventName，以及 closed 57-common/10-Implementation/6-System-Design field registry。一个 family 可以使用 common 加自身 field，绝不使用 sibling field。Stock DSH Session JSON telemetry 保持 disabled。每个 Event 有稳定 `agentops.event.id`；每个 Span 以 native `(trace_id, span_id)` tuple 标识。Standard token usage 留在 model Span，其他 provider-native quantity 使用 typed usage Event，并含 exact kind/unit/source/source-ID/completeness；missing 不表示 zero，也不推断 conversion 或 price。
+具体而言，proposed profile `1.0.0` 延续已采纳 semantics，并加入 owner-supplied C55–C57 mapping；`0.3.0` 仅为 non-resolving legacy history。Current profile 使用 official OTLP/HTTP binary protobuf Trace/Log export、一个 sampled Delivery root 及嵌套 Workflow/Agent/model/tool Span、10 个 EventName，以及 closed 57-common/10-Implementation/6-System-Design field registry。一个 family 可以使用 common 加自身 field，绝不使用 sibling field。Stock DSH Session JSON telemetry 保持 disabled。每个 Event 有稳定 `agentops.event.id`；每个 Span 以 native `(trace_id, span_id)` tuple 标识。Standard token usage 留在 model Span，其他 provider-native quantity 使用 typed usage Event，并含 exact kind/unit/source/source-ID/completeness；missing 不表示 zero，也不推断 conversion 或 price。
 
 Review summary、Finding、Fix 与 Recheck 仍选择一个完整 named base-plus-variant shape。每个 Finding 携带一个 bounded privacy-safe factual summary、Finding-specific scope identity 和恰好一个 typed Artifact/section/component/requirement target；multi-target Finding 对每个 target edge 重复完整 assertion。Owner-known Role lineage 同时携带 version-local Role ID 与 family-scoped lineage ID；unknown lineage 省略，绝不按 name 或 position 推断。M03 不发出 prompt、message、tool argument/result、source/diff、credential 或 raw-error body，也不从 name、order、count 或 grouping 推断 quality、causality、reviewer effectiveness 或 relationship。Administrative unresolved/abandonment state 仍是 M02 state，不是 first-profile Observation。
 
@@ -440,7 +440,7 @@ Test 跨越 M01、M02 与 Runtime Adapter Interface 并断言 observable result�
 | Lost handle 或 invalid/ambiguous result | `RESULT_UNRESOLVED` 保持 occupied；不 fabricated result 或 blind replay | malformed/lost-handle/reconciliation fixture |
 | Authorized abandonment | exact current authority clear，且无 Runtime outcome/history/same-Delivery retry | positive、stale、mismatched authorization fixture |
 | Observation failure/privacy | execution outcome 相同；prohibited body marker 为零 | disable/refusal/timeout/tail-loss 与 privacy scan |
-| Profile mapping | 精确 `0.3.0` carrier、10 EventName、57+10+6 registry、family exclusion | OTel Profile deterministic registry/table/type check 与 production conformance |
+| Profile mapping | exact proposed `1.0.0` carrier、10 EventName、57+10+6 registry、family exclusion；`0.3.0` 为 non-resolving legacy history | OTel Profile deterministic registry/table/type check 与 production conformance |
 | Review composition 与 Finding scope | 恰好一个完整 named shape；bounded assertion 加一个 typed target；multi-target edge 完整重复 | complete-shape、endpoint、multi-target、privacy、duplicate/conflict fixture |
 | Count presence semantics | C17 zero/positive/omission 不同；invalid value 与 Finding carrier 不能落下 malformed count state | ordinary/Recheck zero/positive/absence 与 negative fixture |
 | Role lineage 与 usage | local/lineage pair 不同；provider-native quantity 保持 exact kind/unit/source group | lineage duplicate/conflict/privacy 与 usage compatibility fixture |
@@ -449,6 +449,8 @@ Test 跨越 M01、M02 与 Runtime Adapter Interface 并断言 observable result�
 
 <a id="ee-execution-14"></a>
 ## 14. 决策、下游工作与被拒方案
+
+对于三个 MVP Evaluation/BI owner fact，Execution 边界是精确的：Runtime/Execution result owner 只从完整 start-to-terminal elapsed measurement 提供 C55；Workflow owner 提供 terminal outcome 时最远 reached stage 的 exact identity 作为 C56；Runtime/provider model owner 在 model-call Span 上提供有界、provider-scoped 的 canonical model identity 作为 C57。C57 attribution 还携带 local Role identity，并通过 Delivery root binding join 到 C06。Delivery Observation 在这些 scalar 可用时原样复制；不计算、不推断、不做 alias normalization、不 backfill，也不调度或结算它们。
 
 ### 决策登记
 
@@ -465,7 +467,7 @@ Test 跨越 M01、M02 与 Runtime Adapter Interface 并断言 observable result�
 | `DEC-WI-09` | Preview 不增加 pre-Manifest lifecycle。Existing current-slot authority 从 persisted Manifest 开始，并保留之后既有 DSH uncertainty/recovery |
 | `DEC-WI-10` | 在明确的 trust/exposure/scale trigger 变化前，不设计 authentication、authorization、signing、injection defense、sandbox、concurrent Store protocol、distributed lock、HA、failover 或 production recovery mechanism |
 
-既有 Execution decision 继续有效：三个 deep Module；Runtime-owned Workflow outcome 位于 Core-owned Adapter seam 后；one-current-slot lifecycle 且无 Execution history；standard-first allow-listed best-effort Observation；canonical worktree revalidation；对 persisted Runtime uncertainty 的 conclusive handling；Observation Profile `0.3.0` 语义。本修订不改变 M03、Evidence 或 runner 语义。
+既有 Execution decision 继续有效：三个 deep Module；Runtime-owned Workflow outcome 位于 Core-owned Adapter seam 后；one-current-slot lifecycle 且无 Execution history；standard-first allow-listed best-effort Observation；canonical worktree revalidation；对 persisted Runtime uncertainty 的 conclusive handling；以及现在由 proposed Profile `1.0.0` 编码的 adopted Observation semantics。本修订只加入 explicit C55–C57 owner mapping，不改变 Runtime、Evidence 或 runner execution semantics。
 
 本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；automatic GitHub-to-bundle fallback；source/version fallback；ambient completion；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；DSH-native Core type；runner change。
 

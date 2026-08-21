@@ -11,14 +11,14 @@
 | 文档身份 | `observation.identity.001` |
 | 状态 | `REVIEW_CANDIDATE` |
 | 规范语言 | 英文 |
-| 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 elapsed time、reached stage 与 model-to-Role attribution 的 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中 |
+| 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split；C55–C57 meaning 与 ownership 解析到 [Concept §3](../../agent-architecture.md#ee-concept-3)、[Execution §14](../../systems/execution/project-execution-system.md#ee-execution-14) 和 [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8)；历史 amendment 仅保留 provenance |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md) |
 | Representation companion | [OTel Observation Profile](otel-observation-profile.md)，proposed version `1.0.0` |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
 | 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
-本文件拥有 Observation fact *意味着什么* 以及谁拥有每个 fact。它不拥有 fact 如何编码、transport、admit、storage 或 query。当 OTel Observation Profile 中的 representation 与此处 meaning 冲突时，以本文件的 semantic owner anchor 为准。
+本文件 catalog Observation fact *意味着什么* 以及谁拥有每个 fact。它不拥有 fact 如何编码、transport、admit、storage 或 query。C55–C57 明确引用 English [Concept §3](../../agent-architecture.md#ee-concept-3)、[Execution §14](../../systems/execution/project-execution-system.md#ee-execution-14) 与 [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8) owner anchor；Observation 只编码，不成为其 semantic producer。Representation 与这些 anchor 冲突时，以 owner anchor 为准。
 
 Profile `0.3.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；它仅作为 Git 历史中的 provenance 保留，不是可选择的 compatibility target。
 

@@ -64,12 +64,12 @@ Profile `0.3.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`; it remains provenance in
 | Schema URL | `https://opentelemetry.io/schemas/1.41.0` | exact tested scope schema URL |
 | Observation Profile | proposed version `1.0.0` | adopted proposal, not a release |
 | InstrumentationScope | name `io.agentops.dsh.observation`, version `1.0.0`, schema URL above | required on Trace and Log scopes |
-| Factual transport | OTLP/HTTP through official binary protobuf Trace and Log exporters | stock DSH rc.6 OTLP/JSON is disabled and not routed to Evidence |
+| Factual transport | one loopback HTTP base; official binary protobuf Trace exporter at `/v1/traces` and Log exporter at `/v1/logs`; `application/x-protobuf` | stock DSH rc.6 OTLP/JSON and alternate paths are disabled and not routed to Evidence |
 | Sampling | Delivery-level head sampling; default probability `1` | sampled-out decision LogRecord may carry unsampled Trace context; no durability/completeness claim |
 
 The OTel Resource carries standard `service.name` and `service.version`. Admission records immutable producer Resource, profile, Scope and Workflow-family provenance. Exact DSH rc.6 and Node SDK package versions remain reference-emitter evidence, not portable wire requirements. Fixture `deployment.environment.name` is not part of this profile.
 
-Transport *flow* semantics — endpoints, per-batch partial success reporting, duplicate/conflict/rejected disposition, retry, timeout, and ambiguous-commit convergence — are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md), not by this profile. This profile fixes only the physical transport pins above.
+Transport *flow* semantics — the single base URL, standard paths, signal-specific full/partial/error mapping, duplicate/conflict/rejected disposition, retry, timeout, and ambiguous-commit convergence — are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md), not by this profile. This profile fixes the physical transport pins and the one-logical-Span-to-one-OTLP-Span / one-logical-Event-to-one-OTLP-LogRecord carrier mapping; Resource and Scope envelopes are never record-count units.
 
 <a id="otel-profile-5"></a>
 ## 5. Standard-first Trace and Log Mapping
@@ -430,7 +430,7 @@ The tech-neutral meaning of privacy for each fact class is owned by the [Observa
 
 Delivery, task, Workflow, Workflow stage, implementation, Runtime, canonical model, Manifest, Trace, Span, Event, Review, Finding, Finding scope, affected target/edge, Artifact, Fix, Recheck, Invocation, iteration, version-local Role and family-scoped Role-lineage identities remain distinct. Span identity is exactly `(trace_id, span_id)`; `span_id` alone is not globally sufficient and Trace ID alone does not identify a Span. Event identity remains `agentops.event.id`. Model-to-Role attribution is exactly `(provider,C57,C30,C06,trace_id,span_id)` and is never inferred from names, aliases, ancestry alone or task grouping. Review/Finding composition and relationships follow §7.4 complete shapes and typed edges rather than entity-name reuse. A `role.lineage` Event is emitted only when the owner supplies a known/applicable lineage; C30 and C31 are then both required. Unknown/not-applicable lineage emits no lineage Event and does not synthesize a value. Names, display text, ordering and versions never establish identity, scope, target or lineage.
 
-Manifest, lifecycle/result, Observation Profile, each Workflow-family schema and factual semantics are explicitly versioned. Accepted history is not rewritten. Compatibility is declared against exact profile/family/semantic coordinates, never inferred from matching names or field spelling. Transport-level version compatibility and compatibility failure handling are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7).
+Manifest, lifecycle/result, Observation Profile, each Workflow-family schema and factual semantics are explicitly versioned. Accepted history is not rewritten. The Super Project release binds exact revisions and SHA-256 digests. Producer emission and acceptor admission cover only the exact released tuple or an entry in the closed compatibility matrix with historical fixtures and joint-gate evidence; PATCH/MINOR never widens support by inference. Unlisted combinations fail closed, and every conformance claim remains exact-revision/digest bound. Transport-level compatibility failure handling is owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7).
 
 <a id="otel-profile-11"></a>
 ## 11. Profile Acceptance and Handoff

@@ -41,13 +41,14 @@ Non-goals: execution control, receipt/outbox/queue/cursor semantics, replay or c
 
 The factual transport is OTLP/HTTP through official binary protobuf Trace and Log exporters, exactly as pinned in the [OTel Observation Profile §4](../observation/otel-observation-profile.md#otel-profile-4). Stock DSH rc.6 OTLP/JSON is disabled and not routed to Evidence.
 
-Evidence exposes a single local, loopback-only ingest endpoint that accepts one bounded, supported OTLP batch per request. The first local-only release requires no application-level authentication on the loopback ingest endpoint. There is no externally reachable database listener, and there is no reverse interface from Evidence to Execution.
+Evidence exposes exactly one configured loopback-only HTTP base URL. Standard OTLP paths are appended to that same base: `/v1/traces` accepts `ExportTraceServiceRequest` and `/v1/logs` accepts `ExportLogsServiceRequest`, each with `Content-Type: application/x-protobuf`. No alternate ingest path, OTLP/JSON path, second signal-specific base URL, or remotely bound listener is conforming. The first local-only release requires no application-level authentication on this loopback interface. There is no externally reachable database listener and no reverse interface from Evidence to Execution.
 
 The `ingest` interface:
 
 | Interface | Input | Result / error | Invariants |
 | --- | --- | --- | --- |
-| `ingest` | bounded supported OTLP batch | standard OTLP success or partial-success aggregate with bounded rejected counts/reasons | no execution outcome; no per-record response vector; siblings independent |
+| `POST {base}/v1/traces` | bounded official protobuf `ExportTraceServiceRequest` | standard Trace Export response or protobuf `Status` | logical Span count is the OTLP Span count; Resource/Scope envelopes are not count units |
+| `POST {base}/v1/logs` | bounded official protobuf `ExportLogsServiceRequest` | standard Logs Export response or protobuf `Status` | logical Event count is the OTLP LogRecord count; Resource/Scope envelopes are not count units |
 
 The response is an aggregate acknowledgement of Evidence ingest only. It is never an execution outcome, never a per-record disposition payload, and never a prerequisite for Execution progress.
 
@@ -70,27 +71,42 @@ A record that is rejected carries zero accepted effects for that record. A recor
 <a id="interaction-contract-5"></a>
 ## 5. Partial Success and Batch Sibling Isolation
 
-Each record is validated independently. A valid sibling may be accepted while an invalid sibling is rejected in the same batch. The external OTLP response reports only the standard aggregate success or partial-success result with bounded rejected counts and reasons; it does not create an all-or-nothing batch transaction, does not expose internal per-record disposition labels, and never reports an execution outcome.
+After request-level validation succeeds, each logical Span or Event is validated independently. One logical Span maps one-to-one to one OTLP Span, and one logical Event maps one-to-one to one OTLP LogRecord. A valid sibling may be accepted while an invalid sibling is rejected in the same request. Resource, Scope, ResourceSpans/ResourceLogs, and ScopeSpans/ScopeLogs are envelopes and never rejected-count units.
+
+The response mapping is exact and signal-specific:
+
+| Admission/request result | HTTP result | OTLP body |
+| --- | --- | --- |
+| empty request, all accepted, accepted+duplicate, or duplicate-only | `200` | signal Export response with `partial_success` unset |
+| accepted/duplicate mixed with conflict/rejected | `200` | signal Export response with partial success; Trace uses `rejected_spans`, Logs uses `rejected_log_records`; only conflict+rejected logical records are counted |
+| all logical records are conflict/rejected because of permanent data invalidity | `400` | protobuf `google.rpc.Status`; never a signal partial-success body |
+| protobuf decode failure, wrong content type, unsupported exact profile/family coordinate, or global batch-shape failure | `400` | protobuf `google.rpc.Status`; request failure has zero per-record effects |
+| encoded request exceeds the published byte limit | `413` | protobuf `google.rpc.Status`; zero per-record effects |
+| overload / unavailable | `429` / `503` | protobuf `google.rpc.Status`; retryable with identical bytes and identities |
+| gateway failure / timeout | `502` / `504` | protobuf `google.rpc.Status`; retryable with identical bytes and identities |
+
+No response contains `accepted`, `duplicate`, `conflict`, `rejected`, or any per-record vector. A request-level failure occurs before record admission and therefore cannot partially accept siblings.
 
 The transaction boundary is per valid record, not per batch. First accepted write wins. Ordinary retry is safe because identity and content digest decide duplicate versus conflict.
 
 <a id="interaction-contract-6"></a>
 ## 6. Retry, Timeout, and Ambiguous Commit
 
-- **Identical retry**: re-submitting an identical record (same identity and digest) converges internally to duplicate/already accepted; no effect repeats. The external response remains the standard OTLP aggregate result, not a per-record duplicate label.
+- **Identical retry**: a retry resubmits identical request bytes and record identities. Each already committed same-identity/same-digest logical record converges internally to duplicate/already accepted; no effect repeats. The external response remains the standard OTLP aggregate result, not a per-record duplicate label.
 - **Conflicting retry**: re-submitting the same identity with different content is an internal conflict/rejection; the first accepted record is never overwritten. The external response exposes only the aggregate rejected count/reason permitted by OTLP partial success, not a per-record conflict label.
-- **Ambiguous commit**: if the record became accepted but the acknowledgement path failed, a later same-identity request converges internally to duplicate/already accepted. No queue, replay worker, or compensation is required, and the sender receives no per-record duplicate label.
+- **Ambiguous commit**: if acceptance may have committed but no response was observed, the only conforming retry is the identical request. Committed records converge by identity+canonical digest to duplicate; uncommitted records remain new. No queue, replay worker, or compensation is required, and the sender receives no per-record duplicate label.
 - **Failure before acceptance**: a failure before the record becomes accepted leaves no accepted record and no partial effect; readers see either no state or the complete accepted slice, never a half-state; a later same-identity request is new.
-- **Timeout / tail loss / refusal**: best-effort export, refusal, timeout, or tail loss never changes the Runtime outcome and never produces a durability or complete-delivery claim. The sender does not reconstruct lost facts from any later state.
+- **Timeout / refusal**: no HTTP response is a transport attempt/result state, not a pseudo OTLP response. The sender may retry the identical request; it never varies identity or payload to guess commit state.
+- **Tail loss**: a best-effort exporter may lose an unobserved request before or during shutdown. This is a transport loss state, not an OTLP response and not a durability claim; the sender does not reconstruct facts from Runtime or later Evidence state.
 
 <a id="interaction-contract-7"></a>
 ## 7. Version Compatibility
 
-Manifest, lifecycle/result, Observation Profile, each Workflow-family schema, and factual semantics are explicitly versioned. Compatibility is declared against exact profile/family/semantic coordinates, never inferred from matching names or field spelling.
+Manifest, lifecycle/result, Observation Profile, each Workflow-family schema, producer, and acceptor are explicitly versioned. The Super Project release binds the exact revisions and SHA-256 digests that passed the joint gates. Its release tag certifies only that exact combination; it is not a compatibility promise for other revisions.
 
 A record is **profile-invalid** when it carries unsupported Resource/Scope/profile/family coordinates, an unlisted or wrong-family field, an invalid closed value or type, prohibited content, or any shape that fails the complete validation of the [OTel Observation Profile](../observation/otel-observation-profile.md). Profile-invalid rejection is atomic: the whole logical record is rejected with zero partial projection. Evidence never silently ignores an invalid field or partially admits a malformed record, and it never accepts a coordinate it does not explicitly support.
 
-Version compatibility is evaluated per record; a batch may contain records of different family schema values, each validated against the same profile version.
+The MVP producer emits only the exact profile revision in its released combination, and the acceptor admits only the exact profile/family tuples in that combination or in the published closed compatibility matrix. `implementation@1` and `system-design@1` are exact tuples, not ranges. PATCH/MINOR describes permitted source evolution only: SemVer never automatically widens emission, admission, or conformance. Every additional cross-release entry must list exact producer revision, acceptor revision, profile/family tuple, applicability boundary, historical fixtures, and joint-gate evidence. Any unlisted combination fails closed. A conformance claim always binds exact revisions and digests even when an acceptor has multiple explicit matrix entries.
 
 <a id="interaction-contract-8"></a>
 ## 8. Publication and Conformance Obligations
