@@ -189,9 +189,9 @@ Status values used by pre-existing Contract documents (e.g., `DRAFT_NOT_PUBLISHE
 | OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | [`system-contracts/observation/`](../../system-contracts/observation/) (candidate, not released) | `REVIEW_CANDIDATE` | proposed `0.3.0` | independent review and physical release (`concept.obligation.001`) |
 | Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | not released | `REVIEW_CANDIDATE` | split draft | machine representation release (`concept.obligation.001`) |
 | Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | not released | `REVIEW_CANDIDATE` | split draft | machine representation release (`concept.obligation.001`) |
-| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/) (`1.0.0` candidate, not released) | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@1.0.0` | independent contract.gate.1/gate.2/gate.4 evidence + owner approval → final binding → FROZEN |
+| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/) (`1.0.0`, released) | `FROZEN` | `agentops.workflow-dsl@1.0.0` | closed by contract.gate.1–6, exact publication binding, and Contract-owner approval |
 
 Notes:
 
 - The observation-family documents declare their own status values in their headers; the normalized column is a management mapping, not an override of their authority.
-- The Workflow Definition DSL is the first Contract drafted under this specification; it is `REVIEW_CANDIDATE` under the fast path (§4.3): the first-party Workflow migration (Task 2) proceeds as candidate-based validation and supplies the contract.gate.2/contract.gate.3 evidence for the later one-step freeze.
+- The Workflow Definition DSL is the first Contract frozen under this specification. Its first-party Workflow migration supplied contract.gate.2/contract.gate.3 evidence under the fast path (§4.3) before the one-step owner-approved freeze.
