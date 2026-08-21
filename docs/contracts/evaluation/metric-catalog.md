@@ -1,7 +1,7 @@
 <a id="metric-catalog"></a>
 # Metric Catalog
 
-> **HUMAN SPECIFICATION — NOT A MACHINE SCHEMA.** This document defines the human semantics of the 14-metric MVP Evaluation Catalog. Its candidate machine companion is maintained under [`system-contracts/evaluation/`](../../../system-contracts/evaluation/); neither Evaluation artifact is published yet. Its semantic links to the Observation Catalog are human correspondences, while its dependency on the published Observation Contract `1.0.0` is an exact machine revision binding.
+> **HUMAN SPECIFICATION — NOT A MACHINE SCHEMA.** This frozen document defines the human semantics of the published 14-metric MVP Evaluation Catalog. Its published machine companion is maintained under [`system-contracts/evaluation/`](../../../system-contracts/evaluation/). Its semantic links to the Observation Catalog are human correspondences, while its dependency on the published Observation Contract `1.0.0` is an exact machine revision binding.
 
 <a id="metric-catalog-1"></a>
 ## 1. Metadata and Authority
@@ -10,15 +10,15 @@
 | --- | --- |
 | Document identity | `evaluation.identity.001` |
 | Contract revision | `agentops.evaluation.metric-catalog@1.0.0` |
-| Status | `REVIEW_CANDIDATE` |
+| Status | `FROZEN` |
 | Normative language | English |
-| Machine companion | [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) 1.0.0 schema, example, fixtures, validator, version policy and publication inventory; candidate, not published |
+| Machine companion | published [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) 1.0.0 schema, example, fixtures, validator, version policy and publication record; `VALIDATOR_ONLY` conformance claim |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Representation companion | published [OTel Observation Profile](../observation/otel-observation-profile.md) `1.0.0`; exact semantic revision `sha256:1a3fea6d202bf08a36aaf76abc3c6601fa71dc6c581715f9c74d11456f2ae735`, machine revision `sha256:cf5b6c54af452085f66cf3c28b7ffb14e58451b926a97fa317b9a92a18c8d774` |
 | Owner | `evidence-governance-owner` |
 | Translation parity obligation | English/Chinese anchors, headings, tables, IDs, fields, enums and links are paired, per [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
-This document is the semantic authority for what each field and metric means and how it may be read. The candidate machine companion must encode these semantics; a mismatch is a representation defect and cannot silently redefine this document.
+This document is the semantic authority for what each field and metric means and how it may be read. The published machine companion must encode these semantics; a mismatch is a representation defect and cannot silently redefine this document.
 
 Metric Catalog `0.1.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`; it remains provenance in Git history and is not a selectable compatibility target.
 
@@ -36,12 +36,12 @@ This document:
 
 This document does not:
 
-- release the candidate machine schema, example, fixtures or validator, or publish an implementation/conformance claim;
+- implement or certify Projection, BI rendering, production Runtime or physical conformance beyond the published `VALIDATOR_ONLY` claim;
 - redefine Observation facts, wire fields, Admission or Projection compatibility keys;
 - implement Projection-owned fact eligibility or BI rendering; or
 - publish a Question Catalog, BI/Evolution preset, composite score, rank, Pareto set or hidden weighting policy.
 
-The candidate machine companion encodes this 14-metric catalog, including the exact Observation dependency, per-metric input references and semantic digest, catalog-wide `metric_id` uniqueness, coverage policy and the `value_semantics.missing` never-zero rule. Passing its validator proves candidate consistency only; no file or implementation may claim published conformance before the applicable publication gates and owner approval.
+The published machine companion encodes this 14-metric catalog, including the exact Observation dependency, per-metric input references and semantic digest, catalog-wide `metric_id` uniqueness, coverage policy and the `value_semantics.missing` never-zero rule. Passing its validator proves schema and bounded semantic consistency only; publication makes a `VALIDATOR_ONLY` claim and does not establish Projection, BI, Runtime or production implementation conformance.
 
 <a id="metric-catalog-3"></a>
 ## 3. Schema Field Semantics
@@ -52,7 +52,7 @@ Catalog envelope fields:
 | --- | --- | --- |
 | `catalog_id` | fixed identifier | identifies this artifact as `agentops.evaluation.metric-catalog` |
 | `version` | `x.y.z` string | version of the catalog envelope and validation surface |
-| `status` | `REVIEW_CANDIDATE` | Contract lifecycle state; never an implementation or publication claim |
+| `status` | `PUBLISHED` | machine Contract lifecycle state; never a production implementation or physical-conformance claim |
 | `semantic_authority` | fixed non-empty reference | binds the representation to this document identity |
 | `dependencies` | one exact closed Observation binding | binds `observation-contract@1.0.0` to its published semantic revision, machine revision, publication digest and gitlink commit; no SemVer inference |
 | `minimum_sample_policy` | one fixed rule | below `minimum_sample` the metric value is not published, while the complete coverage result remains published |

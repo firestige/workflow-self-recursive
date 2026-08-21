@@ -185,13 +185,13 @@ flowchart LR
 
 | Contract | 语义文档 | 机器表示 | Lifecycle status（规范化） | Revision | 未决义务 |
 | --- | --- | --- | --- | --- | --- |
-| Observation Catalog | [`observation/observation-catalog.md`](observation/observation-catalog.md) | [`system-contracts/observation/`](../../system-contracts/observation/)（候选，未发布） | `REVIEW_CANDIDATE` | split draft；profile 引用 `0.3.0` | 独立审查与物理发布（`concept.obligation.001`） |
-| OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | [`system-contracts/observation/`](../../system-contracts/observation/)（候选，未发布） | `REVIEW_CANDIDATE` | proposed `0.3.0` | 独立审查与物理发布（`concept.obligation.001`） |
-| Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | 未发布 | `REVIEW_CANDIDATE` | split draft | 机器表示发布（`concept.obligation.001`） |
-| Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | [`system-contracts/evaluation/`](../../system-contracts/evaluation/)（candidate，未发布） | `REVIEW_CANDIDATE` | `agentops.evaluation.metric-catalog@1.0.0` | 独立审查与机器表示发布（`concept.obligation.001`） |
-| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/)（`1.0.0` candidate，未发布） | `REVIEW_CANDIDATE` | `agentops.workflow-dsl@1.0.0` | 独立 contract.gate.1/gate.2/gate.4 证据 + owner approval → final binding → FROZEN |
+| Observation Catalog | [`observation/observation-catalog.md`](observation/observation-catalog.md) | [`system-contracts/observation/`](../../system-contracts/observation/)（`1.0.0`，已发布） | `FROZEN` | `observation-contract@1.0.0`；`VALIDATOR_ONLY` | 已由 contract.gate.1–6、exact publication binding 与 Contract-owner approval 关闭 |
+| OTel Observation Profile | [`observation/otel-observation-profile.md`](observation/otel-observation-profile.md) | [`system-contracts/observation/`](../../system-contracts/observation/)（`1.0.0`，已发布） | `FROZEN` | profile `1.0.0`；`VALIDATOR_ONLY` | 已由 contract.gate.1–6、exact publication binding 与 Contract-owner approval 关闭 |
+| Execution–Evidence Interaction Contract | [`execution-evidence/interaction-contract.md`](execution-evidence/interaction-contract.md) | [`system-contracts/observation/schemas/otlp-interaction-1.0.0.schema.json`](../../system-contracts/observation/schemas/otlp-interaction-1.0.0.schema.json)（已发布） | `FROZEN` | interaction schema `1.0.0`；`VALIDATOR_ONLY` | 已由 contract.gate.1–6、exact publication binding 与 Contract-owner approval 关闭 |
+| Metric Catalog | [`evaluation/metric-catalog.md`](evaluation/metric-catalog.md) | [`system-contracts/evaluation/`](../../system-contracts/evaluation/)（`1.0.0`，已发布） | `FROZEN` | `agentops.evaluation.metric-catalog@1.0.0`；`VALIDATOR_ONLY` | 已由 contract.gate.1–6、exact publication binding 与 Contract-owner approval 关闭 |
+| Workflow Definition DSL | [`workflow/workflow-definition-dsl.md`](workflow/workflow-definition-dsl.md) | [`system-contracts/workflow-dsl/`](../../system-contracts/workflow-dsl/)（`1.0.0`，已发布） | `FROZEN` | `agentops.workflow-dsl@1.0.0`；`VALIDATOR_ONLY` | 已由 contract.gate.1–6、exact publication binding 与 Contract-owner approval 关闭 |
 
 注：
 
 - observation 系列文档在其头部声明各自的状态值；规范化列是管理映射，不覆盖它们的 authority。
-- Workflow Definition DSL 是本规范下起草的第一个 Contract；它在快速路径（§4.3）下为 `REVIEW_CANDIDATE`：first-party Workflow 迁移（Task 2）作为 candidate-based 验证进行，为后续一次性冻结提供 contract.gate.2/contract.gate.3 证据。
+- Workflow Definition DSL 是本规范下冻结的第一个 Contract；其 first-party Workflow 迁移在快速路径（§4.3）下提供了 contract.gate.2/contract.gate.3 证据，随后经 owner approval 与 exact publication binding 一次性转为 `FROZEN`。

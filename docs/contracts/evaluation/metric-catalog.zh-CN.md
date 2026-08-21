@@ -1,7 +1,7 @@
 <a id="metric-catalog"></a>
 # Metric Catalog（中文翻译）
 
-> **HUMAN SPECIFICATION——不是 MACHINE SCHEMA。** 本文件定义 MVP 14-metric Evaluation Catalog 的 human semantics。其 candidate machine companion 位于 [`system-contracts/evaluation/`](../../../system-contracts/evaluation/)；两份 Evaluation artifact 目前都未发布。与 Observation Catalog 的 semantic link 是 human correspondence，而对已发布 Observation Contract `1.0.0` 的依赖是 exact machine revision binding。
+> **HUMAN SPECIFICATION——不是 MACHINE SCHEMA。** 本 frozen 文件定义已发布 MVP 14-metric Evaluation Catalog 的 human semantics。其 published machine companion 位于 [`system-contracts/evaluation/`](../../../system-contracts/evaluation/)。与 Observation Catalog 的 semantic link 是 human correspondence，而对已发布 Observation Contract `1.0.0` 的依赖是 exact machine revision binding。
 
 <a id="metric-catalog-1"></a>
 ## 1. 元数据与权威性
@@ -10,15 +10,15 @@
 | --- | --- |
 | 文档身份 | `evaluation.identity.001` |
 | Contract revision | `agentops.evaluation.metric-catalog@1.0.0` |
-| 状态 | `REVIEW_CANDIDATE` |
+| 状态 | `FROZEN` |
 | 规范语言 | 英文 |
-| Machine companion | [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) 1.0.0 schema、example、fixture、validator、version policy 与 publication inventory；candidate，未发布 |
+| Machine companion | 已发布 [`system-contracts/evaluation/`](../../../system-contracts/evaluation/) 1.0.0 schema、example、fixture、validator、version policy 与 publication record；`VALIDATOR_ONLY` conformance claim |
 | Semantic companion | [Observation Catalog](../observation/observation-catalog.md) |
 | Representation companion | 已发布 [OTel Observation Profile](../observation/otel-observation-profile.md) `1.0.0`；exact semantic revision `sha256:1a3fea6d202bf08a36aaf76abc3c6601fa71dc6c581715f9c74d11456f2ae735`，machine revision `sha256:cf5b6c54af452085f66cf3c28b7ffb14e58451b926a97fa317b9a92a18c8d774` |
 | Owner | `evidence-governance-owner` |
 | 翻译一致性义务 | English/Chinese anchors、headings、tables、IDs、fields、enums 与 links 保持成对，依据 [Concept `concept.acceptance.017`](../../agent-architecture.md) |
 
-本文件是每个 field 与 metric *意味着什么*、以及应如何阅读的 semantic authority。Candidate machine companion 必须编码这些 semantics；不一致属于 representation defect，不得静默重定义本文件。
+本文件是每个 field 与 metric *意味着什么*、以及应如何阅读的 semantic authority。Published machine companion 必须编码这些 semantics；不一致属于 representation defect，不得静默重定义本文件。
 
 Metric Catalog `0.1.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；它仅作为 Git 历史中的 provenance 保留，不是可选择的 compatibility target。
 
@@ -36,12 +36,12 @@ Metric catalog 声明 evidence-governance owner 计算并发布的 measurement�
 
 本文件不：
 
-- release candidate machine schema、example、fixture 或 validator，或发布 implementation/conformance claim；
+- 实现或认证 Projection、BI rendering、production Runtime，或超出已发布 `VALIDATOR_ONLY` claim 的 physical conformance；
 - 重定义 Observation fact、wire field、Admission 或 Projection compatibility key；
 - 实现 Projection-owned fact eligibility 或 BI rendering；或
 - 发布 Question Catalog、BI/Evolution preset、composite score、rank、Pareto set 或 hidden weighting policy。
 
-Candidate machine companion 编码这份 14-metric catalog，包括 exact Observation dependency、per-metric input reference 与 semantic digest、catalog-wide `metric_id` uniqueness、coverage policy 与 `value_semantics.missing` never-zero rule。Validator 通过只证明 candidate consistency；在 applicable publication gate 与 owner approval 完成前，任何 file 或 implementation 都不得声称 published conformance。
+Published machine companion 编码这份 14-metric catalog，包括 exact Observation dependency、per-metric input reference 与 semantic digest、catalog-wide `metric_id` uniqueness、coverage policy 与 `value_semantics.missing` never-zero rule。Validator 通过只证明 schema 与 bounded semantic consistency；publication 仅作出 `VALIDATOR_ONLY` claim，不建立 Projection、BI、Runtime 或 production implementation conformance。
 
 <a id="metric-catalog-3"></a>
 ## 3. Schema 字段语义
@@ -52,7 +52,7 @@ Catalog envelope field：
 | --- | --- | --- |
 | `catalog_id` | fixed identifier | 将该 artifact 标识为 `agentops.evaluation.metric-catalog` |
 | `version` | `x.y.z` string | catalog envelope 与 validation surface 的 version |
-| `status` | `REVIEW_CANDIDATE` | Contract lifecycle state；绝不是 implementation 或 publication claim |
+| `status` | `PUBLISHED` | machine Contract lifecycle state；绝不是 production implementation 或 physical-conformance claim |
 | `semantic_authority` | fixed non-empty reference | 把 representation 绑定到本文件 identity |
 | `dependencies` | 一个 exact closed Observation binding | 把 `observation-contract@1.0.0` 绑定到其已发布 semantic revision、machine revision、publication digest 与 gitlink commit；无 SemVer inference |
 | `minimum_sample_policy` | 一个 fixed rule | 低于 `minimum_sample` 时 metric value 不发布，而 complete coverage result 仍发布 |
