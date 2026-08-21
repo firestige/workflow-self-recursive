@@ -181,6 +181,8 @@ Raw debug data may expire first. Accepted identity/provenance remains immutable.
 | Compatible aggregate | Projection | merge of eligible compatible contributions | evolves only through accepted contributions of same semantics |
 | Curated view/config | Query & Presentation | read shape, not fact authority | replaceable without rewriting facts |
 
+For C55, C56, and C57, Evidence owns only admission, storage, and factual projection of the exact owner-supplied value and provenance. It never computes elapsed time from timestamps, infers reached-stage order from observed events, converts model request/response aliases into a canonical model, or backfills an absent owner fact. Missing stays unavailable. C57 is admitted only on a model-call Span with its provider, local Role, C06 Runtime root binding, and Span identity tuple.
+
 Stable Observation identity is distinct from Delivery, Trace, Span, task, Workflow, implementation, Runtime, Manifest, and Artifact identities. Accepted content carries the required relationships; none are inferred from display grouping.
 
 Completeness values are:

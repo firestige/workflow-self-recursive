@@ -16,9 +16,9 @@ English | [中文](README.zh-CN.md)
 
 | Contract | Semantic document | Lifecycle status | Revision |
 | --- | --- | --- | --- |
-| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `REVIEW_CANDIDATE` | split draft; profile cited at `0.3.0` |
-| OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `REVIEW_CANDIDATE` | proposed `0.3.0` |
-| Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `REVIEW_CANDIDATE` | split draft |
+| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `REVIEW_CANDIDATE` | first-release candidate; profile cited at `1.0.0` |
+| OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `REVIEW_CANDIDATE` | candidate `1.0.0`; machine package not released |
+| Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `REVIEW_CANDIDATE` | candidate `1.0.0` interaction schema; not released |
 | Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `REVIEW_CANDIDATE` | split draft |
 | Workflow Definition DSL | [workflow/workflow-definition-dsl.md](workflow/workflow-definition-dsl.md) | `REVIEW_CANDIDATE` | first-release candidate `agentops.workflow-dsl@1.0.0` |
 

@@ -1,7 +1,7 @@
 <a id="otel-observation-profile"></a>
 # OTel Observation Profile
 
-> **DRAFT — NOT A PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the exact proposed OTel/OTLP wire mapping: pins, carriers, Resource, Scope, schema URL, standard GenAI mapping, the closed EventName set, the closed `agentops.*` registries, the complete Review/Finding shapes, the C17/C27 oracle, and the shape/identity/conflict rules. It does not publish a machine schema, packaged registry, protobuf definition, fixture corpus, implementation, or conformance claim, and it owns no transport interaction flow and no durable storage model.
+> **FROZEN — PUBLISHED CONTRACT.** This document is a meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment; provenance remains in Git history. It owns the exact published OTel/OTLP wire mapping: pins, carriers, Resource, Scope, schema URL, standard GenAI mapping, the closed EventName set, the closed `agentops.*` registries, the complete Review/Finding shapes, the C17/C27 oracle, and the shape/identity/conflict rules. Its machine schemas, packaged registry and fixture corpus are published in `system-contracts/observation/` with a `VALIDATOR_ONLY` conformance claim; it owns no durable storage model.
 
 <a id="otel-profile-1"></a>
 ## 1. Metadata and Authority
@@ -9,10 +9,10 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `observation.identity.002` |
-| Status | `DRAFT_NOT_PUBLISHED` |
+| Status | `FROZEN` |
 | Normative language | English |
-| Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment for C55–C57 and proposed profile `0.3.0`; provenance remains in Git history |
-| Profile version | proposed `0.3.0` (adopted proposal, not a release) |
+| Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment for C55–C57 and proposed profile `1.0.0`; provenance remains in Git history |
+| Profile version | published `1.0.0` |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md), and the tech-neutral [Observation Catalog](observation-catalog.md) |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | Confirmed direction | `EE-SKELETON`, SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
@@ -24,14 +24,16 @@ This document owns the one editable proposed wire registry, carrier placement, v
 <a id="otel-profile-2"></a>
 ## 2. Maturity Model
 
-| Layer | State in this candidate | What is fixed | What may be claimed |
+| Layer | State in this release | What is fixed | What may be claimed |
 | --- | --- | --- | --- |
 | System semantic meaning and owner | fixed in the English Concept/Execution/Evidence Designs and the Observation Catalog | fact meaning, ownership, truth, privacy and lifecycle | Design meaning after promotion |
-| Wire profile proposal | adopted normative-as-draft | exact pins, carriers, standard/custom split, ten EventNames, 57 common + 10 Implementation + 6 System Design fields, complete Review/Finding variant composition, relationships, placement, requiredness and exclusions | this exact proposal may be cited only as `DRAFT_NOT_PUBLISHED` |
-| Released physical Contract | absent | nothing physical is released | no schema, package or registry publication claim |
-| Implementation conformance | unproven | no implementation is certified | no conformance claim until executable validators pass the released physical Contract |
+| Wire profile | frozen normative release | exact pins, carriers, standard/custom split, ten EventNames, 57 common + 10 Implementation + 6 System Design fields, complete Review/Finding variant composition, relationships, placement, requiredness and exclusions | this exact release may be cited as `FROZEN` |
+| Released physical Contract | present | schemas, registry, fixtures, bounded decoder and validator are published together | `VALIDATOR_ONLY` for the exact bound package |
+| Production implementation conformance | unproven | no production emitter, acceptor or storage implementation is certified | no production or cross-implementation conformance claim |
 
-Draft maturity is not permission to re-decide the selected mapping. Conversely, validated proposal evidence is not released physical Contract or production conformance evidence.
+Publication is not permission to re-decide the selected mapping. The bounded validator claim is not production implementation or cross-implementation conformance evidence.
+
+Profile `0.3.0` is `NON_RESOLVING_LEGACY_HISTORY_ONLY`; it remains provenance in Git history and is not a selectable compatibility target.
 
 <a id="otel-profile-3"></a>
 ## 3. Fixed / Proposed / Proof Boundary
@@ -60,14 +62,16 @@ Draft maturity is not permission to re-decide the selected mapping. Conversely, 
 | OTLP/protobuf | `v1.10.0` | official `.proto` decode and partial-success path |
 | Semantic conventions | `v1.41.1` | GenAI conventions remain Development; compatibility is limited to this generation |
 | Schema URL | `https://opentelemetry.io/schemas/1.41.0` | exact tested scope schema URL |
-| Observation Profile | proposed version `0.3.0` | adopted proposal, not a release |
-| InstrumentationScope | name `io.agentops.dsh.observation`, version `0.3.0`, schema URL above | required on Trace and Log scopes |
-| Factual transport | OTLP/HTTP through official binary protobuf Trace and Log exporters | stock DSH rc.6 OTLP/JSON is disabled and not routed to Evidence |
+| Observation Profile | proposed version `1.0.0` | adopted proposal, not a release |
+| InstrumentationScope | name `io.agentops.dsh.observation`, version `1.0.0`, schema URL above | required on Trace and Log scopes |
+| Factual transport | one loopback HTTP base; official binary protobuf Trace exporter at `/v1/traces` and Log exporter at `/v1/logs`; `application/x-protobuf` | stock DSH rc.6 OTLP/JSON and alternate paths are disabled and not routed to Evidence |
 | Sampling | Delivery-level head sampling; default probability `1` | sampled-out decision LogRecord may carry unsampled Trace context; no durability/completeness claim |
 
 The OTel Resource carries standard `service.name` and `service.version`. Admission records immutable producer Resource, profile, Scope and Workflow-family provenance. Exact DSH rc.6 and Node SDK package versions remain reference-emitter evidence, not portable wire requirements. Fixture `deployment.environment.name` is not part of this profile.
 
-Transport *flow* semantics — endpoints, per-batch partial success reporting, duplicate/conflict/rejected disposition, retry, timeout, and ambiguous-commit convergence — are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md), not by this profile. This profile fixes only the physical transport pins above.
+Transport *flow* semantics — the single base URL, standard paths, signal-specific full/partial/error mapping, duplicate/conflict/rejected disposition, retry, timeout, and ambiguous-commit convergence — are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md), not by this profile. This profile fixes the physical transport pins and the one-logical-Span-to-one-OTLP-Span / one-logical-Event-to-one-OTLP-LogRecord carrier mapping; Resource and Scope envelopes are never record-count units.
+
+The interaction owner also fixes request grouping: each request is homogeneous by signal, this exact profile version and one exact Workflow family/schema coordinate. Applicable Event C49 values and sampled Delivery-root C08 values must agree with that group; a request containing different explicit groups fails as a global batch-shape error rather than creating a cross-family logical record.
 
 <a id="otel-profile-5"></a>
 ## 5. Standard-first Trace and Log Mapping
@@ -85,6 +89,8 @@ Transport *flow* semantics — endpoints, per-batch partial success reporting, d
 | Root business binding | common registry C01–C08 in §7.1 | query-critical scalar Manifest projection only; no complete Manifest copy |
 
 A sampled Delivery root requires `agentops.delivery.id`, `agentops.workflow.id`, `agentops.workflow.version`, `agentops.implementation.id`, `agentops.runtime.id`, `agentops.manifest.digest`, and `agentops.workflow.family`; `agentops.task.id` is conditional.
+
+The decoded logical Span shape preserves the official native carrier fields that participate in profile validation and canonical content identity: Trace/Span IDs, name, kind, start/end nanoseconds, optional parent Span ID and trace state, flags, recorded Span links, and Span Status code. A model call requires `CLIENT` kind plus native start/end time; Delivery-root, Agent and Tool Spans require `INTERNAL` kind. Unsupported Span Events, Link attributes, dropped native fields or a free-form Status message reject instead of being silently discarded. The complete decoded logical Span, including these native fields, is the content compared under the `(trace_id,span_id)` identity rule.
 
 <a id="otel-profile-6"></a>
 ## 6. Exact Closed EventName Set
@@ -159,7 +165,7 @@ Sections 7.1–7.4 are one shared producer/acceptor contract: Execution must emi
 | C36 | `agentops.writer.invocation.id` | review/artifact relation | string | conditional; required when writer relation is asserted | HC, nonempty invocation identity | Workflow invocation owner | metadata identity | explicit writer-invocation edge |
 | C37 | `agentops.reviewer.invocation.id` | review relation | string | required on review result | HC, nonempty invocation identity | Workflow invocation owner | metadata identity | explicit reviewer-invocation edge |
 | C38 | `agentops.recheck.invocation.id` | recheck relation | string | required with C23 | HC, nonempty invocation identity | Workflow invocation owner | metadata identity | explicit recheck-invocation edge |
-| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT` for profile `0.3.0` | Workflow control owner | factual classification | intervention contribution |
+| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT` for profile `1.0.0` | Workflow control owner | factual classification | intervention contribution |
 | C40 | `agentops.observed.loop.count` | family summary | integer | required when applicable summary reports loops | BC nonnegative integer | Workflow owner | factual count | observed-loop contribution; never quality inference |
 | C41 | `agentops.observed.intervention.count` | family summary | integer | required when applicable summary reports interventions | BC nonnegative integer | Workflow owner | factual count | observed-intervention contribution |
 | C42 | `agentops.usage.kind` | `usage` | string | required | LC enum `native_credit`, `request`, `premium_request`, `provider_native`, `money` | Runtime/provider usage owner | factual classification | native-usage compatibility key |
@@ -386,7 +392,7 @@ The four completeness values are the closed C11 vocabulary: `FINAL` proves an ap
 
 C55 and C56 are independent optional direct facts on a terminal Delivery Summary. Absence of C55 means elapsed time is unavailable, not zero; absence of C56 means reached stage is unavailable, not an initial stage. C57 is an activity coordinate, not a Delivery summary: without the complete standard-provider+C57+C30+C06+Span tuple, model-to-Role attribution is unavailable and must not be reconstructed from names, parentage or a free-form/list summary.
 
-The five examples below share Scope profile `0.3.0`, C49=`implementation@1`, C11=`FINAL`, and distinct stable C09 Event IDs; those coordinates are part of each logical record even though the table focuses on the usage-specific fields.
+The five examples below share Scope profile `1.0.0`, C49=`implementation@1`, C11=`FINAL`, and distinct stable C09 Event IDs; those coordinates are part of each logical record even though the table focuses on the usage-specific fields.
 
 | Example | Exact logical fields | Compatible grouping result |
 | --- | --- | --- |
@@ -428,7 +434,7 @@ The tech-neutral meaning of privacy for each fact class is owned by the [Observa
 
 Delivery, task, Workflow, Workflow stage, implementation, Runtime, canonical model, Manifest, Trace, Span, Event, Review, Finding, Finding scope, affected target/edge, Artifact, Fix, Recheck, Invocation, iteration, version-local Role and family-scoped Role-lineage identities remain distinct. Span identity is exactly `(trace_id, span_id)`; `span_id` alone is not globally sufficient and Trace ID alone does not identify a Span. Event identity remains `agentops.event.id`. Model-to-Role attribution is exactly `(provider,C57,C30,C06,trace_id,span_id)` and is never inferred from names, aliases, ancestry alone or task grouping. Review/Finding composition and relationships follow §7.4 complete shapes and typed edges rather than entity-name reuse. A `role.lineage` Event is emitted only when the owner supplies a known/applicable lineage; C30 and C31 are then both required. Unknown/not-applicable lineage emits no lineage Event and does not synthesize a value. Names, display text, ordering and versions never establish identity, scope, target or lineage.
 
-Manifest, lifecycle/result, Observation Profile, each Workflow-family schema and factual semantics are explicitly versioned. Accepted history is not rewritten. Compatibility is declared against exact profile/family/semantic coordinates, never inferred from matching names or field spelling. Transport-level version compatibility and compatibility failure handling are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7).
+Manifest, lifecycle/result, Observation Profile, each Workflow-family schema and factual semantics are explicitly versioned. Accepted history is not rewritten. The Super Project release binds exact revisions and SHA-256 digests. Producer emission and acceptor admission cover only the exact released tuple or an entry in the closed compatibility matrix with historical fixtures and joint-gate evidence; PATCH/MINOR never widens support by inference. Unlisted combinations fail closed, and every conformance claim remains exact-revision/digest bound. Transport-level compatibility failure handling is owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7).
 
 <a id="otel-profile-11"></a>
 ## 11. Profile Acceptance and Handoff
@@ -441,6 +447,6 @@ This profile is acceptable for affected review only when:
 - the local/lineage pair rule is unambiguous; and
 - every complete Review/Finding/Fix/Recheck shape passes the closed C17/C27 oracle and the positive/negative sequences in §7.6, including order-independent multi-target behavior, cross-target assertion conflicts, compatible assertion/edge reuse, separately keyed status/Fix/Recheck append, Event conflict and all-or-none landing;
 - every confirmed family fact and objective relationship resolves to one Event/standard-or-custom field/source/privacy/landing, usage examples remain incompatible where required, and Span duplicate/conflict examples obey `(trace_id, span_id)`;
-- `DRAFT_NOT_PUBLISHED`, absent physical publication and unproven conformance remain unmistakable.
+- `FROZEN`, published physical Contract and the bounded `VALIDATOR_ONLY` claim remain unmistakable from unproven production conformance.
 
-No current prototype, Spike result, legacy artifact or draft byte stream may claim released physical Contract or implementation conformance. Downstream publication and conformance obligations are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-8).
+No current prototype, Spike result, legacy artifact or unbound byte stream may claim conformance with this released physical Contract. Downstream production and cross-implementation conformance obligations are owned by the [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-8).

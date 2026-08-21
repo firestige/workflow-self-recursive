@@ -1,7 +1,7 @@
 <a id="otel-observation-profile"></a>
 # OTel Observation Profile（中文翻译）
 
-> **DRAFT——不是已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 exact proposed OTel/OTLP wire mapping：pin、carrier、Resource、Scope、schema URL、standard GenAI mapping、closed EventName set、closed `agentops.*` registry、complete Review/Finding shape、C17/C27 oracle，以及 shape/identity/conflict rule。它不发布 machine schema、packaged registry、protobuf definition、fixture corpus、implementation 或 conformance claim，也不拥有任何 transport interaction flow 与 durable storage model。
+> **FROZEN——已发布 CONTRACT。** 本文件是已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中。它拥有 exact published OTel/OTLP wire mapping：pin、carrier、Resource、Scope、schema URL、standard GenAI mapping、closed EventName set、closed `agentops.*` registry、complete Review/Finding shape、C17/C27 oracle，以及 shape/identity/conflict rule。其 machine schema、packaged registry 与 fixture corpus 已在 `system-contracts/observation/` 发布，conformance claim 为 `VALIDATOR_ONLY`；它不拥有 durable storage model。
 
 <a id="otel-profile-1"></a>
 ## 1. 元数据与权威性
@@ -9,10 +9,10 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `observation.identity.002` |
-| 状态 | `DRAFT_NOT_PUBLISHED` |
+| 状态 | `FROZEN` |
 | 规范语言 | 英文 |
-| 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 C55–C57 与 proposed profile `0.3.0` 的 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中 |
-| Profile version | proposed `0.3.0`（已采纳提案，不是 release） |
+| 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 C55–C57 与 proposed profile `1.0.0` 的 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中 |
+| Profile version | published `1.0.0` |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md)，以及 tech-neutral [Observation Catalog](observation-catalog.md) |
 | Transport/interaction companion | [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) |
 | 已确认方向 | `EE-SKELETON`，SHA-256 `73b3481a099983b57ee9e1dd512c6ed23823f0d045085f9ef585db70be13949a` |
@@ -24,14 +24,16 @@
 <a id="otel-profile-2"></a>
 ## 2. 成熟度模型
 
-| 层次 | 本候选中的状态 | 已固定内容 | 当前可声称内容 |
+| 层次 | 本 release 中的状态 | 已固定内容 | 当前可声称内容 |
 | --- | --- | --- | --- |
 | System semantic meaning 与 owner | 固定于 English Concept/Execution/Evidence Design 与 Observation Catalog | fact meaning、ownership、truth、privacy 与 lifecycle | promotion 后的 Design meaning |
-| Wire profile proposal | 已采纳的 normative-as-draft | exact pin、carrier、standard/custom split、十个 EventName、57 common + 10 Implementation + 6 System Design field、complete Review/Finding variant composition、relationship、placement、requiredness 与 exclusion | 只能把这些 exact proposal 引用为 `DRAFT_NOT_PUBLISHED` |
-| Released physical Contract | 不存在 | 没有发布任何 physical content | 不得声称 schema、package 或 registry 已发布 |
-| Implementation conformance | 未证明 | 没有 implementation 获得认证 | executable validator 针对 released physical Contract 通过前不得声称 conformance |
+| Wire profile | 已冻结的 normative release | exact pin、carrier、standard/custom split、十个 EventName、57 common + 10 Implementation + 6 System Design field、complete Review/Finding variant composition、relationship、placement、requiredness 与 exclusion | 可将这份 exact release 引用为 `FROZEN` |
+| Released physical Contract | 已存在 | schema、registry、fixture、bounded decoder 与 validator 一同发布 | exact bound package 的 `VALIDATOR_ONLY` |
+| Production implementation conformance | 未证明 | 没有 production emitter、acceptor 或 storage implementation 获得认证 | 不作 production 或 cross-implementation conformance claim |
 
-Draft maturity 不是重新决定 selected mapping 的许可。反过来，validated proposal evidence 也不是 released physical Contract 或 production conformance evidence。
+Publication 不是重新决定 selected mapping 的许可。Bounded validator claim 也不是 production implementation 或 cross-implementation conformance evidence。
+
+Profile `0.3.0` 为 `NON_RESOLVING_LEGACY_HISTORY_ONLY`；它仅作为 Git 历史中的 provenance 保留，不是可选择的 compatibility target。
 
 <a id="otel-profile-3"></a>
 ## 3. Fixed / Proposed / Proof 边界
@@ -60,14 +62,16 @@ Draft maturity 不是重新决定 selected mapping 的许可。反过来，valid
 | OTLP/protobuf | `v1.10.0` | official `.proto` decode 与 partial-success path |
 | Semantic conventions | `v1.41.1` | GenAI convention 仍为 Development；compatibility 限于这一 generation |
 | Schema URL | `https://opentelemetry.io/schemas/1.41.0` | exact tested scope schema URL |
-| Observation Profile | proposed version `0.3.0` | 已采纳 proposal，不是 release |
-| InstrumentationScope | name `io.agentops.dsh.observation`、version `0.3.0`、上述 schema URL | Trace 与 Log scope 都必须使用 |
-| Factual transport | 通过 official binary protobuf Trace/Log exporter 使用 OTLP/HTTP | stock DSH rc.6 OTLP/JSON 被禁用且不路由到 Evidence |
+| Observation Profile | proposed version `1.0.0` | 已采纳 proposal，不是 release |
+| InstrumentationScope | name `io.agentops.dsh.observation`、version `1.0.0`、上述 schema URL | Trace 与 Log scope 都必须使用 |
+| Factual transport | 一个 loopback HTTP base；official binary protobuf Trace exporter 使用 `/v1/traces`，Log exporter 使用 `/v1/logs`；`application/x-protobuf` | stock DSH rc.6 OTLP/JSON 与 alternate path 被禁用且不路由到 Evidence |
 | Sampling | Delivery-level head sampling；default probability `1` | sampled-out decision LogRecord 可携带 unsampled Trace context；不声称 durability/completeness |
 
 OTel Resource 携带标准 `service.name` 与 `service.version`。Admission 持久化 immutable producer Resource、profile、Scope 与 Workflow-family provenance。Exact DSH rc.6 和 Node SDK package version 仍是 reference-emitter evidence，而不是 portable wire requirement。Fixture `deployment.environment.name` 不属于本 profile。
 
-Transport *flow* semantics——endpoint、per-batch partial success reporting、duplicate/conflict/rejected disposition、retry、timeout 与 ambiguous-commit convergence——由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) 拥有，而非本 profile。本 profile 只固定上方的 physical transport pin。
+Transport *flow* semantics——single base URL、standard path、signal-specific full/partial/error mapping、duplicate/conflict/rejected disposition、retry、timeout 与 ambiguous-commit convergence——由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md) 拥有，而非本 profile。本 profile 固定 physical transport pin，以及 one-logical-Span-to-one-OTLP-Span / one-logical-Event-to-one-OTLP-LogRecord carrier mapping；Resource 与 Scope envelope 绝不是 record-count unit。
+
+interaction owner 还固定 request grouping：每个 request 按 signal、本 exact profile version 与一个 exact Workflow family/schema coordinate 保持 homogeneous。适用的 Event C49 与 sampled Delivery-root C08 必须同该 group 一致；包含不同显式 group 的 request 作为 global batch-shape error 失败，而不是形成 cross-family logical record。
 
 <a id="otel-profile-5"></a>
 ## 5. Standard-first Trace 与 Log Mapping
@@ -85,6 +89,8 @@ Transport *flow* semantics——endpoint、per-batch partial success reporting�
 | Root business binding | §7.1 中的 common registry C01–C08 | 仅 query-critical scalar Manifest projection；无 complete Manifest copy |
 
 Sampled Delivery root 要求 `agentops.delivery.id`、`agentops.workflow.id`、`agentops.workflow.version`、`agentops.implementation.id`、`agentops.runtime.id`、`agentops.manifest.digest` 与 `agentops.workflow.family`；`agentops.task.id` 为 conditional。
+
+decoded logical Span shape 保留参与 profile validation 与 canonical content identity 的 official native carrier field：Trace/Span ID、name、kind、start/end nanosecond、optional parent Span ID 与 trace state、flags、recorded Span link，以及 Span Status code。model call 要求 `CLIENT` kind 加 native start/end time；Delivery-root、Agent 与 Tool Span 要求 `INTERNAL` kind。unsupported Span Event、Link attribute、dropped native field 或 free-form Status message 必须拒绝，不能静默丢弃。包含这些 native field 的 complete decoded logical Span，是 `(trace_id,span_id)` identity rule 下比较的 content。
 
 <a id="otel-profile-6"></a>
 ## 6. Exact Closed EventName 集合
@@ -159,7 +165,7 @@ Proposed profile 恰好有这十个 EventName：
 | C36 | `agentops.writer.invocation.id` | review/artifact relation | string | conditional；assert writer relation 时 required | HC，nonempty invocation identity | Workflow invocation owner | metadata identity | explicit writer-invocation edge |
 | C37 | `agentops.reviewer.invocation.id` | review relation | string | review result 上 required | HC，nonempty invocation identity | Workflow invocation owner | metadata identity | explicit reviewer-invocation edge |
 | C38 | `agentops.recheck.invocation.id` | recheck relation | string | 与 C23 一起 required | HC，nonempty invocation identity | Workflow invocation owner | metadata identity | explicit recheck-invocation edge |
-| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT`（profile `0.3.0`） | Workflow control owner | factual classification | intervention contribution |
+| C39 | `agentops.intervention.kind` | `intervention` | string | required | LC enum `USER_REDIRECT`（profile `1.0.0`） | Workflow control owner | factual classification | intervention contribution |
 | C40 | `agentops.observed.loop.count` | family summary | integer | applicable summary 报告 loop 时 required | BC nonnegative integer | Workflow owner | factual count | observed-loop contribution；绝非 quality inference |
 | C41 | `agentops.observed.intervention.count` | family summary | integer | applicable summary 报告 intervention 时 required | BC nonnegative integer | Workflow owner | factual count | observed-intervention contribution |
 | C42 | `agentops.usage.kind` | `usage` | string | required | LC enum `native_credit`、`request`、`premium_request`、`provider_native`、`money` | Runtime/provider usage owner | factual classification | native-usage compatibility key |
@@ -386,7 +392,7 @@ Standard GenAI token field 与 custom native `usage` Event 是不同 measurement
 
 C55 与 C56 是 terminal Delivery Summary 上相互独立的 optional direct fact。C55 absent 表示 elapsed time unavailable，而不是 zero；C56 absent 表示 reached stage unavailable，而不是 initial stage。C57 是 activity coordinate，不是 Delivery summary：缺少 complete standard-provider+C57+C30+C06+Span tuple 时，model-to-Role attribution 为 unavailable，且不得从 name、parentage 或 free-form/list summary 重建。
 
-下方五个示例共享 Scope profile `0.3.0`、C49=`implementation@1`、C11=`FINAL` 与 distinct stable C09 Event ID；这些 coordinate 是每个 logical record 的一部分，尽管表格聚焦 usage-specific field。
+下方五个示例共享 Scope profile `1.0.0`、C49=`implementation@1`、C11=`FINAL` 与 distinct stable C09 Event ID；这些 coordinate 是每个 logical record 的一部分，尽管表格聚焦 usage-specific field。
 
 | Example | Exact logical fields | Compatible grouping result |
 | --- | --- | --- |
@@ -428,7 +434,7 @@ C50 是唯一 human-readable Finding scalar。它是由 source review lens 撰�
 
 Delivery、task、Workflow、Workflow stage、implementation、Runtime、canonical model、Manifest、Trace、Span、Event、Review、Finding、Finding scope、affected target/edge、Artifact、Fix、Recheck、Invocation、iteration、version-local Role 与 family-scoped Role-lineage identity 保持不同。Span identity 恰好是 `(trace_id, span_id)`；`span_id` 单独不全局充分，Trace ID 单独不标识 Span。Event identity 仍是 `agentops.event.id`。Model-to-Role attribution 恰好是 `(provider,C57,C30,C06,trace_id,span_id)`，绝不从 name、alias、仅 ancestry 或 task grouping 推断。Review/Finding composition 与 relationship 遵循 §7.4 complete shape 与 typed edge，而非 entity-name reuse。`role.lineage` Event 仅在 owner 提供 known/applicable lineage 时发出；此时 C30 与 C31 都 required。Unknown/not-applicable lineage 不 emit lineage Event，也不 synthesize value。Name、display text、ordering 与 version 绝不建立 identity、scope、target 或 lineage。
 
-Manifest、lifecycle/result、Observation Profile、每个 Workflow-family schema 与 factual semantics 都 explicit versioned。不 rewrite accepted history。Compatibility 依据 exact profile/family/semantic coordinate 声明，绝不从 matching name 或 field spelling 推断。Transport-level version compatibility 与 compatibility failure handling 由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7) 拥有。
+Manifest、lifecycle/result、Observation Profile、每个 Workflow-family schema 与 factual semantics 都 explicit versioned。不 rewrite accepted history。Super Project release 绑定 exact revision 与 SHA-256 digest。Producer emission 与 acceptor admission 只覆盖 exact released tuple，或 closed compatibility matrix 中带 historical fixture 与 joint-gate evidence 的 entry；PATCH/MINOR 绝不通过推断扩大支持。Unlisted combination fail closed，每个 conformance claim 继续绑定 exact revision/digest。Transport-level compatibility failure handling 由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-7) 拥有。
 
 <a id="otel-profile-11"></a>
 ## 11. Profile 验收与移交
@@ -441,6 +447,6 @@ Manifest、lifecycle/result、Observation Profile、每个 Workflow-family schem
 - local/lineage pair rule 无歧义；并且
 - 每个 complete Review/Finding/Fix/Recheck shape 都通过 closed C17/C27 oracle 与 §7.6 的 positive/negative sequence，包括 order-independent multi-target behavior、cross-target assertion conflict、compatible assertion/edge reuse、separately keyed status/Fix/Recheck append、Event conflict 与 all-or-none landing；
 - 每个 confirmed family fact 与 objective relationship 都 resolve 到一个 Event/standard-or-custom field/source/privacy/landing，usage example 在 required 处保持 incompatible，Span duplicate/conflict example 遵循 `(trace_id, span_id)`；
-- `DRAFT_NOT_PUBLISHED`、absent physical publication 与 unproven conformance 保持 unmistakable。
+- `FROZEN`、published physical Contract 与 bounded `VALIDATOR_ONLY` claim，仍需与未证明的 production conformance 保持 unmistakable。
 
-任何 current prototype、Spike result、legacy artifact 或 draft byte stream 都不得声称 released physical Contract 或 implementation conformance。Downstream publication 与 conformance obligation 由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-8) 拥有。
+任何 current prototype、Spike result、legacy artifact 或未绑定 byte stream 都不得声称符合这份 released physical Contract。Downstream production 与 cross-implementation conformance obligation 由 [Execution–Evidence Interaction Contract](../execution-evidence/interaction-contract.md#interaction-contract-8) 拥有。
