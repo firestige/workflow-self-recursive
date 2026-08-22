@@ -4,7 +4,7 @@
 
 workflow-self-recursive 是一个开源的 Agent 工作流架构：它通过小型、与宿主无关的执行边界运行工作流，并使每次运行都可检查。
 
-它将每次交付（Delivery）绑定到 Workflow Package 的一个确定版本与摘要，保持运行时结果的权威性，并可通过 OpenTelemetry 记录最小必要范围的事实。初始设计以 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 作为首个运行时宿主；后续计划提供第一方 LangGraph 适配器。
+它将每次交付（Delivery）绑定到 Workflow Package 的一个确定版本与摘要，保持运行时结果的权威性，并可通过 OpenTelemetry 记录最小必要范围的事实。Runner 是选定的 Runtime Adapter；LangGraph 是当前可替换 Workflow Host substrate，[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 是当前 concrete Agent Provider。
 
 ## Developer preview
 
@@ -42,7 +42,8 @@ git submodule update --init --recursive
 - [Execution System 设计](docs/systems/execution/project-execution-system.zh-CN.md)
 - [Evidence System 设计](docs/systems/evidence/evidence-system.zh-CN.md)
 - [Execution–Evidence Contract](docs/contracts/execution-evidence/interaction-contract.zh-CN.md)
-- [规划中的第一方 LangGraph Runtime Profile](docs/systems/runtime/first-party-langgraph-runtime-profile.zh-CN.md)
+- [Runner Runtime Profile](docs/systems/runtime/runner-runtime-profile.zh-CN.md)
+- [Runner 模块详细设计](docs/systems/execution/modules/runner/runner.zh-CN.md)
 
 源码拆分为五个 Git submodule：[Workflow Package](https://github.com/firestige/workflow-package)、[Execution System](https://github.com/firestige/execution-system)、[Evidence System](https://github.com/firestige/evidence-system)、[Evolution System](https://github.com/firestige/evolution-system) 与 [System Contracts](https://github.com/firestige/system-contracts)。这是源码组件的划分，并不代表产品包含五个系统。
 

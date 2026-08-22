@@ -36,22 +36,21 @@ workflow-self-recursive exists to run valuable agent Workflows through a small h
 
 The product has two Systems:
 
-- **Execution** resolves and prepares one exact open-standard Workflow Package, creates an immutable Delivery Manifest from that resolved Package, coordinates one current DSH Delivery per canonical worktree, and emits bounded facts without depending on Evidence.
+- **Execution** resolves and prepares one exact open-standard Workflow Package, creates an immutable Delivery Manifest from that resolved Package, coordinates one current Runner Delivery per canonical worktree, and emits bounded facts without depending on Evidence.
 - **Evidence** is an optional, separately deployable local application that accepts supported OTLP facts, projects truthful causal and factual views, and serves human inspection.
 
-The Runtime is not a third product System. It is an execution provider behind a Core-owned seam. DSH is the first Adapter. A later first-party LangGraph Adapter may retain private pause/resume and custody-reacquisition behavior without making those capabilities public Execution semantics.
+The Runtime is not a third product System. It is an execution provider behind a Core-owned seam. Runner is the selected Runtime Adapter; it privately composes a replaceable Workflow Host and configured Provider Adapters. LangGraph and DSH are current private implementation selections, not product-System or Runner identities. Runner may retain private pause/resume and custody-reacquisition behavior without making those capabilities public Execution semantics.
 
 ```mermaid
 flowchart LR
     U["User"] --> H["DSH host/plugin"]
     H --> X["Execution System<br/>embedded per repository/workspace"]
     S["Public GitHub Release or explicit plugin bundle"] -->|"Package Source Adapter"| X
-    X --> R["DSH Runtime and Session"]
+    X --> R["Runner Runtime Adapter<br/>private Host and Provider lifecycle"]
     X -. "optional best-effort OTLP" .-> E["Evidence System<br/>local App"]
     E --> P[("PostgreSQL")]
     P --> G["Grafana factual trends"]
     P --> A["Agent Decisions"]
-    F["Later runner Adapter<br/>private lifecycle"] --> X
 ```
 
 Execution and Evidence share no database. Evidence never reads a worktree, Runtime checkpoint, or hidden Workflow state. Execution never reads Evidence to decide progress or outcome.
@@ -94,8 +93,8 @@ Identity axes remain distinct. A Delivery ID is not a Trace ID; a logical Workfl
 ## 4. Cross-System Invariants
 
 1. **Admit, then prepare before Delivery creation.** Execution first canonicalizes the worktree and attempts existing exclusive Delivery admission. Only `NEW` resolves one exact, locally `READY` Workflow Package and performs ordinary Package and selected-Runtime validation before Delivery Manifest persistence, Runtime, Session, or worktree effect. A preparation failure releases the holder and is a typed pre-Delivery result, not a Delivery outcome.
-2. **One DSH current Delivery per canonical worktree, with immediate rejection.** `CONTENDED` returns without waiting, queueing, preemption, Package Store/source access, or creating a Delivery. `RECOVERY` follows only the stored Manifest and ignores the new selector.
-3. **No Execution history.** Execution stores only the current DSH slot. After valid clear, history belongs only to DSH Session and accepted Evidence.
+2. **One Runner current Delivery per canonical worktree, with immediate rejection.** `CONTENDED` returns without waiting, queueing, preemption, Package Store/source access, or creating a Delivery. `RECOVERY` follows only the stored Manifest and ignores the new selector.
+3. **No mutable Execution history.** Execution stores only the current Runner slot. Valid clear removes mutable working state, while the immutable Runner settlement, preserved result/publication disposition, and owner retirement facts survive under their owning boundaries; accepted Evidence remains optional and downstream.
 4. **Runtime truth stays authoritative.** Execution validates identity and shape but does not reinterpret Workflow outcome. Evidence records; it does not adjudicate.
 5. **Observation is optional and non-controlling.** Disablement, refusal, sampling, or tail loss cannot change execution.
 6. **Missing is never zero.** Final, lower-bound, unavailable, and not-applicable states remain distinct through admission, projection, and query.
@@ -104,7 +103,7 @@ Identity axes remain distinct. A Delivery ID is not a Trace ID; a logical Workfl
 9. **Content is minimized.** Prompt, message, tool argument/result, source, credential, and error bodies do not cross the Observation seam.
 10. **Human inspection is factual.** The preview does not grade, rank, recommend, infer causality, or automatically modify Workflow behavior.
 11. **Systems remain independently usable.** Execution works without Evidence; Evidence accepts any conforming producer and does not become Execution storage.
-12. **Native lifecycle stays private.** DSH Session state and later runner pause/resume/checkpoint details remain behind Runtime Adapters.
+12. **Native lifecycle stays private.** Runner Host checkpoints, DSH Provider sessions and pause/resume details remain behind the Runtime Adapter.
 13. **Local-first exact resolution.** A valid local exact or sticky-latest hit makes no remote call. A miss may use only the configured source; no source/version fallback or ambient completion is allowed.
 14. **No binding drift.** `latest` or bare-name selection is resolved to `exactVersion` before the Manifest is created. Later alias or Release changes affect only later Deliveries.
 15. **Simple Store visibility.** `STAGING` content is never a cache hit. Initial-fill failure returns to `MISSING`; refresh staging is private side state that leaves the prior `READY` Package and sticky alias visible until a validated replacement is ready. The preview performs no automatic eviction.
@@ -127,7 +126,7 @@ Execution Core → Delivery Observation → OTel/OTLP → Evidence Admission
 Evidence Admission → Factual Projection → Presentation
 ```
 
-The Workflow Package owner owns Package content and relationships. Installation or user configuration supplies the public GitHub URL or explicit bundle input. Delivery Binding alone interprets selectors, resolves and validates Packages, owns the local Package Store, and constructs Manifest content. Runtime Interaction alone writes canonical custody and current-slot state. DSH alone writes native Session/Workflow State. Delivery Observation alone maps outbound facts; Evidence Admission alone decides acceptance.
+The Workflow Package owner owns Package content and relationships. Installation or user configuration supplies the public GitHub URL or explicit bundle input. Delivery Binding alone interprets selectors, resolves and validates Packages, owns the local Package Store, and constructs Manifest content. Runtime Interaction alone writes canonical custody and current-slot state. The Runner Workflow Host owns private Workflow/thread/checkpoint state; the configured DSH Provider Adapter owns only its native Provider session. The Runner Lifecycle Coordinator owns immutable terminal settlement. Delivery Observation alone maps outbound facts; Evidence Admission alone decides acceptance.
 
 Dependencies point toward owner-defined meaning. Source Adapters transport Package bytes but do not define Package identity or construct Manifests. The Store never chooses another source/version. DSH cannot repair an incomplete Package from ambient defaults. Evidence cannot command Execution. No Contract or downstream implementation may add a second semantic writer.
 
@@ -162,7 +161,7 @@ Evidence is planned to move to its own public repository and return as a submodu
 | Recovery | unknown Runtime start remains blocking; no blind retry | existing durable launch disposition and exact recovery | concept.fixture.001 rebinding |
 | Consistency | no accepted/projection half-state or double contribution | one PostgreSQL transaction and stable identity | concept.fixture.003 rebinding |
 | Privacy | prohibited bodies never cross the Observation seam | producer allow-list/redaction plus admission validation | concept.fixture.002 rebinding; production proof downstream |
-| Portability | DSH and runner differ behind one Core-owned seam | Adapter-private lifecycle, opaque projections | design fixed; later runner implementation downstream |
+| Portability | Host and Provider implementations vary behind one Core-owned Runner seam | Adapter-private lifecycle, opaque projections | design fixed; implementation qualification downstream |
 | Authority singularity | one active graph, no co-active legacy authority | versionless root, in-place Systems, quarantine | deterministic publication proof required |
 | Translation fidelity | Chinese conveys the complete English meaning | stable anchors and whole-section retranslation from English | review and deterministic proof required |
 | Honest lifecycle | draft/legacy artifacts cannot masquerade as conformance | draft banner, fixed/open matrix, conformance gate | deterministic now; physical publication downstream |
@@ -229,7 +228,7 @@ Lifecycle-specific acceptance refinements below are normative parts of the named
 | `concept.obligation.011` | Execution Core implementation owner | `execution.milestone.01..03` and all `SC-WI-*` | one prepare operation, simple Store, Manifest-before-DSH, immediate contention, unchanged Observation/runner | Interface-level import/contention/Manifest/DSH/result/privacy fixtures | implementation absent | Execution implementation guidance | Execution Design | reopen on bypass, drift, wait/queue, pre-Delivery outcome/Observation, ambient completion, or runner/public change |
 | `concept.obligation.012` | product/repository/plugin/Package release owners | GitHub first host, bundle common path, contribution | choose repository/layout, publish one complete versioned asset, govern contributions, protect initial corpus | repository, Release/asset, contribution, bundle evidence | publication absent | repository/plugin release guidance | Concept and Execution Designs | reopen on mutable/ambiguous/incomplete asset, allow-list, rewrite, bypass, or fallback |
 | `concept.obligation.013` | Local Store implementation owner | exact/latest and `MISSING/STAGING/READY` | local-first, non-addressable candidate staging, initial failure→`MISSING`, refresh failure preserves prior `READY`+alias, alias-after-new-ready, no eviction | Store Interface initial-fill and refresh hit/miss/staging/ready/conflict/failure fixtures | implementation absent | Store implementation guidance | Execution Design | reopen on partial visibility, prior-ready/alias loss, required concurrent writers, or required eviction |
-| `concept.obligation.014` | DSH Adapter/provider qualification owner | exact activation/no ambient; `concept.acceptance.item.007` | select production bindings and project complete Packages before effect | protected/contributed behavior and provider/no-default/result evidence | representative rc.6 evidence only | Runtime Adapter guidance | Execution Design | reopen on rewrite, ambient substitution, post-effect rejection, missing capability, or native leak |
+| `concept.obligation.014` | DSH Adapter/provider qualification owner | exact activation/no ambient; `concept.acceptance.item.007` | select production bindings and project complete Packages before effect | protected/contributed behavior and provider/no-default/result evidence | DSH `0.1.1-rc.2` module evidence exists; Wave 4 end-to-end qualification remains open | Runtime Adapter guidance | Execution Design | reopen on rewrite, ambient substitution, post-effect rejection, missing capability, or native leak |
 | `concept.obligation.015` | operations validation owner | source/cache resource use | choose bounded fetch/cache settings without fallback, queueing, eviction, auth, or production recovery semantics | ordinary-fault/resource observations | no numeric defaults fixed | validation/operations guidance | Execution Design | return only if measured facts require changed ownership/Interface or trust/scale context |
 
 Normative obligation refinements: `concept.obligation.001` must physically encode C17 presence/absence as counted/no-count form, preserve C27 and the six identity domains, and package bilingual zero/positive/absence/retry and type/range/carrier/atomic negatives; reopen if absence needs an out-of-band discriminator or zero cannot remain distinct. `concept.obligation.003` must prove typed owner count→exact C17 and no fact→omission without malformed emission; reopen on another selector or assertion mutation. `concept.obligation.004` must prove presence-only Admission, exact count/no-count landing/query, no partial Review/count effect, and all unchanged lifecycle no-op/append semantics; reopen on producer-intent inference, synthesized zero/`UNAVAILABLE`, partial effect or conflated storage.

@@ -36,15 +36,17 @@ Authority order 为：已确认用户意图；规范 Concept；当前 Execution 
 
 受保护的 `system-design` 与 `implementation` Workflow Package 是初始已验证分发内容和 conformance fixture；除下方已批准的 R6 correction 外，不是重新设计目标。理解本文不需要任何 disposable workspace artifact；以上 identity 只表示 provenance。
 
-### R6 Delivery-admission 与 Runtime Adapter projection
+### Runner Delivery-admission 与 Runtime Adapter projection
 
-对于 Iteration 2 Runner，Execution 在 `system-contracts/delivery-admission/delivery-admission-contract.json` 拥有 `agentops.delivery-admission@1.0.0`。Admission 确定性地把 `agentops.workflow-dsl@1.1.0` author intent 解析为一个 deeply frozen `RunnerActivationContext`；其中包括 exact Agent、model、Driver、provider-model、resource、capability、workspace 与 local path binding。G01 只接收该 admitted value，绝不接收八份 document、八个 root schema 或 shared meta schema。
+对于 Iteration 2 Runner，Execution 在 `system-contracts/delivery-admission/delivery-admission-contract.json` 拥有 `agentops.delivery-admission@1.0.0`。Admission 确定性地把 `agentops.workflow-dsl@1.1.0` author intent 解析为一个 deeply frozen `RunnerActivationContext`；其中包括 exact Agent、model、Driver、provider-model、resource、capability、workspace 与 local path binding。确定性 activation compiler 只接收该 admitted value，绝不接收八份 document、八个 root schema 或 shared meta schema。
 
-Execution 还拥有唯一 TypeScript projection `execution-system/src/execution/runtime-adapter.ts`。其 `ExecutionRuntimeAdapter` public operation set 严格为 `execute`、`inspect` 与 `cancel`。Runner/G05 实现并消费这一 import surface。Resume、recovery、checkpoint、thread 与 provider-session operation 都保持 Adapter-private，不得复制到或暴露于 Execution public interface。
+Execution 还拥有唯一 TypeScript projection `execution-system/src/execution/runtime-adapter.ts`。其 `ExecutionRuntimeAdapter` public operation set 严格为 `execute`、`inspect` 与 `cancel`。Runner Lifecycle Coordinator 实现并消费这一 import surface。Resume、recovery、checkpoint、thread 与 provider-session operation 都保持 Adapter-private，不得复制到或暴露于 Execution public interface。
+
+Runtime Interaction（M02）拥有 Runtime Adapter selection，以及为 Delivery 记录的 exact configuration identity。对于 Runner，private `RunnerFactory` 消费该 frozen configuration，并创建 configured Provider factory registry instance、exact Workflow Host factory/instance 和四个 Runner module。Provider/Host factory semantic 仍由相应 Runner module 拥有；M02 不创建 DSH session 或 LangGraph thread。详见 [Runner 模块详细设计](modules/runner/runner.zh-CN.md)。
 <a id="ee-execution-2"></a>
 ## 2. 设计上下文
 
-workflow-self-recursive 通过小型、host-neutral 的 execution seam 运行有价值的 logical Workflow，并可选发出 factual Observation。Execution 嵌入每个 repository/workspace。DSH rc.6 是第一个 Runtime Adapter；DSH 拥有 native Session 与 Workflow State，且不支持 resume。后续 runner Adapter 可私有保留更丰富的 pause/resume 行为，而不改变 Core 语义。
+workflow-self-recursive 通过小型、host-neutral 的 execution seam 运行有价值的 logical Workflow，并可选发出 factual Observation。Execution 嵌入每个 repository/workspace。Runner 是选定的 Runtime Adapter。它私有组合可替换 Workflow Host 与 configured Provider Adapter；当前 Host substrate 是 LangGraph，唯一 concrete Provider 是 DSH。native session、checkpoint 与 private resume 留在 Adapter 后，不改变 Core 语义。
 
 首个分发包含受保护的 Implementation 与 System Design Workflow Package。贡献者可以发布其他符合开放 Agent Ops Workflow composition model 的 Package。GitHub 是第一个 remote host，plugin 可以 bundle 两个初始 Package。GitHub 与 bundle 是一个 Package Source seam 上的 private Adapter。
 
@@ -57,7 +59,7 @@ Actor 与 ownership：
 - **Delivery Binding** 解析并校验 Package，拥有 simple Local Package Store，返回一个 exact resolved Package，并构造 Manifest 内容。
 - **Runtime Interaction** 拥有 canonical worktree exclusivity、current Delivery slot、Manifest persistence、Runtime invocation、recovery 与 final handling。
 - **GitHub 与 plugin-bundle Adapter** 获取显式选择的 Package 内容。
-- **DSH Runtime/Profile** 拥有 native Session/Workflow State 与 terminal truth。
+- **Runner Runtime Adapter** 拥有 private Workflow execution 与 terminal truth；其 Managed Invocation module 拥有 DSH-native session。
 - **Evidence** 接收可选、单向 Observation，绝不控制 Execution。
 
 <a id="ee-execution-3"></a>
@@ -71,10 +73,10 @@ Actor 与 ownership：
 WorkflowSelector
 → ResolvedWorkflowPackage(name, exactVersion, packageDigest, localPath, workflowId)
 → DeliveryManifest
-→ DSH Runtime Adapter
+→ Runner Runtime Adapter
 ```
 
-成功调用先获得 `NEW` admission，再解析一个 exact local Package，在 DSH effect 前创建并持久化 Delivery Manifest，并依据该 Manifest 校验 Runtime result。`CONTENDED` 与 `RECOVERY` 在 Package work 前返回。对 `NEW`，有效 local hit 不访问 GitHub；miss 从 configured public GitHub repository 下载，或接收显式选择的 bundle，在 publish `READY` 前完成校验，且从不 fallback 到其他 source/version。Selector、fetch、Package、cache、compatibility、contention 或 Manifest error 都在所属 phase 返回。Package preparation failure 释放 ordinary holder，不创建 Delivery，也不是 Delivery outcome。
+成功调用先获得 `NEW` admission，再解析一个 exact local Package，在 Runner effect 前创建并持久化 Delivery Manifest、project fully admitted activation，并依据该 Manifest 校验 Runtime result。`CONTENDED` 与 `RECOVERY` 在 Package work 前返回。对 `NEW`，有效 local hit 不访问 GitHub；miss 从 configured public GitHub repository 下载，或接收显式选择的 bundle，在 publish `READY` 前完成校验，且从不 fallback 到其他 source/version。Selector、fetch、Package、cache、compatibility、contention 或 Manifest error 都在所属 phase 返回。Package preparation failure 释放 ordinary holder，不创建 Delivery，也不是 Delivery outcome。
 
 范围内包括 generic Intake、exact/sticky-latest selector、local hit、public GitHub miss/refresh、explicit bundle input、contributed conforming Package、`MISSING/STAGING/READY` storage、普通 format/required-resource/relationship/version/digest check、DSH compatibility check、immutable Manifest binding、existing current-slot recovery、DSH result validation 与 unchanged Observation。
 
@@ -93,7 +95,7 @@ WorkflowSelector
 | Exact binding | alias 或 Release movement 不改变已创建 Delivery | resolved value 包含 exact version、digest、local path 与 Workflow ID |
 | Docker-like local-first | valid exact/latest hit 避免 GitHub；裸 name 表示 latest | Store lookup 先于 Source Adapter；sticky alias 指向 `READY` exact Package |
 | Ordinary fault containment | malformed/unavailable input 尽早停止，不建设 recovery subsystem | selector、source、validation、cache、admission、Manifest phase 使用 typed early-return result |
-| Simple exclusivity | 每个 worktree 一个 current DSH Delivery | M02 尝试 exclusive admission，不可用时立即返回 `CONTENDED` |
+| Simple exclusivity | 每个 worktree 一个 current Runner Delivery | M02 尝试 exclusive admission，不可用时立即返回 `CONTENDED` |
 | No fallback/default completion | failure 不选择其他 source/version/resource | 一个 configured source 或 explicit bundle；DSH 在 native effect 前校验 |
 | Open contribution | compatible third-party Package 走共同路径 | composition 与 DSH check；无 first-party allow-list |
 | Preview restraint | 复杂度匹配 trusted local use | 无 security platform、concurrent Store protocol、automatic eviction 或 production recovery |
@@ -125,8 +127,10 @@ flowchart LR
     M01 --> Store[private Local Package Store]
     Core -->|persist / run| M02
     M02 --> Runtime[private Runtime Adapter Interface]
-    DSH[DSH Adapter 与 Session] --> Runtime
-    runner[后续 runner Adapter] --> Runtime
+    Runner[Runner Runtime Adapter] --> Runtime
+    Runner --> HostAdapter[exact configured Workflow Host factory]
+    Runner --> ProviderRegistry[configured Provider factory registry]
+    ProviderRegistry --> DSH[DSH Provider Adapter]
     M02 -. Manifest 后的有界事实 .-> M03[Delivery Observation]
     M01 -. exact bound fact .-> M03
     M03 -. best-effort OTLP .-> Evidence[Evidence Admission peer]
@@ -148,6 +152,8 @@ Result 是普通 immutable value：`name`、`exactVersion`、`packageDigest`、`
 
 M02 隐藏 canonical worktree derivation、immediate exclusive admission、current-slot state、Manifest persistence、start uncertainty、Runtime invocation、inspection、recovery、final handling、authorized abandonment 与 private runner lifecycle mapping。它仍是 custody/current-slot state 的唯一 writer，也是 current Manifest 的 persister。它不解释 selector、不下载 Package、不写 Package Store state。
 
+M02 同时冻结 exact Runtime Adapter selection/configuration identity。Runner factory 位于所选 Adapter 私有边界内：它消费 configuration 装配 module instance，但不能改变 selected identity、使用 ambient discovery、按 priority 选 factory、fallback 到其他 Provider/Host 或替换 in-flight Delivery。M02 只看到 `ExecutionRuntimeAdapter`；Provider-native/Host-native factory 保持 private。
+
 Preview 不增加第二个 pre-Manifest lifecycle。Manifest 存在前，failure 释放 ordinary in-process/OS-backed exclusive holder 并返回。Process death 释放 holder。若 death 发生在 Manifest 可见后，下次调用通过既有 occupied-slot recovery 读取 Manifest。不引入 `ARMED`/commit-unknown/reconciliation state。
 
 ### Delivery Observation（`execution.milestone.03`）
@@ -166,7 +172,7 @@ Implementation fact 保留 typed test summary，并按 coverage scope/tool/forma
 
 - **Package Source Interface** 是真实 seam，因为有 GitHub 与 bundle 两个 Adapter。它接收 exact/latest candidate request，返回 candidate bytes 与普通 version/digest metadata，或 typed not-found/fetch failure；不构造 resolved value 或 Manifest。
 - **Local Package Store** 是 private M01 state。Lookup 只暴露 `MISSING` 或 `READY`；`STAGING` 不可 address。Implementation 可以使用 temporary directory 与 rename 发布完整 Package，但 System Design 不要求 transaction manager 或 concurrent-writer protocol。
-- **Runtime Adapter Interface** 接收 persisted exact Manifest binding。DSH 与后续 runner 私有不同；native type 不跨 Core。
+- **Runtime Adapter Interface** 接收由 persisted exact Manifest binding 投影出的 fully admitted immutable activation。Runner 严格实现 `execute`、`inspect`、`cancel`；native Host、Provider、resume、checkpoint、retirement type 不跨 Core。
 
 依赖 acyclic，指向 Core-owned meaning。Host 不编排 M01 internals；M02 不访问 Source/Store；source Adapter 不构造 Manifest；M01 不依赖 Evidence；DSH 不选择 Package identity。
 
@@ -183,7 +189,7 @@ sequenceDiagram
     participant RI as Runtime Interaction
     participant DB as Delivery Binding
     participant SS as Source and Store
-    participant DSH as DSH Runtime Adapter
+    participant Runtime as Runner Runtime Adapter
     participant DO as Delivery Observation
 
     User->>Host: 使用 task intent 运行 selector
@@ -202,8 +208,8 @@ sequenceDiagram
     DB-->>Core: immutable Manifest content
     Core->>RI: persist Manifest/current slot
     Core->>RI: run persisted Delivery
-    RI->>DSH: activate exact local Package
-    DSH-->>RI: correlation and terminal result
+    RI->>Runtime: execute fully admitted activation
+    Runtime-->>RI: correlation and terminal result
     RI->>DB: validate result against Manifest
     DB-->>RI: valid result
     RI->>RI: final handling，clear slot，release holder
@@ -211,7 +217,7 @@ sequenceDiagram
     Core-->>Host: final Delivery outcome
 ```
 
-成功顺序是 admit `NEW`、resolve/prepare、construct Manifest、persist current Manifest、mark start uncertainty、invoke DSH、validate result、finalize、observe。Package preparation 在 ordinary Delivery exclusivity holder 下执行，但没有 Delivery identity 或 Delivery Observation。该 holder 防止另一 current Delivery；它不是 Package proof、hold、transaction 或 concurrent Store protocol。
+成功顺序是 admit `NEW`、resolve/prepare、construct Manifest、persist current Manifest、project admitted activation、mark start uncertainty、invoke Runner、validate result、finalize、observe。Package preparation 在 ordinary Delivery exclusivity holder 下执行，但没有 Delivery identity 或 Delivery Observation。该 holder 防止另一 current Delivery；它不是 Package proof、hold、transaction 或 concurrent Store protocol。
 
 M01 拥有的所有 selector、source、Package、version、digest、cache 与 DSH compatibility 分支只在 M02 返回 `NEW` 后发生。任何此类 failure 都释放 ordinary holder，并在 Manifest persistence、Delivery creation、Runtime/Session/worktree effect 或 Observation 之前返回。M02 执行 admission 所需的 canonical worktree 与 request-shape check 仍可作为 M02 precondition。`CONTENDED` 与 `RECOVERY` 从不调用 M01、Source 或 Store。
 
@@ -261,15 +267,15 @@ Core 调用 M01 前，M02 尝试既有 per-worktree exclusive admission。Live/c
 
 ### Manifest creation 或 persistence failure
 
-若 M01 无法构造 complete Manifest，Core 释放 exclusive holder 并返回 `DELIVERY_BINDING_FAILED`。若 M02 无法 persist Manifest/current slot，则释放 holder 并返回 `DELIVERY_CREATE_FAILED`。两种 error 都不是 Delivery outcome，也不调用 DSH 或 M03。若 process death 发生在 Manifest 可见之后，由 ordinary occupied-slot recovery 处理；不存在独立 commit-resolution protocol。
+若 M01 无法构造 complete Manifest，Core 释放 exclusive holder 并返回 `DELIVERY_BINDING_FAILED`。若 M02 无法 persist Manifest/current slot，则释放 holder 并返回 `DELIVERY_CREATE_FAILED`。两种 error 都不是 Delivery outcome，也不调用 Runner 或 M03。若 process death 发生在 Manifest 可见之后，由 ordinary occupied-slot recovery 处理；不存在独立 commit-resolution protocol。
 
-### DSH activation、invalid result 与 Observation loss
+### Runner activation、invalid result 与 Observation loss
 
-DSH Adapter 在 native invocation 前校验 persisted Manifest 指向 exact local `READY` Package。它不扫描 ambient path，也不替换 resource。Invocation 后，既有 `START_UNCERTAIN`、`START_FAILED`、`RESULT_UNRESOLVED`、terminal-result、final-handling 与 exact authorized-abandonment rule 保持不变。Observation disabled/refused/timed-out/tail-loss 不改变 Runtime result 或 slot handling。
+Delivery admission 在 Runner effect 前校验 persisted Manifest，并 project 一个 deeply frozen `RunnerActivationContext`。Runner 不扫描 ambient Package path，也不替换 resource。Invocation 后，既有 `START_UNCERTAIN`、`START_FAILED`、`RESULT_UNRESOLVED`、terminal-result、final-handling 与 exact authorized-abandonment rule 保持不变。Observation disabled/refused/timed-out/tail-loss 不改变 Runtime result 或 slot handling。
 
-### 后续 runner lifecycle
+### Runner private lifecycle
 
-runner 满足同一 Core-owned lifecycle meaning，但可以私有 park resumable state、checkpoint、release physical custody，并 reacquire valid custody。这些 mechanic 不成为 DSH 或 public Core requirement，本修订不改变 runner profile/code。
+Runner 满足 Core-owned lifecycle meaning，同时私有 park resumable state、checkpoint、release physical custody 并 reacquire valid custody。这些 mechanic 不成为 DSH 或 public Core requirement。稳定设计详见 [Runner modules](modules/runner/runner.zh-CN.md) 与 [Runner Runtime Profile](../runtime/runner-runtime-profile.zh-CN.md)。
 
 <a id="ee-execution-8"></a>
 ## 8. 数据、状态、身份与 Ownership
@@ -280,7 +286,7 @@ runner 满足同一 Core-owned lifecycle meaning，但可以私有 park resumabl
 WorkflowSelector
 → ResolvedWorkflowPackage
 → DeliveryManifest
-→ Adapter-private DSH Session/Workflow State
+→ Runner-private Workflow Host state 加 Provider-native session
 → bounded result validated against Manifest
 ```
 
@@ -356,7 +362,7 @@ Source Interface 接收一个 candidate request。Public GitHub Adapter 获取 R
 
 Store implementation 执行 lookup、private candidate staging、complete publication、exact conflict detection，并在新 exact Package `READY` 后更新 sticky alias。Initial failure 保持 `MISSING`；refresh failure 保持 prior `READY` Package 与 alias。Local filesystem implementation 可在 sibling temporary directory staging，再 rename 到 final exact path。这是避免 partial hit 的 implementation technique，不是 production transaction protocol。Caller 看不到 Store choreography。
 
-Runtime Adapter 只接收 persisted Manifest，并解析其 exact local `READY` path。DSH 在 native effect 前校验并私有 project。既有 representative rc.6 feasibility evidence 只证明 seam direction，不是 production conformance。
+Runtime Adapter 只接收由 persisted Manifest 和 exact local `READY` Package 派生的 fully admitted immutable activation。Runner 在 child effect 前校验 exact correlation/binding，所选 DSH Provider 保持 private。既有 module tests 证明 bounded seam；完整 production conformance 仍需要 Wave 4 walking-skeleton/fault-corpus evidence。
 
 <a id="ee-execution-10"></a>
 ## 10. 故障、恢复与 System-wide 行为
@@ -451,7 +457,7 @@ Test 跨越 M01、M02 与 Runtime Adapter Interface 并断言 observable result�
 | Count presence semantics | C17 zero/positive/omission 不同；invalid value 与 Finding carrier 不能落下 malformed count state | ordinary/Recheck zero/positive/absence 与 negative fixture |
 | Role lineage 与 usage | local/lineage pair 不同；provider-native quantity 保持 exact kind/unit/source group | lineage duplicate/conflict/privacy 与 usage compatibility fixture |
 | Span/Event identity | Event ID 与 `(trace_id, span_id)` 保持 exact dedup/conflict meaning | new/identical/conflicting identity fixture |
-| 后续 runner | private resume 保持可用，不 public resume/native leak | contrasting DSH/runner lifecycle/type fixture |
+| Runner private lifecycle | private resume 保持可用，不 public resume/native leak | Runner Adapter lifecycle/type fixture |
 
 <a id="ee-execution-14"></a>
 ## 14. 决策、下游工作与被拒方案
@@ -499,7 +505,7 @@ Concept obligation register 仍是 owner-complete authority。Execution-local vi
 
 1. **Runtime Interaction**：冻结 M02-first `CONTENDED/RECOVERY/NEW` admission、ordinary holder、Manifest persistence 与既有 current-slot/DSH recovery，不增加 pre-Manifest state。
 2. **Delivery Binding**：为 `NEW` 定义 `resolveWorkflowPackage`、selector rule、Source/Store internal、validation order、resolved-value construction、Manifest construction、result validation、typed error，以及 pre-Manifest return 时 holder release。
-3. **DSH Runtime Adapter**：把 persisted Manifest project 到 exact local `READY` Package，并对两个 protected 与 contributed conforming Package 证明无 ambient completion。
+3. **Runner Runtime Adapter**：消费由 persisted Manifest 与 exact local `READY` Package 投影的 admitted activation；其 DSH Provider proof 必须对 protected/contributed conforming Package 证明无 ambient completion。
 4. **Delivery Observation**：仅当 exact Package field 需要新 scalar mapping 时深化；否则 existing profile 与 test 不变。
 
 Module Detailed Design 必须说明可执行 control/data flow，而不是把这些 decision 重述成 checklist。M01 Interface 是主要 import test surface；Source/Store test Adapter 保持 private。Implementation 应优先使用 temporary staging directory 加 complete publish/rename、simple typed result 与 ordinary cleanup。不得增加 caller choreography、Prepared handle、proof store、reference count、transaction manager、background reconciler、concurrent-writer schedule、credential flow、security scanner、automatic eviction、fallback 或 ambient Package lookup。
@@ -512,7 +518,7 @@ Module Detailed Design 必须说明可执行 control/data flow，而不是把这
 - [x] 三个既有 Module 保留，具备可实现 responsibility、small Interface、private seam、acyclic dependency。
 - [x] 成功流程无分支；所有要求的 local-hit/miss/bundle/validation/cache/contention/Manifest/DSH branch 均具名并有 typed outcome。
 - [x] `ResolvedWorkflowPackage` 与 `MISSING/STAGING/READY` 替代原 proof/Prepared-hold/transaction machinery。
-- [x] M02 admission 先于 Package work；只有 `NEW` preparation；preparation 先于 Delivery creation；Manifest persistence 先于 DSH effect；pre-Delivery failure 不创建 Delivery outcome 或 Observation。
+- [x] M02 admission 先于 Package work；只有 `NEW` preparation；preparation 先于 Delivery creation；Manifest persistence/admitted activation projection 先于 Runner effect；pre-Delivery failure 不创建 Delivery outcome 或 Observation。
 - [x] Exact/local-first/sticky-latest/no-fallback/no-ambient/open-contribution/DSH-first 语义保留。
 - [x] Existing current-slot recovery、M03 Observation、Evidence relationship、protected Package、runner 语义不变。
 - [x] Acceptance 面向 Interface，不要求 Spike、production security、concurrency schedule、transaction、response-loss、power-loss、eviction 或 HA evidence。

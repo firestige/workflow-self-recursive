@@ -36,22 +36,21 @@ workflow-self-recursive 通过小型、host-neutral 的执行 seam 运行有价�
 
 产品包含两个 System：
 
-- **Execution** 解析并准备一个符合开放标准的精确 Workflow Package，从该 resolved Package 创建不可变 Delivery Manifest，按 canonical worktree 协调一个 current DSH Delivery，并在不依赖 Evidence 的前提下发出有界事实。
+- **Execution** 解析并准备一个符合开放标准的精确 Workflow Package，从该 resolved Package 创建不可变 Delivery Manifest，按 canonical worktree 协调一个 current Runner Delivery，并在不依赖 Evidence 的前提下发出有界事实。
 - **Evidence** 是可选、独立部署的本地应用；它接收受支持的 OTLP 事实，投影忠实的因果与事实视图，并供人检查。
 
-Runtime 不是第三个产品 System，而是 Core-owned seam 后的执行提供者。DSH 是第一个 Adapter。后续第一方 LangGraph Adapter 可以私有保留 pause/resume 和 custody reacquisition 行为，但不能把这些能力变成 public Execution 语义。
+Runtime 不是第三个产品 System，而是 Core-owned seam 后的执行提供者。Runner 是选定的 Runtime Adapter，并私有组合可替换 Workflow Host 与 configured Provider Adapter。LangGraph 与 DSH 是当前私有实现选择，不是 product System 或 Runner identity。Runner 可以私有保留 pause/resume 与 custody reacquisition 行为，但不能把这些能力变成 public Execution 语义。
 
 ```mermaid
 flowchart LR
     U["用户"] --> H["DSH host/plugin"]
     H --> X["Execution System<br/>嵌入每个 repository/workspace"]
     S["Public GitHub Release 或显式 plugin bundle"] -->|"Package Source Adapter"| X
-    X --> R["DSH Runtime 与 Session"]
+    X --> R["Runner Runtime Adapter<br/>private Host 与 Provider lifecycle"]
     X -. "可选、best-effort OTLP" .-> E["Evidence System<br/>本地 App"]
     E --> P[("PostgreSQL")]
     P --> G["Grafana 事实趋势"]
     P --> A["Agent Decisions"]
-    F["后续 runner Adapter<br/>私有 lifecycle"] --> X
 ```
 
 Execution 与 Evidence 不共享数据库。Evidence 从不读取 worktree、Runtime checkpoint 或隐藏的 Workflow state；Execution 从不读取 Evidence 来决定进度或 outcome。
@@ -94,8 +93,8 @@ MVP 保留三个供 Evaluation/BI 直接消费的 owner fact，而不是 Observa
 ## 4. 跨 System 不变量
 
 1. **先 admission，再在创建 Delivery 前完成 preparation。** Execution 首先 canonicalize worktree 并尝试既有的 exclusive Delivery admission。只有 `NEW` 才解析一个精确、本地 `READY` 的 Workflow Package，并在 Delivery Manifest 持久化、Runtime、Session 或 worktree effect 之前完成普通 Package 与 selected-Runtime 校验。Preparation 失败释放 holder，是 typed pre-Delivery result，不是 Delivery outcome。
-2. **每个 canonical worktree 最多一个 current DSH Delivery，并立即拒绝。** `CONTENDED` 不等待、不排队、不抢占、不访问 Package Store/source，也不创建 Delivery，直接返回。`RECOVERY` 只遵循 stored Manifest 并忽略新 selector。
-3. **Execution 不保存历史。** Execution 只存 current DSH slot。有效 clear 后，历史只属于 DSH Session 与 accepted Evidence。
+2. **每个 canonical worktree 最多一个 current Runner Delivery，并立即拒绝。** `CONTENDED` 不等待、不排队、不抢占、不访问 Package Store/source，也不创建 Delivery，直接返回。`RECOVERY` 只遵循 stored Manifest 并忽略新 selector。
+3. **Execution 不保存可变历史。** Execution 只存 current Runner slot。有效 clear 会删除 mutable working state，但 immutable Runner settlement、preserved result/publication disposition 与 owner retirement fact 仍保留在各自 owner boundary；accepted Evidence 仍是可选 downstream。
 4. **Runtime truth 保持权威。** Execution 校验 identity 与 shape，但不重新解释 Workflow outcome。Evidence 记录，不裁决。
 5. **Observation 可选且不控制执行。** 禁用、拒绝、sampling 或 tail loss 都不能改变 execution。
 6. **Missing 绝不等于 zero。** final、lower-bound、unavailable 和 not-applicable 状态在 admission、projection 和 query 中保持不同。
@@ -104,7 +103,7 @@ MVP 保留三个供 Evaluation/BI 直接消费的 owner fact，而不是 Observa
 9. **内容最小化。** Prompt、message、tool argument/result、source、credential 和 error body 不跨越 Observation seam。
 10. **人工检查只呈现事实。** Preview 不评分、不排名、不推荐、不推断因果，也不自动修改 Workflow 行为。
 11. **System 可独立使用。** Execution 不依赖 Evidence 也能工作；Evidence 接收任何 conforming producer，且不成为 Execution storage。
-12. **Native lifecycle 保持私有。** DSH Session state 与后续 runner pause/resume/checkpoint 细节留在 Runtime Adapter 后。
+12. **Native lifecycle 保持私有。** Runner Host checkpoint、DSH Provider session 与 pause/resume 细节留在 Runtime Adapter 后。
 13. **Local-first exact resolution。** 有效的本地 exact 或 sticky-latest hit 不发远程请求。Miss 只能使用 configured source；不允许 source/version fallback 或 ambient completion。
 14. **Binding 不漂移。** `latest` 或裸 name 在创建 Manifest 前解析成 `exactVersion`。后续 alias 或 Release 变化只影响后续 Delivery。
 15. **简单 Store 可见性。** `STAGING` 内容绝不是 cache hit。Initial-fill 失败回到 `MISSING`；refresh staging 是 private side state，在已校验 replacement 就绪之前仍保持原 `READY` Package 与 sticky alias 可见。Preview 不自动 eviction。
@@ -127,7 +126,7 @@ Execution Core → Delivery Observation → OTel/OTLP → Evidence Admission
 Evidence Admission → Factual Projection → Presentation
 ```
 
-Workflow Package owner 拥有 Package 内容与关系。安装或用户配置提供 public GitHub URL 或显式 bundle input。只有 Delivery Binding 解释 selector、解析并校验 Package、拥有 Local Package Store 并构造 Manifest 内容。只有 Runtime Interaction 写 canonical custody 和 current-slot state。只有 DSH 写 native Session/Workflow State。只有 Delivery Observation 映射 outbound fact；只有 Evidence Admission 决定 acceptance。
+Workflow Package owner 拥有 Package 内容与关系。安装或用户配置提供 public GitHub URL 或显式 bundle input。只有 Delivery Binding 解释 selector、解析并校验 Package、拥有 Local Package Store 并构造 Manifest 内容。只有 Runtime Interaction 写 canonical custody 和 current-slot state。Runner Workflow Host 拥有 private Workflow/thread/checkpoint state；configured DSH Provider Adapter 只拥有 native Provider session。Runner Lifecycle Coordinator 拥有 immutable terminal settlement。只有 Delivery Observation 映射 outbound fact；只有 Evidence Admission 决定 acceptance。
 
 依赖指向 owner 定义的含义。Source Adapter 传输 Package bytes，但不定义 Package identity 或构造 Manifest。Store 从不选择其他 source/version。DSH 不能用 ambient default 修补不完整 Package。Evidence 不能命令 Execution。任何 Contract 或下游 implementation 都不得增加第二个 semantic writer。
 
@@ -162,7 +161,7 @@ Evidence 计划迁移到独立的 public repository，再以 submodule 形式接
 | Recovery | unknown Runtime start 保持 blocking；不 blind retry | 既有 durable launch disposition 与 exact recovery | concept.fixture.001 rebinding |
 | Consistency | 无 accepted/projection half-state 或 double contribution | 一个 PostgreSQL transaction 与 stable identity | concept.fixture.003 rebinding |
 | Privacy | prohibited body 不跨 Observation seam | producer allow-list/redaction 加 admission validation | concept.fixture.002 rebinding；production proof downstream |
-| Portability | DSH 与 runner 的差异留在一个 Core-owned seam 后 | Adapter-private lifecycle、opaque projection | design fixed；later runner implementation downstream |
+| Portability | Host 与 Provider implementation 的差异留在一个 Core-owned Runner seam 后 | Adapter-private lifecycle、opaque projection | design fixed；implementation qualification downstream |
 | Authority singularity | 一个 active graph，不存在 co-active legacy authority | versionless root、in-place Systems、quarantine | 需要 deterministic publication proof |
 | Translation fidelity | 中文传达完整英文含义 | stable anchor，按英文整章重译 | 需要 review 与 deterministic proof |
 | Honest lifecycle | draft/legacy artifact 不伪装成 conformance | draft banner、fixed/open matrix、conformance gate | deterministic now；physical publication downstream |
@@ -229,7 +228,7 @@ Concept 拥有该跨文档 trace metadata；链接的 System anchor 仍是唯一
 | `concept.obligation.011` | Execution Core implementation owner | `execution.milestone.01..03` 与所有 `SC-WI-*` | 一个 prepare operation、simple Store、Manifest-before-DSH、immediate contention、unchanged Observation/runner | Interface-level import/contention/Manifest/DSH/result/privacy fixture | implementation 不存在 | Execution implementation guidance | Execution Design | bypass、drift、wait/queue、pre-Delivery outcome/Observation、ambient completion 或 runner/public change |
 | `concept.obligation.012` | product/repository/plugin/Package release owner | GitHub first host、bundle common path、contribution | 选择 repository/layout，发布一个完整 versioned asset，治理 contribution，保护 initial corpus | repository、Release/asset、contribution、bundle evidence | publication 不存在 | repository/plugin release guidance | Concept 与 Execution Design | mutable/ambiguous/incomplete asset、allow-list、rewrite、bypass 或 fallback |
 | `concept.obligation.013` | Local Store implementation owner | exact/latest 与 `MISSING/STAGING/READY` | local-first、non-addressable candidate staging、initial failure→`MISSING`、refresh failure 保留 prior `READY`+alias、new-ready 后更新 alias、无 eviction | Store Interface initial-fill/refresh hit/miss/staging/ready/conflict/failure fixture | implementation 不存在 | Store implementation guidance | Execution Design | partial visibility、prior-ready/alias loss、需要 concurrent writer 或 eviction |
-| `concept.obligation.014` | DSH Adapter/provider qualification owner | exact activation/no ambient；`concept.acceptance.item.007` | 选择 production binding，并在 effect 前 project complete Package | protected/contributed behavior 与 provider/no-default/result evidence | 只有 representative rc.6 evidence | Runtime Adapter guidance | Execution Design | rewrite、ambient substitution、post-effect rejection、missing capability 或 native leak |
+| `concept.obligation.014` | DSH Adapter/provider qualification owner | exact activation/no ambient；`concept.acceptance.item.007` | 选择 production binding，并在 effect 前 project complete Package | protected/contributed behavior 与 provider/no-default/result evidence | 已有 DSH `0.1.1-rc.2` module evidence；Wave 4 end-to-end qualification 仍开放 | Runtime Adapter guidance | Execution Design | rewrite、ambient substitution、post-effect rejection、missing capability 或 native leak |
 | `concept.obligation.015` | operations validation owner | source/cache resource use | 选择 bounded fetch/cache setting，不增加 fallback、queueing、eviction、auth 或 production recovery semantics | ordinary-fault/resource observation | 未固定 numeric default | validation/operations guidance | Execution Design | measured fact 要求改变 ownership/Interface 或 trust/scale context |
 
 规范性义务 refinement：`concept.obligation.001` 必须把 C17 presence/absence 物理编码为 counted/no-count form，保持 C27 与六个 identity domain，并打包双语 zero/positive/absence/retry 及 type/range/carrier/atomic negative；若 absence 需要 out-of-band discriminator 或 zero 无法保持不同则 reopen。`concept.obligation.003` 必须证明 typed owner count→exact C17、no fact→omission，且无 malformed emission；出现另一 selector 或 assertion mutation 时 reopen。`concept.obligation.004` 必须证明 presence-only Admission、exact count/no-count landing/query、无 partial Review/count effect，以及所有未变 lifecycle no-op/append semantics；出现 producer-intent inference、synthesized zero/`UNAVAILABLE`、partial effect 或 conflated storage 时 reopen。

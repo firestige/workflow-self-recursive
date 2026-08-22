@@ -9,7 +9,7 @@
 | 状态 | 项目级设计原则，供 Workflow Contract、配置仓库、Runtime Profile 与具体 Workflow 共同遵循 |
 | 目标 | 说明 Workflow 如何作为配置组合骨架，把 Agent、Prompt、Skill、模型、工具和执行流程组织成可复现的执行单元 |
 | 上层依据 | [`agent-architecture.md`](agent-architecture.md) |
-| 相邻设计 | [`systems/execution/project-execution-system.md`](systems/execution/project-execution-system.md)、[`systems/runtime/first-party-langgraph-runtime-profile.md`](systems/runtime/first-party-langgraph-runtime-profile.md)、[`../team-config/workflow/system-design/README.md`](../team-config/workflow/system-design/README.md) |
+| 相邻设计 | [`systems/execution/project-execution-system.md`](systems/execution/project-execution-system.md)、[`systems/runtime/runner-runtime-profile.md`](systems/runtime/runner-runtime-profile.md)、[`../team-config/workflow/system-design/README.md`](../team-config/workflow/system-design/README.md) |
 | 不定义 | Workflow DSL 的最终字段、所有 package 必须共用的物理目录名、存储 schema、LangGraph 内部 API 或具体 Driver 协议 |
 
 本文位于 Conceptual Architecture 与具体 System/Workflow 设计之间。它固定项目组织 Workflow 的共同心智模型，但不替代 Workflow Contract、Runtime Profile System Design 或具体 Workflow Package。
