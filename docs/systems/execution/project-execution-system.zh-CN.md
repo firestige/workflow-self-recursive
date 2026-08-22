@@ -34,7 +34,13 @@
 
 Authority order 为：已确认用户意图；规范 Concept；当前 Execution 语义；Workflow composition model；已审查方向与 feasibility evidence；[Observation Catalog](../../contracts/observation/observation-catalog.md)、[OTel Observation Profile](../../contracts/observation/otel-observation-profile.md)、[Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md) 与 [Metric Catalog](../../contracts/evaluation/metric-catalog.md) 仅在各自 split draft companion scope 内适用。[Evidence System](../evidence/evidence-system.md) 仍是 peer owner。本文拥有 Execution Module、Interface、Package-to-Delivery binding、custody/current-slot lifecycle、Runtime Adapter behavior 与 outbound Observation behavior。它不拥有 Package publication policy、Evidence internals、Observation fact meaning、payload registry、metric schema 或 physical storage schema。
 
-受保护的 `system-design` 与 `implementation` Workflow Package 是初始已验证分发内容和 conformance fixture，不是重新设计目标。其现有语义与组织保持不变。既有 runner profile/code 不变。理解本文不需要任何 disposable workspace artifact；以上 identity 只表示 provenance。
+受保护的 `system-design` 与 `implementation` Workflow Package 是初始已验证分发内容和 conformance fixture；除下方已批准的 R6 correction 外，不是重新设计目标。理解本文不需要任何 disposable workspace artifact；以上 identity 只表示 provenance。
+
+### R6 Delivery-admission 与 Runtime Adapter projection
+
+对于 Iteration 2 Runner，Execution 在 `system-contracts/delivery-admission/delivery-admission-contract.json` 拥有 `agentops.delivery-admission@1.0.0`。Admission 确定性地把 `agentops.workflow-dsl@1.1.0` author intent 解析为一个 deeply frozen `RunnerActivationContext`；其中包括 exact Agent、model、Driver、provider-model、resource、capability、workspace 与 local path binding。G01 只接收该 admitted value，绝不接收八份 document、八个 root schema 或 shared meta schema。
+
+Execution 还拥有唯一 TypeScript projection `execution-system/src/execution/runtime-adapter.ts`。其 `ExecutionRuntimeAdapter` public operation set 严格为 `execute`、`inspect` 与 `cancel`。Runner/G05 实现并消费这一 import surface。Resume、recovery、checkpoint、thread 与 provider-session operation 都保持 Adapter-private，不得复制到或暴露于 Execution public interface。
 <a id="ee-execution-2"></a>
 ## 2. 设计上下文
 

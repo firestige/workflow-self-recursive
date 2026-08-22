@@ -1,6 +1,6 @@
 # Agent Ops Workflow Definition DSL — 契约表面
 
-> **状态：FROZEN，已经发布。** Contract revision：`agentops.workflow-dsl@1.0.0`。本 revision 已纳入 [#77 Contract owner 决策](https://github.com/firestige/workflow-self-recursive/issues/77#issuecomment-5363955531)，通过 contract.gate.1–6，并获得 [Contract owner 明确批准](https://github.com/firestige/workflow-self-recursive/issues/77#issuecomment-5365978215)。Exact publication binding 记录于 `system-contracts/workflow-dsl/publication/publication-record-1.0.0.json`。
+> **状态：FROZEN，已经发布。** 当前 Contract revision：`agentops.workflow-dsl@1.1.0`；`1.0.0` 保持为历史 resolving publication。R6 增加已批准的 author-intent surface，但不增加 Definition document 或 root schema。当前 exact publication binding 记录于 `system-contracts/workflow-dsl/publication/publication-record-1.1.0.json`。
 >
 > **规范语言：English。** 本文件是 [`workflow-definition-dsl.md`](workflow-definition-dsl.md) 的非规范 wholesale translation。English 发生变化会使先前 translation evidence 失效。
 >
@@ -10,7 +10,7 @@
 
 | 字段 | 值 |
 | --- | --- |
-| Contract revision | `agentops.workflow-dsl@1.0.0` |
+| Contract revision | `agentops.workflow-dsl@1.1.0` |
 | Lifecycle | `FROZEN`；已发布；`conformance_claim=DEFINITION_AND_VALIDATOR_ONLY` |
 | Upstream authority | [`workflow-composition-model.md`](../../workflow-composition-model.md)、[`agent-architecture.md`](../../agent-architecture.md)、两份 first-party Workflow semantic document，以及 #77 最新 owner decision |
 | Machine representation | exact 同 revision 的 `system-contracts/workflow-dsl/` |
@@ -45,7 +45,7 @@ Package index 命名六份 Definition document。Snapshot 在 admission 时另�
 | `agentops.validation` | `validation.json` | `schemas/validation.schema.json` |
 | `agentops.workflow-package-snapshot` | admission output，例如 `snapshot.json` | `schemas/package-snapshot.schema.json` |
 
-`schemas/agentops.meta.schema.json` 是第九份 normative schema，提供共享 closed definition。全部 document 使用 JSON Schema draft-07，且每个 portable object boundary 都采用 `additionalProperties: false`。
+`schemas/agentops.meta.schema.json` 是一份 shared meta schema，提供共享 closed definition。集合仍严格保持八份 document、八个 root schema 加一份 shared meta schema；R6 不创建第九份 Definition 或第九个 root schema。全部 document 使用 JSON Schema draft-07，且每个 portable object boundary 都采用 `additionalProperties: false`。
 
 ## 3. Identity、canonicalization、Package digest 与 Snapshot
 
@@ -103,6 +103,8 @@ Snapshot digest 是仅省略 `snapshot.digest` 后的 canonical digest。State �
 
 每个 Action 声明 `id`、`name`、`purpose`、`resultSchema`、`responsibleAuthority` 与 `gate`；`inputSchema`、`allowedRoutes`、`escalation` 是条件字段。
 
+Agent Action 还可以声明 `interaction:{mode:"action-scoped", completion:"structured-only"}`。该模式下的 input request 保持在同一 Action episode 与 admitted session 内，并通过 Action interaction capability 继续；它不是 Workflow Wait。只有 Action 已返回 structured result 并显式请求外部 approval 或 decision 时，才可以路由至已声明的 Workflow Wait。
+
 Action authority shape 恰好有两种：
 
 | Shape | Required authority | Agent binding |
@@ -125,6 +127,8 @@ Route 把一个 Role 绑定到 exact Agent definition、Role prompt、Action pro
 5. Route、Prompt、Skill、model、tool、Driver 或 session 都不能扩大 Action/Role authority。
 
 Provider tool visibility 与 native side-effect authorization 仍属于 Runtime/Adapter concern。
+
+每个 Route 声明 closed `resources.capabilities` set，其中包含 `structured-completion`，并可选包含 `action-interaction`。其 `sessionPolicy.scope` 严格为 `{kind:"episode"}` 或 `{kind:"data-bound", source:<source port>}`，另带 `isolation`。Delivery admission 解析并冻结 physical Agent/model/Driver/resource/path binding；Definition 从不提供 credential 或 provider-native session identity。
 
 ### 4.3 Canonical instruction merge
 
@@ -198,6 +202,12 @@ Runtime-internal Planner 是严格 `N → 1` closed-set classifier，闭集由 N
 
 Semantic-routing node 构成 portable Planner invocation graph。Classifier invocation 之间的 self-cycle 与 mutual cycle 拒绝 admission。这是 static graph check，不是 Planner implementation。
 
+### 5.5 Typed dataflow 与 Host operation
+
+`dataflow.edges[]` 显式连接一个 declared source port 与一个 declared target port。Source port 可以是 delivery context、Workflow state、Artifact、site result 或 control result；target port 可以是 site input、control input、Workflow state 或 Artifact。Admission 拒绝 unresolved producer/consumer、duplicate sink、missing required input、stale control result 或 type-incompatible binding。因此 static topology 不等于 static path：Planner 可以产生 admitted typed result，declared decision 再从 declared successor 中选择。
+
+`hostOperations[]` 声明 Host 拥有的 deterministic validation、selection 或 transformation。每项包含 exact operation identity、contract identity、configuration 与 required Host capabilities。它是 data，不是 callback/module locator；不能执行 Agent/Provider work，也不能扩张 declared successor set。
+
 ## 6. Parallel node、immutable result 与 join
 
 ### 6.1 Parallel 是 graph composition
@@ -212,11 +222,13 @@ Parallel node 声明：
 
 该 node 没有 Action、Role、Route 或 responsible authority。每个 branch 引用一个单独声明的 Action。Runtime invocation/attempt identity 为 private，不能进入 Definition。
 
-MVP 全部 branch 都 required。不提供 optional-branch switch、dynamic branch creation、`ALL|SELECTED` activation 或 completion-order semantics。
+所有 declared branch 在被选中时都 required。不提供 optional-branch switch、dynamic branch creation、字面 `ALL|SELECTED` activation mode 或 completion-order semantics。
+
+可选的 `selection.source` 读取一个 admitted typed value；该值必须是本 node 已声明 branch identity 的非空子集。`selection` 缺省时，selected set 是全部 declared branch；存在时，empty、unknown 或 duplicate branch identity 都在 branch effect 前 fail。`required:true` 约束该次 execution 的每个 selected member，barrier 只等待 exact selected set。该字段以 data 表达 selection，不是 `All|Selected` enum，也不是第二套 topology。
 
 ### 6.2 Barrier 与 branch result invariant
 
-Join barrier 是内建语义，只在每个 declared branch 都有且仅有一个与 current input binding 对应的 current、admitted、successful result 时关闭。`FAILED`、`INCOMPLETE`、`CANCELLED`、malformed、stale、duplicate-current 或 unadmitted outcome 都不是 join input。
+Join barrier 是内建语义，只在每个 selected branch 都有且仅有一个与 current input binding 对应的 current、admitted、successful result 时关闭。`FAILED`、`INCOMPLETE`、`CANCELLED`、malformed、stale、duplicate-current 或 unadmitted outcome 都不是 join input。
 
 每个 branch result 都 immutable，由其 branch Action authority 拥有，并携带独立 identity/lineage。Branch 不 shared-write Workflow State、其他 branch result 或 aggregate output。Wall-clock completion order 不影响 result map、digest、route 或 authority。
 

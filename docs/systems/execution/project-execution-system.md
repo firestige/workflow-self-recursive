@@ -34,7 +34,13 @@
 
 Authority order is: confirmed user intent; normative Concept; current Execution semantics; Workflow composition model; the reviewed direction and feasibility evidence; the [Observation Catalog](../../contracts/observation/observation-catalog.md), [OTel Observation Profile](../../contracts/observation/otel-observation-profile.md), [Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md), and [Metric Catalog](../../contracts/evaluation/metric-catalog.md) only for their split draft companion scopes. The [Evidence System](../evidence/evidence-system.md) remains a peer owner. This document owns Execution Modules, Interfaces, Package-to-Delivery binding, custody/current-slot lifecycle, Runtime Adapter behavior, and outbound Observation behavior. It does not own Package publication policy, Evidence internals, Observation fact meaning, the payload registry, metric schema, or physical storage schema.
 
-The protected `system-design` and `implementation` Workflow Packages are initial verified distribution content and conformance fixtures, not redesign targets. Their existing semantics and organization remain unchanged. Existing runner profile/code is unchanged. No disposable workspace artifact is required to interpret this document; the identities above are provenance only.
+The protected `system-design` and `implementation` Workflow Packages are initial verified distribution content and conformance fixtures, not redesign targets outside the R6 corrections authorized below. No disposable workspace artifact is required to interpret this document; the identities above are provenance only.
+
+### R6 Delivery-admission and Runtime Adapter projection
+
+For Iteration 2 Runner, Execution owns `agentops.delivery-admission@1.0.0` at `system-contracts/delivery-admission/delivery-admission-contract.json`. Admission deterministically resolves `agentops.workflow-dsl@1.1.0` author intent into one deeply frozen `RunnerActivationContext`; this includes exact Agent, model, Driver, provider-model, resource, capability, workspace, and local path bindings. G01 receives only that admitted value, never the eight documents, eight root schemas, or shared meta schema.
+
+Execution also owns the unique TypeScript projection `execution-system/src/execution/runtime-adapter.ts`. Its `ExecutionRuntimeAdapter` public operation set is exactly `execute`, `inspect`, and `cancel`. Runner/G05 implements and consumes that import surface. Resume, recovery, checkpoint, thread, and provider-session operations remain private behind the Adapter and must not be copied into or exposed through an Execution public interface.
 <a id="ee-execution-2"></a>
 ## 2. Design Context
 

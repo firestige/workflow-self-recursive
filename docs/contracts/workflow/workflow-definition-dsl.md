@@ -1,6 +1,6 @@
 # Agent Ops Workflow Definition DSL — Contract Surface
 
-> **Status: FROZEN and published.** Contract revision: `agentops.workflow-dsl@1.0.0`. This revision incorporates the [#77 Contract-owner decision](https://github.com/firestige/workflow-self-recursive/issues/77#issuecomment-5363955531), passed contract.gate.1–6, and received [explicit Contract-owner approval](https://github.com/firestige/workflow-self-recursive/issues/77#issuecomment-5365978215). The exact publication binding is recorded in `system-contracts/workflow-dsl/publication/publication-record-1.0.0.json`.
+> **Status: FROZEN and published.** Current Contract revision: `agentops.workflow-dsl@1.1.0`; `1.0.0` remains a historical resolving publication. R6 adds the approved author-intent surface without adding a Definition document or root schema. The exact current publication binding is recorded in `system-contracts/workflow-dsl/publication/publication-record-1.1.0.json`.
 >
 > **Normative language: English.** [`workflow-definition-dsl.zh-CN.md`](workflow-definition-dsl.zh-CN.md) is a non-normative wholesale translation. English changes invalidate the prior translation evidence.
 >
@@ -10,7 +10,7 @@
 
 | Field | Value |
 | --- | --- |
-| Contract revision | `agentops.workflow-dsl@1.0.0` |
+| Contract revision | `agentops.workflow-dsl@1.1.0` |
 | Lifecycle | `FROZEN`; published; `conformance_claim=DEFINITION_AND_VALIDATOR_ONLY` |
 | Upstream authority | [`workflow-composition-model.md`](../../workflow-composition-model.md), [`agent-architecture.md`](../../agent-architecture.md), the two first-party Workflow semantic documents, and #77's latest owner decision |
 | Machine representation | `system-contracts/workflow-dsl/` at the exact same revision |
@@ -45,7 +45,7 @@ A Package index names six Definition documents. A Snapshot is produced separatel
 | `agentops.validation` | `validation.json` | `schemas/validation.schema.json` |
 | `agentops.workflow-package-snapshot` | admission output such as `snapshot.json` | `schemas/package-snapshot.schema.json` |
 
-`schemas/agentops.meta.schema.json` is the ninth normative schema and supplies shared closed definitions. All documents use JSON Schema draft-07 and `additionalProperties: false` at every portable object boundary.
+`schemas/agentops.meta.schema.json` is one shared meta schema and supplies shared closed definitions. The set remains exactly eight documents, eight root schemas, and one shared meta schema; R6 creates no ninth Definition or ninth root schema. All documents use JSON Schema draft-07 and `additionalProperties: false` at every portable object boundary.
 
 ## 3. Identity, canonicalization, Package digest, and Snapshot
 
@@ -103,6 +103,8 @@ Every applicable checkpoint binds the following exact portable facts:
 
 Every Action declares `id`, `name`, `purpose`, `resultSchema`, `responsibleAuthority`, and `gate`; `inputSchema`, `allowedRoutes`, and `escalation` are conditional fields.
 
+An Agent Action may additionally declare `interaction:{mode:"action-scoped", completion:"structured-only"}`. An input request under that mode remains inside the same Action episode and admitted session and is continued through the Action interaction capability. It is not a Workflow Wait. Only an Action that has returned a structured result explicitly requesting an external approval or decision may route to a declared Workflow Wait.
+
 There are exactly two Action authority shapes:
 
 | Shape | Required authority | Agent binding |
@@ -125,6 +127,8 @@ A Route binds one Role to exact Agent definition, Role prompt, Action prompts, S
 5. the Route, Prompt, Skill, model, tool, Driver, or session cannot expand Action/Role authority.
 
 Provider tool visibility and native side-effect authorization remain Runtime/Adapter concerns.
+
+Each Route declares a closed `resources.capabilities` set containing `structured-completion` and optionally `action-interaction`. Its `sessionPolicy.scope` is exactly `{kind:"episode"}` or `{kind:"data-bound", source:<source port>}`, plus `isolation`. Delivery admission resolves and freezes the physical Agent/model/Driver/resource/path bindings; the Definition never supplies credentials or provider-native session identity.
 
 ### 4.3 Canonical instruction merge
 
@@ -198,6 +202,12 @@ The Runtime-internal Planner is a strict `N → 1` closed-set classifier over th
 
 Semantic-routing nodes form the portable Planner invocation graph. Self-cycles and mutual cycles among those classifier invocations reject admission. This is a static graph check, not a Planner implementation.
 
+### 5.5 Typed dataflow and Host operations
+
+`dataflow.edges[]` explicitly connects one declared source port to one declared target port. Source ports are delivery context, Workflow state, Artifact, site result, or control result; target ports are site input, control input, Workflow state, or Artifact. Admission rejects an unresolved producer/consumer, duplicate sink, missing required input, stale control result, or type-incompatible binding. Static topology therefore does not imply a static path: a Planner may produce an admitted typed result and a declared decision may select among declared successors.
+
+`hostOperations[]` declares deterministic validation, selection, or transformation owned by Host. Each entry has an exact operation identity, contract identity, configuration, and required Host capabilities. It is data, not a callback/module locator, and cannot perform Agent/Provider work or expand a declared successor set.
+
 ## 6. Parallel nodes, immutable results, and join
 
 ### 6.1 Parallel is graph composition
@@ -212,11 +222,13 @@ A parallel node declares:
 
 The node has no Action, Role, Route, or responsible authority. Every branch references a separately declared Action. Runtime invocation/attempt identities are private and cannot appear in the Definition.
 
-All MVP branches are required. There is no optional-branch switch, dynamic branch creation, `ALL|SELECTED` activation, or completion-order semantics.
+All declared branches are required when selected. There is no optional-branch switch, dynamic branch creation, literal `ALL|SELECTED` activation mode, or completion-order semantics.
+
+An optional `selection.source` reads one admitted typed value that must be a non-empty subset of the node's declared branch identities. When `selection` is absent, the selected set is all declared branches. When it is present, empty, unknown, or duplicate branch identities fail before branch effect. `required:true` constrains every member of the selected set for that execution; the barrier waits for exactly that selected set. The field expresses selection by data, not an `All|Selected` enum and not a second topology.
 
 ### 6.2 Barrier and branch result invariants
 
-The join's barrier is intrinsic and closes only when every declared branch has exactly one current, admitted, successful result for the current input binding. `FAILED`, `INCOMPLETE`, `CANCELLED`, malformed, stale, duplicate-current, or unadmitted outcomes are not join inputs.
+The join's barrier is intrinsic and closes only when every selected branch has exactly one current, admitted, successful result for the current input binding. `FAILED`, `INCOMPLETE`, `CANCELLED`, malformed, stale, duplicate-current, or unadmitted outcomes are not join inputs.
 
 Each branch result is immutable, owned by its branch Action authority, and carries independent identity/lineage. Branches do not share-write Workflow State, another branch result, or the aggregate output. Wall-clock completion order affects no result map, digest, route, or authority.
 

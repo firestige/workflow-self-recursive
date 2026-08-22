@@ -21,6 +21,8 @@
 
 权威顺序为 [Concept](../../agent-architecture.zh-CN.md)，其次是拥有 external/Core boundary 的 [Execution System Design](../execution/project-execution-system.zh-CN.md)，最后是拥有 Adapter-private runner behavior 的本 Profile。用户确认需求通过这些 governing owner 被吸收；已删除或 legacy design 仅是 historical evidence，不是 active authority。本文描述预期的私有 Profile behavior；唯一已执行的 substrate evidence 是 §14 返回的窄范围外部 spike 证据，不据此声称更广泛的 LangGraph、Codex、Copilot、SQLite、Git、性能、生产、conformance 或 fault 能力。
 
+R6 external import 是 Execution-owned `ExecutionRuntimeAdapter` projection：`execution-system/src/execution/runtime-adapter.ts`；本 Profile 不重新定义该 seam。其 compiler 接收一个 fully admitted `RunnerActivationContext`，并产出 minimal LangGraph execution plan。在 Adapter 内，G04 拥有 LangGraph thread/decision/barrier/checkpoint/terminal proposal；G03 拥有 Provider invocation、session、Journal、`awaiting-input` 与 `continueWithInput`。Action-scoped 多轮 input 保持同一 episode/session，不创建 Workflow Wait。只有已返回的 Action result 显式请求外部 approval/decision 时，才进入 G04 Workflow Wait path。
+
 ## 2. 设计上下文
 
 Execution Core 拥有 Delivery admission、Manifest/configuration identity、lifecycle sequencing、Adapter qualification 与 outbound Observation。Profile 是可替换 execution seam 的 Adapter，拥有其私有 Workflow execution 与 Runtime truth。Evidence 拥有 admitted fact、factual projection 与 presentation。目标上下文是可信本地 dogfood、每 repository instance 一个活跃 Execution、短生命周期 worker、无 daemon/port、串行写和有界只读 fan-out；不声称隔离恶意 Workflow code。
