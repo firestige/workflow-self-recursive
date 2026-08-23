@@ -7,7 +7,7 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `execution.identity.001` |
-| Publication status | `WORKING_REVIEW_CANDIDATE`; prior bounded review, translation, and fresh-reader closure apply to earlier bytes only. These changed bytes require fresh deterministic parity/publication binding and user or reader review before exact publication. |
+| Publication status | `WORKING_REVIEW_CANDIDATE`; prior bounded review, translation, and fresh-reader closure apply to earlier bytes only. The 2026-08-23 user review approved this bounded Intake/TaskPrompt/Action-finish calibration; fresh deterministic parity/publication binding remains required before exact publication. |
 | Exact publication binding | The external publication set/application record must bind this byte stream and the companion canonical Concept byte stream by SHA-256, record the applicable review, SD-12, fresh-reader, and deterministic-verification evidence, and prove exact installation. This document intentionally declares no self-digest or companion digest. |
 | Authority after promotion | Sole versionless English Project Execution System Design authority |
 | Current structure authority | GitHub issues [#45 execution.delivery](https://github.com/firestige/workflow-self-recursive/issues/45), [#46 execution.observation](https://github.com/firestige/workflow-self-recursive/issues/46), and [#47 execution.runner](https://github.com/firestige/workflow-self-recursive/issues/47); this candidate calibrates the document to those decisions |
@@ -31,7 +31,7 @@
 | Bounded affected reviews | Problem–Solution SHA-256 `807863cb6c7887eccdb2720df5ace0afd8e4833f763a029928f44ed1e30e92ae`; Architecture SHA-256 `b220e1114d166cc5a55e34635f847ac2c1af0cf1777bb9c6a6c08dbadf5cdf98`; Quality SHA-256 `b64927087758a987a1f5a4d461035c379970ad84af57133714462ea19ac22f77`; converged on two treatment groups |
 | Unified bounded treatment | `EE-WORKFLOW-IMPORT-MVP-SIMPLIFICATION-SD10-TREATMENT`; SHA-256 `da22b3356aa34c3bcf6e3977a3277ef5b0d9c1e8beef35f4fe0db7dd5e72caf6` |
 | Prior focused bounded recheck | `EE-WORKFLOW-IMPORT-MVP-SIMPLIFICATION-SD10-BOUNDED-RECHECK`; SHA-256 `1b5664afd796910beb8b505bbaadd889fbb7fb098b02c141abb27cdba4e74955`; `CLOSED_FIXED`; open Findings `0`; applies to earlier bytes only |
-| Prior translation and fresh-reader closure | Whole-section translation parity SHA-256 `3c236a404392e1d496e33d4adcdd70000d0db2a2453dcbd7df40813612f77c20`; fresh-reader result SHA-256 `1062561d35422bfacfa7e430f381e5fb25a5a2a911fe8daa5e3499eac5fc2a75`; translation treatment SHA-256 `927a02c6d88eba3571e39c010681b8b47dc956e9a8bafea6812aa9cda91c5d14`; focused recheck SHA-256 `6777175a4e78e363d24ddc3f6bc657b66e9f5a6c2e9fd0042dd210705035c18e`; applies to earlier bytes only. Current changed bytes are pending fresh deterministic parity and user or reader review |
+| Prior translation and fresh-reader closure | Whole-section translation parity SHA-256 `3c236a404392e1d496e33d4adcdd70000d0db2a2453dcbd7df40813612f77c20`; fresh-reader result SHA-256 `1062561d35422bfacfa7e430f381e5fb25a5a2a911fe8daa5e3499eac5fc2a75`; translation treatment SHA-256 `927a02c6d88eba3571e39c010681b8b47dc956e9a8bafea6812aa9cda91c5d14`; focused recheck SHA-256 `6777175a4e78e363d24ddc3f6bc657b66e9f5a6c2e9fd0042dd210705035c18e`; applies to earlier bytes only. Current bounded calibration was user-approved on 2026-08-23 and remains pending fresh deterministic parity/publication binding |
 
 Authority order is: confirmed user intent; the current structure issues named above; normative Concept; this Execution candidate; Workflow composition model; and published Contracts within their declared scopes. Published Observation and interaction packages currently support validator-only claims; production and cross-implementation conformance remain unproven. The [Evidence System](../evidence/evidence-system.md) remains a peer owner. This document owns the placement of M01–M03, their Core contracts, and system-wide invariants. [Runner Module Detailed Design](modules/runner/runner.md) owns private M02 detail. This document does not own Workflow Package publication policy, Evidence internals, Observation fact meaning, the payload registry, metric schema, or physical storage schema.
 
@@ -55,7 +55,7 @@ This is a trusted local preview for an individual or small team. The configured 
 
 Actors and ownership:
 
-- **Host or Intake** translates host/chat syntax into a generic Workflow selector, task intent, worktree reference, optional permitted refresh, and bounded intake correlation. It cannot select Source, Runner, Provider, Observation, or paths.
+- **Host or Intake** translates host/chat syntax into a generic Workflow selector, canonicalizable worktree reference, optional permitted refresh, a host-neutral `TaskPrompt`, and bounded Intake correlation. `TaskPrompt` preserves the triggering turn's text and immutable attachment references; it is not a command-line `--intent` value. Host or Intake cannot select Source, Runner, Provider, Observation, or paths.
 - **Execution Core** sequences canonical worktree/exclusive admission, Package preparation only for `NEW`, Manifest creation/persistence, Runtime lifecycle, result validation, and Observation.
 - **Delivery (M01)** owns selector/Package resolution, Source/Store, canonical-worktree admission, current-slot and Manifest persistence, Delivery recovery/final handling, and projection of one fully admitted Runner activation.
 - **Runner (M02)** owns execution of that admitted activation. Interpreter compiles it; Coordinator, Host, Invocation, and Custody own private execution state and effects.
@@ -179,44 +179,53 @@ The release coordinate for the host-neutral package is `@workflow-self-recursive
 | bootstrap preflight | strict config parser, schema/semantic validator, canonical serializer and redacted diagnostics | network, DSH Context, worktree mutation, Runner, Source or OTLP effect before validation succeeds |
 | installation | immutable config/environment, filesystem roots, current-slot/Manifest repository, Package Store, exactly one Source Adapter, concurrency controller, clock/ID services, disabled sink or OTLP exporter, M01 service and application lifecycle manager | no Delivery-bound Runner, Host, Provider, native DSH execution Context or Delivery-scoped M03 mapper |
 | Delivery | persisted Manifest/`DeliveryBinding`, admitted activation, exact Runner instance, owner-fact ingress, Delivery-scoped M03 mapper/context and Runner-owned Provider/Host resources | no instance before the persisted M01 binding; no Intake Context/service/session |
-| Intake presentation | command, Intake-only activation tool, skill provider/root, renderer and bounded Adapter-private correlation | no Source/Store/Runner/Provider orchestration and no capability projection into admitted Workflow or DSH-E |
+| Intake presentation | `/wsr` commands, Intake-only operation tool, skill provider/root, renderer, Intake-neutral attachment-content port and Adapter-private durable binding/correlation | no Source/Store/Runner/Provider orchestration and no capability projection into admitted Workflow or DSH-E; attachment bytes are read only after M01 returns `NEW` |
 
 The factory creation DAG is:
 
-```text
-validated ExecutionInstallationConfig + ExecutionBootstrapDependencies
-→ filesystem/state repositories and concurrency controller
-→ exactly one WorkflowPackageSourceFactory selection + Package Store
-→ ObservationEmitterFactory (disabled sink creates zero client/socket/timer)
-→ DeliveryServiceFactory (M01) + RunnerDependenciesFactory definitions
-→ ExecutionApplicationFactory
+```mermaid
+flowchart TD
+    Inputs["Validated ExecutionInstallationConfig<br/>+ ExecutionBootstrapDependencies"]
+    State["Filesystem/state repositories<br/>+ concurrency controller"]
+    Source["Exactly one WorkflowPackageSourceFactory selection<br/>+ Package Store"]
+    Observation["ObservationEmitterFactory<br/>disabled = zero client/socket/timer"]
+    Definitions["DeliveryServiceFactory (M01)<br/>+ RunnerDependenciesFactory definitions"]
+    Application[ExecutionApplicationFactory]
+
+    Inputs --> State --> Source --> Observation --> Definitions --> Application
 ```
 
 The Delivery composition DAG is:
 
-```text
-M01 NEW admission
-→ resolve/validate/publish exact READY Package
-→ persist Manifest + DeliveryBinding/current-slot
-→ create Delivery-scoped M03 mapping context and connect owner-fact ingress
-→ create exact M02 Runner from persisted binding and production Runner dependencies
-→ wire M01/M02 owner facts to the non-controlling M03 port
-→ start Runner effect
+```mermaid
+flowchart TD
+    Admission[M01 NEW admission]
+    Package[Resolve, validate, and publish exact READY Package]
+    Binding["Persist Manifest + DeliveryBinding/current-slot"]
+    M03["Create Delivery-scoped M03 context<br/>and connect owner-fact ingress"]
+    M02["Create exact M02 Runner<br/>from persisted binding"]
+    Wire["Wire M01/M02 owner facts<br/>to non-controlling M03 port"]
+    Effect[Start Runner effect]
+
+    Admission --> Package --> Binding --> M03 --> M02 --> Wire --> Effect
 ```
 
 No factory may create a Delivery-scoped M02/M03 instance or perform a Runner/Host/Provider/worktree effect before the persisted binding. The owner-fact ingress must be wired before the first related M02 effect. M03 mapping/export remains outside all M02 owner decisions.
 
 The installation lifecycle oracle is:
 
-```text
-load → parse → validate → canonicalize/deep-freeze
-→ construct installation resources
-→ enumerate every non-empty per-worktree slot
-→ for each slot, rebuild from its persisted exact binding and establish recovery disposition
-→ publish READY
+```mermaid
+flowchart TD
+    Load[Load bytes] --> Parse[Select parser and parse]
+    Parse --> Validate[Validate]
+    Validate --> Canonicalize[Canonicalize and deep-freeze]
+    Canonicalize --> Construct[Construct installation resources]
+    Construct --> Enumerate[Enumerate every occupied per-worktree slot]
+    Enumerate --> Recover["For each slot: rebuild from persisted exact binding<br/>and establish recovery disposition"]
+    Recover --> Ready[Publish READY]
 ```
 
-Application state is the closed machine `CREATED → STARTING → RECOVERING → READY → CLOSING → CLOSED`. Only `READY` accepts a new `execute`. `inspect`, `status`, and bounded recovery presentation are available in `RECOVERING` and `READY`; `cancel` requires an exact known Delivery reference. Concurrent/repeated `start` or `close` is deterministic and idempotent; close during start first closes the intake gate, then rolls back created resources.
+Application state is the closed machine `CREATED → STARTING → RECOVERING → READY → CLOSING → CLOSED`. Only `READY` accepts a new `execute`. `inspect`, `status`, and bounded recovery presentation are available in `RECOVERING` and `READY`; `cancel` requires an exact known Delivery reference. `RECOVERING` establishes durable truth and presentation bindings; it does not select a new Package, fabricate a Workflow effect, or guess an installation-wide recovery target. Concurrent/repeated `start` or `close` is deterministic and idempotent; close during start first closes the intake gate, then rolls back created resources.
 
 Construction/start failure preserves the first bounded redacted diagnostic and disposes only resources actually created, in exact reverse creation order. Normal close orders: close Intake gate; stop accepting new Deliveries; persist/quiesce M01 holders and current slots without fabricating terminal truth; bounded-flush M03; close Runner manager and every Runner-owned DSH-E/Host/Provider resource; close exporter; close installation repositories. Timeout retains durable unknown/recovery truth. Abrupt death relies only on durable Manifest/current-slot and Runner-owned facts; restart never resolves a new selector or current configuration for an old Delivery.
 
@@ -232,7 +241,9 @@ deliveryConfigProjectionIdentity = sha256("execution.delivery-config@1.0.0\n" + 
 deliveryBindingIdentity = sha256("agentops.delivery-binding@1.0.0\n" + canonicalBinding)
 ```
 
-`DeliveryConfigProjection` contains only canonical worktree/resource paths relative to the admitted scope; Runner implementation/config, Host engine; Provider key/route, model ID, base URL and credential reference (never material); workspace/resource bindings; and Delivery-affecting execution/control bounds. It excludes installation identity, selector, Source configuration, Package, Store location, raw configuration, credential-store location/content, Intake presentation, and all Observation configuration. M01 builds `DeliveryBinding` by adding exact Package identity/content, canonical worktree, task/intent, Delivery ID and task ID to this projection. Recovery accepts only the persisted binding and ignores current config, alias and selector movement.
+`DeliveryConfigProjection` contains only canonical worktree/resource paths relative to the admitted scope; Runner implementation/config, Host engine; Provider key/route, model ID, base URL and credential reference (never material); workspace/resource bindings; and Delivery-affecting execution/control bounds. It excludes installation identity, selector, Source configuration, Package, Store location, raw configuration, credential-store location/content, Intake presentation, and all Observation configuration. M01 builds `DeliveryBinding` by adding exact Package identity/content, canonical worktree, canonical `TaskPrompt` identity, Execution-owned attachment snapshot digests, Delivery ID and task ID to this projection. Recovery accepts only the persisted binding and snapshots and ignores current config, alias, selector movement, and a new triggering turn.
+
+`TaskPrompt` is the closed host-neutral value `{ text, attachments }`. Each incoming attachment carries a bounded adapter-assigned identity, filename, media type, byte length, SHA-256 digest, and an opaque string `contentRef` understood only by an Intake-neutral attachment-content port; no DSH message, channel, session, or temporary upload handle crosses Core. After `NEW`, M01 alone dereferences that port, verifies bytes/digest, creates an Execution-owned immutable snapshot, and binds the snapshot reference/digest rather than the incoming reference. Text may be empty when at least one attachment exists. A request with neither text nor attachments fails before Delivery creation. Intake strips only the activation directive and does not summarize or rewrite the remaining turn. `CONTENDED` and `RECOVERY` do not call the attachment port or perform read, copy, persistence, Source, or Store work for the new turn. Prompt and attachment content never enter M03.
 
 | Exact input key | Type/default policy | Consumer and binding/reload rule |
 | --- | --- | --- |
@@ -293,14 +304,18 @@ The exact first-release values are:
 | package bundle declaration | `dsh.bundle.patch = "./cordis.patch.yml"` |
 | stable Cordis row ID/name | `workflow-execution` / `@workflow-self-recursive/dsh-intake` |
 | profile override | row `workflow-execution`, complete config `{ configFile: <absolute path> }` |
-| direct command | `dsh --profile workflow-execution workflow execute --worktree <absolute> --selector <name[@version]> --intent <text>` |
-| status/result | `workflow status --worktree <absolute>` / `workflow result --worktree <absolute>` |
-| Intake-only tool | `workflow_execution_activate` with closed `{ worktree, selector, intent, correlation? }` schema |
+| user command surface | `/wsr list`; `/wsr create <selector>`; `/wsr recover [<delivery-id>]`; `/wsr status [<delivery-id>]`; `/wsr action finish`; `/wsr abandon <delivery-id>` |
+| create prompt | the triggering chat turn after the activation directive, plus its attachments; no `--intent` parameter |
+| Intake-only capability | `workflow_execution_intake`, a closed operation union owned by the plugin; it carries host-neutral prompt/correlation values and is visible only in DSH-I |
 | first-party skill | package path `skills/workflow-execution/SKILL.md`, name `/workflow-execution`; explicit invocation only in the first release |
 
-The bundle registers the package skill root with locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2`; `@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` loads its instruction. The instruction collects missing arguments and invokes `workflow_execution_activate` exactly once. It imports no executable code and does not call Core/M01/Runner directly. The command Adapter and tool Adapter call one plugin-owned `WorkflowActivationService`, producing meaning-equivalent `ExecutionRequest` bytes; only bounded presentation correlation may differ. Startup never activates a Workflow.
+The bundle registers the package skill root with locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2`; `@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` loads its instruction. The instruction selects one closed `/wsr` operation and invokes `workflow_execution_intake` exactly once. It imports no executable code and does not call Core/M01/Runner directly. The command Adapter and skill-mediated tool Adapter call one plugin-owned `WorkflowIntakeService`; create produces meaning-equivalent `ExecutionRequest` bytes, while list/status/recover/action-finish/abandon retain their distinct control meaning. Startup never creates a Workflow.
 
-`DSH-I` is the Cordis `Context` supplied to the Intake plugin. `DSH-E` is the distinct `new Context()` owned by the existing DSH Provider Adapter for a bound Runner Delivery. They share no object identity, registry, session namespace, persistence root, capability catalog, or credential material. Cordis `isolate` changes a service realm within one Context and is not accepted as instance isolation. `DSH-I → Execution lifecycle manager → Runner/DSH-E` is the ownership chain; plugin close cascades through the application close sequence. Non-empty current-slot makes plugin removal fail closed until terminal handling or exact authorized abandonment.
+`DSH-I` is the Cordis `Context` supplied to the Intake plugin. It can host multiple Intake sessions. An Intake session is one host conversation and is the exclusive input/output channel for one active Delivery: one session binds at most one Delivery, and one active Delivery binds exactly one session. Different sessions may bind Deliveries for different worktrees concurrently within the installation bound. The binding lasts for the active Delivery lifecycle and is released only by terminal handling, exact authorized abandonment, or a durable detached/recoverable transition; it is not acquired only while an Action awaits input.
+
+`DSH-E` is the distinct `new Context()` owned by the existing DSH Provider Adapter for a bound Runner Delivery. DSH-I and DSH-E share no object identity, registry, session namespace, persistence root, capability catalog, or credential material. Cordis `isolate` changes a service realm within one Context and is not accepted as instance isolation. `DSH-I → Execution lifecycle manager → Runner/DSH-E` is the ownership chain; plugin close cascades through the application close sequence. An occupied current-slot makes plugin removal fail closed until terminal handling or exact authorized abandonment.
+
+The Adapter persists its session-to-Delivery binding under its own bounded correlation root. Native session/channel objects and credentials never enter Core, Manifest, DeliveryBinding, or M03. Restart joins Adapter-private bindings to Core's exact Delivery inventory and Runner facts. A valid one-to-one record restores the same presentation route and any pending Action prompt without creating a fresh DSH-E session or replaying an accepted response. An unavailable prior host session leaves the Delivery detached and recoverable. A binding conflict, one session naming multiple Deliveries, or one Delivery naming multiple sessions is `INTAKE_BINDING_INVARIANT_VIOLATION` and fails closed; it is never presented as a user choice.
 
 ### Private seams
 
@@ -326,8 +341,8 @@ sequenceDiagram
     participant SS as Source and Store
     participant DO as Delivery Observation
 
-    User->>Host: run selector with task intent
-    Host->>Core: execute(generic request)
+    User->>Host: /wsr create selector + turn text/attachments
+    Host->>Core: execute(host-neutral TaskPrompt request)
     Core->>Delivery: admit(canonical worktree)
     Delivery-->>Core: NEW exclusive holder
     Delivery->>DB: resolveWorkflowPackage(...)
@@ -353,7 +368,15 @@ sequenceDiagram
 
 The successful ordering is admit `NEW`, resolve/prepare, construct Manifest, persist current Manifest, project the admitted activation, mark start uncertainty, invoke Runner, validate result, finalize, then observe. Package preparation occurs under the ordinary Delivery exclusivity holder but has no Delivery identity or Delivery Observation. This holder prevents another current Delivery; it is not a Package proof, hold, transaction, or concurrent Store protocol.
 
-Every selector, source, Package, version, digest, cache, and DSH compatibility branch owned by M01 occurs only inside M01 after its admission phase returns `NEW`. Any such failure releases the ordinary holder and returns before Manifest persistence, Delivery creation, Runtime/Session/worktree effect, or Observation. Canonical worktree and request-shape checks belong to M01 admission. `CONTENDED` and `RECOVERY` never call M01, Source, or Store.
+Every selector, source, Package, version, digest, cache, and DSH compatibility branch owned by M01 occurs only inside M01 after its admission phase returns `NEW`. Any such failure releases the ordinary holder and returns before Manifest persistence, Delivery creation, Runtime/Session/worktree effect, or Observation. Canonical worktree and request-shape checks belong to M01 admission. `CONTENDED` and `RECOVERY` perform no selector, prompt snapshot, attachment read/copy, Source, Store, or new-binding work.
+
+### Intake commands and exclusive session binding
+
+`/wsr list` renders the bounded Delivery inventory: full Delivery ID, canonical worktree, exact Workflow Package, lifecycle state, Intake-binding state, current Action/interaction state, and recover/abandon availability. It exposes no prompt or attachment content, credential, DSH native session identity, or Provider-native state. `/wsr status` without an ID addresses the current session's bound Delivery; an exact ID performs a read-only lookup.
+
+`/wsr create <selector>` requires an unbound Intake session and uses the triggering turn remainder plus attachments as `TaskPrompt`. `/wsr recover <delivery-id>` requires an unbound session and targets only that exact detached/recoverable Delivery. Without an ID, recover addresses only the current canonical worktree's current Delivery; it never chooses the most recent Delivery across the installation or resolves a Delivery name/alias. Absence returns a typed not-found result. A Delivery already bound to another valid session returns `DELIVERY_INTAKE_BOUND`. `/wsr abandon <delivery-id>` uses exact M01 authority, clears the binding only as part of authorized current-slot handling, and creates no Runner outcome.
+
+Ordinary turns in a bound session are correlated responses to that Delivery's current Action interaction; one answer never implies that the Action is complete. `/wsr action finish` has no Delivery, Action, or interaction argument because the session binding and current Action-input state provide the only valid target. Optional remaining text and attachments form final input. The command means `ACTION_FINISH_REQUESTED`, not `ACTION_COMPLETED`: Runner resumes the same Episode and DSH-E session, the Action runs its closure checks, and only a schema-valid `workflow_complete` result accepted by Workflow Host advances the Workflow. The Action may request more input or return `INCOMPLETE`. If the bound Delivery is not awaiting Action input, the Adapter returns `ACTION_NOT_AWAITING_INPUT`; multiple candidate interactions are an invariant violation and fail closed rather than becoming a chooser.
 
 ### Valid local exact or sticky-latest hit
 
@@ -397,7 +420,7 @@ M01 attempts the existing per-worktree exclusive admission before request-specif
 
 ### Occupied-slot recovery
 
-If admission finds an existing current Manifest, M01 returns recovery for that stored Delivery. Core ignores the new selector/task and performs no selector, Source, Store, or new-binding work. Bootstrap or the occupied request reconstructs the exact admitted activation from the persisted Manifest/binding and uses only the existing Runner `execute`/`inspect` seam; Runner privately selects `continue`, `restart-from-savepoint`, or `intervene` from durable Host/Invocation/Custody facts. It never rebinds, creates a fresh native-session fallback, blindly repeats an Action/tool effect, or exposes a public DSH resume operation.
+If admission finds an existing current Manifest, M01 returns recovery for that stored Delivery. Core ignores the new selector/TaskPrompt and performs no selector, attachment snapshot, Source, Store, or new-binding work. Bootstrap recovery establishment reconstructs the exact admitted activation from the persisted Manifest/binding and uses only the existing Runner `execute`/`inspect` seam; Runner privately selects `continue`, `restart-from-savepoint`, or `intervene` from durable Host/Invocation/Custody facts. It never rebinds, creates a fresh native-session fallback, blindly repeats an Action/tool effect, or exposes a public DSH resume operation. The `/wsr recover` command separately authorizes an unbound Intake session to claim a detached/recoverable Delivery; it does not authorize Package rebinding.
 
 ### Manifest creation or persistence failure
 
@@ -419,6 +442,7 @@ Runner satisfies the Core-owned lifecycle meaning while privately parking resuma
 ```text
 WorkflowSelector
 → ResolvedWorkflowPackage
+→ canonical TaskPrompt identity and immutable attachment snapshots
 → DeliveryManifest
 → Runner-private Workflow Host state plus Provider-native session
 → bounded result validated against Manifest
@@ -426,13 +450,14 @@ WorkflowSelector
 
 `ResolvedWorkflowPackage` contains `name`, `exactVersion`, `packageDigest`, `localPath`, and `workflowId`. The local path identifies the validated `READY` materialization for this installation; version and digest provide the stable content check used by Manifest construction and DSH activation. Source metadata may be retained as bounded diagnostics/provenance, but it is not an authorization identity or capability.
 
-The Manifest binds exactly one Delivery/task relationship, canonical worktree/task/intent, the resolved exact Package fields, logical Workflow/implementation, and the complete non-secret `DeliveryConfigProjection`. It persists both projection and `DeliveryBinding` identities. It excludes installation identity, mutable aliases, Source/Store and Observation configuration, raw installation configuration, credential-store location/content and API-key material, Package/Prompt/message/tool/source bodies, Runtime checkpoints, Evidence receipts, and native custody/Session identifiers.
+The Manifest binds exactly one Delivery/task relationship, canonical worktree and `TaskPrompt` identity, immutable attachment snapshot digests, the resolved exact Package fields, logical Workflow/implementation, and the complete non-secret `DeliveryConfigProjection`. It persists both projection and `DeliveryBinding` identities. Prompt/attachment bytes live in Execution-owned immutable snapshots referenced by the binding, not inline in the Manifest. The Manifest excludes installation identity, mutable aliases, Source/Store and Observation configuration, raw installation configuration, credential-store location/content and API-key material, Package/prompt/attachment/message/tool/source bodies, Runtime checkpoints, Evidence receipts, Intake binding records, and native custody/Session identifiers.
 
 ### Authoritative state
 
 | State | Unique writer | Readers | Rule |
 | --- | --- | --- | --- |
-| selector/task/intent/correlation | Host/Intake | Core/M01 | generic request; no Source/Runner/Observation/path override |
+| selector/TaskPrompt/correlation | Host/Intake | Core/M01 | generic request; no Source/Runner/Observation/path override; only `NEW` snapshots prompt material |
+| Intake session binding | DSH Intake Adapter | Adapter-private correlation store and Core inventory join | one session to at most one Delivery; one active Delivery to exactly one session; native values do not cross Core |
 | canonical installation config and Source selection | Bootstrap | factories/Core/M01/M02/M03 | one immutable application value; exactly one Source Adapter |
 | Delivery configuration projection | Bootstrap/M01 projection | Manifest, M02 factory | immutable non-secret config-only binding input |
 | Store `STAGING`/`READY` and sticky alias | M01 through Store | M01; DSH materializer reads exact `READY` path | staging is private; alias points only to ready exact Package; no automatic eviction |
@@ -481,15 +506,34 @@ stateDiagram-v2
     TERMINAL_HANDLING --> EMPTY: clear before release
 ```
 
+### Intake session binding
+
+```mermaid
+stateDiagram-v2
+    [*] --> UNBOUND
+    UNBOUND --> BOUND: create NEW Delivery or recover exact detached Delivery
+    BOUND --> BOUND: ordinary Action input/output and Action transitions
+    BOUND --> RESTORING: plugin/process restart
+    RESTORING --> BOUND: exact one-to-one session/Delivery join succeeds
+    RESTORING --> DETACHED: prior host session cannot be restored
+    DETACHED --> BOUND: explicit recover from an unbound session
+    BOUND --> UNBOUND: terminal handling or exact authorized abandonment
+    DETACHED --> UNBOUND: exact authorized abandonment
+```
+
+`BOUND` is exclusive in both directions. `RESTORING` publishes no new Workflow activation and replays no accepted interaction. Any one-to-many or many-to-one durable mapping fails as `INTAKE_BINDING_INVARIANT_VIOLATION`; it has no transition that silently selects a winner.
+
 <a id="ee-execution-9"></a>
 ## 9. Interfaces, Dependencies, Seams, and Adapters
 
 | Interface meaning | Caller-visible input | Result/error | Ordering/configuration |
 | --- | --- | --- | --- |
-| External Core operation | worktree, selector, task intent, optional permitted refresh and bounded intake correlation | final Delivery outcome, `CONTENDED`, exact recovery, or typed pre-Delivery error | one host-neutral call; no native/config/Source fields; M01 admission first |
+| External Core operation | worktree, selector, `TaskPrompt`, optional permitted refresh and bounded Intake correlation | final Delivery outcome, `CONTENDED`, exact recovery, or typed pre-Delivery error | one host-neutral call; no native/config/Source fields; M01 admission first |
 | M01 admit | canonicalizable worktree | `NEW` holder, `CONTENDED`, exact `RECOVERY`, or custody/identity error | first Delivery phase; immediate; non-`NEW` performs no Package work or Runner execution call |
 | M01 resolve/prepare | `NEW` holder context, selector, factory-bound exact Source/Runner compatibility target, permitted refresh flag | `ResolvedWorkflowPackage` or phase-typed Package error | local-first; exactly one constructed Source Adapter; no request override/fallback |
-| M01 bind/persist | resolved Package plus complete Delivery/task/worktree/Runner/intent context | immutable Manifest and admitted activation, or `DELIVERY_BINDING_FAILED` / `DELIVERY_CREATE_FAILED` | no Runner submodule effect before persisted exact binding |
+| M01 bind/persist | resolved Package plus complete Delivery/task/worktree/Runner/TaskPrompt context | immutable Manifest and admitted activation, or `DELIVERY_BINDING_FAILED` / `DELIVERY_CREATE_FAILED` | no Runner submodule effect before persisted exact binding |
+| Intake bind/recover | current host session plus exact or current-worktree Delivery target | exclusive binding, `DELIVERY_INTAKE_BOUND`, not-found, or invariant failure | Adapter-private durable mapping joined to Core truth; no native identity crosses Core |
+| Action finish request | current session's unique bound Delivery and optional final `TaskPrompt` | same Action asks again, completes through `workflow_complete`, returns `INCOMPLETE`, or typed state error | request is not completion; exact Episode/input correlation remains internal |
 | M02 execute/inspect/cancel | fully admitted activation or exact Delivery reference | bounded Runner terminal/start-failed/unknown result or typed seam error | no Source/Store/current-slot ownership; native state remains private |
 | M01 validate/finalize | exact Manifest plus bounded Runner result | final lifecycle outcome/error | close or retain slot from known truth |
 | M03 observe | bounded post-Delivery facts | local diagnostics only | existing profile/privacy; no control effect |
@@ -627,10 +671,16 @@ For the three MVP Evaluation/BI owner facts, Execution's boundary is exact: the 
 | `execution.decision.012` | `installationConfigIdentity`, config-only `DeliveryConfigProjection` identity, and Package-dependent `DeliveryBinding` identity are distinct. Restart recovery uses only the persisted binding. |
 | `execution.decision.013` | The public Core contract is host-neutral. DSH Intake is one replaceable Adapter distribution; `DSH-I` and Runner-owned `DSH-E` are distinct Contexts under one cascade lifecycle. |
 | `execution.decision.014` | Initial Workflow Package assets remain exclusively owned by the independent Workflow Package GitHub release; Execution and DSH Intake artifacts contain no Package content. |
+| `execution.decision.015` | Intake exclusivity is session-scoped, not installation-scoped: one host conversation binds at most one Delivery, one active Delivery binds exactly one session, and different sessions may serve different worktrees concurrently. |
+| `execution.decision.016` | Create consumes the triggering turn as `TaskPrompt`; no prompt command parameter exists. Only `NEW` snapshots prompt/attachments and binds their identities. |
+| `execution.decision.017` | `/wsr action finish` is a target-free request resolved by the current session binding. The current Action remains completion owner and only validated `workflow_complete` advances the Workflow. |
+| `execution.decision.018` | Bootstrap establishes durable recovery and restores valid Intake bindings; user recover binds an unbound session to an exact detached Delivery or the current worktree's Delivery. Neither path guesses by recency or alias. |
 
-Existing Execution decisions remain in force: three deep Modules; Runner-owned Workflow outcome behind the Core-owned Runner seam; one-current-slot lifecycle with no Execution history; standard-first allow-listed best-effort Observation; canonical worktree revalidation; conclusive handling of persisted Runner uncertainty; and the adopted Observation semantics encoded by the frozen and published Profile `1.0.0`. This revision adds only the explicit C55–C57 owner mapping and changes no Runner, Evidence, or execution semantics.
+Existing Execution decisions remain in force: three deep Modules; Runner-owned Workflow outcome behind the Core-owned Runner seam; one-current-slot-per-worktree lifecycle with no Execution history; standard-first allow-listed best-effort Observation; canonical worktree revalidation; conclusive handling of persisted Runner uncertainty; and the adopted Observation semantics encoded by the frozen and published Profile `1.0.0`.
 
-Rejected for this preview: Host-owned Package import; Package import inside M02/DSH; a fourth Module; first-party Package allow-list; mutable alias in Manifest; request-selected Source; automatic GitHub-to-alternate fallback; source/version fallback; ambient completion; embedded initial Package content; parallel plugin composition; opaque Prepared Binding; proof/capability identity; Package hold/reference-count/liveness transfer; commit-resolution state machine; concurrent cache correctness; automated eviction; authentication/authorization/security platform; registry/marketplace; HA/failover; shared DSH Intake/Execution Context; public DSH resume; DSH-native Core types; runner change.
+The approved Action-finish requirement triggers the bounded reopen rule. A RED fixture must first prove that the current schema-validated `ActionInputResponse` cannot carry an independent finish request. The only authorized Runner change is the minimum internal Action-interaction input distinction between an ordinary answer and `ACTION_FINISH_REQUESTED`, preserving the public `execute`/`inspect`/`cancel` operation set, exact Episode/request correlation, same-session resume, Action-owned closure, and `workflow_complete` as the sole completion protocol. Initial Workflow Package content remains frozen unless a later executable RED proves that this generic control cannot reach Action-owned closure; such a result requires a separate reopen and is not pre-authorized here.
+
+Rejected for this preview: Host-owned Package import; Package import inside M02/DSH; a fourth Module; first-party Package allow-list; mutable alias in Manifest; request-selected Source; automatic GitHub-to-alternate fallback; source/version fallback; ambient completion; embedded initial Package content; parallel plugin composition; opaque Prepared Binding; proof/capability identity; Package hold/reference-count/liveness transfer; commit-resolution state machine; concurrent cache correctness; automated eviction; authentication/authorization/security platform; registry/marketplace; HA/failover; shared DSH Intake/Execution Context; public DSH resume; DSH-native Core types; any Runner change beyond the approved RED-bounded Action-finish interaction distinction.
 
 ### Execution open-work register
 

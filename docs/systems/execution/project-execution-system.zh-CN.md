@@ -7,7 +7,7 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `execution.identity.001` |
-| 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。这些已变更字节在精确发布前需要新的确定性 parity/publication binding 以及用户或 reader review。 |
+| 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。2026-08-23 用户审核已批准本次 bounded Intake/TaskPrompt/Action-finish calibration；精确发布前仍需 fresh deterministic parity/publication binding。 |
 | 精确发布绑定 | 外部 publication set/application record 必须用 SHA-256 绑定本字节流及配套 canonical Concept 字节流，记录适用的 review、SD-12、fresh-reader 与 deterministic-verification 证据，并证明精确安装。本文件有意不声明自身 digest 或配套文件 digest。 |
 | 提升后的权威 | 唯一的无版本英文 Project Execution System Design authority |
 | 当前结构权威 | GitHub issue [#45 execution.delivery](https://github.com/firestige/workflow-self-recursive/issues/45)、[#46 execution.observation](https://github.com/firestige/workflow-self-recursive/issues/46) 与 [#47 execution.runner](https://github.com/firestige/workflow-self-recursive/issues/47)；本 candidate 按这些决定校准文档 |
@@ -31,7 +31,7 @@
 | 受影响范围的受限审查 | Problem–Solution SHA-256 `807863cb6c7887eccdb2720df5ace0afd8e4833f763a029928f44ed1e30e92ae`；Architecture SHA-256 `b220e1114d166cc5a55e34635f847ac2c1af0cf1777bb9c6a6c08dbadf5cdf98`；Quality SHA-256 `b64927087758a987a1f5a4d461035c379970ad84af57133714462ea19ac22f77`；三者收敛为两个 treatment group |
 | 统一受限处理 | `EE-WORKFLOW-IMPORT-MVP-SIMPLIFICATION-SD10-TREATMENT`；SHA-256 `da22b3356aa34c3bcf6e3977a3277ef5b0d9c1e8beef35f4fe0db7dd5e72caf6` |
 | 先前聚焦受限复查 | `EE-WORKFLOW-IMPORT-MVP-SIMPLIFICATION-SD10-BOUNDED-RECHECK`；SHA-256 `1b5664afd796910beb8b505bbaadd889fbb7fb098b02c141abb27cdba4e74955`；`CLOSED_FIXED`；open Findings `0`；仅适用于更早字节 |
-| 先前翻译与 fresh-reader closure | 整节翻译 parity SHA-256 `3c236a404392e1d496e33d4adcdd70000d0db2a2453dcbd7df40813612f77c20`；fresh-reader result SHA-256 `1062561d35422bfacfa7e430f381e5fb25a5a2a911fe8daa5e3499eac5fc2a75`；translation treatment SHA-256 `927a02c6d88eba3571e39c010681b8b47dc956e9a8bafea6812aa9cda91c5d14`；focused recheck SHA-256 `6777175a4e78e363d24ddc3f6bc657b66e9f5a6c2e9fd0042dd210705035c18e`；仅适用于更早字节。当前已变更字节 pending fresh deterministic parity 与用户或 reader review |
+| 先前翻译与 fresh-reader closure | 整节翻译 parity SHA-256 `3c236a404392e1d496e33d4adcdd70000d0db2a2453dcbd7df40813612f77c20`；fresh-reader result SHA-256 `1062561d35422bfacfa7e430f381e5fb25a5a2a911fe8daa5e3499eac5fc2a75`；translation treatment SHA-256 `927a02c6d88eba3571e39c010681b8b47dc956e9a8bafea6812aa9cda91c5d14`；focused recheck SHA-256 `6777175a4e78e363d24ddc3f6bc657b66e9f5a6c2e9fd0042dd210705035c18e`；仅适用于更早字节。当前 bounded calibration 已于 2026-08-23 经用户审核，仍 pending fresh deterministic parity/publication binding |
 
 Authority order 为：已确认用户意图；上列当前结构 issue；规范 Concept；本 Execution candidate；Workflow composition model；以及各自声明 scope 内的已发布 Contract。已发布 Observation/interaction package 当前只支持 validator-only claim；production 与 cross-implementation conformance 仍未证明。[Evidence System](../evidence/evidence-system.md) 仍是 peer owner。本文拥有 M01–M03 placement、Core contract 与 system-wide invariant；[Runner 模块详细设计](modules/runner/runner.zh-CN.md)拥有 private M02 detail。本文不拥有 Workflow Package publication policy、Evidence internals、Observation fact meaning、payload registry、metric schema 或 physical storage schema。
 
@@ -55,7 +55,7 @@ workflow-self-recursive 通过小型、host-neutral 的 execution seam 运行有
 
 Actor 与 ownership：
 
-- **Host or Intake** 将 host/chat syntax 转换为 generic Workflow selector、task intent、worktree reference、可选且获准的 refresh 与 bounded intake correlation；不得选择 Source、Runner、Provider、Observation 或 path。
+- **Host or Intake** 将 host/chat syntax 转换为 generic Workflow selector、可 canonicalize 的 worktree reference、可选且获准的 refresh、host-neutral `TaskPrompt` 与 bounded Intake correlation。`TaskPrompt` 保留触发 turn 的正文和 immutable attachment reference，不是 command-line `--intent` value。Host 或 Intake 不得选择 Source、Runner、Provider、Observation 或 path。
 - **Execution Core** 按顺序执行 canonical worktree/exclusive admission、仅针对 `NEW` 的 Package preparation、Manifest creation/persistence、Runtime lifecycle、result validation 与 Observation。
 - **Delivery（M01）** 拥有 selector/Package resolution、Source/Store、canonical-worktree admission、current-slot/Manifest persistence、Delivery recovery/final handling，以及 fully admitted Runner activation 的投影。
 - **Runner（M02）** 拥有 admitted activation 的执行；Interpreter 编译，Coordinator、Host、Invocation 与 Custody 拥有 private execution state/effect。
@@ -179,44 +179,53 @@ Host-neutral package 的 release coordinate 是 `@workflow-self-recursive/execut
 | bootstrap preflight | strict config parser、schema/semantic validator、canonical serializer、redacted diagnostic | validation 成功前无 network、DSH Context、worktree mutation、Runner、Source 或 OTLP effect |
 | installation | immutable config/environment、filesystem root、current-slot/Manifest repository、Package Store、恰好一个 Source Adapter、concurrency controller、clock/ID、disabled sink 或 OTLP exporter、M01 service 与 application lifecycle manager | 无 Delivery-bound Runner、Host、Provider、native DSH execution Context 或 Delivery-scoped M03 mapper |
 | Delivery | persisted Manifest/`DeliveryBinding`、admitted activation、exact Runner instance、owner-fact ingress、Delivery-scoped M03 mapper/context 与 Runner-owned Provider/Host resource | persisted M01 binding 前不得创建；不得依赖 Intake Context/service/session |
-| Intake presentation | command、Intake-only activation tool、skill provider/root、renderer、bounded Adapter-private correlation | 不编排 Source/Store/Runner/Provider，不投影 capability 到 admitted Workflow 或 DSH-E |
+| Intake presentation | `/wsr` command、Intake-only operation tool、skill provider/root、renderer、Intake-neutral attachment-content port、Adapter-private durable binding/correlation | 不编排 Source/Store/Runner/Provider，不投影 capability 到 admitted Workflow 或 DSH-E；attachment bytes 只在 M01 返回 `NEW` 后读取 |
 
 Factory creation DAG：
 
-```text
-validated ExecutionInstallationConfig + ExecutionBootstrapDependencies
-→ filesystem/state repositories and concurrency controller
-→ exactly one WorkflowPackageSourceFactory selection + Package Store
-→ ObservationEmitterFactory（disabled sink 创建零 client/socket/timer）
-→ DeliveryServiceFactory（M01）+ RunnerDependenciesFactory definitions
-→ ExecutionApplicationFactory
+```mermaid
+flowchart TD
+    Inputs["Validated ExecutionInstallationConfig<br/>+ ExecutionBootstrapDependencies"]
+    State["Filesystem/state repository<br/>+ concurrency controller"]
+    Source["恰好一个 WorkflowPackageSourceFactory selection<br/>+ Package Store"]
+    Observation["ObservationEmitterFactory<br/>disabled = 零 client/socket/timer"]
+    Definitions["DeliveryServiceFactory（M01）<br/>+ RunnerDependenciesFactory definitions"]
+    Application[ExecutionApplicationFactory]
+
+    Inputs --> State --> Source --> Observation --> Definitions --> Application
 ```
 
 Delivery composition DAG：
 
-```text
-M01 NEW admission
-→ resolve/validate/publish exact READY Package
-→ persist Manifest + DeliveryBinding/current-slot
-→ create Delivery-scoped M03 mapping context and connect owner-fact ingress
-→ create exact M02 Runner from persisted binding and production Runner dependencies
-→ wire M01/M02 owner facts to non-controlling M03 port
-→ start Runner effect
+```mermaid
+flowchart TD
+    Admission[M01 NEW admission]
+    Package[Resolve、validate 并 publish exact READY Package]
+    Binding["Persist Manifest + DeliveryBinding/current-slot"]
+    M03["创建 Delivery-scoped M03 context<br/>并连接 owner-fact ingress"]
+    M02["从 persisted binding<br/>创建 exact M02 Runner"]
+    Wire["把 M01/M02 owner fact<br/>接到 non-controlling M03 port"]
+    Effect[启动 Runner effect]
+
+    Admission --> Package --> Binding --> M03 --> M02 --> Wire --> Effect
 ```
 
 Persisted binding 前，任何 factory 都不得创建 Delivery-scoped M02/M03 instance 或执行 Runner/Host/Provider/worktree effect。相关 M02 effect 前必须先接好 owner-fact ingress；M03 mapping/export 留在所有 M02 owner decision 之外。
 
 Installation lifecycle oracle：
 
-```text
-load → parse → validate → canonicalize/deep-freeze
-→ construct installation resources
-→ enumerate every non-empty per-worktree slot
-→ rebuild each from its persisted exact binding and establish recovery disposition
-→ publish READY
+```mermaid
+flowchart TD
+    Load[Load bytes] --> Parse[选择 parser 并 parse]
+    Parse --> Validate[Validate]
+    Validate --> Canonicalize[Canonicalize 并 deep-freeze]
+    Canonicalize --> Construct[Construct installation resources]
+    Construct --> Enumerate[枚举每个已占用 per-worktree slot]
+    Enumerate --> Recover["逐 slot 从 persisted exact binding 重建<br/>并建立 recovery disposition"]
+    Recover --> Ready[Publish READY]
 ```
 
-Application state 是 closed machine `CREATED → STARTING → RECOVERING → READY → CLOSING → CLOSED`。只有 `READY` 接受新 `execute`。`inspect`、`status` 与 bounded recovery presentation 在 `RECOVERING`/`READY` 可用；`cancel` 需要 exact known Delivery reference。Concurrent/repeated `start`/`close` 结果 deterministic 且 idempotent；start 中 close 先关闭 intake gate，再 rollback 已创建 resource。
+Application state 是 closed machine `CREATED → STARTING → RECOVERING → READY → CLOSING → CLOSED`。只有 `READY` 接受新 `execute`。`inspect`、`status` 与 bounded recovery presentation 在 `RECOVERING`/`READY` 可用；`cancel` 需要 exact known Delivery reference。`RECOVERING` 建立 durable truth 与 presentation binding；它不选择新 Package、不 fabricated Workflow effect，也不猜测 installation-wide recovery target。Concurrent/repeated `start`/`close` 结果 deterministic 且 idempotent；start 中 close 先关闭 intake gate，再 rollback 已创建 resource。
 
 Construction/start failure 保留首个 bounded redacted diagnostic，并按 exact reverse creation order dispose 已实际创建的 resource。正常 close 顺序：关闭 Intake gate；停止接受新 Delivery；persist/quiesce M01 holder 与 current slot，且不 fabricated terminal truth；bounded-flush M03；关闭 Runner manager 及所有 Runner-owned DSH-E/Host/Provider resource；关闭 exporter；关闭 installation repository。Timeout 保留 durable unknown/recovery truth。Abrupt death 只依赖 durable Manifest/current-slot 与 Runner-owned fact；restart 绝不使用新 selector 或当前 config 重绑旧 Delivery。
 
@@ -232,7 +241,9 @@ deliveryConfigProjectionIdentity = sha256("execution.delivery-config@1.0.0\n" + 
 deliveryBindingIdentity = sha256("agentops.delivery-binding@1.0.0\n" + canonicalBinding)
 ```
 
-`DeliveryConfigProjection` 只包含 admitted scope 内的 canonical worktree/resource path；Runner implementation/config、Host engine；Provider key/route、model ID、base URL 与 credential reference（绝无 material）；workspace/resource binding；以及影响 Delivery 的 execution/control bound。它排除 installation identity、selector、Source config、Package、Store location、raw config、credential-store location/content、Intake presentation 与所有 Observation config。M01 加入 exact Package identity/content、canonical worktree、task/intent、Delivery ID 与 task ID，构成 `DeliveryBinding`。Recovery 只接受 persisted binding，忽略当前 config、alias 与 selector movement。
+`DeliveryConfigProjection` 只包含 admitted scope 内的 canonical worktree/resource path；Runner implementation/config、Host engine；Provider key/route、model ID、base URL 与 credential reference（绝无 material）；workspace/resource binding；以及影响 Delivery 的 execution/control bound。它排除 installation identity、selector、Source config、Package、Store location、raw config、credential-store location/content、Intake presentation 与所有 Observation config。M01 加入 exact Package identity/content、canonical worktree、canonical `TaskPrompt` identity、Execution-owned attachment snapshot digest、Delivery ID 与 task ID，构成 `DeliveryBinding`。Recovery 只接受 persisted binding 与 snapshot，忽略当前 config、alias、selector movement 与新的 triggering turn。
+
+`TaskPrompt` 是 closed host-neutral value `{ text, attachments }`。每个 incoming attachment 携带 bounded adapter-assigned identity、filename、media type、byte length、SHA-256 digest，以及仅由 Intake-neutral attachment-content port 理解的 opaque string `contentRef`；DSH message、channel、session 或 temporary upload handle 均不跨 Core。`NEW` 后只有 M01 dereference 该 port、校验 bytes/digest、创建 Execution-owned immutable snapshot，并绑定 snapshot reference/digest，而不是 incoming reference。存在至少一个 attachment 时 text 可以为空；正文和附件同时缺失则在 Delivery 创建前失败。Intake 只去除 activation directive，不总结或改写剩余 turn。`CONTENDED` 与 `RECOVERY` 不调用 attachment port，也不对新 turn 执行 read、copy、persistence、Source 或 Store work。Prompt 与 attachment content 不进入 M03。
 
 | Exact input key | Type/default policy | Consumer 与 binding/reload rule |
 | --- | --- | --- |
@@ -293,14 +304,18 @@ Execution Release 只拥有 host-neutral package、configuration schema/default 
 | package bundle declaration | `dsh.bundle.patch = "./cordis.patch.yml"` |
 | stable Cordis row ID/name | `workflow-execution` / `@workflow-self-recursive/dsh-intake` |
 | profile override | row `workflow-execution`，完整 config `{ configFile: <absolute path> }` |
-| direct command | `dsh --profile workflow-execution workflow execute --worktree <absolute> --selector <name[@version]> --intent <text>` |
-| status/result | `workflow status --worktree <absolute>` / `workflow result --worktree <absolute>` |
-| Intake-only tool | `workflow_execution_activate`，closed `{ worktree, selector, intent, correlation? }` schema |
+| user command surface | `/wsr list`；`/wsr create <selector>`；`/wsr recover [<delivery-id>]`；`/wsr status [<delivery-id>]`；`/wsr action finish`；`/wsr abandon <delivery-id>` |
+| create prompt | activation directive 后的 triggering chat turn 及其 attachments；不存在 `--intent` parameter |
+| Intake-only capability | `workflow_execution_intake`，plugin-owned closed operation union；只携带 host-neutral prompt/correlation value，且只在 DSH-I 可见 |
 | first-party skill | package path `skills/workflow-execution/SKILL.md`，name `/workflow-execution`；首发只允许 explicit invocation |
 
-Bundle 使用 locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2` 注册 package skill root；`@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` 加载 instruction。Instruction 收集 missing argument，并恰好一次调用 `workflow_execution_activate`；它不 import executable code，也不直接调用 Core/M01/Runner。Command Adapter 与 tool Adapter 共同调用一个 plugin-owned `WorkflowActivationService`，产生 meaning-equivalent `ExecutionRequest` bytes；只有 bounded presentation correlation 可不同。Startup 从不自动激活 Workflow。
+Bundle 使用 locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2` 注册 package skill root；`@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` 加载 instruction。Instruction 选择一个 closed `/wsr` operation，并恰好一次调用 `workflow_execution_intake`；它不 import executable code，也不直接调用 Core/M01/Runner。Command Adapter 与 skill-mediated tool Adapter 共同调用一个 plugin-owned `WorkflowIntakeService`；create 产生 meaning-equivalent `ExecutionRequest` bytes，而 list/status/recover/action-finish/abandon 保留各自独立的 control meaning。Startup 从不创建 Workflow。
 
-`DSH-I` 是提供给 Intake plugin 的 Cordis `Context`。`DSH-E` 是 existing DSH Provider Adapter 为 bound Runner Delivery 创建并拥有的另一个 `new Context()`。二者不共享 object identity、registry、session namespace、persistence root、capability catalog 或 credential material。Cordis `isolate` 只改变同一 Context 内 service realm，不能作为 instance isolation。Ownership chain 是 `DSH-I → Execution lifecycle manager → Runner/DSH-E`；plugin close 级联执行 application close sequence。存在 non-empty current-slot 时 plugin remove fail closed，直到 terminal handling 或 exact authorized abandonment。
+`DSH-I` 是提供给 Intake plugin 的 Cordis `Context`，可承载多个 Intake session。一个 Intake session 对应一个 host conversation，是一个 active Delivery 的排他输入输出通道：一个 session 最多绑定一个 Delivery，一个 active Delivery 恰好绑定一个 session。不同 session 可以在 installation bound 内并行绑定不同 worktree 的 Delivery。Binding 持续覆盖 active Delivery lifecycle，只有 terminal handling、exact authorized abandonment 或 durable detached/recoverable transition 才释放；它不是仅在 Action 等待输入时才获取的临时占用。
+
+`DSH-E` 是 existing DSH Provider Adapter 为 bound Runner Delivery 创建并拥有的另一个 `new Context()`。DSH-I 与 DSH-E 不共享 object identity、registry、session namespace、persistence root、capability catalog 或 credential material。Cordis `isolate` 只改变同一 Context 内 service realm，不能作为 instance isolation。Ownership chain 是 `DSH-I → Execution lifecycle manager → Runner/DSH-E`；plugin close 级联执行 application close sequence。存在已占用 current-slot 时 plugin remove fail closed，直到 terminal handling 或 exact authorized abandonment。
+
+Adapter 在自己的 bounded correlation root 下持久化 session-to-Delivery binding。Native session/channel object 与 credential 不进入 Core、Manifest、DeliveryBinding 或 M03。Restart 将 Adapter-private binding 与 Core exact Delivery inventory、Runner fact 做 join。有效的一对一记录恢复相同 presentation route 与 pending Action prompt，不创建 fresh DSH-E session，也不 replay 已接受 response。原 host session 无法使用时，Delivery 保持 detached/recoverable。Binding conflict、一个 session 指向多个 Delivery或一个 Delivery 指向多个 session 都返回 `INTAKE_BINDING_INVARIANT_VIOLATION` 并 fail closed，绝不成为用户选择题。
 
 ### Private seam
 
@@ -326,8 +341,8 @@ sequenceDiagram
     participant SS as Source and Store
     participant DO as Delivery Observation
 
-    User->>Host: 使用 task intent 运行 selector
-    Host->>Core: execute(generic request)
+    User->>Host: /wsr create selector + turn text/attachments
+    Host->>Core: execute(host-neutral TaskPrompt request)
     Core->>Delivery: admit(canonical worktree)
     Delivery-->>Core: NEW exclusive holder
     Delivery->>DB: resolveWorkflowPackage(...)
@@ -353,7 +368,15 @@ sequenceDiagram
 
 成功顺序是 admit `NEW`、resolve/prepare、construct Manifest、persist current Manifest、project admitted activation、mark start uncertainty、invoke Runner、validate result、finalize、observe。Package preparation 在 ordinary Delivery exclusivity holder 下执行，但没有 Delivery identity 或 Delivery Observation。该 holder 防止另一 current Delivery；它不是 Package proof、hold、transaction 或 concurrent Store protocol。
 
-M01 拥有的所有 selector、source、Package、version、digest、cache 与 DSH compatibility 分支只在 M01 admission phase 返回 `NEW` 后、于 M01 内发生。任何此类 failure 都释放 ordinary holder，并在 Manifest persistence、Delivery creation、Runtime/Session/worktree effect 或 Observation 之前返回。这些 canonical worktree 与 request-shape check 属于 M01 admission。`CONTENDED` 与 `RECOVERY` 从不调用 M01、Source 或 Store。
+M01 拥有的所有 selector、source、Package、version、digest、cache 与 DSH compatibility 分支只在 M01 admission phase 返回 `NEW` 后、于 M01 内发生。任何此类 failure 都释放 ordinary holder，并在 Manifest persistence、Delivery creation、Runtime/Session/worktree effect 或 Observation 之前返回。这些 canonical worktree 与 request-shape check 属于 M01 admission。`CONTENDED` 与 `RECOVERY` 不执行 selector、prompt snapshot、attachment read/copy、Source、Store 或 new-binding work。
+
+### Intake command 与排他 session binding
+
+`/wsr list` 渲染 bounded Delivery inventory：full Delivery ID、canonical worktree、exact Workflow Package、lifecycle state、Intake-binding state、current Action/interaction state，以及 recover/abandon availability。它不暴露 prompt/attachment content、credential、DSH native session identity 或 Provider-native state。`/wsr status` 省略 ID 时查看当前 session 绑定的 Delivery；提供 exact ID 时执行 read-only lookup。
+
+`/wsr create <selector>` 要求当前 Intake session 处于 unbound，并把 triggering turn 剩余正文和 attachments 作为 `TaskPrompt`。`/wsr recover <delivery-id>` 要求 unbound session，并只定位该 exact detached/recoverable Delivery。省略 ID 时只定位当前 canonical worktree 的 current Delivery；绝不在 installation 范围按最近时间选择，也不解析 Delivery name/alias。找不到时返回 typed not-found。Delivery 已绑定另一有效 session 时返回 `DELIVERY_INTAKE_BOUND`。`/wsr abandon <delivery-id>` 使用 exact M01 authority，只在 authorized current-slot handling 中清除 binding，并且不产生 Runner outcome。
+
+Bound session 的 ordinary turn 是对该 Delivery current Action interaction 的 correlated response；一次回答绝不隐含 Action 已结束。`/wsr action finish` 不含 Delivery、Action 或 interaction 参数，因为 session binding 与 current Action-input state 是唯一合法目标。命令后的可选正文和 attachments 构成 final input。该命令表示 `ACTION_FINISH_REQUESTED`，不是 `ACTION_COMPLETED`：Runner 恢复同一个 Episode 与 DSH-E session，Action 执行 closure check，只有通过 Workflow Host 校验的 schema-valid `workflow_complete` result 才推进 Workflow。Action 仍可继续请求输入或返回 `INCOMPLETE`。Bound Delivery 未等待 Action input 时，Adapter 返回 `ACTION_NOT_AWAITING_INPUT`；出现多个 candidate interaction 表示 invariant violation，必须 fail closed，不能变成用户选择器。
 
 ### 有效 local exact 或 sticky-latest hit
 
@@ -397,7 +420,7 @@ M01 在 request-specific Package work 前尝试既有 per-worktree exclusive adm
 
 ### Occupied-slot recovery
 
-若 admission 找到 existing current Manifest，M01 为 stored Delivery 返回 recovery。Core 忽略新 selector/task，不执行 selector、Source、Store 或 new-binding work。Bootstrap 或 occupied request 从 persisted Manifest/binding 重建 exact admitted activation，并只使用 existing Runner `execute`/`inspect` seam；Runner 根据 durable Host/Invocation/Custody fact 私有选择 `continue`、`restart-from-savepoint` 或 `intervene`。它绝不 rebind、创建 fresh native-session fallback、blindly repeat Action/tool effect，也不暴露 public DSH resume operation。
+若 admission 找到 existing current Manifest，M01 为 stored Delivery 返回 recovery。Core 忽略新 selector/TaskPrompt，不执行 selector、attachment snapshot、Source、Store 或 new-binding work。Bootstrap recovery establishment 从 persisted Manifest/binding 重建 exact admitted activation，并只使用 existing Runner `execute`/`inspect` seam；Runner 根据 durable Host/Invocation/Custody fact 私有选择 `continue`、`restart-from-savepoint` 或 `intervene`。它绝不 rebind、创建 fresh native-session fallback、blindly repeat Action/tool effect，也不暴露 public DSH resume operation。`/wsr recover` 则单独授权一个 unbound Intake session 认领 detached/recoverable Delivery；它不授权 Package rebinding。
 
 ### Manifest creation 或 persistence failure
 
@@ -419,6 +442,7 @@ Runner 满足 Core-owned lifecycle meaning，同时私有 park resumable state�
 ```text
 WorkflowSelector
 → ResolvedWorkflowPackage
+→ canonical TaskPrompt identity 与 immutable attachment snapshot
 → DeliveryManifest
 → Runner-private Workflow Host state 加 Provider-native session
 → bounded result validated against Manifest
@@ -426,13 +450,14 @@ WorkflowSelector
 
 `ResolvedWorkflowPackage` 包含 `name`、`exactVersion`、`packageDigest`、`localPath`、`workflowId`。Local path 标识本 installation 内已校验的 `READY` materialization；version 与 digest 提供 Manifest construction 与 DSH activation 使用的 stable content check。Source metadata 可作为 bounded diagnostics/provenance 保留，但不是 authorization identity 或 capability。
 
-Manifest 恰好绑定一个 Delivery/task relationship、canonical worktree/task/intent、resolved exact Package field、logical Workflow/implementation 与完整 non-secret `DeliveryConfigProjection`，并持久化 projection 与 `DeliveryBinding` identity。它排除 installation identity、mutable alias、Source/Store/Observation config、raw installation config、credential-store location/content 与 API-key material、Package/Prompt/message/tool/source body、Runtime checkpoint、Evidence receipt 与 native custody/Session identifier。
+Manifest 恰好绑定一个 Delivery/task relationship、canonical worktree 与 `TaskPrompt` identity、immutable attachment snapshot digest、resolved exact Package field、logical Workflow/implementation 与完整 non-secret `DeliveryConfigProjection`，并持久化 projection 与 `DeliveryBinding` identity。Prompt/attachment bytes 位于 binding 引用的 Execution-owned immutable snapshot 中，不 inline 到 Manifest。Manifest 排除 installation identity、mutable alias、Source/Store/Observation config、raw installation config、credential-store location/content 与 API-key material、Package/prompt/attachment/message/tool/source body、Runtime checkpoint、Evidence receipt、Intake binding record 与 native custody/Session identifier。
 
 ### 权威状态
 
 | 状态 | 唯一 writer | Reader | 规则 |
 | --- | --- | --- | --- |
-| selector/task/intent/correlation | Host/Intake | Core/M01 | generic request；无 Source/Runner/Observation/path override |
+| selector/TaskPrompt/correlation | Host/Intake | Core/M01 | generic request；无 Source/Runner/Observation/path override；只有 `NEW` snapshot prompt material |
+| Intake session binding | DSH Intake Adapter | Adapter-private correlation store 与 Core inventory join | 一个 session 最多绑定一个 Delivery；一个 active Delivery 恰好绑定一个 session；native value 不跨 Core |
 | canonical installation config 与 Source selection | Bootstrap | factory/Core/M01/M02/M03 | 一个 immutable application value；恰好一个 Source Adapter |
 | Delivery configuration projection | Bootstrap/M01 projection | Manifest、M02 factory | immutable non-secret config-only binding input |
 | Store `STAGING`/`READY` 与 sticky alias | M01 through Store | M01；DSH materializer 读取 exact `READY` path | staging 私有；alias 只指向 ready exact Package；不 automatic eviction |
@@ -481,15 +506,34 @@ stateDiagram-v2
     TERMINAL_HANDLING --> EMPTY: clear before release
 ```
 
+### Intake session binding
+
+```mermaid
+stateDiagram-v2
+    [*] --> UNBOUND
+    UNBOUND --> BOUND: create NEW Delivery 或 recover exact detached Delivery
+    BOUND --> BOUND: ordinary Action input/output 与 Action transition
+    BOUND --> RESTORING: plugin/process restart
+    RESTORING --> BOUND: exact one-to-one session/Delivery join succeeds
+    RESTORING --> DETACHED: prior host session cannot be restored
+    DETACHED --> BOUND: explicit recover from an unbound session
+    BOUND --> UNBOUND: terminal handling 或 exact authorized abandonment
+    DETACHED --> UNBOUND: exact authorized abandonment
+```
+
+`BOUND` 在两个方向都排他。`RESTORING` 不发布新 Workflow activation，也不 replay 已接受 interaction。任何 one-to-many 或 many-to-one durable mapping 都返回 `INTAKE_BINDING_INVARIANT_VIOLATION`；不存在静默选择 winner 的 transition。
+
 <a id="ee-execution-9"></a>
 ## 9. Interface、依赖、Seam 与 Adapter
 
 | Interface 含义 | Caller-visible input | Result/error | Ordering/configuration |
 | --- | --- | --- | --- |
-| External Core operation | worktree、selector、task intent、optional permitted refresh 与 bounded intake correlation | final Delivery outcome、`CONTENDED`、exact recovery 或 typed pre-Delivery error | 一个 host-neutral call；无 native/config/Source field；先 M01 admission |
+| External Core operation | worktree、selector、`TaskPrompt`、optional permitted refresh 与 bounded Intake correlation | final Delivery outcome、`CONTENDED`、exact recovery 或 typed pre-Delivery error | 一个 host-neutral call；无 native/config/Source field；先 M01 admission |
 | M01 admit | canonicalizable worktree | `NEW` holder、`CONTENDED`、exact `RECOVERY` 或 custody/identity error | Delivery 首个 phase；immediate；non-`NEW` 不做 Package work 或 Runner execution call |
 | M01 resolve/prepare | `NEW` holder context、selector、factory-bound exact Source/Runner compatibility target、permitted refresh flag | `ResolvedWorkflowPackage` 或 phase-typed Package error | local-first；恰好一个 constructed Source Adapter；无 request override/fallback |
-| M01 bind/persist | resolved Package 加 complete Delivery/task/worktree/Runner/intent context | immutable Manifest/admitted activation，或 `DELIVERY_BINDING_FAILED` / `DELIVERY_CREATE_FAILED` | persisted exact binding 前无 Runner submodule effect |
+| M01 bind/persist | resolved Package 加 complete Delivery/task/worktree/Runner/TaskPrompt context | immutable Manifest/admitted activation，或 `DELIVERY_BINDING_FAILED` / `DELIVERY_CREATE_FAILED` | persisted exact binding 前无 Runner submodule effect |
+| Intake bind/recover | current host session 加 exact 或 current-worktree Delivery target | exclusive binding、`DELIVERY_INTAKE_BOUND`、not-found 或 invariant failure | Adapter-private durable mapping 与 Core truth join；native identity 不跨 Core |
+| Action finish request | current session 唯一 bound Delivery 加 optional final `TaskPrompt` | same Action 继续询问、经 `workflow_complete` 完成、返回 `INCOMPLETE` 或 typed state error | request 不是 completion；exact Episode/input correlation 保持 internal |
 | M02 execute/inspect/cancel | fully admitted activation 或 exact Delivery reference | bounded Runner terminal/start-failed/unknown result 或 typed seam error | 不拥有 Source/Store/current-slot；native state 保持 private |
 | M01 validate/finalize | exact Manifest 加 bounded Runner result | final lifecycle outcome/error | 根据 known truth close/retain slot |
 | M03 observe | bounded post-Delivery fact | 仅 local diagnostic | existing profile/privacy；无 control effect |
@@ -627,10 +671,16 @@ Test 跨越 host-neutral Core、M01 Delivery、M02 Core-to-Runner、M03 owner-fa
 | `execution.decision.012` | `installationConfigIdentity`、config-only `DeliveryConfigProjection` identity 与 Package-dependent `DeliveryBinding` identity 互不合并。Restart recovery 只使用 persisted binding |
 | `execution.decision.013` | Public Core contract 是 host-neutral。DSH Intake 是一个 replaceable Adapter distribution；`DSH-I` 与 Runner-owned `DSH-E` 是一个 cascade lifecycle 下的不同 Context |
 | `execution.decision.014` | Initial Workflow Package asset 只由独立 Workflow Package GitHub release 拥有；Execution 与 DSH Intake artifact 不包含 Package content |
+| `execution.decision.015` | Intake 排他是 session-scoped，不是 installation-scoped：一个 host conversation 最多绑定一个 Delivery，一个 active Delivery 恰好绑定一个 session，不同 session 可并行服务不同 worktree |
+| `execution.decision.016` | Create 消费 triggering turn 作为 `TaskPrompt`；不存在 prompt command parameter。只有 `NEW` snapshot prompt/attachment 并绑定其 identity |
+| `execution.decision.017` | `/wsr action finish` 是由 current session binding 定位、无需 target 参数的 request。Current Action 仍拥有 completion，只有 validated `workflow_complete` 才推进 Workflow |
+| `execution.decision.018` | Bootstrap 建立 durable recovery 并恢复有效 Intake binding；user recover 把 unbound session 绑定到 exact detached Delivery 或 current worktree Delivery。两者都不按 recency 或 alias 猜测 |
 
-既有 Execution decision 继续有效：三个 deep Module；Runner-owned Workflow outcome 位于 Core-owned Runner seam 后；one-current-slot lifecycle 且无 Execution history；standard-first allow-listed best-effort Observation；canonical worktree revalidation；对 persisted Runner uncertainty 的 conclusive handling；以及由已冻结发布的 Profile `1.0.0` 编码的 adopted Observation semantics。本修订只加入 explicit C55–C57 owner mapping，不改变 Runner、Evidence 或 execution semantics。
+既有 Execution decision 继续有效：三个 deep Module；Runner-owned Workflow outcome 位于 Core-owned Runner seam 后；每个 worktree 一个 current-slot lifecycle 且无 Execution history；standard-first allow-listed best-effort Observation；canonical worktree revalidation；对 persisted Runner uncertainty 的 conclusive handling；以及由已冻结发布的 Profile `1.0.0` 编码的 adopted Observation semantics。
 
-本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；request-selected Source；automatic GitHub-to-alternate fallback；source/version fallback；ambient completion；embedded initial Package content；parallel plugin composition；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；shared DSH Intake/Execution Context；public DSH resume；DSH-native Core type；runner change。
+已批准的 Action-finish requirement 触发 bounded reopen rule。必须先用 RED fixture 证明当前 schema-validated `ActionInputResponse` 无法携带独立 finish request。唯一授权的 Runner change 是最小化区分 ordinary answer 与 `ACTION_FINISH_REQUESTED` 的 internal Action-interaction input；public `execute`/`inspect`/`cancel` operation set、exact Episode/request correlation、same-session resume、Action-owned closure 与 `workflow_complete` 唯一 completion protocol 全部保持不变。Initial Workflow Package content 继续冻结；只有后续 executable RED 证明 generic control 无法到达 Action-owned closure 时，才可另提 Package reopen，本次不预先授权。
+
+本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；request-selected Source；automatic GitHub-to-alternate fallback；source/version fallback；ambient completion；embedded initial Package content；parallel plugin composition；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；shared DSH Intake/Execution Context；public DSH resume；DSH-native Core type；任何超出已批准、由 RED 限定的 Action-finish interaction distinction 的 Runner change。
 
 ### Execution open-work register
 

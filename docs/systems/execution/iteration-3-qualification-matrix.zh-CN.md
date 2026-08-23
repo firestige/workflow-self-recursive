@@ -8,10 +8,15 @@
 
 - installation-scoped resource 与 Delivery-scoped instance 的 composition/effect boundary；
 - persisted `DeliveryBinding` 先于 binding-dependent M02/M03 composition，且 owner-fact port 在 M02 effect 前完成 one-way wiring；
-- `load → parse → validate/canonicalize → construct → enumerate slots → recover exact binding → READY` 与 reverse shutdown oracle；
+- `load → parse → validate/canonicalize → construct → enumerate occupied slots → recover exact binding/session disposition → READY` 与 reverse shutdown oracle；
 - `execution.config@1.0.0` 每个 exact key 的 type、required/default policy、secret classification、consumer、Manifest binding、reload behavior 与 redacted error；
+- host-neutral `TaskPrompt` 保留 triggering turn text/attachments；只有 `NEW` 创建 immutable snapshot 并绑定 identity，命令面不存在 prompt parameter；
+- `/wsr list/create/recover/status/action finish/abandon` exact command surface，以及 command/skill 共同调用一个 DSH-I-only `workflow_execution_intake` operation union；
+- 一个 Intake session 最多绑定一个 Delivery、一个 active Delivery 恰好绑定一个 session；不同 session 可服务不同 worktree，restart 按 exact durable binding 恢复或进入 detached；
 - DSH-I/DSH-E 的 owner、创建点、配置、service/tool view、persistence、namespace、级联 dispose、restart recovery 与 crash boundary；
-- 无 public DSH resume 不排除 Execution startup recovery；recovery 只使用 persisted Manifest/current-slot、Runner durable facts 与 Runner-private native continuation；
+- 无 public DSH resume 不排除 Bootstrap recovery establishment；user recover 只把 unbound session 绑定到 exact detached Delivery 或 current-worktree Delivery；
+- `/wsr action finish` 只表示 `ACTION_FINISH_REQUESTED`；current Action 仍通过唯一 `workflow_complete` protocol 决定 completion；
+- Action-finish 触发的 bounded Runner reopen 必须先有 RED，且只能修改 internal Action-interaction distinction，不得扩大 public Runner surface 或预先修改 initial Workflow Package；
 - Execution、DSH Intake 与独立 Workflow Package GitHub Release 的 exact coordinate、asset convention 与 owner。
 
 实现、测试与审查必须以英文表格的逐行 oracle 为准。任何翻译歧义由英文规范与 Project Execution System Design 裁决；本译本不得建立第二套语义。
