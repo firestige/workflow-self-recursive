@@ -95,7 +95,7 @@ decoded logical Span shape 保留参与 profile validation 与 canonical content
 <a id="otel-profile-6"></a>
 ## 6. Exact Closed EventName 集合
 
-Proposed profile 恰好有这十个 EventName：
+已冻结发布的 profile 恰好有这十个 EventName：
 
 1. `delivery.summary`
 2. `review.finding`

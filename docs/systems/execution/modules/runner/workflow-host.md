@@ -1,12 +1,14 @@
-# Workflow Host Module Detailed Design
+# Workflow Host Submodule Detailed Design
 
 ## 1. Status and role
 
 | Field | Value |
 | --- | --- |
-| Status | `WAVE4_ENTRY_REVIEW_CANDIDATE` |
-| Module | Workflow Host |
+| Status | `ITERATION_2_IMPLEMENTED_DOCUMENT_CALIBRATION_CANDIDATE` |
+| Submodule | Workflow Host |
 | Current Adapter | LangGraph Workflow Host Adapter |
+| Structure authority | GitHub issue `execution-system#64` |
+| Implementation evidence | `execution-system/src/host` |
 | Companion | [Chinese non-normative companion](workflow-host.zh-CN.md) |
 
 Workflow Host owns execution of the admitted control graph on a private durable thread. Its stable module identity is independent of LangGraph. The current Adapter uses LangGraph and SQLite; another substrate may implement the same capability without changing Runner or Execution identities.

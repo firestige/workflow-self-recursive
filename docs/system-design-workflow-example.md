@@ -4,10 +4,10 @@
 
 本文不再把完整 Workflow、Prompt、Skill、模板和伪配置揉进一篇说明文档。实际 design-time package 位于：
 
-- [`team-config/workflow/system-design/README.md`](../team-config/workflow/system-design/README.md)：定位与资源索引；
-- [`team-config/workflow/system-design/workflow.md`](../team-config/workflow/system-design/workflow.md)：流程语义；
-- [`team-config/workflow/system-design/templates/system-design-document.template.md`](../team-config/workflow/system-design/templates/system-design-document.template.md)：正式文档目录；
-- [`team-config/workflow/system-design/conformance/`](../team-config/workflow/system-design/conformance/)：正负场景。
+- [`workflow-package/system-design/README.md`](../workflow-package/system-design/README.md)：定位与资源索引；
+- [`workflow-package/system-design/workflow.md`](../workflow-package/system-design/workflow.md)：流程语义；
+- [`workflow-package/system-design/templates/system-design-document.template.md`](../workflow-package/system-design/templates/system-design-document.template.md)：正式文档目录；
+- [`workflow-package/system-design/validators/`](../workflow-package/system-design/validators/)：验证入口。
 
 本文只用一个简化执行说明这些资源如何组合。上层通用原则见 [`workflow-composition-model.md`](workflow-composition-model.md)。
 
@@ -164,4 +164,4 @@ Raw Intake
 - Schema、Validator 和 Conformance 负责闭合与证据；
 - Git/artifact identity 负责版本、恢复和影响分析。
 
-实际资源与细节以 [`team-config/workflow/system-design/`](../team-config/workflow/system-design/) 为准，本文不再复制一份容易漂移的 package 内容。
+实际资源与细节以 [`workflow-package/system-design/`](../workflow-package/system-design/) 为准，本文不再复制一份容易漂移的 package 内容。

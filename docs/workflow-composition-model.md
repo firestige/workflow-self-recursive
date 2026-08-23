@@ -1,18 +1,18 @@
 # Workflow 组合模型与配置组织原则
 
-> **Active support/navigation.** Target authority 是 [Concept](agent-architecture.md)、[Execution](systems/execution/project-execution-system.md) 与 [Evidence](systems/evidence/evidence-system.md)；Contract revision split —— [Observation Catalog](contracts/observation/observation-catalog.zh-CN.md)、[OTel Observation Profile](contracts/observation/otel-observation-profile.zh-CN.md)、[Execution–Evidence Interaction Contract](contracts/execution-evidence/interaction-contract.zh-CN.md) 与 [Metric Catalog](contracts/evaluation/metric-catalog.zh-CN.md) —— 仍为 draft，不能证明 physical conformance。若本文其余历史/操作说明与这些 owner 冲突，以 owner 为准；legacy material 只能作为明确标记的 legacy evidence 被发现。
+> **Active support/navigation.** Target authority 是 [Concept](agent-architecture.md)、[Execution](systems/execution/project-execution-system.md) 与 [Evidence](systems/evidence/evidence-system.md)；[Observation Catalog](contracts/observation/observation-catalog.zh-CN.md)、[OTel Observation Profile](contracts/observation/otel-observation-profile.zh-CN.md) 与 [Execution–Evidence Interaction Contract](contracts/execution-evidence/interaction-contract.zh-CN.md) 已冻结发布，[Metric Catalog](contracts/evaluation/metric-catalog.zh-CN.md) 在自身声明 scope 内生效。当前 Observation machine package 只支持 validator-only claim，不能证明 production 或 cross-implementation conformance。若本文其余历史/操作说明与这些 owner 冲突，以 owner 为准；legacy material 只能作为明确标记的 legacy evidence 被发现。
 
 ## 1. 文档定位
 
 | 字段 | 内容 |
 | --- | --- |
-| 状态 | 项目级设计原则，供 Workflow Contract、配置仓库、Runtime Profile 与具体 Workflow 共同遵循 |
+| 状态 | 项目级设计原则，供 Workflow Contract、配置仓库、Runner 与具体 Workflow 共同遵循 |
 | 目标 | 说明 Workflow 如何作为配置组合骨架，把 Agent、Prompt、Skill、模型、工具和执行流程组织成可复现的执行单元 |
 | 上层依据 | [`agent-architecture.md`](agent-architecture.md) |
-| 相邻设计 | [`systems/execution/project-execution-system.md`](systems/execution/project-execution-system.md)、[`systems/runtime/runner-runtime-profile.md`](systems/runtime/runner-runtime-profile.md)、[`../team-config/workflow/system-design/README.md`](../team-config/workflow/system-design/README.md) |
+| 相邻设计 | [`systems/execution/project-execution-system.md`](systems/execution/project-execution-system.md)、[`systems/execution/modules/runner/runner.md`](systems/execution/modules/runner/runner.md)、[`../workflow-package/system-design/README.md`](../workflow-package/system-design/README.md) |
 | 不定义 | Workflow DSL 的最终字段、所有 package 必须共用的物理目录名、存储 schema、LangGraph 内部 API 或具体 Driver 协议 |
 
-本文位于 Conceptual Architecture 与具体 System/Workflow 设计之间。它固定项目组织 Workflow 的共同心智模型，但不替代 Workflow Contract、Runtime Profile System Design 或具体 Workflow Package。
+本文位于 Conceptual Architecture 与具体 System/Workflow 设计之间。它固定项目组织 Workflow 的共同心智模型，但不替代 Workflow Contract、Execution-owned Runner 模块设计或具体 Workflow Package。
 
 ## 2. 核心结论
 
@@ -47,7 +47,7 @@ Workflow 不仅描述“下一步到哪里”，还必须回答：
 
 ## 4. 核心概念
 
-本文在需要精确区分时使用 `Workflow Contract`、`Workflow Definition`、`Workflow Implementation`、`Workflow Package`、`Workflow Package Snapshot` 和 `Workflow State`。单独使用“Workflow”只表示这组概念形成的整体产品能力；“Workflow 决定/暴露”是简写，实际含义始终是：Definition/Contract 声明规则，selected Runtime Profile 依据冻结的 Snapshot 执行规则。配置本身不成为运行时 Actor。
+本文在需要精确区分时使用 `Workflow Contract`、`Workflow Definition`、`Workflow Implementation`、`Workflow Package`、`Workflow Package Snapshot` 和 `Workflow State`。单独使用“Workflow”只表示这组概念形成的整体产品能力；“Workflow 决定/暴露”是简写，实际含义始终是：Definition/Contract 声明规则，Runner 依据冻结的 Snapshot 执行规则。配置本身不成为运行时 Actor。
 
 ### 4.1 Workflow Definition 与 Contract
 
@@ -55,13 +55,13 @@ Workflow Definition 描述逻辑 Action、状态、合法 transition、selector�
 
 Workflow Contract 定义这些概念的稳定语义、闭合规则、版本兼容方式和 conformance 要求。它约束实现，但不规定必须使用 LangGraph 或某一种物理文件格式。
 
-Definition 是 Package 必须绑定的逻辑流程组成部分，并具有独立版本身份；Package 不重新定义流程语义，而是把某一版 Definition、某个 Runtime-specific Implementation 与完成该流程所需的配置资源关联起来。
+Definition 是 Package 必须绑定的逻辑流程组成部分，并具有独立版本身份；Package 不重新定义流程语义，而是把某一版 Definition、某个 Runner-specific Implementation 与完成该流程所需的配置资源关联起来。
 
 ### 4.2 Workflow Implementation
 
-Workflow Implementation 是某个 Runtime Profile 对逻辑 Workflow 的可执行实现。例如，第一方 Profile 可以把 Workflow Definition 编译为 LangGraph JS `StateGraph`。
+Workflow Implementation 是 Runner 对逻辑 Workflow 的可执行投影。例如，当前 Workflow Host 可以把 Workflow Definition 编译为 LangGraph JS `StateGraph`。
 
-Implementation 可以利用 Runtime 原生能力，但不能改变 Contract 定义的 Action、合法 transition、Gate 或终态语义。
+Implementation 可以利用 Runner 原生能力，但不能改变 Contract 定义的 Action、合法 transition、Gate 或终态语义。
 
 ### 4.3 Workflow Package
 
@@ -104,7 +104,7 @@ Output template 是一等 Package resource。只在清单中写“System Design 
 
 Workflow Package Snapshot 是一个 Delivery 对 Package 的不可变、完整、已解析 identity-and-relationship closure。它保存不可变 identity、内容寻址 reference、关系和适用的解析证明，不要求把完整资源内容复制进 Manifest。
 
-它回答“这次执行准确使用哪一版流程和资源”。Execution System 解析并冻结 Snapshot binding；Runtime Profile 获得按该 binding 解引用资源的 authority，只能 materialize 内容身份匹配的资源，不能用环境默认值、CLI 当前设置或 Driver fallback 替换资源。资源不可用或内容身份不匹配时，activation/recovery 必须显式失败或进入 Workflow 声明的恢复路径，不能重新解析成另一版本。
+它回答“这次执行准确使用哪一版流程和资源”。Execution System 解析并冻结 Snapshot binding；Runner 获得按该 binding 解引用资源的 authority，只能 materialize 内容身份匹配的资源，不能用环境默认值、CLI 当前设置或 Driver fallback 替换资源。资源不可用或内容身份不匹配时，activation/recovery 必须显式失败或进入 Workflow 声明的恢复路径，不能重新解析成另一版本。
 
 ### 4.5 Workflow State
 
@@ -113,11 +113,11 @@ Workflow State 是某个 Delivery 的可变运行状态，包括当前 Action、
 Package Snapshot 与 Workflow State 必须分离：
 
 - Snapshot 是“执行什么配置”，在准入后不可变；
-- State 是“执行到了哪里”，由 Runtime 推进；
+- State 是“执行到了哪里”，由 Runner 推进；
 - State 变化不能改写 Snapshot；
 - 配置更新必须产生新的 Snapshot，并用于新的 Delivery。
 
-Selected Runtime Profile 是 Workflow State 的唯一写入 authority。每个持久化 checkpoint 必须与 Delivery 和 Snapshot identity 关联；并发控制、checkpoint 原子性与恢复幂等性的具体机制由 Runtime Profile System Design 和 conformance tests 决定，而不是由本文选择。
+Runner 是 Workflow State 的唯一写入 authority。每个持久化 checkpoint 必须与 Delivery 和 Snapshot identity 关联；并发控制、checkpoint 原子性与恢复幂等性的具体机制由 Execution-owned Runner 模块设计和 conformance tests 决定，而不是由本文选择。
 
 ### 4.6 跨 Workflow Handoff Authority
 
@@ -131,11 +131,11 @@ Selected Runtime Profile 是 Workflow State 的唯一写入 authority。每个�
 flowchart LR
     Repo["配置仓库<br/>Workflow + resources"] --> Resolve["Configuration Identity Authority<br/>解析 Package Snapshot closure"]
     Resolve --> Admit["Admission + Manifest<br/>冻结 Snapshot binding"]
-    Admit --> Seam["Runtime Profile seam<br/>传递引用与解析 authority"]
-    Seam --> Runtime["Selected Runtime Profile<br/>materialize package + 创建 state"]
-    Runtime --> Driver["Selected Driver<br/>native projection + invocation"]
+    Admit --> Seam["Runner seam<br/>传递引用与解析 authority"]
+    Seam --> Runner["Runner<br/>materialize package + 创建 state"]
+    Runner --> Driver["Selected Driver<br/>native projection + invocation"]
     Driver --> Result["Structured Action Result"]
-    Result --> Runtime
+    Result --> Runner
 ```
 
 各层责任如下：
@@ -143,19 +143,19 @@ flowchart LR
 | 层级 | 拥有 | 不拥有 |
 | --- | --- | --- |
 | 配置仓库与 Workflow owner | Workflow Definition、Package relationship、Agent/Prompt/Skill 等资源版本 | Delivery 运行状态、Driver 原生执行 |
-| Configuration Identity Authority | Snapshot identity、显式关系闭包、不可变解析 | Workflow 推进、资源内容创作、Runtime 原生解释 |
+| Configuration Identity Authority | Snapshot identity、显式关系闭包、不可变解析 | Workflow 推进、资源内容创作、Runner 原生解释 |
 | Admission 与 Manifest | 准入决定、唯一 Snapshot binding、最终 authority | graph 执行、route 选择、资源替换 |
-| Runtime Profile seam | 精确 binding 的校验与交接关联 | Package 内容解释、Workflow 状态 |
-| Runtime Profile | Package materialization、Workflow State、transition、checkpoint、recovery | 改写已准入 Snapshot、Evidence 语义 |
+| Runner seam | 精确 binding 的校验与交接关联 | Package 内容解释、Workflow 状态 |
+| Runner | Package materialization、Workflow State、transition、checkpoint、recovery | 改写已准入 Snapshot、Evidence 语义 |
 | Driver | Agent 资源的原生投影、模型/CLI 调用、结构化结果返回 | 选择 Workflow、Role、route、Prompt 或 Skill |
 
-## 6. Runtime 的闭合执行循环
+## 6. Runner 的闭合执行循环
 
 ```mermaid
 flowchart LR
     State["Persisted Workflow State"] --> Allowed["Workflow 暴露<br/>allowed next Actions"]
     Allowed --> Kind{"选择是否需要<br/>语义判断？"}
-    Kind -->|"否"| Deterministic["Runtime 执行<br/>确定性 selector"]
+    Kind -->|"否"| Deterministic["Runner 执行<br/>确定性 selector"]
     Kind -->|"是"| PlannerAction["解析并执行显式<br/>Planner Action"]
     PlannerAction --> Proposal["校验 structured proposal<br/>属于 allowed set"]
     Deterministic --> Target["选定目标 Action<br/>与 Role route"]
@@ -173,10 +173,10 @@ flowchart LR
 
 1. Workflow 决定合法的 successor 集合；
 2. Planner 或其他 selector 只在该集合中选择 next Action 或 route；
-3. Runtime 根据 Snapshot 解析资源，不能从 ambient context 补齐或替换；
+3. Runner 根据 Snapshot 解析资源，不能从 ambient context 补齐或替换；
 4. Driver 只执行已选择的 binding，不能反向取得 Workflow 控制权。
 
-“Planner 决定 next action”不等于“Planner 发明流程”。确定性流程由配置固定，Planner 只负责在配置明确允许且需要语义判断的分支中作出选择。Planner 是 Role；当它参与 route/next-action selection 时，Workflow 通过一个明确的 Planner Action 调用其 Agent，并要求返回结构化 selection proposal。Planner Action 自身的 allowed route 及非递归选择规则也必须由 Workflow 声明。Runtime 校验 proposal 属于 allowed set 后，才推进到被选择的目标 Action。纯确定性 selector 可以由 Runtime 直接执行，不必调用 Planner Agent。
+“Planner 决定 next action”不等于“Planner 发明流程”。确定性流程由配置固定，Planner 只负责在配置明确允许且需要语义判断的分支中作出选择。Planner 是 Role；当它参与 route/next-action selection 时，Workflow 通过一个明确的 Planner Action 调用其 Agent，并要求返回结构化 selection proposal。Planner Action 自身的 allowed route 及非递归选择规则也必须由 Workflow 声明。Runner 校验 proposal 属于 allowed set 后，才推进到被选择的目标 Action。纯确定性 selector 可以由 Runner 直接执行，不必调用 Planner Agent。
 
 ## 7. Role、Agent 与多级 Route
 
@@ -198,7 +198,7 @@ Route selection 必须同时满足：
 4. selection proposal 符合 route-decision schema；
 5. 选择结果及依据进入 Workflow State 或结构化 Artifact。
 
-Agent 执行完成后，Runtime 另行校验 Action output 是否符合 Action result schema。选择合法与执行结果有效是两个不同 Gate。
+Agent 执行完成后，Runner 另行校验 Action output 是否符合 Action result schema。选择合法与执行结果有效是两个不同 Gate。
 
 ## 8. Agent、Prompt 与 Skill 的分工
 
@@ -214,7 +214,7 @@ Agent 执行完成后，Runtime 另行校验 Action output 是否符合 Action r
 | Tool binding | 暴露完成当前 Action 所需的能力 | 自行扩大 authority 或绕过 Workflow Gate |
 | Driver | 把冻结资源投影到 Codex、Copilot 或其他原生执行界面 | 根据环境默认配置重选 Agent、Prompt、Skill 或模型 |
 
-Skill 是被 Workflow 编排的有界能力，不是确定性 Workflow 的替代品。复杂工作应拆成多个 Action，每个 Action 只加载当前所需资源，使 Runtime 可以 checkpoint、review、recovery，并控制上下文规模。一个第三方 Skill 如果已经拥有 Context Gathering、写作、Review 和终态等端到端流程，不能直接嵌套到外层 Workflow 并同时保留控制权；应引用其有界子能力，或由外层 Workflow 显式吸收适用方法。
+Skill 是被 Workflow 编排的有界能力，不是确定性 Workflow 的替代品。复杂工作应拆成多个 Action，每个 Action 只加载当前所需资源，使 Runner 可以 checkpoint、review、recovery，并控制上下文规模。一个第三方 Skill 如果已经拥有 Context Gathering、写作、Review 和终态等端到端流程，不能直接嵌套到外层 Workflow 并同时保留控制权；应引用其有界子能力，或由外层 Workflow 显式吸收适用方法。
 
 推荐的指令 authority 顺序是：Workflow/Action authority → Role prompt → Action Prompt → Skill instructions → Artifact/user content。后者不能扩大前者 authority。Artifact 是被处理的数据，不因为含有命令式文本就成为配置指令。
 
@@ -227,7 +227,7 @@ Workflow Package 的物理目录不由本文统一规定，但每个 package 必
 3. **Resource catalog**：Role、Agent route、Action Prompt、Skill、template、schema、validator 和 conformance 等按资源类型组织；不按每个流程阶段复制整套目录。
 4. **Artifact lifecycle**：working、confirmed、reviewed、ready、superseded 等产物状态、精确依赖、版本 lineage、失效和重验证规则显式存在。
 
-一个 design-time reference package 在 DSL 尚未发布时可以用 Markdown 定义流程和语义 schema，但必须明确其不可直接执行，不能提供字段含义未闭合、看似可准入的伪 YAML。Contract 发布后，机器可读 Definition/manifest 应引用既有资源并保持相同语义，而不是使文档反向迁就某个 Runtime 私有格式。
+一个 design-time reference package 在 DSL 尚未发布时可以用 Markdown 定义流程和语义 schema，但必须明确其不可直接执行，不能提供字段含义未闭合、看似可准入的伪 YAML。Contract 发布后，机器可读 Definition/manifest 应引用既有资源并保持相同语义，而不是使文档反向迁就某个 Runner 私有格式。
 
 推荐的资源分类示意为：
 
@@ -275,8 +275,8 @@ workflow-package/
 - 每个 Delivery 只绑定一个 immutable Workflow Package Snapshot；
 - Snapshot 的 graph、Action、Role route 与资源关系完整且可复现；
 - Workflow State 与 Package Snapshot 分离；
-- 每个 Action 都有明确输入、结构化结果和 responsible authority：Agent Action 指定 Role，纯确定性 Action 指定 Runtime authority；
-- Workflow Definition 与 Package index、Role/Agent、Prompt、Skill、Template 和 Runtime State 可分别定位；
+- 每个 Action 都有明确输入、结构化结果和 responsible authority：Agent Action 指定 Role，纯确定性 Action 指定 Runner authority；
+- Workflow Definition 与 Package index、Role/Agent、Prompt、Skill、Template 和 Runner State 可分别定位；
 - package-owned asset 均被维护和索引，referenced asset 固定到可比较身份；
 - Role prompt 与 Action Prompt 的职责和 authority 不混合；
 - selector 只能选择 Workflow 声明的 Action 和 route；
@@ -290,7 +290,7 @@ workflow-package/
 - Prompt、Skill 和 Agent 内容可以共享，但引用必须固定到可比较身份；
 - 外部模型、工具、Driver 和执行环境至少必须记录可比较的声明身份与实际 observation；可复现表示配置和事实可追溯，不承诺第三方模型逐 token 确定性；
 - 凭据和主机 capability 可以作为受限环境依赖提供给 Driver，但不能作为未声明的 Agent/Prompt/Skill/model/tool fallback，也不能进入 Manifest 或 Evidence；
-- Runtime observation 可以报告实际加载差异，但不能反向改写 Manifest。
+- Runner observation 可以报告实际加载差异，但不能反向改写 Manifest。
 - 上游 Artifact 不能替下游 Workflow 定义 Action、Gate 或终态；下游拥有生命周期分类，但不能弱化上游语义或原地改写上游 Artifact。
 
 ## 12. 设计坏味道
@@ -299,7 +299,7 @@ workflow-package/
 
 - graph 只有节点名称，没有 Action 输入、结果或资源关系；
 - 一个“大 Planner”通过自由文本决定任何下一步；
-- Runtime 或 Driver 根据本机配置临时选择模型、Prompt 或 Skill；
+- Runner 或 Driver 根据本机配置临时选择模型、Prompt 或 Skill；
 - Role 被硬编码成单个 Agent，无法表达 `1..n` route 或升级；
 - 把 Agent definition、startup Prompt 和 Skill 混成一个不可复用的大 Prompt；
 - README 复制 Workflow 正文，或 Workflow 语义散落在 README、Prompt 和 Skill 中；
@@ -319,12 +319,12 @@ workflow-package/
 
 第一版可以大量复用 LangGraph JS OSS 的 graph、checkpoint 和 interrupt/resume 能力，也可以通过现成 Codex/Copilot CLI Driver 执行 Agent。复用实现不改变概念边界：
 
-- LangGraph 是第一方 Runtime 的实现工具，不是配置 authority；
+- LangGraph 是第一方 Runner 的实现工具，不是配置 authority；
 - `langgraph.json` 是部署/应用映射，不等于本项目的 Workflow DSL；
 - Driver 可以利用原生 Agent、Prompt、Skill 或 session 机制，但必须接受 Package Snapshot 的精确 binding；
 - 如果后续事实表明 LangGraph 或某个 Driver 不合适，可以替换实现，而不改变 Workflow Package、Snapshot 和 State 的概念关系。
 
-MVP 暂不建设复杂的多租户鉴权、恶意 Workflow 隔离或完整工具权限平台。用户在自己的受信环境中对 Runtime-specific Workflow implementation code 及 Package 引用的资源负责。这个信任假设不允许实现绕过 Snapshot、扩大已授予 authority，或把凭据写入 Manifest/Evidence。
+MVP 暂不建设复杂的多租户鉴权、恶意 Workflow 隔离或完整工具权限平台。用户在自己的受信环境中对 Runner-specific Workflow implementation code 及 Package 引用的资源负责。这个信任假设不允许实现绕过 Snapshot、扩大已授予 authority，或把凭据写入 Manifest/Evidence。
 
 ## 14. Workflow 设计验收
 
@@ -340,7 +340,7 @@ MVP 暂不建设复杂的多租户鉴权、恶意 Workflow 隔离或完整工具
 8. 哪些关系被纳入 immutable Package Snapshot，哪些数据属于 mutable Workflow State？
 9. 如何校验 structured result、Review independence、Finding admission/aggregation、budget、Wait、recovery 和 terminal proposal？
 10. 人工介入如何证明证据已耗尽、问题会改变方向、owner 正确且材料支持多轮追问？
-11. 缺失资源、非法 transition、Driver substitution 或 Runtime drift 如何 fail closed 或形成可见事实？
+11. 缺失资源、非法 transition、Driver substitution 或 Runner drift 如何 fail closed 或形成可见事实？
 12. 如果替换 LangGraph 或某个 Driver，哪些 Contract、Artifact 和 Workflow 语义仍保持不变？
 13. 上游 Artifact 是否只传递领域语义和失效条件，下游是否在不弱化这些语义的前提下拥有自己的生命周期分类、Gate 和终态？
 

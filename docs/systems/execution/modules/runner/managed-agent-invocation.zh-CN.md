@@ -1,15 +1,17 @@
-# Managed Agent Invocation 模块详细设计
+# Managed Agent Invocation Submodule 详细设计
 
 ## 1. 状态与角色
 
 | 字段 | 值 |
 | --- | --- |
-| 状态 | `WAVE4_ENTRY_REVIEW_CANDIDATE` |
-| 模块 | Managed Agent Invocation |
+| 状态 | `ITERATION_2_IMPLEMENTED_DOCUMENT_CALIBRATION_CANDIDATE` |
+| Submodule | Managed Agent Invocation |
 | 当前 production Provider | DSH Adapter |
+| 结构权威 | GitHub issue `execution-system#65` |
+| 实现证据 | `execution-system/src/invocation` |
 | Companion | [英文规范原文](managed-agent-invocation.md)；本文是 non-normative 中文 companion |
 
-Managed Agent Invocation 拥有 admitted Agent Action 的 Provider effect、native session lifecycle、credential lease、structured completion 和 durable Invocation Journal。它是唯一理解 Provider-private state 的 Runner module。
+Managed Agent Invocation 拥有 admitted Agent Action 的 Provider effect、native session lifecycle、credential lease、structured completion 和 durable Invocation Journal。它是唯一理解 Provider-private state 的 Runner submodule。
 
 ## 2. 创建边界
 
