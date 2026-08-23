@@ -23,7 +23,7 @@ jobs:
 
       - name: Verify frozen submodule identities
         run: |
-          test "$(git -C execution-system rev-parse HEAD)" = "7ebb9a122cd638a5ff53966fa78fb225929eb8c7"
+          test "$(git -C execution-system rev-parse HEAD)" = "499a1f91b78b0649751061276c04e2bd6a5fe0c1"
           test "$(git -C workflow-package rev-parse HEAD)" = "ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb"
           test "$(git -C system-contracts rev-parse HEAD)" = "6d3a0b74c8de594020747022447aab5df1058570"
 
