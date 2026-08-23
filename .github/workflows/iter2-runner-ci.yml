@@ -41,6 +41,10 @@ jobs:
         working-directory: execution-system
         run: pnpm install --frozen-lockfile
 
+      - name: Install Workflow Contract dependencies
+        working-directory: system-contracts/workflow-dsl
+        run: npm ci
+
       - name: Run Runner full and coverage gates
         working-directory: execution-system
         run: |
