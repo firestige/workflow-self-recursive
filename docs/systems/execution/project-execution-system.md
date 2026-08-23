@@ -49,17 +49,17 @@ Runner is M02. It receives a fully admitted activation from Core after M01 has c
 
 workflow-self-recursive runs valuable logical Workflows through a small host-neutral execution seam and optionally emits factual Observation. Execution is embedded per repository/workspace. Runner is Execution module M02. It privately composes a replaceable Workflow Host and configured Provider Adapters; the current Host substrate is LangGraph and the only concrete Provider is DSH. Native sessions, checkpoints and private resume remain inside Runner and do not change Core semantics.
 
-The first distribution contains the protected Implementation and System Design Workflow Packages. Contributors may publish other Packages conforming to the open Agent Ops Workflow composition model. GitHub is the first remote host, and the plugin may bundle the two initial Packages. GitHub and bundle are private Adapters at one Package Source seam.
+The protected Implementation and System Design Workflow Packages are independently hosted by the configured public Workflow Package GitHub repository/release. Contributors may publish other Packages conforming to the open Agent Ops Workflow composition model. An installation selects exactly one private Source Adapter: the default GitHub Adapter or one explicitly configured alternate Adapter. The Execution Release and DSH Intake plugin never bundle either initial Package.
 
 This is a trusted local preview for an individual or small team. The configured GitHub repository is public, users control installation configuration, and concurrent Package management is not a product requirement. The design handles ordinary faults by validation and typed early return. It does not build authentication, authorization, signing, hostile-Package or prompt-injection defense, sandboxing, multi-user coordination, distributed locking, Package transactions, production recovery, HA, mirror failover, or automatic eviction.
 
 Actors and ownership:
 
-- **Host or Intake** translates host/chat syntax into a generic Workflow selector, task intent, worktree reference, configured source, and current Runner configuration context.
+- **Host or Intake** translates host/chat syntax into a generic Workflow selector, task intent, worktree reference, optional permitted refresh, and bounded intake correlation. It cannot select Source, Runner, Provider, Observation, or paths.
 - **Execution Core** sequences canonical worktree/exclusive admission, Package preparation only for `NEW`, Manifest creation/persistence, Runtime lifecycle, result validation, and Observation.
 - **Delivery (M01)** owns selector/Package resolution, Source/Store, canonical-worktree admission, current-slot and Manifest persistence, Delivery recovery/final handling, and projection of one fully admitted Runner activation.
 - **Runner (M02)** owns execution of that admitted activation. Interpreter compiles it; Coordinator, Host, Invocation, and Custody own private execution state and effects.
-- **GitHub and plugin-bundle Adapters** fetch explicitly selected Package content.
+- **GitHub or alternate Source Adapter** is selected once by canonical installation configuration and returns the same generic candidate shape; exactly one is constructed and no fallback exists.
 - **Evidence** receives optional one-way Observation and never controls Execution.
 
 <a id="ee-execution-3"></a>
@@ -75,11 +75,11 @@ WorkflowSelector
 → Runner (M02): admitted activation execution
 ```
 
-A successful call first obtains `NEW` admission, resolves one exact local Package, creates and persists a Delivery Manifest before any Runner Workflow/Host/Provider effect, projects the fully admitted activation, and validates the Runner result against that Manifest. `CONTENDED` and `RECOVERY` return before Package work. For `NEW`, a valid local hit does not contact GitHub. A miss downloads from the configured public GitHub repository or accepts an explicitly selected bundle, validates before publishing `READY`, and never falls back to another source/version. Any selector, fetch, Package, cache, compatibility, contention, or Manifest error returns at its own phase. Package preparation failure releases the ordinary holder, creates no Delivery, and is not a Delivery outcome.
+A successful call first obtains `NEW` admission, resolves one exact local Package, creates and persists a Delivery Manifest before any Runner Workflow/Host/Provider effect, projects the fully admitted activation, and validates the Runner result against that Manifest. `CONTENDED` and `RECOVERY` return before Package work. For `NEW`, a valid local hit does not contact the configured Source. A miss asks only the installation-selected GitHub or alternate Adapter, validates before publishing `READY`, and never falls back to another source/version. Any selector, fetch, Package, cache, compatibility, contention, or Manifest error returns at its own phase. Package preparation failure releases the ordinary holder, creates no Delivery, and is not a Delivery outcome.
 
-In scope are generic Intake, exact/sticky-latest selectors, local hit, public GitHub miss/refresh, explicit bundle input, contributed conforming Packages, `MISSING/STAGING/READY` storage, ordinary format/required-resource/relationship/version/digest checks, DSH compatibility checks, immutable Manifest binding, existing current-slot recovery, DSH result validation, and unchanged Observation.
+In scope are a host-neutral Core entry, replaceable Intake, exact/sticky-latest selectors, local hit, configured public GitHub miss/refresh, one explicitly configured alternate Source Adapter, contributed conforming Packages, `MISSING/STAGING/READY` storage, ordinary format/required-resource/relationship/version/digest checks, DSH compatibility checks, immutable Manifest binding, multi-worktree current-slot recovery, DSH result validation, production Observation, canonical installation configuration, factories, Bootstrap, and bounded lifecycle management.
 
-Out of scope are Package ranking/fallback, ambient completion, authentication/authorization/RBAC, credentials for the public source, signing, hostile input isolation, injection defense, sandboxing, concurrent Package correctness, queueing/fairness, distributed locks, Package transaction/proof/hold protocols, automated eviction, production download/recovery guarantees, registry/marketplace, HA/failover, repository naming/layout, physical schema, a second Runner implementation or Runner-selection abstraction, Evidence redesign, and changes to the protected Packages.
+Out of scope are Package ranking/fallback, ambient completion, authentication/authorization/RBAC, credentials for the public source, signing, hostile input isolation, injection defense, sandboxing, concurrent Package correctness, queueing/fairness, distributed locks, Package transaction/proof/hold protocols, automated eviction, production download/recovery guarantees, registry/marketplace, HA/failover, physical Evidence schema, a second Runner implementation or Runner-selection abstraction, Evidence redesign, and changes to the protected Packages.
 
 Success means an implementer can build the path through the three existing Modules with simple state and typed results, without inventing another lifecycle before the Delivery Manifest.
 
@@ -95,7 +95,7 @@ Success means an implementer can build the path through the three existing Modul
 | Docker-like local-first | valid exact/latest hit avoids GitHub; bare name means latest | Store lookup precedes Source Adapter; sticky alias points to a `READY` exact Package |
 | Ordinary fault containment | malformed/unavailable input stops early without a recovery subsystem | typed early-return results at selector, source, validation, cache, admission, and Manifest phases |
 | Simple exclusivity | one current Runner Delivery per worktree | M01 attempts exclusive admission and immediately returns `CONTENDED` when unavailable |
-| No fallback/default completion | failure never chooses another source/version/resource | one configured source or explicit bundle; DSH validates before native effect |
+| No fallback/default completion | failure never chooses another source/version/resource | exactly one installation-selected Source; request cannot override it; DSH validates before native effect |
 | Open contribution | compatible third-party Package uses the common path | composition and DSH checks, no first-party allow-list |
 | Preview restraint | complexity must match trusted local use | no security platform, concurrent Store protocol, automatic eviction, or production recovery |
 | Observation non-control | telemetry failure cannot alter outcome | unchanged one-way M03 Interface |
@@ -121,7 +121,7 @@ flowchart LR
     Core -->|admit / resolve / bind| M01[Delivery]
     M01 --> Source[private Package Source Interface]
     GitHub[Public GitHub Release Adapter] --> Source
-    Bundle[Plugin Bundle Adapter] --> Source
+    Alternate[Configured Alternate Source Adapter] --> Source
     M01 --> Store[private Local Package Store]
     M01 -->|fully admitted activation| Core
     Core -->|execute / inspect / cancel| M02[Runner]
@@ -136,7 +136,7 @@ flowchart LR
 
 ### Delivery (`execution.milestone.01`), deepened
 
-M01 hides selector parsing, exact/sticky lookup, GitHub/bundle acquisition, staging, Package validation, DSH compatibility checks, `READY` publication, alias update, resolved-value construction, Manifest content construction, and result-binding checks. Its main caller-facing operation is:
+M01 hides selector parsing, exact/sticky lookup, configured-Source acquisition, staging, Package validation, DSH compatibility checks, `READY` publication, alias update, resolved-value construction, Manifest content construction, and result-binding checks. Its main caller-facing operation is:
 
 ```text
 resolveWorkflowPackage(selector, configuredSource, runnerConfigurationTarget, refresh?)
@@ -166,9 +166,145 @@ Implementation facts retain typed test summary and one implementation summary pe
 
 For ordinary and Recheck summaries, owner input with a nonnegative observed count emits C17 exactly, including zero; absence of a count fact omits C17. Omission is the whole wire signal for no count fact. Invalid count type/range emits no malformed Observation. C17 remains prohibited on Finding shapes. C27 remains required only where the existing profile requires Recheck semantics. Assertion, target, status, Fix, and Recheck identities remain distinct; exact retry is a no-op and compatible later lifecycle facts append rather than rewrite the assertion. Every lifecycle record repeats the immutable assertion and exact typed target coordinates required by its selected shape.
 
+### Execution-level configuration, factory, and Bootstrap support
+
+Configuration, factories, and Bootstrap support the entire Execution System. They are not a fourth Module and do not belong to M01, M02, M03, or an Intake Adapter. `ExecutionBootstrap` is the sole production composition root. Every embedding, including the DSH Intake plugin, supplies one absolute configuration-file path to the same loader and uses only the public `ExecutionApplicationFactory`/application surface.
+
+The release coordinate for the host-neutral package is `@workflow-self-recursive/execution-system@0.1.0`; its public exports include the Core request/result contract, `ExecutionApplicationFactory`, Bootstrap, configuration schema/types, and the `start/execute/inspect/cancel/close/status` application surface. The first Intake distribution is `@workflow-self-recursive/dsh-intake@0.1.0` under `execution-system/packages/dsh-intake`; it depends on the public host-neutral package and must not import private M01/M02/M03 source paths.
+
+#### Scope and dependency graphs
+
+| Scope | Constructed values/resources | Prohibited dependency |
+| --- | --- | --- |
+| bootstrap preflight | strict config parser, schema/semantic validator, canonical serializer and redacted diagnostics | network, DSH Context, worktree mutation, Runner, Source or OTLP effect before validation succeeds |
+| installation | immutable config/environment, filesystem roots, current-slot/Manifest repository, Package Store, exactly one Source Adapter, concurrency controller, clock/ID services, disabled sink or OTLP exporter, M01 service and application lifecycle manager | no Delivery-bound Runner, Host, Provider, native DSH execution Context or Delivery-scoped M03 mapper |
+| Delivery | persisted Manifest/`DeliveryBinding`, admitted activation, exact Runner instance, owner-fact ingress, Delivery-scoped M03 mapper/context and Runner-owned Provider/Host resources | no instance before the persisted M01 binding; no Intake Context/service/session |
+| Intake presentation | command, Intake-only activation tool, skill provider/root, renderer and bounded Adapter-private correlation | no Source/Store/Runner/Provider orchestration and no capability projection into admitted Workflow or DSH-E |
+
+The factory creation DAG is:
+
+```text
+validated ExecutionInstallationConfig + ExecutionBootstrapDependencies
+→ filesystem/state repositories and concurrency controller
+→ exactly one WorkflowPackageSourceFactory selection + Package Store
+→ ObservationEmitterFactory (disabled sink creates zero client/socket/timer)
+→ DeliveryServiceFactory (M01) + RunnerDependenciesFactory definitions
+→ ExecutionApplicationFactory
+```
+
+The Delivery composition DAG is:
+
+```text
+M01 NEW admission
+→ resolve/validate/publish exact READY Package
+→ persist Manifest + DeliveryBinding/current-slot
+→ create Delivery-scoped M03 mapping context and connect owner-fact ingress
+→ create exact M02 Runner from persisted binding and production Runner dependencies
+→ wire M01/M02 owner facts to the non-controlling M03 port
+→ start Runner effect
+```
+
+No factory may create a Delivery-scoped M02/M03 instance or perform a Runner/Host/Provider/worktree effect before the persisted binding. The owner-fact ingress must be wired before the first related M02 effect. M03 mapping/export remains outside all M02 owner decisions.
+
+The installation lifecycle oracle is:
+
+```text
+load → parse → validate → canonicalize/deep-freeze
+→ construct installation resources
+→ enumerate every non-empty per-worktree slot
+→ for each slot, rebuild from its persisted exact binding and establish recovery disposition
+→ publish READY
+```
+
+Application state is the closed machine `CREATED → STARTING → RECOVERING → READY → CLOSING → CLOSED`. Only `READY` accepts a new `execute`. `inspect`, `status`, and bounded recovery presentation are available in `RECOVERING` and `READY`; `cancel` requires an exact known Delivery reference. Concurrent/repeated `start` or `close` is deterministic and idempotent; close during start first closes the intake gate, then rolls back created resources.
+
+Construction/start failure preserves the first bounded redacted diagnostic and disposes only resources actually created, in exact reverse creation order. Normal close orders: close Intake gate; stop accepting new Deliveries; persist/quiesce M01 holders and current slots without fabricating terminal truth; bounded-flush M03; close Runner manager and every Runner-owned DSH-E/Host/Provider resource; close exporter; close installation repositories. Timeout retains durable unknown/recovery truth. Abrupt death relies only on durable Manifest/current-slot and Runner-owned facts; restart never resolves a new selector or current configuration for an old Delivery.
+
+#### Canonical configuration and identities
+
+The input schema coordinate is `execution.config@1.0.0`, JSON Schema draft 2020-12. The release ships `config/defaults/execution.default.yaml` and `.json`; both express the same input value. `.yaml`/`.yml` select `yaml@2.9.0`; `.json` selects strict `JSON.parse`. There is no content sniffing, fallback parser, multi-file merge, environment override, or arbitrary key/value extension. YAML accepts only the JSON data model and rejects duplicate keys, anchors, aliases, custom tags, merge keys, non-string map keys, implicit timestamp/binary/special-number values, and non-finite numbers.
+
+After schema and semantic validation, defaults and derived paths are materialized into one JSON-compatible, recursively frozen `ExecutionInstallationConfig`. Canonical bytes are UTF-8 JSON with recursively lexicographically sorted object keys, array order preserved, no insignificant whitespace, and JSON string/number encoding; non-integer numeric fields are absent from this schema. Identities are lowercase `sha256:<64-hex>` over a coordinate prefix, one LF, and canonical bytes:
+
+```text
+installationConfigIdentity = sha256("execution.config@1.0.0\n" + canonicalConfig)
+deliveryConfigProjectionIdentity = sha256("execution.delivery-config@1.0.0\n" + canonicalProjection)
+deliveryBindingIdentity = sha256("agentops.delivery-binding@1.0.0\n" + canonicalBinding)
+```
+
+`DeliveryConfigProjection` contains only canonical worktree/resource paths relative to the admitted scope; Runner implementation/config, Host engine; Provider key/route, model ID, base URL and credential reference (never material); workspace/resource bindings; and Delivery-affecting execution/control bounds. It excludes installation identity, selector, Source configuration, Package, Store location, raw configuration, credential-store location/content, Intake presentation, and all Observation configuration. M01 builds `DeliveryBinding` by adding exact Package identity/content, canonical worktree, task/intent, Delivery ID and task ID to this projection. Recovery accepts only the persisted binding and ignores current config, alias and selector movement.
+
+| Exact input key | Type/default policy | Consumer and binding/reload rule |
+| --- | --- | --- |
+| `schemaVersion` | const `execution.config@1.0.0` | loader only; canonical identity |
+| `paths.repositoryRoot` | required absolute canonical path | worktree derivation; projection |
+| `paths.workspaceRoot` | required absolute canonical path | allowed scope; projection |
+| `paths.allowedWorktreeRoots` | required non-empty unique absolute-path array | admission; projection |
+| `paths.stateRoot` | required absolute writable path outside Package content | derives `manifests/`, `current-slots/`, `runner/`; installation only except admitted relative resource projection |
+| `paths.packageStoreRoot` | omitted input; derived as `<stateRoot>/packages` | Store only; never binding |
+| `paths.credentialStorePath` | required absolute readable file path | credential lease provider; location excluded from Manifest |
+| `workflowSource.kind` | closed `github` (default) or `adapter` | exact-key Source factory; bootstrap-only |
+| `workflowSource.repository` | GitHub default `firestige/workflow-package`; forbidden for `adapter` | GitHub Adapter only; never request/binding |
+| `workflowSource.releasesBaseUrl` | default `https://api.github.com/repos/firestige/workflow-package/releases`; HTTPS, no userinfo | GitHub Adapter only |
+| `workflowSource.assetPattern` | default `workflow-package-{name}-{version}.tar.gz` | GitHub Adapter only |
+| `workflowSource.adapterKey` | required exact key for `adapter`; forbidden for `github` | alternate factory selection |
+| `workflowSource.adapterConfigFile` | required absolute path for `adapter`; forbidden for `github` | selected Adapter's closed config loader |
+| `runner.implementationKey` | const/default `runner.v1` | projection; no runtime selection |
+| `runner.host.engine` | const/default `langgraph` | Runner factory; projection |
+| `runner.provider.key` | const/default `dsh` | Provider factory; projection |
+| `runner.provider.route` | required non-empty external route | admitted Driver projection |
+| `runner.provider.modelId` | required non-empty external model ID | admitted model binding; projection |
+| `runner.provider.baseUrl` | required absolute HTTP(S) URL without userinfo | admitted Driver binding; projection |
+| `runner.provider.credentialRef` | required bounded reference string | admitted lease reference; projection; material excluded |
+| `runner.provider.maxParallelToolCalls` | integer `1..32`, default `4` | Runner factory; projection |
+| `observation.enabled` | boolean, default `false` | emitter factory; installation reload only |
+| `observation.endpoint` | required loopback HTTP(S) base only when enabled; omitted when disabled | exporter only; excluded from binding |
+| `observation.timeoutMs` | integer `100..10000`, default `1000` | exporter only |
+| `observation.maxBatchRecords` | integer `1..512`, default `512` | exporter only |
+| `observation.maxBatchBytes` | integer `1024..4194304`, default `4194304` | exporter only |
+| `observation.flushIntervalMs` | integer `100..10000`, default `1000` | exporter only |
+| `observation.shutdownFlushMs` | integer `100..10000`, default `3000` | bootstrap close only |
+| `observation.serviceName` | default `workflow-self-recursive-execution` | fixed Resource identity; excluded from binding |
+| `controls.startupTimeoutMs` | integer `1000..120000`, default `30000` | bootstrap only |
+| `controls.executionTimeoutMs` | integer `1000..86400000`, default `3600000` | Core/Runner; projection |
+| `controls.shutdownTimeoutMs` | integer `1000..120000`, default `10000` | bootstrap only |
+| `controls.maxConcurrentDeliveries` | integer `1..32`, default `4` | installation concurrency; new Delivery only |
+| `controls.allowExplicitRefresh` | boolean, default `false` | Core/M01 request gate; projection |
+| `controls.diagnosticMaxBytes` | integer `256..16384`, default `4096` | redacted diagnostics only |
+| `intake.maxCorrelationBytes` | integer `16..1024`, default `256` | Intake contract; excluded from binding |
+| `intake.maxOutputBytes` | integer `256..65536`, default `8192` | Adapter renderer; excluded from binding |
+
+The only required user inputs in the shipped defaults are the four deployment path values, Provider route/model/base URL/credential reference, and the external credential provision. Product-owned source, Host/Provider kinds, Observation-disabled policy and all control bounds are complete defaults. Unreplaced markers use the exact JSON string form `__REQUIRED__:<field-path>` and fail as `CONFIG_REQUIRED_INPUT_MISSING` before any effect. `validate` and `dump-effective-config` redact credential references to their stable classification and never read or print API-key material.
+
+#### Observation dependencies and release ownership
+
+M03 pins official OpenTelemetry Node packages `@opentelemetry/api@1.9.1`, `@opentelemetry/sdk-trace-base@2.10.0`, `@opentelemetry/sdk-logs@0.221.0`, `@opentelemetry/exporter-trace-otlp-proto@0.221.0`, and `@opentelemetry/exporter-logs-otlp-proto@0.221.0`. Export timeout is `observation.timeoutMs`; homogeneous batches obey both 512 logical records and 4 MiB; shutdown performs one bounded flush within `shutdownFlushMs`. Disabled mode constructs no SDK provider, exporter, client, socket, worker, or timer. The frozen `agentops.observation@1.0.0` publication remains `VALIDATOR_ONLY`; producer-role validation of the production corpus is Iteration 3 evidence, not a change to that claim.
+
+Execution Release owns only the host-neutral package, configuration schema/defaults, and DSH Intake plugin artifact. The independent Workflow Package GitHub release owns `workflow-package-implementation-1.1.0.tar.gz` and `workflow-package-system-design-1.1.0.tar.gz` plus descriptor/SHA-256 files. The GitHub Adapter discovers exactly `workflow-package-{name}-{version}.tar.gz`; `latest` is resolved to an exact tag/version before binding. Alternate Source qualification uses a contributed conforming fixture and never mirrors the two initial Packages.
+
+#### DSH Intake distribution and instance boundary
+
+The exact first-release values are:
+
+| Item | Value |
+| --- | --- |
+| recommended profile | `workflow-execution` |
+| install/update/remove | `dsh plugin --profile workflow-execution add|update|remove @workflow-self-recursive/dsh-intake@0.1.0` |
+| package bundle declaration | `dsh.bundle.patch = "./cordis.patch.yml"` |
+| stable Cordis row ID/name | `workflow-execution` / `@workflow-self-recursive/dsh-intake` |
+| profile override | row `workflow-execution`, complete config `{ configFile: <absolute path> }` |
+| direct command | `dsh --profile workflow-execution workflow execute --worktree <absolute> --selector <name[@version]> --intent <text>` |
+| status/result | `workflow status --worktree <absolute>` / `workflow result --worktree <absolute>` |
+| Intake-only tool | `workflow_execution_activate` with closed `{ worktree, selector, intent, correlation? }` schema |
+| first-party skill | package path `skills/workflow-execution/SKILL.md`, name `/workflow-execution`; explicit invocation only in the first release |
+
+The bundle registers the package skill root with locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2`; `@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` loads its instruction. The instruction collects missing arguments and invokes `workflow_execution_activate` exactly once. It imports no executable code and does not call Core/M01/Runner directly. The command Adapter and tool Adapter call one plugin-owned `WorkflowActivationService`, producing meaning-equivalent `ExecutionRequest` bytes; only bounded presentation correlation may differ. Startup never activates a Workflow.
+
+`DSH-I` is the Cordis `Context` supplied to the Intake plugin. `DSH-E` is the distinct `new Context()` owned by the existing DSH Provider Adapter for a bound Runner Delivery. They share no object identity, registry, session namespace, persistence root, capability catalog, or credential material. Cordis `isolate` changes a service realm within one Context and is not accepted as instance isolation. `DSH-I → Execution lifecycle manager → Runner/DSH-E` is the ownership chain; plugin close cascades through the application close sequence. Non-empty current-slot makes plugin removal fail closed until terminal handling or exact authorized abandonment.
+
 ### Private seams
 
-- The **Package Source Interface** is real because GitHub and bundle are two Adapters. It accepts an exact or latest candidate request and returns candidate bytes plus ordinary version/digest metadata, or a typed not-found/fetch failure. It does not construct resolved values or Manifests.
+- The **Package Source Interface** is real because the closed installation union selects GitHub or one alternate Adapter. It accepts an exact or latest candidate request and returns candidate bytes plus ordinary version/digest metadata, or a typed not-found/fetch failure. It does not construct resolved values or Manifests, and request data cannot select or override it.
 - The **Local Package Store** is private M01 state. Lookup exposes only `MISSING` or `READY`; `STAGING` is never addressable. The implementation may use a temporary directory and rename to publish a complete Package, but the System Design does not require a transaction manager or concurrent-writer protocol.
 - The **Core-to-Runner Interface** accepts the fully admitted immutable activation projected from the persisted exact Manifest binding. Runner implements exactly `execute`, `inspect`, and `cancel`; no native Host, Provider, resume, checkpoint or retirement type crosses Core.
 
@@ -223,21 +359,21 @@ Every selector, source, Package, version, digest, cache, and DSH compatibility b
 
 M01 parses the selector and asks Store first. `name@exactVersion` resolves only the matching `READY` Package. Bare `name` and `name@latest` use the local sticky alias when it points to `READY`. Unless the caller explicitly requests refresh, M01 makes zero Source call. The returned exact fields are copied into the Manifest, so later alias movement affects only later calls.
 
-### Public GitHub miss or explicit refresh
+### Configured GitHub miss or explicit refresh
 
-On `MISSING`, or explicit refresh of latest, M01 asks only the configured public GitHub Adapter. Exact selection requests that exact Release; latest selection requests the source's latest Release. The Adapter selects one versioned Package asset and stages it privately. M01 validates before Store publication. For latest, Store updates the alias only after the exact Package is `READY`. Failure returns a typed error and leaves any previous `READY` Package/alias usable.
+On `MISSING`, or explicit refresh of latest, M01 asks only the installation-selected Source Adapter. For the default public GitHub Adapter, exact selection requests that exact Release and latest selection requests the repository's latest compatible Release. The Adapter selects one versioned Package asset and stages it privately. M01 validates before Store publication. For latest, Store updates the alias only after the exact Package is `READY`. Failure returns a typed error and leaves any previous `READY` Package/alias usable.
 
-### Explicit plugin bundle
+### Configured alternate Source
 
-A bundle is used only when the caller/configuration explicitly selects it. The bundle Adapter supplies the same generic candidate shape as GitHub; M01 runs the same validation, Store publication, resolved-value, and Manifest path. Bundle is not a fallback when GitHub fails.
+An alternate Adapter is constructed only when `workflowSource.kind` is `adapter`. It supplies the same generic candidate shape as GitHub; M01 runs the same validation, Store publication, resolved-value, and Manifest path. The request cannot select it, and it is not a fallback when GitHub fails. Qualification uses a contributed conforming Package rather than a copy of either initial GitHub-owned Package.
 
 ### Invalid selector
 
 After `NEW`, unsupported or ambiguous selector syntax returns `INVALID_WORKFLOW_SELECTOR` before Source or Store mutation. Core releases the ordinary holder; no Manifest, Delivery, Runtime/Session/worktree effect, or Observation exists.
 
-### GitHub unavailable or Package not found
+### Configured Source unavailable or Package not found
 
-A required remote lookup that cannot reach/download returns `WORKFLOW_FETCH_FAILED`. A missing requested Release/asset returns `WORKFLOW_NOT_FOUND`. Neither calls the bundle Adapter or tries another version. Core releases the ordinary `NEW` holder; no Manifest or Delivery exists.
+A required remote lookup that cannot reach/download returns `WORKFLOW_FETCH_FAILED`. A missing requested version/asset returns `WORKFLOW_NOT_FOUND`. Neither calls another Source Adapter nor tries another version. Core releases the ordinary `NEW` holder; no Manifest or Delivery exists.
 
 ### Invalid or incomplete Package
 
@@ -261,7 +397,7 @@ M01 attempts the existing per-worktree exclusive admission before request-specif
 
 ### Occupied-slot recovery
 
-If admission finds an existing current Manifest, M01 returns recovery for that stored Delivery. Core ignores the new selector/task and does not call M01, Source, or Store. It follows the existing DSH inspection/result/authorized-abandonment rules and never starts, resumes, or replaces the stored DSH Delivery.
+If admission finds an existing current Manifest, M01 returns recovery for that stored Delivery. Core ignores the new selector/task and performs no selector, Source, Store, or new-binding work. Bootstrap or the occupied request reconstructs the exact admitted activation from the persisted Manifest/binding and uses only the existing Runner `execute`/`inspect` seam; Runner privately selects `continue`, `restart-from-savepoint`, or `intervene` from durable Host/Invocation/Custody facts. It never rebinds, creates a fresh native-session fallback, blindly repeats an Action/tool effect, or exposes a public DSH resume operation.
 
 ### Manifest creation or persistence failure
 
@@ -290,13 +426,15 @@ WorkflowSelector
 
 `ResolvedWorkflowPackage` contains `name`, `exactVersion`, `packageDigest`, `localPath`, and `workflowId`. The local path identifies the validated `READY` materialization for this installation; version and digest provide the stable content check used by Manifest construction and DSH activation. Source metadata may be retained as bounded diagnostics/provenance, but it is not an authorization identity or capability.
 
-The Manifest binds exactly one Delivery/task relationship, the resolved exact Package fields, logical Workflow/implementation, Runtime/version/configuration, intent reference, and bounded source context. It excludes mutable aliases, raw Package/Prompt/message/tool/source/credential bodies, Runtime checkpoints, Evidence receipts, and native custody/Session identifiers. Physical fields remain downstream representation work.
+The Manifest binds exactly one Delivery/task relationship, canonical worktree/task/intent, the resolved exact Package fields, logical Workflow/implementation, and the complete non-secret `DeliveryConfigProjection`. It persists both projection and `DeliveryBinding` identities. It excludes installation identity, mutable aliases, Source/Store and Observation configuration, raw installation configuration, credential-store location/content and API-key material, Package/Prompt/message/tool/source bodies, Runtime checkpoints, Evidence receipts, and native custody/Session identifiers.
 
 ### Authoritative state
 
 | State | Unique writer | Readers | Rule |
 | --- | --- | --- | --- |
-| selector/configured source | Host/Intake | Core/M01 | generic input; source is trusted configuration |
+| selector/task/intent/correlation | Host/Intake | Core/M01 | generic request; no Source/Runner/Observation/path override |
+| canonical installation config and Source selection | Bootstrap | factories/Core/M01/M02/M03 | one immutable application value; exactly one Source Adapter |
+| Delivery configuration projection | Bootstrap/M01 projection | Manifest, M02 factory | immutable non-secret config-only binding input |
 | Store `STAGING`/`READY` and sticky alias | M01 through Store | M01; DSH materializer reads exact `READY` path | staging is private; alias points only to ready exact Package; no automatic eviction |
 | resolved exact Package value | M01 | Core/M01/Runner | immutable value for one call; never re-resolved during Manifest/activation |
 | canonical exclusivity/current slot | M01 Delivery | Core/M01 | admission precedes request-specific Package work; `CONTENDED`/`RECOVERY` do no new Package work; one current Delivery |
@@ -348,15 +486,15 @@ stateDiagram-v2
 
 | Interface meaning | Caller-visible input | Result/error | Ordering/configuration |
 | --- | --- | --- | --- |
-| External Core operation | worktree, selector, task intent, configured source or explicit bundle, Runner configuration context, optional refresh | final Delivery outcome, `CONTENDED`, exact recovery, or typed pre-Delivery error | one host call; no native fields; M01 admission first |
+| External Core operation | worktree, selector, task intent, optional permitted refresh and bounded intake correlation | final Delivery outcome, `CONTENDED`, exact recovery, or typed pre-Delivery error | one host-neutral call; no native/config/Source fields; M01 admission first |
 | M01 admit | canonicalizable worktree | `NEW` holder, `CONTENDED`, exact `RECOVERY`, or custody/identity error | first Delivery phase; immediate; non-`NEW` performs no Package work or Runner execution call |
-| M01 resolve/prepare | `NEW` holder context, selector, configured source, current Runner compatibility target, refresh flag | `ResolvedWorkflowPackage` or phase-typed Package error | local-first; at most one Source Adapter; no fallback |
+| M01 resolve/prepare | `NEW` holder context, selector, factory-bound exact Source/Runner compatibility target, permitted refresh flag | `ResolvedWorkflowPackage` or phase-typed Package error | local-first; exactly one constructed Source Adapter; no request override/fallback |
 | M01 bind/persist | resolved Package plus complete Delivery/task/worktree/Runner/intent context | immutable Manifest and admitted activation, or `DELIVERY_BINDING_FAILED` / `DELIVERY_CREATE_FAILED` | no Runner submodule effect before persisted exact binding |
 | M02 execute/inspect/cancel | fully admitted activation or exact Delivery reference | bounded Runner terminal/start-failed/unknown result or typed seam error | no Source/Store/current-slot ownership; native state remains private |
 | M01 validate/finalize | exact Manifest plus bounded Runner result | final lifecycle outcome/error | close or retain slot from known truth |
 | M03 observe | bounded post-Delivery facts | local diagnostics only | existing profile/privacy; no control effect |
 
-The Source Interface accepts one candidate request. The public GitHub Adapter obtains Release metadata and one versioned asset; the bundle Adapter reads one explicitly selected bundled Package. Source-native fields remain private. Not-found and ordinary transport failures are distinct typed results.
+The Source Interface accepts one candidate request. The public GitHub Adapter obtains Release metadata and one versioned asset; an explicitly configured alternate Adapter returns the same candidate shape. Source-native fields remain private. Not-found and ordinary transport failures are distinct typed results. A request has no Source field.
 
 The Store implementation performs lookup, private candidate staging, complete publication, exact conflict detection, and sticky-alias update after the new exact Package is `READY`. Initial failure leaves `MISSING`; refresh failure preserves the prior `READY` Package and alias. A local filesystem implementation may stage in a sibling temporary directory and rename into the final exact path. That is an implementation technique for avoiding partial hits, not a production transaction protocol. No caller sees Store choreography.
 
@@ -369,7 +507,7 @@ Runner accepts only the fully admitted immutable activation derived from the per
 | --- | --- |
 | selector | after M01 `NEW`, `INVALID_WORKFLOW_SELECTOR` before Source/Store mutation; release holder; no Manifest/Delivery/Runner/Observation |
 | local lookup | `STAGING` is ignored; invalid `READY` metadata is `WORKFLOW_PACKAGE_INVALID` |
-| GitHub/bundle source | not found is `WORKFLOW_NOT_FOUND`; unavailable/interrupted transfer is `WORKFLOW_FETCH_FAILED`; no fallback |
+| configured Source | not found is `WORKFLOW_NOT_FOUND`; unavailable/interrupted transfer is `WORKFLOW_FETCH_FAILED`; no fallback |
 | Package validation | format/required-resource/relationship/identity failure is `WORKFLOW_PACKAGE_INVALID` |
 | version/digest | explicit mismatch codes; do not publish `READY` |
 | DSH compatibility | after `NEW`, `WORKFLOW_DSH_INCOMPATIBLE`; release holder before Manifest/Delivery/native effect/Observation |
@@ -420,7 +558,7 @@ Concurrency scalability, adversarial security, authentication/authorization, pro
 
 | Scenario | Mechanism | Expected outcome | Verification state |
 | --- | --- | --- | --- |
-| generic intake (`execution.scenario.00`) | one generic Core operation | no host/DSH/source-native field crosses Core | implementation type scan planned |
+| generic intake (`execution.scenario.00`) | one generic Core operation bound to immutable application config | no host/DSH/source-native/config override field crosses Core | implementation type scan planned |
 | exact local hit (`execution.scenario.01`) | Store lookup before Source | exact resolved value; zero Source call | Interface fixture planned |
 | exact miss (`execution.scenario.02`) | one configured GitHub Release asset | validated exact Package becomes `READY` | Source/Store fixture planned |
 | sticky latest (`execution.scenario.03`) | alias points to `READY` exact Package | zero Source call on hit; no active drift | alias fixture planned |
@@ -428,7 +566,7 @@ Concurrency scalability, adversarial security, authentication/authorization, pro
 | contribution (`execution.scenario.05`) | shared composition/DSH validation | conforming third-party Package uses same path | production conformance planned |
 | invalid/incompatible (`execution.scenario.06`) | M01 `NEW`, then ordinary Package validation and typed error | release ordinary holder; no Manifest, Delivery, DSH/Runtime/worktree effect, or Observation; non-`NEW` performs no M01/Source/Store work | admission/M01/Source/Store spy and negative matrix planned |
 | preparation/Manifest failure (`execution.scenario.07`) | early return before/at Manifest persistence | no Delivery outcome or Observation | Core/M01 negative fixtures planned |
-| explicit bundle (`execution.scenario.08`) | second private Source Adapter | same validation/resolution path; no fallback | paired Adapter evidence exists; production fixture planned |
+| configured alternate Source (`execution.scenario.08`) | alternate variant of the exact-key Source factory | same validation/resolution path; request cannot select it; no fallback | paired Adapter evidence exists; production fixture planned |
 | evolution (`execution.scenario.09`) | exact fields copied into Manifest | later alias/Release affects later Delivery only | movement fixture planned |
 | no ambient (`execution.scenario.10`) | Adapter-first exact local validation | missing resource rejects before native effect | production no-default negatives planned |
 | host portability (`execution.scenario.11`) | generic Core, private Adapters | no native type/public resume | type/contrast fixture planned |
@@ -445,11 +583,11 @@ The sparse numbering preserves the migrated identity of the two active Workflow-
 | ID | Evidence meaning | Current state |
 | --- | --- | --- |
 | `execution.fixture.001` | protected first-party Package projection through the exact admitted Runner/DSH path with no ambient completion | representative design evidence; production negative qualification remains planned |
-| `execution.fixture.004` | protected, contributed, and explicit-bundle Packages use the same Package Source and validation path | paired-Adapter feasibility evidence available; production contribution fixture remains planned |
+| `execution.fixture.004` | protected GitHub-hosted and contributed alternate-Source Packages use the same Source seam and validation path | paired-Adapter feasibility evidence available; production contribution fixture remains planned |
 
 ### Implementation acceptance plan
 
-Tests cross the M01 Delivery interface and M02 Core-to-Runner interface and assert observable results. Required coverage is the named local-hit/miss/bundle/validation/cache/contention/Manifest/DSH/result/Observation branches above. Tests do not prescribe private directory names, helper functions, lock primitives, or GitHub client library. This revision adds no Spike and no production security, concurrency schedule, response-loss, power-loss, transaction, hold, eviction, or HA matrix.
+Tests cross the host-neutral Core, M01 Delivery, M02 Core-to-Runner, M03 owner-fact, configuration, factory, Bootstrap and Intake Adapter interfaces and assert observable results. Required coverage is the named local-hit/miss/configured-alternate/validation/cache/contention/Manifest/DSH/result/Observation/lifecycle branches above. Tests do not prescribe private helper functions, lock primitives, or GitHub client library. This revision adds no production security, concurrent Store schedule, distributed transaction, eviction, or HA matrix.
 
 ### Preserved existing Execution acceptance
 
@@ -477,7 +615,7 @@ For the three MVP Evaluation/BI owner facts, Execution's boundary is exact: the 
 | --- | --- |
 | `execution.decision.001` | Keep M01 deep across selector, Source/Store, validation, resolved Package, Manifest construction, and result validation; do not add a fourth Module. |
 | `execution.decision.002` | M01 performs canonical worktree/exclusive admission first. `CONTENDED` and `RECOVERY` do no new-selector Package work; only M01 `NEW` performs request-specific Package work. M01 still completes preparation before Manifest persistence creates the current Delivery binding. |
-| `execution.decision.003` | GitHub and bundle are private Adapters at one Package Source seam. Source selection is trusted configuration, not an authority/capability protocol. |
+| `execution.decision.003` | One canonical installation config selects exactly one private Adapter at the Package Source seam: default GitHub or one exact-key alternate. Requests cannot select/override it; no fallback exists. |
 | `execution.decision.004` | Composition and selected DSH compatibility remain ordinary validation steps returning typed errors; no persisted proof identities exist. |
 | `execution.decision.005` | M01 returns a plain immutable `ResolvedWorkflowPackage` and never an opaque Prepared Binding, hold, or caller-managed capability. |
 | `execution.decision.006` | Pre-Delivery failures use phase-typed early return and ordinary holder/staging cleanup; they do not form a transaction, Delivery outcome, or Observation. |
@@ -485,10 +623,14 @@ For the three MVP Evaluation/BI owner facts, Execution's boundary is exact: the 
 | `execution.decision.008` | Store lookup exposes `MISSING`/`READY`; `STAGING` is private and non-addressable; latest alias changes only after exact `READY`; no automatic eviction. |
 | `execution.decision.009` | The preview adds no pre-Manifest lifecycle. Existing current-slot authority starts with persisted Manifest and preserves existing DSH uncertainty/recovery after that point. |
 | `execution.decision.010` | No authentication, authorization, signing, injection defense, sandbox, concurrent Store protocol, distributed lock, HA, failover, or production recovery mechanism is designed until a stated trust/exposure/scale trigger changes. |
+| `execution.decision.011` | Configuration/factories/Bootstrap are Execution-level support, not a Module. Bootstrap is the only production assembly root and obeys the frozen installation/Delivery DAG and reverse-disposal order. |
+| `execution.decision.012` | `installationConfigIdentity`, config-only `DeliveryConfigProjection` identity, and Package-dependent `DeliveryBinding` identity are distinct. Restart recovery uses only the persisted binding. |
+| `execution.decision.013` | The public Core contract is host-neutral. DSH Intake is one replaceable Adapter distribution; `DSH-I` and Runner-owned `DSH-E` are distinct Contexts under one cascade lifecycle. |
+| `execution.decision.014` | Initial Workflow Package assets remain exclusively owned by the independent Workflow Package GitHub release; Execution and DSH Intake artifacts contain no Package content. |
 
 Existing Execution decisions remain in force: three deep Modules; Runner-owned Workflow outcome behind the Core-owned Runner seam; one-current-slot lifecycle with no Execution history; standard-first allow-listed best-effort Observation; canonical worktree revalidation; conclusive handling of persisted Runner uncertainty; and the adopted Observation semantics encoded by the frozen and published Profile `1.0.0`. This revision adds only the explicit C55–C57 owner mapping and changes no Runner, Evidence, or execution semantics.
 
-Rejected for this preview: Host-owned Package import; Package import inside M02/DSH; a fourth Module; first-party Package allow-list; mutable alias in Manifest; automatic GitHub-to-bundle fallback; source/version fallback; ambient completion; opaque Prepared Binding; proof/capability identity; Package hold/reference-count/liveness transfer; commit-resolution state machine; concurrent cache correctness; automated eviction; authentication/authorization/security platform; registry/marketplace; HA/failover; DSH-native Core types; runner change.
+Rejected for this preview: Host-owned Package import; Package import inside M02/DSH; a fourth Module; first-party Package allow-list; mutable alias in Manifest; request-selected Source; automatic GitHub-to-alternate fallback; source/version fallback; ambient completion; embedded initial Package content; parallel plugin composition; opaque Prepared Binding; proof/capability identity; Package hold/reference-count/liveness transfer; commit-resolution state machine; concurrent cache correctness; automated eviction; authentication/authorization/security platform; registry/marketplace; HA/failover; shared DSH Intake/Execution Context; public DSH resume; DSH-native Core types; runner change.
 
 ### Execution open-work register
 
@@ -507,7 +649,7 @@ The Concept obligation register remains the owner-complete authority. The Execut
 | --- | --- | --- |
 | `concept.obligation.010` | represent exact resolved Package/Manifest fields and typed errors without adding proof/transaction semantics | physical form enables re-resolution, ambient completion, native leakage, or pre-Delivery outcome |
 | `concept.obligation.011` | implement Core/M01/M02/M03 collaboration and named early-return branches | bypass, drift, wait/queue, new lifecycle/Module, Observation control, or runner change |
-| `concept.obligation.012` | choose/publish the public repository Release asset and explicit bundle descriptors | mutable/ambiguous/incomplete asset, allow-list, rewrite, bypass, or fallback |
+| `concept.obligation.012` | publish independent Workflow Package GitHub assets plus Execution/Core and DSH Intake release descriptors | mutable/ambiguous/incomplete asset, embedded Package content, allow-list, rewrite, bypass, or fallback |
 | `concept.obligation.013` | implement `MISSING/STAGING/READY` Store and sticky alias-after-ready | partial hit, prior-ready loss, or a real requirement for concurrent writers/eviction |
 | `concept.obligation.014` | qualify complete protected/contributed Package projection through DSH without ambient completion | rewrite, post-effect rejection, missing capability, or native leak |
 | `concept.obligation.015` | choose ordinary fetch/cache resource settings within current simple semantics | measurements or context require different ownership/Interface/security/reliability semantics |
@@ -522,6 +664,7 @@ Recommended detailed-design order is:
 1. **Delivery (M01)**, owning `CONTENDED/RECOVERY/NEW` admission, selector/Source/Store work, Manifest/current-slot persistence, Delivery recovery/finalization, and admitted-activation projection.
 2. **Runner (M02)**, consuming that activation through Interpreter, Coordinator, Host, Invocation, and Custody; the DSH Provider proof must demonstrate no ambient completion.
 3. **Delivery Observation (M03)**, mapping bounded facts without controlling M01 or M02.
+4. **Execution-level support**, implementing the already-frozen configuration, factory, Bootstrap, replaceable Intake and release composition without becoming a fourth Module.
 
 Module Detailed Design must explain executable control and data flow, not restate these decisions as a checklist. The M01 Interface is the primary import test surface; Source/Store test Adapters remain private. Implementation should prefer a temporary staging directory plus complete publish/rename, simple typed results, and ordinary cleanup. It must not add caller choreography, a Prepared handle, proof store, reference count, transaction manager, background reconciler, concurrent-writer schedule, credential flow, security scanner, automatic eviction, fallback, or ambient Package lookup.
 
@@ -531,11 +674,12 @@ Return for a new System Design version only if evidence requires a new Module or
 
 - [x] The trusted local/public-GitHub/individual-or-small-team preview context and explicit reopen triggers shape the design.
 - [x] The three existing Modules remain, with implementable responsibilities, small Interfaces, private seams, and acyclic dependencies.
-- [x] The successful flow is branch-free and all required local-hit/miss/bundle/validation/cache/contention/Manifest/DSH branches are named with typed outcomes.
+- [x] The successful flow is branch-free and all required local-hit/miss/configured-alternate/validation/cache/contention/Manifest/DSH branches are named with typed outcomes.
 - [x] `ResolvedWorkflowPackage` and `MISSING/STAGING/READY` replace the former proof/Prepared-hold/transaction machinery.
 - [x] M01 admission precedes Package work; only `NEW` prepares; M01 persists the Manifest and projects activation before any Runner submodule effect; pre-Delivery failure creates no Delivery outcome or Observation.
 - [x] Exact/local-first/sticky-latest/no-fallback/no-ambient/open-contribution/DSH-first semantics remain.
 - [x] Existing current-slot recovery, M03 Observation, Evidence relationship, protected Packages, and runner semantics remain unchanged.
+- [x] One canonical configuration, distinct three-layer identities, installation/Delivery factory DAGs, Bootstrap state machine, multi-slot recovery, reverse shutdown, release ownership, exact DSH Intake values and `DSH-I`/`DSH-E` isolation are frozen without adding a fourth Module.
 - [x] Acceptance is Interface-oriented and does not demand Spike, production security, concurrency schedule, transaction, response-loss, power-loss, eviction, or HA evidence.
 
 Publication remains governed by the external exact-byte publication record and the Concept-owned obligation register. These candidate bytes contain no Workflow routing authority.

@@ -49,17 +49,17 @@ Runner 就是 M02。M01 完成 worktree admission、Package resolution、current
 
 workflow-self-recursive 通过小型、host-neutral 的 execution seam 运行有价值的 logical Workflow，并可选发出 factual Observation。Execution 嵌入每个 repository/workspace。Runner 是 Execution module M02。它私有组合可替换 Workflow Host 与 configured Provider Adapter；当前 Host substrate 是 LangGraph，唯一 concrete Provider 是 DSH。native session、checkpoint 与 private resume 留在 Runner 内，不改变 Core 语义。
 
-首个分发包含受保护的 Implementation 与 System Design Workflow Package。贡献者可以发布其他符合开放 Agent Ops Workflow composition model 的 Package。GitHub 是第一个 remote host，plugin 可以 bundle 两个初始 Package。GitHub 与 bundle 是一个 Package Source seam 上的 private Adapter。
+受保护的 Implementation 与 System Design Workflow Package 由 configured public Workflow Package GitHub repository/release 独立托管。贡献者可以发布其他符合开放 Agent Ops Workflow composition model 的 Package。Installation 恰好选择一个 private Source Adapter：默认 GitHub Adapter，或一个显式配置的 alternate Adapter。Execution Release 与 DSH Intake plugin 永不 bundle 任一 initial Package。
 
 这是面向个人或小团队的 trusted local preview。Configured GitHub repository 是 public，用户控制 installation configuration，concurrent Package management 不是产品需求。设计通过 validation 与 typed early return 处理 ordinary fault；不建设 authentication、authorization、signing、hostile-Package 或 prompt-injection defense、sandboxing、multi-user coordination、distributed locking、Package transaction、production recovery、HA、mirror failover 或 automatic eviction。
 
 Actor 与 ownership：
 
-- **Host or Intake** 将 host/chat syntax 转换为 generic Workflow selector、task intent、worktree reference、configured source 与 current Runner configuration context。
+- **Host or Intake** 将 host/chat syntax 转换为 generic Workflow selector、task intent、worktree reference、可选且获准的 refresh 与 bounded intake correlation；不得选择 Source、Runner、Provider、Observation 或 path。
 - **Execution Core** 按顺序执行 canonical worktree/exclusive admission、仅针对 `NEW` 的 Package preparation、Manifest creation/persistence、Runtime lifecycle、result validation 与 Observation。
 - **Delivery（M01）** 拥有 selector/Package resolution、Source/Store、canonical-worktree admission、current-slot/Manifest persistence、Delivery recovery/final handling，以及 fully admitted Runner activation 的投影。
 - **Runner（M02）** 拥有 admitted activation 的执行；Interpreter 编译，Coordinator、Host、Invocation 与 Custody 拥有 private execution state/effect。
-- **GitHub 与 plugin-bundle Adapter** 获取显式选择的 Package 内容。
+- **GitHub 或 alternate Source Adapter** 由 canonical installation configuration 选择一次，并返回相同 generic candidate shape；恰好构造一个，且不存在 fallback。
 - **Evidence** 接收可选、单向 Observation，绝不控制 Execution。
 
 <a id="ee-execution-3"></a>
@@ -75,11 +75,11 @@ WorkflowSelector
 → Runner（M02）：admitted activation execution
 ```
 
-成功调用先获得 `NEW` admission，再解析一个 exact local Package，在任何 Runner Workflow/Host/Provider effect 前创建并持久化 Delivery Manifest、project fully admitted activation，并依据该 Manifest 校验 Runner result。`CONTENDED` 与 `RECOVERY` 在 Package work 前返回。对 `NEW`，有效 local hit 不访问 GitHub；miss 从 configured public GitHub repository 下载，或接收显式选择的 bundle，在 publish `READY` 前完成校验，且从不 fallback 到其他 source/version。Selector、fetch、Package、cache、compatibility、contention 或 Manifest error 都在所属 phase 返回。Package preparation failure 释放 ordinary holder，不创建 Delivery，也不是 Delivery outcome。
+成功调用先获得 `NEW` admission，再解析一个 exact local Package，在任何 Runner Workflow/Host/Provider effect 前创建并持久化 Delivery Manifest、project fully admitted activation，并依据该 Manifest 校验 Runner result。`CONTENDED` 与 `RECOVERY` 在 Package work 前返回。对 `NEW`，有效 local hit 不访问 configured Source；miss 只调用 installation-selected GitHub 或 alternate Adapter，在 publish `READY` 前完成校验，且从不 fallback 到其他 source/version。Selector、fetch、Package、cache、compatibility、contention 或 Manifest error 都在所属 phase 返回。Package preparation failure 释放 ordinary holder，不创建 Delivery，也不是 Delivery outcome。
 
-范围内包括 generic Intake、exact/sticky-latest selector、local hit、public GitHub miss/refresh、explicit bundle input、contributed conforming Package、`MISSING/STAGING/READY` storage、普通 format/required-resource/relationship/version/digest check、DSH compatibility check、immutable Manifest binding、existing current-slot recovery、DSH result validation 与 unchanged Observation。
+范围内包括 host-neutral Core entry、replaceable Intake、exact/sticky-latest selector、local hit、configured public GitHub miss/refresh、一个显式配置的 alternate Source Adapter、contributed conforming Package、`MISSING/STAGING/READY` storage、普通 format/required-resource/relationship/version/digest check、DSH compatibility check、immutable Manifest binding、multi-worktree current-slot recovery、DSH result validation、production Observation、canonical installation configuration、factory、Bootstrap 与 bounded lifecycle management。
 
-范围外包括 Package ranking/fallback、ambient completion、authentication/authorization/RBAC、public source credential、signing、hostile input isolation、injection defense、sandboxing、concurrent Package correctness、queueing/fairness、distributed lock、Package transaction/proof/hold protocol、automated eviction、production download/recovery guarantee、registry/marketplace、HA/failover、repository naming/layout、physical schema、第二个 Runner implementation 或 Runner-selection abstraction、Evidence redesign，以及对受保护 Package 的修改。
+范围外包括 Package ranking/fallback、ambient completion、authentication/authorization/RBAC、public source credential、signing、hostile input isolation、injection defense、sandboxing、concurrent Package correctness、queueing/fairness、distributed lock、Package transaction/proof/hold protocol、automated eviction、production download/recovery guarantee、registry/marketplace、HA/failover、physical Evidence schema、第二个 Runner implementation 或 Runner-selection abstraction、Evidence redesign，以及对受保护 Package 的修改。
 
 成功表示 implementer 能通过三个既有 Module、simple state 与 typed result 构建该路径，而无需在 Delivery Manifest 前发明另一 lifecycle。
 
@@ -95,7 +95,7 @@ WorkflowSelector
 | Docker-like local-first | valid exact/latest hit 避免 GitHub；裸 name 表示 latest | Store lookup 先于 Source Adapter；sticky alias 指向 `READY` exact Package |
 | Ordinary fault containment | malformed/unavailable input 尽早停止，不建设 recovery subsystem | selector、source、validation、cache、admission、Manifest phase 使用 typed early-return result |
 | Simple exclusivity | 每个 worktree 一个 current Runner Delivery | M01 尝试 exclusive admission，不可用时立即返回 `CONTENDED` |
-| No fallback/default completion | failure 不选择其他 source/version/resource | 一个 configured source 或 explicit bundle；DSH 在 native effect 前校验 |
+| No fallback/default completion | failure 不选择其他 source/version/resource | 恰好一个 installation-selected Source；request 不得覆盖；DSH 在 native effect 前校验 |
 | Open contribution | compatible third-party Package 走共同路径 | composition 与 DSH check；无 first-party allow-list |
 | Preview restraint | 复杂度匹配 trusted local use | 无 security platform、concurrent Store protocol、automatic eviction 或 production recovery |
 | Observation non-control | telemetry failure 不改变 outcome | unchanged one-way M03 Interface |
@@ -121,7 +121,7 @@ flowchart LR
     Core -->|admit / resolve / bind| M01[Delivery]
     M01 --> Source[private Package Source Interface]
     GitHub[Public GitHub Release Adapter] --> Source
-    Bundle[Plugin Bundle Adapter] --> Source
+    Alternate[Configured Alternate Source Adapter] --> Source
     M01 --> Store[private Local Package Store]
     M01 -->|fully admitted activation| Core
     Core -->|execute / inspect / cancel| M02[Runner]
@@ -136,7 +136,7 @@ flowchart LR
 
 ### Delivery（`execution.milestone.01`），深化
 
-M01 隐藏 selector parsing、exact/sticky lookup、GitHub/bundle acquisition、staging、Package validation、DSH compatibility check、`READY` publication、alias update、resolved-value construction、Manifest content construction 与 result-binding check。其主要 caller-facing operation 是：
+M01 隐藏 selector parsing、exact/sticky lookup、configured-Source acquisition、staging、Package validation、DSH compatibility check、`READY` publication、alias update、resolved-value construction、Manifest content construction 与 result-binding check。其主要 caller-facing operation 是：
 
 ```text
 resolveWorkflowPackage(selector, configuredSource, runnerConfigurationTarget, refresh?)
@@ -166,9 +166,145 @@ Implementation fact 保留 typed test summary，并按 coverage scope/tool/forma
 
 对于 ordinary 与 Recheck summary，owner input 若有 nonnegative observed count，就精确发出 C17，包括 zero；没有 count fact 就省略 C17。Omission 是“无 count fact”的全部 wire signal。Invalid count type/range 不发出 malformed Observation。Finding shape 仍禁止 C17。只有既有 profile 要求 Recheck 语义时 C27 才 required。Assertion、target、status、Fix、Recheck identity 保持不同；exact retry 是 no-op，compatible later lifecycle fact append 而不是 rewrite assertion。每条 lifecycle record 都重复 selected shape 要求的 immutable assertion 与 exact typed target coordinate。
 
+### Execution-level configuration、factory 与 Bootstrap support
+
+Configuration、factory 与 Bootstrap 支撑整个 Execution System。它们不是第四个 Module，也不归属 M01、M02、M03 或某个 Intake Adapter。`ExecutionBootstrap` 是唯一 production composition root。包括 DSH Intake plugin 在内的每种 embedding 都只向同一个 loader 提供一个 absolute config-file path，并且只使用 public `ExecutionApplicationFactory`/application surface。
+
+Host-neutral package 的 release coordinate 是 `@workflow-self-recursive/execution-system@0.1.0`；public export 包含 Core request/result contract、`ExecutionApplicationFactory`、Bootstrap、configuration schema/type，以及 `start/execute/inspect/cancel/close/status` application surface。首个 Intake distribution 是 `execution-system/packages/dsh-intake` 下的 `@workflow-self-recursive/dsh-intake@0.1.0`；它依赖 public host-neutral package，禁止 import private M01/M02/M03 source path。
+
+#### Scope 与 dependency graph
+
+| Scope | 构造的 value/resource | 禁止依赖 |
+| --- | --- | --- |
+| bootstrap preflight | strict config parser、schema/semantic validator、canonical serializer、redacted diagnostic | validation 成功前无 network、DSH Context、worktree mutation、Runner、Source 或 OTLP effect |
+| installation | immutable config/environment、filesystem root、current-slot/Manifest repository、Package Store、恰好一个 Source Adapter、concurrency controller、clock/ID、disabled sink 或 OTLP exporter、M01 service 与 application lifecycle manager | 无 Delivery-bound Runner、Host、Provider、native DSH execution Context 或 Delivery-scoped M03 mapper |
+| Delivery | persisted Manifest/`DeliveryBinding`、admitted activation、exact Runner instance、owner-fact ingress、Delivery-scoped M03 mapper/context 与 Runner-owned Provider/Host resource | persisted M01 binding 前不得创建；不得依赖 Intake Context/service/session |
+| Intake presentation | command、Intake-only activation tool、skill provider/root、renderer、bounded Adapter-private correlation | 不编排 Source/Store/Runner/Provider，不投影 capability 到 admitted Workflow 或 DSH-E |
+
+Factory creation DAG：
+
+```text
+validated ExecutionInstallationConfig + ExecutionBootstrapDependencies
+→ filesystem/state repositories and concurrency controller
+→ exactly one WorkflowPackageSourceFactory selection + Package Store
+→ ObservationEmitterFactory（disabled sink 创建零 client/socket/timer）
+→ DeliveryServiceFactory（M01）+ RunnerDependenciesFactory definitions
+→ ExecutionApplicationFactory
+```
+
+Delivery composition DAG：
+
+```text
+M01 NEW admission
+→ resolve/validate/publish exact READY Package
+→ persist Manifest + DeliveryBinding/current-slot
+→ create Delivery-scoped M03 mapping context and connect owner-fact ingress
+→ create exact M02 Runner from persisted binding and production Runner dependencies
+→ wire M01/M02 owner facts to non-controlling M03 port
+→ start Runner effect
+```
+
+Persisted binding 前，任何 factory 都不得创建 Delivery-scoped M02/M03 instance 或执行 Runner/Host/Provider/worktree effect。相关 M02 effect 前必须先接好 owner-fact ingress；M03 mapping/export 留在所有 M02 owner decision 之外。
+
+Installation lifecycle oracle：
+
+```text
+load → parse → validate → canonicalize/deep-freeze
+→ construct installation resources
+→ enumerate every non-empty per-worktree slot
+→ rebuild each from its persisted exact binding and establish recovery disposition
+→ publish READY
+```
+
+Application state 是 closed machine `CREATED → STARTING → RECOVERING → READY → CLOSING → CLOSED`。只有 `READY` 接受新 `execute`。`inspect`、`status` 与 bounded recovery presentation 在 `RECOVERING`/`READY` 可用；`cancel` 需要 exact known Delivery reference。Concurrent/repeated `start`/`close` 结果 deterministic 且 idempotent；start 中 close 先关闭 intake gate，再 rollback 已创建 resource。
+
+Construction/start failure 保留首个 bounded redacted diagnostic，并按 exact reverse creation order dispose 已实际创建的 resource。正常 close 顺序：关闭 Intake gate；停止接受新 Delivery；persist/quiesce M01 holder 与 current slot，且不 fabricated terminal truth；bounded-flush M03；关闭 Runner manager 及所有 Runner-owned DSH-E/Host/Provider resource；关闭 exporter；关闭 installation repository。Timeout 保留 durable unknown/recovery truth。Abrupt death 只依赖 durable Manifest/current-slot 与 Runner-owned fact；restart 绝不使用新 selector 或当前 config 重绑旧 Delivery。
+
+#### Canonical configuration 与 identity
+
+Input schema coordinate 是 `execution.config@1.0.0`，使用 JSON Schema draft 2020-12。Release 发布 `config/defaults/execution.default.yaml` 与 `.json`，两者表达相同 input value。`.yaml`/`.yml` 只选择 `yaml@2.9.0`，`.json` 只选择 strict `JSON.parse`。禁止 content sniff、parser fallback、multi-file merge、environment override 与 arbitrary key/value extension。YAML 仅接受 JSON data model，并拒绝 duplicate key、anchor、alias、custom tag、merge key、non-string map key、implicit timestamp/binary/special-number value 与 non-finite number。
+
+Schema/semantic validation 后，default 与 derived path 被 materialize 成一份 JSON-compatible、recursively frozen `ExecutionInstallationConfig`。Canonical bytes 是 UTF-8 JSON：object key 递归 lexicographic sort，array order 保留，无 insignificant whitespace，采用 JSON string/number encoding；本 schema 不含 non-integer numeric field。Identity 是对 coordinate prefix、一个 LF 与 canonical bytes 计算的小写 `sha256:<64-hex>`：
+
+```text
+installationConfigIdentity = sha256("execution.config@1.0.0\n" + canonicalConfig)
+deliveryConfigProjectionIdentity = sha256("execution.delivery-config@1.0.0\n" + canonicalProjection)
+deliveryBindingIdentity = sha256("agentops.delivery-binding@1.0.0\n" + canonicalBinding)
+```
+
+`DeliveryConfigProjection` 只包含 admitted scope 内的 canonical worktree/resource path；Runner implementation/config、Host engine；Provider key/route、model ID、base URL 与 credential reference（绝无 material）；workspace/resource binding；以及影响 Delivery 的 execution/control bound。它排除 installation identity、selector、Source config、Package、Store location、raw config、credential-store location/content、Intake presentation 与所有 Observation config。M01 加入 exact Package identity/content、canonical worktree、task/intent、Delivery ID 与 task ID，构成 `DeliveryBinding`。Recovery 只接受 persisted binding，忽略当前 config、alias 与 selector movement。
+
+| Exact input key | Type/default policy | Consumer 与 binding/reload rule |
+| --- | --- | --- |
+| `schemaVersion` | const `execution.config@1.0.0` | loader only；canonical identity |
+| `paths.repositoryRoot` | required absolute canonical path | worktree derivation；projection |
+| `paths.workspaceRoot` | required absolute canonical path | allowed scope；projection |
+| `paths.allowedWorktreeRoots` | required non-empty unique absolute-path array | admission；projection |
+| `paths.stateRoot` | required absolute writable path，且不在 Package content 内 | derives `manifests/`、`current-slots/`、`runner/`；installation only，除 admitted relative resource projection |
+| `paths.packageStoreRoot` | input omitted；derived `<stateRoot>/packages` | Store only；不 binding |
+| `paths.credentialStorePath` | required absolute readable file path | credential lease provider；Manifest 排除 location |
+| `workflowSource.kind` | closed `github`（default）或 `adapter` | exact-key Source factory；bootstrap-only |
+| `workflowSource.repository` | GitHub default `firestige/workflow-package`；`adapter` 禁止 | GitHub Adapter only；不进入 request/binding |
+| `workflowSource.releasesBaseUrl` | default `https://api.github.com/repos/firestige/workflow-package/releases`；HTTPS、无 userinfo | GitHub Adapter only |
+| `workflowSource.assetPattern` | default `workflow-package-{name}-{version}.tar.gz` | GitHub Adapter only |
+| `workflowSource.adapterKey` | `adapter` required exact key；`github` 禁止 | alternate factory selection |
+| `workflowSource.adapterConfigFile` | `adapter` required absolute path；`github` 禁止 | selected Adapter closed config loader |
+| `runner.implementationKey` | const/default `runner.v1` | projection；无 runtime selection |
+| `runner.host.engine` | const/default `langgraph` | Runner factory；projection |
+| `runner.provider.key` | const/default `dsh` | Provider factory；projection |
+| `runner.provider.route` | required non-empty external route | admitted Driver projection |
+| `runner.provider.modelId` | required non-empty external model ID | admitted model binding；projection |
+| `runner.provider.baseUrl` | required absolute HTTP(S) URL，无 userinfo | admitted Driver binding；projection |
+| `runner.provider.credentialRef` | required bounded reference string | admitted lease reference；projection；排除 material |
+| `runner.provider.maxParallelToolCalls` | integer `1..32`，default `4` | Runner factory；projection |
+| `observation.enabled` | boolean，default `false` | emitter factory；installation reload only |
+| `observation.endpoint` | enabled 时 required loopback HTTP(S) base；disabled 时 omitted | exporter only；不 binding |
+| `observation.timeoutMs` | integer `100..10000`，default `1000` | exporter only |
+| `observation.maxBatchRecords` | integer `1..512`，default `512` | exporter only |
+| `observation.maxBatchBytes` | integer `1024..4194304`，default `4194304` | exporter only |
+| `observation.flushIntervalMs` | integer `100..10000`，default `1000` | exporter only |
+| `observation.shutdownFlushMs` | integer `100..10000`，default `3000` | bootstrap close only |
+| `observation.serviceName` | default `workflow-self-recursive-execution` | fixed Resource identity；不 binding |
+| `controls.startupTimeoutMs` | integer `1000..120000`，default `30000` | bootstrap only |
+| `controls.executionTimeoutMs` | integer `1000..86400000`，default `3600000` | Core/Runner；projection |
+| `controls.shutdownTimeoutMs` | integer `1000..120000`，default `10000` | bootstrap only |
+| `controls.maxConcurrentDeliveries` | integer `1..32`，default `4` | installation concurrency；new Delivery only |
+| `controls.allowExplicitRefresh` | boolean，default `false` | Core/M01 request gate；projection |
+| `controls.diagnosticMaxBytes` | integer `256..16384`，default `4096` | redacted diagnostic only |
+| `intake.maxCorrelationBytes` | integer `16..1024`，default `256` | Intake contract；不 binding |
+| `intake.maxOutputBytes` | integer `256..65536`，default `8192` | Adapter renderer；不 binding |
+
+Shipped default 中唯一 user-required input 是四个 deployment path、Provider route/model/base URL/credential reference 与 external credential provision。Product-owned source、Host/Provider kind、Observation-disabled policy 和所有 control bound 都有完整 default。未替换 marker 使用精确 JSON string `__REQUIRED__:<field-path>`，并在任何 effect 前返回 `CONFIG_REQUIRED_INPUT_MISSING`。`validate` 与 `dump-effective-config` 只显示 credential reference 的 stable classification，绝不读取或打印 API-key material。
+
+#### Observation dependency 与 release ownership
+
+M03 pin official OpenTelemetry Node package：`@opentelemetry/api@1.9.1`、`@opentelemetry/sdk-trace-base@2.10.0`、`@opentelemetry/sdk-logs@0.221.0`、`@opentelemetry/exporter-trace-otlp-proto@0.221.0`、`@opentelemetry/exporter-logs-otlp-proto@0.221.0`。Export timeout 是 `observation.timeoutMs`；homogeneous batch 同时满足 512 logical record 与 4 MiB；shutdown 在 `shutdownFlushMs` 内执行一次 bounded flush。Disabled mode 不构造 SDK provider、exporter、client、socket、worker 或 timer。Frozen `agentops.observation@1.0.0` publication 保持 `VALIDATOR_ONLY`；对 production corpus 的 producer-role validation 是 Iteration 3 evidence，不改变该 claim。
+
+Execution Release 只拥有 host-neutral package、configuration schema/default 与 DSH Intake plugin artifact。独立 Workflow Package GitHub release 拥有 `workflow-package-implementation-1.1.0.tar.gz`、`workflow-package-system-design-1.1.0.tar.gz` 及 descriptor/SHA-256 file。GitHub Adapter 只发现 `workflow-package-{name}-{version}.tar.gz`；`latest` 在 binding 前解析为 exact tag/version。Alternate Source qualification 使用 contributed conforming fixture，绝不镜像两个 initial Package。
+
+#### DSH Intake distribution 与 instance boundary
+
+首发 exact value：
+
+| Item | Value |
+| --- | --- |
+| recommended profile | `workflow-execution` |
+| install/update/remove | `dsh plugin --profile workflow-execution add|update|remove @workflow-self-recursive/dsh-intake@0.1.0` |
+| package bundle declaration | `dsh.bundle.patch = "./cordis.patch.yml"` |
+| stable Cordis row ID/name | `workflow-execution` / `@workflow-self-recursive/dsh-intake` |
+| profile override | row `workflow-execution`，完整 config `{ configFile: <absolute path> }` |
+| direct command | `dsh --profile workflow-execution workflow execute --worktree <absolute> --selector <name[@version]> --intent <text>` |
+| status/result | `workflow status --worktree <absolute>` / `workflow result --worktree <absolute>` |
+| Intake-only tool | `workflow_execution_activate`，closed `{ worktree, selector, intent, correlation? }` schema |
+| first-party skill | package path `skills/workflow-execution/SKILL.md`，name `/workflow-execution`；首发只允许 explicit invocation |
+
+Bundle 使用 locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2` 注册 package skill root；`@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` 加载 instruction。Instruction 收集 missing argument，并恰好一次调用 `workflow_execution_activate`；它不 import executable code，也不直接调用 Core/M01/Runner。Command Adapter 与 tool Adapter 共同调用一个 plugin-owned `WorkflowActivationService`，产生 meaning-equivalent `ExecutionRequest` bytes；只有 bounded presentation correlation 可不同。Startup 从不自动激活 Workflow。
+
+`DSH-I` 是提供给 Intake plugin 的 Cordis `Context`。`DSH-E` 是 existing DSH Provider Adapter 为 bound Runner Delivery 创建并拥有的另一个 `new Context()`。二者不共享 object identity、registry、session namespace、persistence root、capability catalog 或 credential material。Cordis `isolate` 只改变同一 Context 内 service realm，不能作为 instance isolation。Ownership chain 是 `DSH-I → Execution lifecycle manager → Runner/DSH-E`；plugin close 级联执行 application close sequence。存在 non-empty current-slot 时 plugin remove fail closed，直到 terminal handling 或 exact authorized abandonment。
+
 ### Private seam
 
-- **Package Source Interface** 是真实 seam，因为有 GitHub 与 bundle 两个 Adapter。它接收 exact/latest candidate request，返回 candidate bytes 与普通 version/digest metadata，或 typed not-found/fetch failure；不构造 resolved value 或 Manifest。
+- **Package Source Interface** 是真实 seam，因为 closed installation union 选择 GitHub 或一个 alternate Adapter。它接收 exact/latest candidate request，返回 candidate bytes 与普通 version/digest metadata，或 typed not-found/fetch failure；不构造 resolved value 或 Manifest，request data 也不得选择或覆盖它。
 - **Local Package Store** 是 private M01 state。Lookup 只暴露 `MISSING` 或 `READY`；`STAGING` 不可 address。Implementation 可以使用 temporary directory 与 rename 发布完整 Package，但 System Design 不要求 transaction manager 或 concurrent-writer protocol。
 - **Core-to-Runner Interface** 接收由 persisted exact Manifest binding 投影出的 fully admitted immutable activation。Runner 严格实现 `execute`、`inspect`、`cancel`；native Host、Provider、resume、checkpoint、retirement type 不跨 Core。
 
@@ -223,21 +359,21 @@ M01 拥有的所有 selector、source、Package、version、digest、cache 与 D
 
 M01 解析 selector 并首先查询 Store。`name@exactVersion` 只解析 matching `READY` Package。裸 `name` 与 `name@latest` 在 local sticky alias 指向 `READY` 时使用它。除非 caller 显式请求 refresh，M01 的 Source call 为零。Returned exact field 被复制进 Manifest，后续 alias movement 只影响后续 call。
 
-### Public GitHub miss 或显式 refresh
+### Configured GitHub miss 或显式 refresh
 
-遇到 `MISSING` 或 explicit latest refresh 时，M01 只调用 configured public GitHub Adapter。Exact selection 请求对应 Release；latest selection 请求 source 的 latest Release。Adapter 选择一个 versioned Package asset，并私有 staging。M01 在 Store publication 前校验。对于 latest，Store 仅在 exact Package 成为 `READY` 后更新 alias。Failure 返回 typed error，并保持所有既有 `READY` Package/alias 可用。
+遇到 `MISSING` 或 explicit latest refresh 时，M01 只调用 installation-selected Source Adapter。对于默认 public GitHub Adapter，exact selection 请求对应 Release，latest selection 请求 repository 的 latest compatible Release。Adapter 选择一个 versioned Package asset，并私有 staging。M01 在 Store publication 前校验。对于 latest，Store 仅在 exact Package 成为 `READY` 后更新 alias。Failure 返回 typed error，并保持所有既有 `READY` Package/alias 可用。
 
-### 显式 plugin bundle
+### Configured alternate Source
 
-只有 caller/configuration 显式选择 bundle 时才使用。Bundle Adapter 提供与 GitHub 相同的 generic candidate shape；M01 执行相同 validation、Store publication、resolved-value 与 Manifest path。GitHub failure 时 bundle 不是 fallback。
+只有 `workflowSource.kind` 为 `adapter` 时才构造 alternate Adapter。它提供与 GitHub 相同的 generic candidate shape；M01 执行相同 validation、Store publication、resolved-value 与 Manifest path。Request 不得选择它，GitHub failure 时它也不是 fallback。Qualification 使用 contributed conforming Package，不复制任一 GitHub-owned initial Package。
 
 ### Invalid selector
 
 在 `NEW` 后，unsupported 或 ambiguous selector syntax 返回 `INVALID_WORKFLOW_SELECTOR`，且发生在 Source 或 Store mutation 前。Core 释放 ordinary holder；不存在 Manifest、Delivery、Runtime/Session/worktree effect 或 Observation。
 
-### GitHub unavailable 或 Package not found
+### Configured Source unavailable 或 Package not found
 
-需要 remote lookup 时，无法访问/下载返回 `WORKFLOW_FETCH_FAILED`；requested Release/asset 不存在返回 `WORKFLOW_NOT_FOUND`。两者都不调用 bundle Adapter 或尝试其他版本。Core 释放 ordinary `NEW` holder；不存在 Manifest 或 Delivery。
+需要 remote lookup 时，无法访问/下载返回 `WORKFLOW_FETCH_FAILED`；requested version/asset 不存在返回 `WORKFLOW_NOT_FOUND`。两者都不调用另一 Source Adapter 或尝试其他版本。Core 释放 ordinary `NEW` holder；不存在 Manifest 或 Delivery。
 
 ### Invalid 或 incomplete Package
 
@@ -261,7 +397,7 @@ M01 在 request-specific Package work 前尝试既有 per-worktree exclusive adm
 
 ### Occupied-slot recovery
 
-若 admission 找到 existing current Manifest，M01 为 stored Delivery 返回 recovery。Core 忽略新 selector/task，且不调用 M01、Source 或 Store；它遵循既有 DSH inspection/result/authorized-abandonment rule，绝不 start、resume 或 replace stored DSH Delivery。
+若 admission 找到 existing current Manifest，M01 为 stored Delivery 返回 recovery。Core 忽略新 selector/task，不执行 selector、Source、Store 或 new-binding work。Bootstrap 或 occupied request 从 persisted Manifest/binding 重建 exact admitted activation，并只使用 existing Runner `execute`/`inspect` seam；Runner 根据 durable Host/Invocation/Custody fact 私有选择 `continue`、`restart-from-savepoint` 或 `intervene`。它绝不 rebind、创建 fresh native-session fallback、blindly repeat Action/tool effect，也不暴露 public DSH resume operation。
 
 ### Manifest creation 或 persistence failure
 
@@ -290,13 +426,15 @@ WorkflowSelector
 
 `ResolvedWorkflowPackage` 包含 `name`、`exactVersion`、`packageDigest`、`localPath`、`workflowId`。Local path 标识本 installation 内已校验的 `READY` materialization；version 与 digest 提供 Manifest construction 与 DSH activation 使用的 stable content check。Source metadata 可作为 bounded diagnostics/provenance 保留，但不是 authorization identity 或 capability。
 
-Manifest 恰好绑定一个 Delivery/task relationship、resolved exact Package fields、logical Workflow/implementation、Runtime/version/configuration、intent reference 与 bounded source context。它排除 mutable alias、raw Package/Prompt/message/tool/source/credential body、Runtime checkpoint、Evidence receipt、native custody/Session identifier。Physical field 留给 downstream representation work。
+Manifest 恰好绑定一个 Delivery/task relationship、canonical worktree/task/intent、resolved exact Package field、logical Workflow/implementation 与完整 non-secret `DeliveryConfigProjection`，并持久化 projection 与 `DeliveryBinding` identity。它排除 installation identity、mutable alias、Source/Store/Observation config、raw installation config、credential-store location/content 与 API-key material、Package/Prompt/message/tool/source body、Runtime checkpoint、Evidence receipt 与 native custody/Session identifier。
 
 ### 权威状态
 
 | 状态 | 唯一 writer | Reader | 规则 |
 | --- | --- | --- | --- |
-| selector/configured source | Host/Intake | Core/M01 | generic input；source 是 trusted configuration |
+| selector/task/intent/correlation | Host/Intake | Core/M01 | generic request；无 Source/Runner/Observation/path override |
+| canonical installation config 与 Source selection | Bootstrap | factory/Core/M01/M02/M03 | 一个 immutable application value；恰好一个 Source Adapter |
+| Delivery configuration projection | Bootstrap/M01 projection | Manifest、M02 factory | immutable non-secret config-only binding input |
 | Store `STAGING`/`READY` 与 sticky alias | M01 through Store | M01；DSH materializer 读取 exact `READY` path | staging 私有；alias 只指向 ready exact Package；不 automatic eviction |
 | resolved exact Package value | M01 | Core/M01/Runner | 一次 call 的 immutable value；Manifest/activation 期间不 re-resolve |
 | canonical exclusivity/current slot | M01 Delivery | Core/M01 | admission 先于 request-specific Package work；`CONTENDED`/`RECOVERY` 不做新 Package work；一个 current Delivery |
@@ -348,15 +486,15 @@ stateDiagram-v2
 
 | Interface 含义 | Caller-visible input | Result/error | Ordering/configuration |
 | --- | --- | --- | --- |
-| External Core operation | worktree、selector、task intent、configured source 或 explicit bundle、Runner configuration context、optional refresh | final Delivery outcome、`CONTENDED`、exact recovery 或 typed pre-Delivery error | 一个 host call；无 native field；先 M01 admission |
+| External Core operation | worktree、selector、task intent、optional permitted refresh 与 bounded intake correlation | final Delivery outcome、`CONTENDED`、exact recovery 或 typed pre-Delivery error | 一个 host-neutral call；无 native/config/Source field；先 M01 admission |
 | M01 admit | canonicalizable worktree | `NEW` holder、`CONTENDED`、exact `RECOVERY` 或 custody/identity error | Delivery 首个 phase；immediate；non-`NEW` 不做 Package work 或 Runner execution call |
-| M01 resolve/prepare | `NEW` holder context、selector、configured source、current Runner compatibility target、refresh flag | `ResolvedWorkflowPackage` 或 phase-typed Package error | local-first；至多一个 Source Adapter；无 fallback |
+| M01 resolve/prepare | `NEW` holder context、selector、factory-bound exact Source/Runner compatibility target、permitted refresh flag | `ResolvedWorkflowPackage` 或 phase-typed Package error | local-first；恰好一个 constructed Source Adapter；无 request override/fallback |
 | M01 bind/persist | resolved Package 加 complete Delivery/task/worktree/Runner/intent context | immutable Manifest/admitted activation，或 `DELIVERY_BINDING_FAILED` / `DELIVERY_CREATE_FAILED` | persisted exact binding 前无 Runner submodule effect |
 | M02 execute/inspect/cancel | fully admitted activation 或 exact Delivery reference | bounded Runner terminal/start-failed/unknown result 或 typed seam error | 不拥有 Source/Store/current-slot；native state 保持 private |
 | M01 validate/finalize | exact Manifest 加 bounded Runner result | final lifecycle outcome/error | 根据 known truth close/retain slot |
 | M03 observe | bounded post-Delivery fact | 仅 local diagnostic | existing profile/privacy；无 control effect |
 
-Source Interface 接收一个 candidate request。Public GitHub Adapter 获取 Release metadata 与一个 versioned asset；bundle Adapter 读取一个 explicitly selected bundled Package。Source-native field 保持私有。Not-found 与 ordinary transport failure 是不同 typed result。
+Source Interface 接收一个 candidate request。Public GitHub Adapter 获取 Release metadata 与一个 versioned asset；explicitly configured alternate Adapter 返回相同 candidate shape。Source-native field 保持私有。Not-found 与 ordinary transport failure 是不同 typed result。Request 不含 Source field。
 
 Store implementation 执行 lookup、private candidate staging、complete publication、exact conflict detection，并在新 exact Package `READY` 后更新 sticky alias。Initial failure 保持 `MISSING`；refresh failure 保持 prior `READY` Package 与 alias。Local filesystem implementation 可在 sibling temporary directory staging，再 rename 到 final exact path。这是避免 partial hit 的 implementation technique，不是 production transaction protocol。Caller 看不到 Store choreography。
 
@@ -369,7 +507,7 @@ Runner 只接收由 persisted Manifest 和 exact local `READY` Package 派生的
 | --- | --- |
 | selector | M01 `NEW` 后，`INVALID_WORKFLOW_SELECTOR` 在 Source/Store mutation 前返回；释放 holder；无 Manifest/Delivery/Runner/Observation |
 | local lookup | 忽略 `STAGING`；invalid `READY` metadata 返回 `WORKFLOW_PACKAGE_INVALID` |
-| GitHub/bundle source | not found 为 `WORKFLOW_NOT_FOUND`；unavailable/interrupted transfer 为 `WORKFLOW_FETCH_FAILED`；无 fallback |
+| configured Source | not found 为 `WORKFLOW_NOT_FOUND`；unavailable/interrupted transfer 为 `WORKFLOW_FETCH_FAILED`；无 fallback |
 | Package validation | format/required-resource/relationship/identity failure 为 `WORKFLOW_PACKAGE_INVALID` |
 | version/digest | explicit mismatch code；不 publish `READY` |
 | DSH compatibility | `NEW` 后返回 `WORKFLOW_DSH_INCOMPATIBLE`；在 Manifest/Delivery/native effect/Observation 前释放 holder |
@@ -420,7 +558,7 @@ Concurrency scalability、adversarial security、authentication/authorization、
 
 | 场景 | 机制 | 预期结果 | 验证状态 |
 | --- | --- | --- | --- |
-| generic intake（`execution.scenario.00`） | 一个 generic Core operation | 无 host/DSH/source-native field 跨 Core | planned implementation type scan |
+| generic intake（`execution.scenario.00`） | 一个绑定 immutable application config 的 generic Core operation | 无 host/DSH/source-native/config override field 跨 Core | planned implementation type scan |
 | exact local hit（`execution.scenario.01`） | Store lookup 先于 Source | exact resolved value；Source call 为零 | planned Interface fixture |
 | exact miss（`execution.scenario.02`） | 一个 configured GitHub Release asset | validated exact Package 成为 `READY` | planned Source/Store fixture |
 | sticky latest（`execution.scenario.03`） | alias 指向 `READY` exact Package | hit 时 Source call 为零；无 active drift | planned alias fixture |
@@ -428,7 +566,7 @@ Concurrency scalability、adversarial security、authentication/authorization、
 | contribution（`execution.scenario.05`） | shared composition/DSH validation | conforming third-party Package 走相同路径 | production conformance planned |
 | invalid/incompatible（`execution.scenario.06`） | M01 `NEW`，再 ordinary Package validation 与 typed error | 释放 ordinary holder；无 Manifest、Delivery、DSH/Runtime/worktree effect 或 Observation；non-`NEW` 无 M01/Source/Store work | planned admission/M01/Source/Store spy 与 negative matrix |
 | preparation/Manifest failure（`execution.scenario.07`） | Manifest persistence 前/时 early return | 无 Delivery outcome 或 Observation | planned Core/M01 negative fixture |
-| explicit bundle（`execution.scenario.08`） | 第二个 private Source Adapter | 相同 validation/resolution path；无 fallback | paired Adapter evidence exists；production fixture planned |
+| configured alternate Source（`execution.scenario.08`） | exact-key Source factory 的 alternate variant | 相同 validation/resolution path；request 不得选择；无 fallback | paired Adapter evidence exists；production fixture planned |
 | evolution（`execution.scenario.09`） | exact field 复制进 Manifest | 后续 alias/Release 只影响后续 Delivery | planned movement fixture |
 | no ambient（`execution.scenario.10`） | Adapter-first exact local validation | missing resource 在 native effect 前 reject | production no-default negative planned |
 | host portability（`execution.scenario.11`） | generic Core、private Adapter | 无 native type/public resume | planned type/contrast fixture |
@@ -445,11 +583,11 @@ Concurrency scalability、adversarial security、authentication/authorization、
 | ID | Evidence 含义 | 当前状态 |
 | --- | --- | --- |
 | `execution.fixture.001` | protected first-party Package 通过 exact admitted Runner/DSH path 投影，且无 ambient completion | representative design evidence；production negative qualification 仍为 planned |
-| `execution.fixture.004` | protected、contributed 与 explicit-bundle Package 使用相同 Package Source/validation path | paired-Adapter feasibility evidence available；production contribution fixture 仍为 planned |
+| `execution.fixture.004` | protected 与 contributed Package 从 installation-selected GitHub/alternate Source 使用相同 Package Source/validation path | paired-Adapter feasibility evidence available；production contribution fixture 仍为 planned |
 
 ### Implementation 验收计划
 
-Test 跨越 M01 Delivery interface 与 M02 Core-to-Runner interface 并断言 observable result。Required coverage 是上方具名 local-hit/miss/bundle/validation/cache/contention/Manifest/DSH/result/Observation branch。Test 不规定 private directory name、helper function、lock primitive 或 GitHub client library。本修订不增加 Spike，也不增加 production security、concurrency schedule、response-loss、power-loss、transaction、hold、eviction 或 HA matrix。
+Test 跨越 host-neutral Core、M01 Delivery、M02 Core-to-Runner、M03 owner-fact、configuration、factory、Bootstrap 与 Intake Adapter interface 并断言 observable result。Required coverage 是上方具名 local-hit/miss/configured-alternate/validation/cache/contention/Manifest/DSH/result/Observation/lifecycle branch。Test 不规定 private helper function、lock primitive 或 GitHub client library。本修订不增加 production security、concurrent Store schedule、distributed transaction、eviction 或 HA matrix。
 
 ### 保留的既有 Execution 验收
 
@@ -477,7 +615,7 @@ Test 跨越 M01 Delivery interface 与 M02 Core-to-Runner interface 并断言 ob
 | --- | --- |
 | `execution.decision.001` | 保持 M01 deep，覆盖 selector、Source/Store、validation、resolved Package、Manifest construction 与 result validation；不增加第四个 Module |
 | `execution.decision.002` | M01 先执行 canonical worktree/exclusive admission。`CONTENDED` 与 `RECOVERY` 不执行新 selector Package work；只有 M01 `NEW` 执行 request-specific Package work。M01 仍在 Manifest persistence 创建 current Delivery binding 前完成 preparation |
-| `execution.decision.003` | GitHub 与 bundle 是一个 Package Source seam 的 private Adapter。Source selection 是 trusted configuration，不是 authority/capability protocol |
+| `execution.decision.003` | 一份 canonical installation config 在 Package Source seam 恰好选择一个 private Adapter：默认 GitHub 或 exact-key alternate。Request 不得选择/覆盖；不存在 fallback |
 | `execution.decision.004` | Composition 与 selected DSH compatibility 保持 ordinary validation step，返回 typed error；不存在 persisted proof identity |
 | `execution.decision.005` | M01 返回普通 immutable `ResolvedWorkflowPackage`，绝不返回 opaque Prepared Binding、hold 或 caller-managed capability |
 | `execution.decision.006` | Pre-Delivery failure 使用 phase-typed early return 与 ordinary holder/staging cleanup；不形成 transaction、Delivery outcome 或 Observation |
@@ -485,10 +623,14 @@ Test 跨越 M01 Delivery interface 与 M02 Core-to-Runner interface 并断言 ob
 | `execution.decision.008` | Store lookup 暴露 `MISSING`/`READY`；`STAGING` private/non-addressable；latest alias 只在 exact `READY` 后改变；不 automatic eviction |
 | `execution.decision.009` | Preview 不增加 pre-Manifest lifecycle。Existing current-slot authority 从 persisted Manifest 开始，并保留之后既有 DSH uncertainty/recovery |
 | `execution.decision.010` | 在明确的 trust/exposure/scale trigger 变化前，不设计 authentication、authorization、signing、injection defense、sandbox、concurrent Store protocol、distributed lock、HA、failover 或 production recovery mechanism |
+| `execution.decision.011` | Configuration/factory/Bootstrap 是 Execution-level support，不是 Module。Bootstrap 是唯一 production assembly root，并遵循 frozen installation/Delivery DAG 与 reverse-disposal order |
+| `execution.decision.012` | `installationConfigIdentity`、config-only `DeliveryConfigProjection` identity 与 Package-dependent `DeliveryBinding` identity 互不合并。Restart recovery 只使用 persisted binding |
+| `execution.decision.013` | Public Core contract 是 host-neutral。DSH Intake 是一个 replaceable Adapter distribution；`DSH-I` 与 Runner-owned `DSH-E` 是一个 cascade lifecycle 下的不同 Context |
+| `execution.decision.014` | Initial Workflow Package asset 只由独立 Workflow Package GitHub release 拥有；Execution 与 DSH Intake artifact 不包含 Package content |
 
 既有 Execution decision 继续有效：三个 deep Module；Runner-owned Workflow outcome 位于 Core-owned Runner seam 后；one-current-slot lifecycle 且无 Execution history；standard-first allow-listed best-effort Observation；canonical worktree revalidation；对 persisted Runner uncertainty 的 conclusive handling；以及由已冻结发布的 Profile `1.0.0` 编码的 adopted Observation semantics。本修订只加入 explicit C55–C57 owner mapping，不改变 Runner、Evidence 或 execution semantics。
 
-本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；automatic GitHub-to-bundle fallback；source/version fallback；ambient completion；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；DSH-native Core type；runner change。
+本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；request-selected Source；automatic GitHub-to-alternate fallback；source/version fallback；ambient completion；embedded initial Package content；parallel plugin composition；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；shared DSH Intake/Execution Context；public DSH resume；DSH-native Core type；runner change。
 
 ### Execution open-work register
 
@@ -507,7 +649,7 @@ Concept obligation register 仍是 owner-complete authority。Execution-local vi
 | --- | --- | --- |
 | `concept.obligation.010` | 表示 exact resolved Package/Manifest field 与 typed error，不增加 proof/transaction semantics | physical form 允许 re-resolution、ambient completion、native leakage 或 pre-Delivery outcome |
 | `concept.obligation.011` | 实现 Core/M01/M02/M03 collaboration 与具名 early-return branch | bypass、drift、wait/queue、新 lifecycle/Module、Observation control 或 runner change |
-| `concept.obligation.012` | 选择/发布 public repository Release asset 与 explicit bundle descriptor | mutable/ambiguous/incomplete asset、allow-list、rewrite、bypass 或 fallback |
+| `concept.obligation.012` | 发布 independent Workflow Package GitHub asset，以及 Execution/Core 与 DSH Intake release descriptor | mutable/ambiguous/incomplete asset、embedded Package content、allow-list、rewrite、bypass 或 fallback |
 | `concept.obligation.013` | 实现 `MISSING/STAGING/READY` Store 与 sticky alias-after-ready | partial hit、prior-ready loss，或真实需要 concurrent writer/eviction |
 | `concept.obligation.014` | 通过 DSH qualification complete protected/contributed Package projection，且无 ambient completion | rewrite、post-effect rejection、missing capability 或 native leak |
 | `concept.obligation.015` | 在当前 simple semantics 内选择 ordinary fetch/cache resource setting | measurement/context 要求不同 ownership/Interface/security/reliability semantics |
@@ -522,6 +664,7 @@ Concept obligation register 仍是 owner-complete authority。Execution-local vi
 1. **Delivery（M01）**：拥有 `CONTENDED/RECOVERY/NEW` admission、selector/Source/Store work、Manifest/current-slot persistence、Delivery recovery/finalization 与 admitted-activation projection。
 2. **Runner（M02）**：通过 Interpreter、Coordinator、Host、Invocation 与 Custody 消费该 activation；DSH Provider proof 必须证明无 ambient completion。
 3. **Delivery Observation（M03）**：映射 bounded fact，不控制 M01 或 M02。
+4. **Execution-level support**：实现已冻结的 configuration、factory、Bootstrap、replaceable Intake 与 release composition，但不成为第四个 Module。
 
 Module Detailed Design 必须说明可执行 control/data flow，而不是把这些 decision 重述成 checklist。M01 Interface 是主要 import test surface；Source/Store test Adapter 保持 private。Implementation 应优先使用 temporary staging directory 加 complete publish/rename、simple typed result 与 ordinary cleanup。不得增加 caller choreography、Prepared handle、proof store、reference count、transaction manager、background reconciler、concurrent-writer schedule、credential flow、security scanner、automatic eviction、fallback 或 ambient Package lookup。
 
@@ -531,11 +674,12 @@ Module Detailed Design 必须说明可执行 control/data flow，而不是把这
 
 - [x] Trusted local/public-GitHub/individual-or-small-team preview context 与 explicit reopen trigger 塑造设计。
 - [x] 三个既有 Module 保留，具备可实现 responsibility、small Interface、private seam、acyclic dependency。
-- [x] 成功流程无分支；所有要求的 local-hit/miss/bundle/validation/cache/contention/Manifest/DSH branch 均具名并有 typed outcome。
+- [x] 成功流程无分支；所有要求的 local-hit/miss/configured-alternate/validation/cache/contention/Manifest/DSH branch 均具名并有 typed outcome。
 - [x] `ResolvedWorkflowPackage` 与 `MISSING/STAGING/READY` 替代原 proof/Prepared-hold/transaction machinery。
 - [x] M01 admission 先于 Package work；只有 `NEW` preparation；M01 在任何 Runner submodule effect 前持久化 Manifest 并投影 activation；pre-Delivery failure 不创建 Delivery outcome 或 Observation。
 - [x] Exact/local-first/sticky-latest/no-fallback/no-ambient/open-contribution/DSH-first 语义保留。
 - [x] Existing current-slot recovery、M03 Observation、Evidence relationship、protected Package、runner 语义不变。
+- [x] 已冻结一份 canonical configuration、互不合并的三层 identity、installation/Delivery factory DAG、Bootstrap state machine、multi-slot recovery、reverse shutdown、release ownership、exact DSH Intake value 与 `DSH-I`/`DSH-E` isolation，且未增加第四个 Module。
 - [x] Acceptance 面向 Interface，不要求 Spike、production security、concurrency schedule、transaction、response-loss、power-loss、eviction 或 HA evidence。
 
 Publication 仍受 external exact-byte publication record 与 Concept-owned obligation register 约束。这些候选字节不包含 Workflow routing authority。
