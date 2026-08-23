@@ -1,4 +1,4 @@
-# First-Party LangGraph Runtime Profile System Design
+# Runner Runtime Profile System Design
 
 > **Active support/navigation.** The target authorities are [Concept](../../agent-architecture.md), [Execution](../execution/project-execution-system.md), and [Evidence](../evidence/evidence-system.md); the Contract revision split — [Observation Catalog](../../contracts/observation/observation-catalog.md), [OTel Observation Profile](../../contracts/observation/otel-observation-profile.md), [Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md), and [Metric Catalog](../../contracts/evaluation/metric-catalog.md) — remains a draft and cannot prove physical conformance. If historical or operational prose below conflicts with those owners, the owners govern; legacy material is discoverable only as explicitly labeled legacy evidence.
 
@@ -6,29 +6,50 @@
 
 | Field | Value |
 | --- | --- |
-| Status | `PROFILE_DESIGN_READY_REBINDING_REQUIRED`; four legacy semantic Contract lines exist but are not active publications; both representation-binding Spikes remain feasibility evidence; physical and implementation conformance are unproven |
+| Status | `WAVE4_ENTRY_REVIEW_CANDIDATE`; stable Runner/module boundaries and the current substrate matrix are absorbed; full Wave 4 implementation conformance remains unproven |
 | Canonical language | English |
 | Authority source snapshot | repository commit `a7684789958f556b4376e12f3b55f224804fabea`; exact authority paths are listed below |
 | Workflow closure | confirmed problem/scenario Brief and Skeleton direction are incorporated; three-lens review, readability review, Fresh Reader, and deterministic document verification passed before session-artifact cleanup |
 | Supersession lineage | replaces the prior content at this canonical path; repository history carries durable final-artifact lineage |
-| Companion | [Chinese non-normative companion](first-party-langgraph-runtime-profile.zh-CN.md) |
+| Companion | [Chinese non-normative companion](runner-runtime-profile.zh-CN.md) |
+| Module detail | [Runner](../execution/modules/runner/runner.md), [Lifecycle Coordinator](../execution/modules/runner/lifecycle-coordinator.md), [Workflow Host](../execution/modules/runner/workflow-host.md), [Managed Agent Invocation](../execution/modules/runner/managed-agent-invocation.md), [Workspace and Publication Manager](../execution/modules/runner/workspace-publication-manager.md) |
 
 ### External-boundary rebinding (`runner.decision.013`)
 
-This section is normative for this Profile's external boundary. The Concept and Execution/Evidence System Designs linked above govern product and System meaning. A product Host makes one Execution Core Delivery call; the Core invokes this Profile as an Adapter and owns Delivery lifecycle sequencing and outbound Delivery Observation. Coordinator→Host/Invocation/Workspace choreography shown below is private inside the runner Adapter, not a host-callable Core Interface. runner privately retains wait/resume, checkpoints, branch/workspace assignment and custody reacquisition; none becomes DSH or public Core resume semantics.
+This section is normative for this Profile's external boundary. The stable implementation identity is **Runner**, not “first-party LangGraph runner”. LangGraph is the currently selected replaceable Workflow Host substrate. The Concept and Execution/Evidence System Designs linked above govern product and System meaning. A product Host makes one Execution Core Delivery call; the Core invokes Runner as an Adapter and owns Delivery admission, Runtime Adapter selection/configuration identity and outbound Delivery Observation. Coordinator→Host/Invocation/Workspace choreography is private inside Runner, not a host-callable Core Interface. Runner privately retains wait/resume, checkpoints, branch/workspace assignment and custody reacquisition; none becomes DSH or public Core resume semantics.
 
 All EFCR/PCC, four-Contract, “published,” and `runner.open-work.003.*` statements below are frozen legacy profile evidence and downstream rebinding inputs only. They are not active authority, publication or conformance proof. The active target sends bounded facts through Core-owned Delivery Observation to Evidence; the Contract companion is still a draft. A implementation/conformance claim requires downstream schema, registry, fixtures and validation publication under `concept.obligation.001..004`.
 
 Authority order is the [Concept](../../agent-architecture.md), then the [Execution System Design](../execution/project-execution-system.md) for the external/Core boundary, then this Profile for Adapter-private runner behavior. User-confirmed requirements are incorporated through those governing owners; deleted or legacy designs are historical evidence only and are not active authority. This document specifies intended private Profile behavior. Its only executed substrate evidence is the narrowly scoped, external spike evidence returned in §14; it makes no broader LangGraph, Codex, Copilot, SQLite, Git, performance, production, conformance, or fault-capability claim.
 
+The external import is the Execution-owned `ExecutionRuntimeAdapter` projection at `execution-system/src/execution/runtime-adapter.ts`; this Profile does not redefine that seam. Its compiler accepts one fully admitted `RunnerActivationContext` and emits a minimal execution plan for the selected Host Adapter. Inside Runner, Workflow Host owns thread/decision/barrier/checkpoint/terminal proposal, while Managed Agent Invocation owns Provider invocation, session, Journal, `awaiting-input`, and `continueWithInput`. Action-scoped multi-turn input remains the same episode/session and does not create a Workflow Wait. Only a returned Action result that explicitly requests external approval/decision enters the Workflow Host's Wait path.
+
+Runner creation is configuration-driven. Execution freezes the Runtime Adapter selection/configuration identity; private `RunnerFactory` creates a configured Provider factory registry instance, selects one exact Workflow Host factory and assembles the four modules. Managed Agent Invocation owns Provider Factory SPI and the DSH factory; Workflow Host owns its Factory SPI and the LangGraph factory. Creation uses no ambient discovery, priority or fallback, and never substitutes an in-flight implementation.
+
 ## 2. Design Context
 
 Execution Core owns Delivery admission, Manifest/configuration identity, lifecycle sequencing, Adapter qualification, and outbound Observation. The Profile is an Adapter at the replaceable execution seam and owns its private Workflow execution and Runtime truth. Evidence owns admitted facts, factual projection, and presentation. Deployment is intended for trusted local dogfood, one active Execution instance per repository instance, short-lived workers, no daemon/port, serial writes, and bounded read fan-out. Workflow code is trusted; malicious-code isolation is not claimed.
 
+### Current implementation selection
+
+The current Wave 4 candidate is embedded TypeScript on Node `>=24.12.0 <25` and binds these exact direct dependencies:
+
+| Role | Selected dependency |
+| --- | --- |
+| Workflow Host | `@langchain/langgraph@1.4.12` |
+| LangGraph core | `@langchain/core@1.2.9` |
+| Checkpointer | `@langchain/langgraph-checkpoint-sqlite@1.0.4` |
+| SQLite runtime selected by lockfile | `better-sqlite3@12.11.1` |
+| Concrete Provider | `@deepseek-ai/dsh@0.1.1-rc.2` public closure |
+| Runtime validation support | `zod@4.2.0` plus Runner-owned fail-closed validation |
+| Git CLI qualification environment | `git 2.52.0`; final supported-range/fault proof remains Wave 4 work |
+
+This matrix selects current Adapter implementations; it does not enter Runner's stable name. DSH is the only concrete Provider in this candidate. Copilot and Codex are typed fail-closed shells and remain future obligations. A version change requires qualification and affects only later Runner instances/Deliveries.
+
 ```mermaid
 flowchart LR
   U[User] --> C[VS Code / CLI] --> E[Execution: admission / Manifest / assessment / receipts]
-  E --> P[First-Party Profile: Workflow / Runtime truth]
+  E --> P[Runner: Workflow / Runtime truth]
   P --> G[Git]
   P --> O[Core-owned Delivery Observation] --> V[Evidence]
   N[Constraint: no Evidence-to-Profile control or callback Interface]
@@ -36,7 +57,7 @@ flowchart LR
 
 ## 3. Problem, Goals, and Scope
 
-The design closes the previously delegated graph, checkpoint, Driver/session, workspace, publication, and recovery gap without restoring an Execution-owned universal Executor or leaking native identities. It requires exact qualification evidence, immutable package/thread activation, typed multi-Driver Actions, safe read/write concurrency, durable Intervention, semantic recovery/cancellation, guarded publication, non-controlling observations, owner-specific retirement, and no in-flight upgrade.
+The design closes the previously delegated graph, checkpoint, Provider/session, workspace, publication, and recovery gap without restoring an Execution-owned universal Executor or leaking native identities. It requires exact qualification evidence, immutable package/thread activation, typed managed Provider Actions, safe read/write concurrency, durable Intervention, semantic recovery/cancellation, guarded publication, non-controlling observations, owner-specific retirement, and no in-flight upgrade. The current concrete Provider path is DSH only.
 
 In scope are Profile evidence/preflight; package/graph/thread/checkpoint intent; managed invocation; workspace/savepoint/publication; lifecycle/recovery/retirement; observation mapping; ownership and future verification. Excluded are Execution/EFCR/Evidence authority, field Contracts, Installation & Update, Agent Server, proprietary engine, Builder/compiler, plugins, HA/distribution/multi-tenancy, parallel writes, exactly-once, cross-system transactions, unsafe Git automation, malicious isolation, and active migration. Infrastructure validation is external and non-blocking for this document workflow.
 
@@ -46,7 +67,7 @@ In scope are Profile evidence/preflight; package/graph/thread/checkpoint intent;
 | --- | --- | --- |
 | Independent qualification | Execution alone assesses; Profile supplies claims/evidence/native validation/preflight. | `runner.driver.001`; `runner.decision.011` |
 | Immutable Delivery binding | One immutable package/private thread; injected checkpointer/SDK; no in-flight upgrade. | `runner.driver.002`; `runner.decision.002` |
-| Typed static Drivers | Static Codex/Copilot Adapters return typed results without fallback. | `runner.driver.003`; `runner.decision.005` |
+| Typed static Providers | Exact configured Provider Adapter returns typed results without fallback; current concrete support is DSH, while Copilot/Codex fail closed. | `runner.driver.003`; `runner.decision.005` |
 | Serialized workspace safety | Host orders workspace context; Workspace uniquely mutates; writes serialize and publication is guarded. | `runner.driver.004`; `runner.decision.006` |
 | Durable control truth | Wait, cancellation, and terminal truth are durable Runtime state, never receipt/process/free text. | `runner.driver.005` |
 | Semantic recovery | Recovery is `continue | restart-from-savepoint | intervene`; uncertainty is explicit. | `runner.driver.006`; `runner.decision.007` |
@@ -65,14 +86,14 @@ Four distinct change/failure/state axes are sufficient: Delivery lifecycle/termi
 
 | Module | Responsibility | Unique writer/retirer | Trace IDs |
 | --- | --- | --- | --- |
-| Profile Lifecycle Coordinator | Profile evidence/preflight; activate/resume/cancel/reconcile/recover/settle/retire orchestration | lifecycle working state and the immutable terminal settlement record; retires only eligible working state | `runner.module.001`; `runner.interface.001`; `runner-TERMINAL-SETTLEMENT-RECORD-001` |
-| LangGraph Workflow Host | exact package, injected graph compile/advance, closed transitions, Wait/checkpoint/proposal | package execution cache and Workflow/checkpoint/thread state | `runner.module.002`; `runner.interface.002` |
+| Runner Lifecycle Coordinator | Adapter lifecycle; activate/resume/cancel/reconcile/recover/settle/retire orchestration | lifecycle working state and the immutable terminal settlement record; retires only eligible working state | `runner.module.001`; `runner.interface.001`; `runner-TERMINAL-SETTLEMENT-RECORD-001` |
+| Workflow Host | exact admitted activation, selected Host Adapter, graph advance, closed transitions, Wait/checkpoint/proposal | Workflow/checkpoint/thread state; current substrate is LangGraph | `runner.module.002`; `runner.interface.002` |
 | Managed Agent Invocation | frozen route projection, static Drivers, sessions/tools/credentials, typed results, fan-out/control | session references and Invocation Journal | `runner.module.003`; `runner.interface.003` |
 | Workspace and Publication Manager | baseline/views/writes/savepoints/restore/result/guarded publication | workspace, views, savepoints, result/publication | `runner.module.004`; `runner.interface.004` |
 
-The Runtime-observation Adapter is thin and owns no domain truth (`runner.interface.005`).
+The Runtime-observation Adapter is thin and owns no domain truth (`runner.interface.005`). Stable module details are owned by the linked Module Detailed Designs; this Profile owns the supported composition/profile and substrate matrix.
 
-The acyclic direction below constrains cross-Module invocation only: Coordinator invokes Host, Invocation, and Workspace; Host invokes Invocation and Workspace; Invocation invokes Workspace only through an authorized handle. A result or return shown with `←` in §7 completes its originating call and creates neither a reverse invocation nor a reverse dependency.
+The acyclic direction below constrains cross-Module invocation only: Coordinator invokes Host, Invocation, and Workspace; Host invokes Invocation and Workspace. Workspace returns a signed capability value that Host carries into Invocation; Invocation does not obtain or invoke the Workspace service. A result or return shown with `←` in §7 completes its originating call and creates neither a reverse invocation nor a reverse dependency.
 
 ```mermaid
 flowchart TB
@@ -84,11 +105,10 @@ flowchart TB
   M1 -->|materialize/recover/publish/retire| M4[Workspace Manager]
   M2 -->|invoke/fan-out| M3
   M2 -->|view/savepoint ordering| M4
-  M3 -->|authorized handle only| M4
-  M1 -->|origin observation| I5[Observation Adapter] --> EFCR
-  M2 -->|origin observation| I5
-  M3 -->|origin observation| I5
-  M4 -->|origin observation| I5
+  M4 -.->|signed capability value via Host dispatch| M3
+  M1 -->|optional owner facts| I5[Private non-controlling Observation port]
+  I5 -.->|best effort; no control dependency| M03[Execution Delivery Observation]
+  M03 -.-> EFCR
 ```
 
 ## 7. Collaboration and End-to-End Flows
@@ -122,7 +142,12 @@ sequenceDiagram
   H-->>C: terminal proposal
   C->>W: preserve result and apply publication guard
   W-->>C: publication succeeded with known disposition
-  C->>C: write terminal settlement record and Runtime truth
+  C->>C: create one retirement authorization
+  C->>H: retire Host-owned state
+  C->>I: retire Invocation-owned state
+  C->>W: retire Custody-owned state
+  C->>C: retire eligible coordination state
+  C->>C: require four known facts and write immutable settlement
 ```
 
 **1. Admit and activate.** Execution admits and freezes the Delivery. The Coordinator asks the Workspace Manager to materialize the exact baseline and binding, then asks the Workflow Host to activate one immutable package and one private correlated thread. The Coordinator owns lifecycle disposition, Workspace owns materialization state, and Host owns package/thread/checkpoint state.
@@ -131,7 +156,7 @@ sequenceDiagram
 
 **3. Make the terminal proposal durable.** Host asks Workspace to validate the mutation and write the Action-result savepoint. The durable savepoint identity returns first. Host then commits one Workflow checkpoint containing the result, savepoint identity, budgets, and selected terminal successor as a terminal proposal.
 
-**4. Publish and settle.** The checkpointed terminal proposal returns to Coordinator. Coordinator validates terminal obligations and asks Workspace to preserve the result and apply the clean/equal-target publication guard. Workspace publishes successfully and returns the known disposition. Coordinator then writes the immutable terminal settlement record and Runtime terminal truth.
+**4. Publish, retire, and settle.** The checkpointed terminal proposal returns to Coordinator. Coordinator validates terminal obligations and asks Workspace to preserve the result before applying the publication guard. Any known disposition—including conflict—permits the Coordinator to create one exact retirement authorization. Host, Invocation, Workspace/Custody and Coordinator then retire only their eligible state and return owner facts. The immutable terminal settlement is written only after all four facts are known. Publication unknown or retirement unknown remains private reconciliation state and does not roll back the preserved result.
 
 ### State and exception routes
 
@@ -149,12 +174,13 @@ flowchart TD
   RC -->|unknown| W
   A -->|cancel| C[Stop new Actions and reconcile children] --> TP[Checkpointed terminal proposal]
   A -->|normal completion| TP
-  TP --> PG{Publication guard known and clean/equal?}
-  PG -->|yes| T[Coordinator terminal settlement]
-  PG -->|conflict or unknown| W
+  TP --> PG{Publication disposition known?}
+  PG -->|published / already / conflict| RT[One authorization and owner-scoped retirement]
+  PG -->|unknown| W
   A -. observation outage has no control effect .-> A
-  T -->|settlement plus authorization| RT[Each owner retires only eligible state]
-  RT --> S[Immutable settlement evidence survives]
+  RT -->|four known owner facts| T[Immutable terminal settlement]
+  RT -->|any owner unknown| W
+  T --> S[Settlement and preserved result survive]
 ```
 
 #### Qualification failure and in-flight version changes
@@ -183,15 +209,15 @@ Coordinator stops new Actions, asks Invocation to cancel children, retains unkno
 
 #### Publication conflict
 
-After a checkpointed terminal proposal, Coordinator validates obligations and calls Workspace. Workspace preserves the result before evaluating the target guard. A clean or equal target yields a known disposition; conflict or unknown publication becomes Intervention and never fabricates success.
+After a checkpointed terminal proposal, Coordinator validates obligations and calls Workspace. Workspace preserves the result before evaluating the target guard. Published, already-at-target and conflict are known dispositions and may proceed to owner retirement and settlement. Unknown publication becomes Intervention and never fabricates success.
 
 #### Observation outage
 
-Each origin Module emits a bounded, minimized, provenance-preserving observation through the thin Adapter. Delivery failure or EFCR outage returns only non-owning delivery status to the origin and cannot block, advance, cancel, recover, publish, or settle Workflow state.
+Coordinator may offer bounded owner facts to one private Observation port after lifecycle truth is durable. Host, Invocation and Workspace do not import that port. Disablement, rejection, throwing, a rejected Promise or a non-settling observer cannot block, advance, cancel, recover, publish, retire or settle Workflow state.
 
 #### Retirement
 
-Only settlement plus explicit authorization starts durable retirement. Coordinator calls Host, Invocation, and Workspace; each owner retires only its eligible family and returns a disposition. Coordinator records and retries partial progress, then retires only eligible lifecycle working state. Authorization, the immutable terminal settlement record, result/publication references, per-owner dispositions, and audit correlation survive.
+Only a known publication disposition permits the Coordinator to create the explicit retirement authorization. Coordinator calls Host, Invocation, and Workspace; each owner retires only its eligible family and returns its own fact. Coordinator records and retries partial progress with the same authorization, then retires only eligible lifecycle working state. Four exact known facts are required before the immutable settlement is created. The authorization, settlement, result/publication references and owner facts survive; no owner receives or writes a central audit address.
 
 ### Compact flow and view traceability
 
@@ -213,21 +239,21 @@ Only settlement plus explicit authorization starts durable retirement. Coordinat
 
 Manifest/assessment/receipts are Execution-owned; Profile claims are evidence only. Host owns Workflow/checkpoint/thread/Wait/proposal; Coordinator owns lifecycle/Intervention/recovery working state and the immutable terminal settlement record; Invocation owns sessions/Journal; Workspace owns worktrees/views/savepoints/result/publication; Git owns commit/tree truth; EFCR/Evidence own downstream truth. SQLite may physically co-locate Host and Journal data but never merges writers or retirement.
 
-Stable Delivery, Workflow/Contract, implementation, Profile/version, Snapshot, Action/Role/route, resource, Artifact, Intervention, and control IDs cross seams. LangGraph and Driver IDs remain private. Ordering is assessment → admission/freeze → handoff → workspace/package activation; the Workspace savepoint becomes durable before the Host checkpoint, and that checkpoint precedes durable Workflow progress and graph advancement; Host context precedes Invocation; proposal precedes publication; settlement/authorization precedes retirement. Same identity/different content fails closed. One modifier is allowed; reads are bounded and based on one savepoint.
+Stable Delivery, Workflow/Contract, implementation, Profile/version, Snapshot, Action/Role/route, resource, Artifact, Intervention, and control IDs cross seams. LangGraph and Driver IDs remain private. Ordering is assessment → admission/freeze → handoff → workspace/package activation; the Workspace savepoint becomes durable before the Host checkpoint, and that checkpoint precedes durable Workflow progress and graph advancement; Host context precedes Invocation; proposal precedes result preservation and known publication; authorization precedes retirement; four known owner facts precede settlement. Same identity/different content fails closed. One modifier is allowed; reads are bounded and based on one savepoint.
 
-Ephemeral cleanup is independent of durable retirement. Invocation promptly terminates child processes and releases action-scoped authentication at Action/worker end, failure, cancellation, or Intervention; Workspace promptly removes disposable read views. Each owner records bounded redacted cleanup failure for reconciliation. Host checkpoints, Invocation Journal/session recovery references, canonical workspace/savepoints/results, and Coordinator recovery/terminal records remain until settlement plus explicit authorization. Coordinator then retires its eligible lifecycle/worker/control/Intervention working details itself; immutable authorization, terminal settlement, retirement dispositions, result/publication references, and audit correlation survive.
+Ephemeral cleanup is independent of durable retirement. Invocation promptly terminates child processes and releases action-scoped credentials at Action/worker end, failure, cancellation, or Intervention; Workspace promptly removes disposable read views. Each owner records bounded redacted cleanup failure for reconciliation. Host checkpoints, Invocation Journal/session recovery references, canonical workspace/savepoints/results, and Coordinator recovery/terminal records remain until an exact authorization permits owner-scoped retirement. Immutable authorization, terminal settlement, owner facts and result/publication references survive.
 
-Coordinator-retireable working state is limited to completed worker-attempt bookkeeping, reconciled transient control correlations, resolved Intervention working payloads, recovery scratch/classification state, and completed retirement retry scheduling. `runner-TERMINAL-SETTLEMENT-RECORD-001` is never deleted by this retirement. It remains the Runtime-authoritative evidence and minimally contains Delivery identity; Manifest, Profile/version, Workflow/Contract, implementation and Package Snapshot identities; terminal outcome and reason; terminal checkpoint and result/savepoint references; publication disposition/reference; retirement-authorization identity; per-owner retirement dispositions; and stable audit correlation. A later separately authorized product-retention policy may govern this immutable record, but `runner.flow.010` does not.
+Coordinator-retireable working state is limited to completed worker-attempt bookkeeping, reconciled transient control correlations, resolved Intervention working payloads, recovery scratch/classification state, and completed retirement retry scheduling. `runner-TERMINAL-SETTLEMENT-RECORD-001` is created after retirement and is never deleted by that operation. It remains Runtime-authoritative evidence and minimally contains Delivery identity; Manifest, Profile/version, Workflow/Contract, implementation and Package Snapshot identities; terminal outcome and reason; terminal checkpoint and result/savepoint references; known publication disposition; retirement authorization; and the ordered Coordinator/Host/Invocation/Custody known owner facts. A later separately authorized product-retention policy may govern this immutable record, but `runner.flow.010` does not.
 
 ## 9. Interfaces, Dependencies, Seams, and Adapters
 
-The Execution SPI-facing interface never assesses admission (`runner.interface.001`). The Workflow Host interface is called by Coordinator and hides package/thread/checkpoint semantics (`runner.interface.002`). The Managed Invocation interface is called by Host for invoke/fan-out and by Coordinator only for cancel/reconcile/retire; it never selects routes (`runner.interface.003`). The Workspace interface is called by Coordinator for lifecycle, Host for ordering, and Invocation only for authorized handle use; it hides Git state (`runner.interface.004`). The observation interface emits only bounded non-controlling observations (`runner.interface.005`).
+The Execution SPI-facing interface never assesses admission (`runner.interface.001`). The Workflow Host interface is called by Coordinator and hides package/thread/checkpoint semantics (`runner.interface.002`). The Managed Invocation interface is called by Host for invoke/fan-out and by Coordinator only for cancel/reconcile/retire; it never selects routes (`runner.interface.003`). The Workspace interface is called by Coordinator for lifecycle and Host for ordering; Invocation receives only a signed capability value and never the Workspace service (`runner.interface.004`). The private observation interface accepts only bounded non-controlling owner facts from Coordinator (`runner.interface.005`).
 
 These caller rules govern invocation and remain acyclic. Typed results, savepoint identities, proposals, and publication dispositions return on the originating Interface to its caller; such returns do not authorize the callee to invoke the caller or create a reverse dependency.
 
 All reject mismatched identity/authority/state and expose explicit unknown rather than fabricate outcomes. Proposed current cross-owner fields/errors/version rules are tracked by the unpublished Contract draft and `concept.obligation.001`; historical four-Contract wording under `runner.open-work.003` remains quarantined legacy evidence only. The implementation workflow owns exact internal `runner.interface.002/003/004` shapes under `runner.open-work.012` and measured timeout/capacity defaults under `runner.open-work.011`. Driver and Execution/EFCR seams are real Adapter seams. Store, cache, tools and credentials remain internal seams unless actual variation justifies exposure.
 
-Observation is caller-complete: Host, Invocation, Workspace, and Coordinator each call `runner.interface.005` with a bounded observation whose provenance identifies the originating Module and stable agent-ops correlation. The origin Module remains fact owner; the Adapter validates/minimizes/maps but never rewrites provenance, dereferences native content, or acquires control. Native identifiers and prohibited content remain behind the origin. Adapter delivery status returns only to the originating caller (and may be summarized by Coordinator as non-owning lifecycle visibility); EFCR never calls back. The cross-Runtime semantic ingress is `runner.open-work.003.4` / `EX-U-004`; the runner-specific fact-to-observation mapping and fixtures are implementation handoff item `runner.open-work.013`.
+Observation is deliberately not caller-complete across modules. Host, Invocation and Workspace return their bounded owner facts on their existing capabilities; only Coordinator may offer an allow-listed projection to `runner.interface.005`. The port validates/minimizes/maps but never rewrites provenance, dereferences native content, supplies an audit address or acquires control. It has no acknowledgement dependency and EFCR never calls back. The cross-Runtime semantic ingress is `runner.open-work.003.4` / `EX-U-004`; production mapping/composition is Iteration 3 Observation-owner work tracked by `runner.open-work.013`.
 
 `runner.open-work.007` completes a representation-binding feasibility experiment for the quarantined legacy `.4` semantic line and informs the draft: required Canonical Evidence is eligible only for a dedicated unsampled/non-trace-based OTel Event or Log path; Trace, Span, and Metric carriers remain `DIAGNOSTIC_TELEMETRY` because sampling or aggregation may discard fact occurrences. This result neither publishes the Contract nor proves conformance; a implementation remains `CROSS_IMPLEMENTATION_CONFORMANCE_UNPROVEN` until the physical Contract is published and its OTLP/Collector-to-EFCR corpus passes.
 
@@ -264,11 +290,11 @@ Driver incompatibility (`runner.open-work.008`, `runner.open-work.010`), local c
 | Acceptance identity | problem_or_goal_ids | scenario_ids | drivers; decisions/mechanisms | Outcome / threshold | Method; evidence_state; evidence_reference | Owner; return / reopen |
 | --- | --- | --- | --- | --- | --- | --- |
 | `runner.acceptance.013` | `problem`, `acceptance` | `runner.scenario.01`, `runner.scenario.02`, `runner.scenario.03`, `runner.scenario.04`, `runner.scenario.05`, `runner.scenario.06`, `runner.scenario.07`, `runner.scenario.08`, `runner.scenario.09`, `runner.scenario.10`, `runner.scenario.11`, `runner.scenario.12` | `runner.driver.010`, `runner.decision.014` | coherent bilingual structure and stable-ID parity | independent reviews and final document checks; `DESIGN_EVIDENCE_AVAILABLE`; this Design §§1–15 and its companion | System Design workflow owner; return `runner.acceptance.013`; reopen on material ambiguity |
-| `runner.acceptance.014` | `scope`, `open`, `acceptance` | `runner.scenario.01`, `runner.scenario.02`, `runner.scenario.03`, `runner.scenario.04`, `runner.scenario.05`, `runner.scenario.06`, `runner.scenario.07`, `runner.scenario.08`, `runner.scenario.09`, `runner.scenario.10`, `runner.scenario.11`, `runner.scenario.12` | `runner.decision.012`, `runner.decision.015` | no unsupported infrastructure proof claim and complete Contract/handoff routing | ledger audit; `DESIGN_EVIDENCE_AVAILABLE`; this Design §§1, 3, and 13–15, `runner.open-work.003.1`–`.4`, `runner.open-work.006/002`, and `runner.open-work.008`–`006` | System Designer; return `runner.acceptance.014`; reopen on missing or misclaimed evidence |
+| `runner.acceptance.014` | `scope`, `open`, `acceptance` | `runner.scenario.01`, `runner.scenario.02`, `runner.scenario.03`, `runner.scenario.04`, `runner.scenario.05`, `runner.scenario.06`, `runner.scenario.07`, `runner.scenario.08`, `runner.scenario.09`, `runner.scenario.10`, `runner.scenario.11`, `runner.scenario.12` | `runner.decision.012`, `runner.decision.015` | no unsupported infrastructure proof claim and complete Contract/handoff routing | ledger audit; `DESIGN_EVIDENCE_AVAILABLE`; this Design §§1, 3, and 13–15, `runner.open-work.003.1`–`.4`, and `runner.open-work.006`–`.013` | System Designer; return `runner.acceptance.014`; reopen on missing or misclaimed evidence |
 | `runner.acceptance.001` | `problem`, `constraints` | `runner.scenario.01` | `runner.driver.001`, `runner.decision.011`, `runner.flow.001` | Execution sole assessor; fail closed | authority review; `DESIGN_EVIDENCE_AVAILABLE`; authority sources and this Design §§1, 7, and 13 | Runtime conformance owner; return `runner.open-work.003.3`, `runner.interface.001`, `runner.acceptance.001`; reopen on self-assessment |
 | `runner.acceptance.002` | `problem`, `constraints` | `runner.scenario.02` | `runner.driver.002`, `runner.decision.002`, `runner.flow.002` | exact package/thread; no fabricated progress | graph tests; `IMPLEMENTATION_PLAN`; `runner.open-work.003.1`, `runner.open-work.003.2`, `runner.open-work.009`, `runner.open-work.010`, `runner.open-work.012` | `runner.module.002` owner; return `runner.interface.002`, `runner.acceptance.002`, `runner.open-work.009`; reopen if premise fails |
 | `runner.acceptance.003` | `problem`, `risks` | `runner.scenario.03` | `runner.driver.003`, `runner.decision.004`, `runner.decision.005`, `runner.flow.003` | typed managed result; bypass rejected | Driver tests; `IMPLEMENTATION_PLAN`; `runner.open-work.003.1`, `runner.open-work.003.3`, `runner.open-work.008`, `runner.open-work.012` | `runner.module.003` owner; return `runner.interface.003`, `runner.acceptance.003`, `runner.open-work.008`; reopen on seam failure |
-| `runner.acceptance.004` | `problem`, `risks` | `runner.scenario.04` | `runner.driver.003`, `runner.decision.005` | both sources; no fallback | multi-Driver tests; `IMPLEMENTATION_PLAN`; `runner.open-work.008`, `runner.open-work.010`, `runner.open-work.012` | `runner.module.003` owner; return `runner.interface.003`, `runner.acceptance.004`, `runner.open-work.008`; reopen if required source fails |
+| `runner.acceptance.004` | `problem`, `risks` | `runner.scenario.04` | `runner.driver.003`, `runner.decision.005` | DSH concrete path; Copilot/Codex typed unsupported; no fallback | DSH integration plus unsupported-provider negative tests; `IMPLEMENTATION_PLAN`; `runner.open-work.008`, `runner.open-work.010`, `runner.open-work.012` | `runner.module.003` owner; return `runner.interface.003`, `runner.acceptance.004`, `runner.open-work.008`; reopen if the selected Provider or fail-closed shells bypass the managed seam |
 | `runner.acceptance.005` | `problem`, `quality` | `runner.scenario.05` | `runner.driver.004`, `runner.decision.006`, `runner.flow.004` | bounded stable reads; mutation invalidates | real-Git tests; `IMPLEMENTATION_PLAN`; `runner.open-work.009`, `runner.open-work.011`, `runner.open-work.012` | `runner.module.004` owner; return `runner.interface.004`, `runner.acceptance.005`, `runner.open-work.009`; reopen on isolation failure |
 | `runner.acceptance.006` | `problem`, `constraints` | `runner.scenario.06` | `runner.driver.005`, `runner.decision.004`, `runner.decision.008`, `runner.flow.005` | correlated resume; stale rejected | control tests; `IMPLEMENTATION_PLAN`; `runner.open-work.003.1`, `runner.open-work.003.3`, `runner.open-work.009`, `runner.open-work.012` | `runner.module.002` owner; return `runner.interface.002`, `runner.acceptance.006`, `runner.open-work.009`; reopen on unsafe resume |
 | `runner.acceptance.007` | `problem`, `risks` | `runner.scenario.07` | `runner.driver.006`, `runner.decision.007`, `runner.flow.006` | continue, restart, or intervene; no blind replay | fault tests; `IMPLEMENTATION_PLAN`; `runner.open-work.003.1`, `runner.open-work.003.3`, `runner.open-work.008`, `runner.open-work.009`, `runner.open-work.012` | `runner.module.001` owner; return `runner.interface.001`, `runner.acceptance.007`, `runner.open-work.009`; reopen if ambiguity is uncontained |
@@ -290,14 +316,14 @@ Scope-qualified `PROFILE_DESIGN_READY_REBINDING_REQUIRED` means the reviewed doc
 | Immutable Delivery binding | Bind one immutable package and one private correlated thread per Delivery; inject Profile-owned checkpointer/SDK dependencies; never upgrade in flight. | `runner.decision.002` |
 | Four-module structure | Use exactly four deep Modules with the acyclic invocation direction in §6. | `runner.decision.003` |
 | Workflow policy ownership | Workflow Host alone owns legal route, budget, successor, Wait, and terminal-proposal semantics. | `runner.decision.004` |
-| Static managed Drivers | Use static Codex and Copilot Driver Adapters behind typed managed invocation; reject fallback and unmanaged bypass. | `runner.decision.005` |
+| Static managed Providers | Use an exact configured Provider Adapter behind typed managed invocation; current concrete support is DSH, Copilot/Codex fail closed, and fallback/unmanaged bypass is rejected. | `runner.decision.005` |
 | Serialized workspace mutation | Host orders workspace context, Workspace alone mutates Git, Invocation only consumes authorized handles, writes serialize, and publication is guarded. | `runner.decision.006` |
 | Semantic recovery only | Recover only by known continue, known restart from savepoint, or explicit uncertainty leading to Intervention; claim neither blind replay nor exactly-once. | `runner.decision.007` |
 | Owner-scoped retirement | Each Module retires only its eligible family; Coordinator retires its working lifecycle family, reconciles partial retirement, and preserves `runner-TERMINAL-SETTLEMENT-RECORD-001`. | `runner.decision.008` |
-| Non-controlling observation | Each origin Module emits provenance-preserving bounded observations through the thin observation interface; EFCR never controls Runtime. | `runner.decision.009`; `runner.interface.005` |
+| Non-controlling observation | Coordinator alone may offer bounded owner facts through the private port to Execution Delivery Observation; Host, Invocation and Workspace do not import it, and Evidence never controls Runtime. | `runner.decision.009`; `runner.interface.005` |
 | Logical writer separation | SQLite may physically co-locate checkpoint and Journal data while logical writers, state families, and retirement remain separate. | `runner.decision.010` |
 | Execution-owned qualification | Execution exclusively assesses qualification; Profile supplies claims/evidence/native validation/preflight only. | `runner.decision.011`; `EX-MOD-003` |
-| Readiness is not substrate proof | Scope-qualified document readiness is independent of infrastructure proof and never asserts a supported substrate/version. | `runner.decision.012` |
+| Readiness and substrate proof | The current direct-dependency matrix is selected and locked, but document readiness alone does not prove the Wave 4 walking skeleton or full fault corpus. | `runner.decision.012` |
 
 ### External Contract gaps
 
@@ -329,20 +355,20 @@ The former `runner.open-work.001`, `runner.open-work.002`, `runner.open-work.004
 
 | Item | Supersedes / implementation responsibility | Owner; required completion evidence; state | Concrete future result record and acceptance updates | Reopen |
 | --- | --- | --- | --- | --- |
-| `runner.open-work.008` | `runner.open-work.001`; implement and prove managed Codex/Copilot Driver projection, no fallback/bypass, least credential lifecycle, typed results, child cancellation, and unknown attempt handling | Managed Invocation implementation owner; positive/negative Driver and credential fixtures; `IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.008.result.md`; update `runner.acceptance.003`, `runner.acceptance.004`, `runner.acceptance.007`, `runner.acceptance.008` | required source or managed-action seam fails |
-| `runner.open-work.009` | `runner.open-work.002`; implement the graph/checkpoint/process/SQLite/Git/retirement fault corpus and demonstrate semantic recovery, cancellation reconciliation, guarded publication, and owner-scoped retirement | Runtime fault implementation owner; executable crash/replay/conflict/partial-retirement corpus; `IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.009.result.md`; update `runner.acceptance.002`, `runner.acceptance.005`, `runner.acceptance.006`, `runner.acceptance.007`, `runner.acceptance.008`, `runner.acceptance.009`, `runner.acceptance.011` | local recovery, safety, or writer separation fails |
-| `runner.open-work.010` | `runner.open-work.004`; select, lock, record, and test supported LangGraph/checkpointer/SQLite/Node/Driver/Git compatibility without in-flight substitution | framework/Driver implementation owner; exact version matrix, lock evidence, compatibility tests; `UNSELECTED` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.010.result.md`; update `runner.acceptance.002`, `runner.acceptance.004`, `runner.acceptance.009`, `runner.acceptance.012` | required version or compatibility premise fails |
-| `runner.open-work.011` | `runner.open-work.005`; expose bounded configuration and measure timeout, budget, fan-out, cache, cost, disk, cleanup, and retention defaults; operator finalization follows measured evidence | Runtime implementation owner with operator participation; benchmark corpus and recommended defaults; `UNMEASURED` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.011.result.md`; update `runner.acceptance.005`, `runner.acceptance.010`, `runner.acceptance.011` | local/one-writer assumptions or safe operating bounds fail |
-| `runner.open-work.012` | former internal portion of `runner.open-work.003`; realize and test exact internal `runner.interface.002/003/004` operations, types, errors, identity/content conflict rules, ordering, retry, and retirement behavior without promoting them to published Contracts | owning Module implementations; Interface tests through allowed callers; `IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.012.result.md`; update every affected acceptance row in §13 | an internal boundary becomes cross-release/cross-process or loses owner/caller separation |
-| `runner.open-work.013` | former observation-mapping portion of `runner.open-work.003`; map runner owner facts to `runner.open-work.003.4`, minimize prohibited content, preserve provenance, and prove outage remains non-controlling | Observation Adapter implementation owner; mapping matrix and conformance/outage fixtures; `IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.013.result.md`; update `runner.acceptance.010` and affected privacy evidence | semantic-ingress Contract, fact availability, or minimization premise fails |
+| `runner.open-work.008` | residual after the DSH-only MVP: implement and prove managed Copilot/Codex Provider projection while preserving no fallback/bypass, least credential lifecycle, typed results, child cancellation and unknown handling | Managed Invocation implementation owner; current Wave 4 requires typed unsupported negatives only; production Copilot/Codex remain post-MVP obligations (#84/#85) | `docs/systems/runtime/implementation-results/runner/runner.open-work.008.result.md`; update `runner.acceptance.003`, `runner.acceptance.004`, `runner.acceptance.007`, `runner.acceptance.008` only when those Providers are implemented | a future Provider cannot preserve the managed-action seam |
+| `runner.open-work.009` | `runner.open-work.002`; implement the graph/checkpoint/process/SQLite/Git/retirement fault corpus and demonstrate semantic recovery, cancellation reconciliation, guarded publication, and owner-scoped retirement | Runtime fault implementation owner; executable crash/replay/conflict/partial-retirement corpus; `IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/runner/runner.open-work.009.result.md`; update `runner.acceptance.002`, `runner.acceptance.005`, `runner.acceptance.006`, `runner.acceptance.007`, `runner.acceptance.008`, `runner.acceptance.009`, `runner.acceptance.011` | local recovery, safety, or writer separation fails |
+| `runner.open-work.010` | `runner.open-work.004`; preserve the selected Node/direct-dependency/lockfile matrix, record the Git qualification environment and complete Wave 4 compatibility/fault proof without in-flight substitution | framework/Provider implementation owner; exact package/lock identities and current Git environment are listed in §2; supported Git range and final walking-skeleton/fault proof remain `IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/runner/runner.open-work.010.result.md`; update `runner.acceptance.002`, `runner.acceptance.004`, `runner.acceptance.009`, `runner.acceptance.012` | required version or compatibility premise fails |
+| `runner.open-work.011` | `runner.open-work.005`; expose bounded configuration and measure timeout, budget, fan-out, cache, cost, disk, cleanup, and retention defaults; operator finalization follows measured evidence | Runtime implementation owner with operator participation; benchmark corpus and recommended defaults; `UNMEASURED` | `docs/systems/runtime/implementation-results/runner/runner.open-work.011.result.md`; update `runner.acceptance.005`, `runner.acceptance.010`, `runner.acceptance.011` | local/one-writer assumptions or safe operating bounds fail |
+| `runner.open-work.012` | former internal portion of `runner.open-work.003`; realize and test exact internal `runner.interface.002/003/004` operations, types, errors, identity/content conflict rules, ordering, retry, and retirement behavior without promoting them to published Contracts | owning Module implementations; Interface tests through allowed callers; `IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/runner/runner.open-work.012.result.md`; update every affected acceptance row in §13 | an internal boundary becomes cross-release/cross-process or loses owner/caller separation |
+| `runner.open-work.013` | former observation-mapping portion of `runner.open-work.003`; map runner owner facts to `runner.open-work.003.4`, minimize prohibited content, preserve provenance, and prove outage remains non-controlling | Observation Adapter implementation owner; mapping matrix and conformance/outage fixtures; `IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/runner/runner.open-work.013.result.md`; update `runner.acceptance.010` and affected privacy evidence | semantic-ingress Contract, fact availability, or minimization premise fails |
 
 Former `runner-FQ-001` and `runner-FQ-002` remain retired. The two representation-binding spikes are complete as feasibility evidence; the current `EX-U-001`–`004` physical Contract-artifact requests remain open under `concept.obligation.001`. Implementation results update the acceptance evidence references named above; a disproved premise reopens the Brief/design rather than being normalized as an implementation deviation.
 
-Rejected: server/daemon, proprietary engine/universal Executor, Profile self-assessment, catch-all Core, speculative Driver/store/plugin Modules, fallback/registry, parallel writes/implicit merge, exactly-once/cross-system transactions, unsafe Git automation, Coordinator deletion, synchronous Evidence control, HA/distribution/migration machinery.
+Rejected: server/daemon, proprietary engine/universal Executor, Profile self-assessment, catch-all Core, speculative Driver/store/plugin Modules, ambient/plugin/marketplace discovery registries, fallback selection, parallel writes/implicit merge, exactly-once/cross-system transactions, unsafe Git automation, Coordinator deletion, synchronous Evidence control, HA/distribution/migration machinery. The closed exact-key Provider factory registry owned by Runner composition is required, not rejected.
 
 ## 15. Module Deepening and Implementation Handoff
 
-Deepen in dependency order: Workspace and Publication Manager invariants and handles (`runner.module.004`); Managed Agent Invocation and its typed Driver seam (`runner.module.003`); Workflow Host package/thread/checkpoint semantics (`runner.module.002`); then Lifecycle Coordinator composition (`runner.module.001`). The implementation workflow must explicitly import `runner.open-work.008`–`006` into its plan and may claim an affected integration only after the applicable physical Contract is published and its proof gate passes. Test through each Module Interface and preserve unique writers/retirers, caller direction, no fallback, private IDs, minimization and publication guards. No handoff item is satisfied merely by removing it from the System Design gap ledger.
+Deepen in dependency order: Workspace and Publication Manager invariants and handles (`runner.module.004`); Managed Agent Invocation and its typed Provider seam (`runner.module.003`); Workflow Host package/thread/checkpoint semantics (`runner.module.002`); then Lifecycle Coordinator composition (`runner.module.001`). The implementation workflow must explicitly route `runner.open-work.008`–`.013`; current Wave 4 closes only the items assigned to the DSH-only MVP and leaves the named post-MVP obligations open. It may claim an affected integration only after each applicable proof gate passes. Test through each Module Interface and preserve unique writers/retirers, caller direction, no fallback, private IDs, minimization and publication guards. No handoff item is satisfied merely by removing it from the System Design gap ledger.
 
 Prohibited reinterpretations include Execution-owned Workflow state, Profile self-assessment, receipt/process/telemetry terminal truth, native-ID leakage, Invocation route/workspace policy, Coordinator foreign-state deletion, parallel writes, controlling Evidence, exactly-once claims, or reading this scope-qualified ready design as infrastructure proof.
 

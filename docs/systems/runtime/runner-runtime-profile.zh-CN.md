@@ -1,4 +1,4 @@
-# 第一方 LangGraph Runtime Profile 系统设计
+# Runner Runtime Profile 系统设计
 
 > **Active support/navigation.** Target authority 是 [Concept](../../agent-architecture.md)、[Execution](../execution/project-execution-system.md) 与 [Evidence](../evidence/evidence-system.md)；Contract revision split —— [Observation Catalog](../../contracts/observation/observation-catalog.zh-CN.md)、[OTel Observation Profile](../../contracts/observation/otel-observation-profile.zh-CN.md)、[Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.zh-CN.md) 与 [Metric Catalog](../../contracts/evaluation/metric-catalog.zh-CN.md) —— 仍为 draft，不能证明 physical conformance。若本文其余历史/操作说明与这些 owner 冲突，以 owner 为准；legacy material 只能作为明确标记的 legacy evidence 被发现。
 
@@ -6,29 +6,50 @@
 
 | 字段 | 值 |
 | --- | --- |
-| 状态 | `PROFILE_DESIGN_READY_REBINDING_REQUIRED`；四条 legacy semantic Contract line 存在但不是 publication；两个 representation-binding Spike 仍是 feasibility evidence；physical 与 implementation conformance 尚未证明 |
+| 状态 | `WAVE4_ENTRY_REVIEW_CANDIDATE`；已吸收稳定 Runner/module boundary 与当前 substrate matrix；完整 Wave 4 implementation conformance 尚未证明 |
 | Canonical language | English |
 | Authority source snapshot | repository commit `a7684789958f556b4376e12f3b55f224804fabea`；精确 authority path 见下文 |
 | Workflow closure | confirmed problem/scenario Brief 与 Skeleton direction 已吸收；三镜头审查、readability review、Fresh Reader 与 deterministic document verification 在清理 session artifact 前通过 |
 | Supersession lineage | 替换本 canonical path 的先前内容；repository history 承载持久 final-artifact lineage |
-| Companion | [规范英文原文](first-party-langgraph-runtime-profile.md)；本中文文档为派生的 non-normative companion |
+| Companion | [规范英文原文](runner-runtime-profile.md)；本中文文档为派生的 non-normative companion |
+| Module detail | [Runner](../execution/modules/runner/runner.zh-CN.md)、[Lifecycle Coordinator](../execution/modules/runner/lifecycle-coordinator.zh-CN.md)、[Workflow Host](../execution/modules/runner/workflow-host.zh-CN.md)、[Managed Agent Invocation](../execution/modules/runner/managed-agent-invocation.zh-CN.md)、[Workspace and Publication Manager](../execution/modules/runner/workspace-publication-manager.zh-CN.md) |
 
 ### External-boundary rebinding（`runner.decision.013`）
 
-本节对该 Profile 的 external boundary 具有规范性。上方链接的 Concept 与 Execution/Evidence System Design 拥有 product/System meaning。Product Host 只发起一次 Execution Core Delivery call；Core 把此 Profile 作为 Adapter 调用，并拥有 Delivery lifecycle sequencing 与 outbound Delivery Observation。下方 Coordinator→Host/Invocation/Workspace choreography 是 runner Adapter 内部私有编排，不是 host-callable Core Interface。runner 私下保留 wait/resume、checkpoint、branch/workspace assignment 与 custody reacquisition；这些能力都不会变成 DSH 或 public Core resume semantic。
+本节对该 Profile 的 external boundary 具有规范性。稳定实现身份是 **Runner**，不是“第一方 LangGraph runner”；LangGraph 是当前选定、可替换的 Workflow Host substrate。上方链接的 Concept 与 Execution/Evidence System Design 拥有 product/System meaning。Product Host 只发起一次 Execution Core Delivery call；Core 把 Runner 作为 Adapter 调用，并拥有 Delivery admission、Runtime Adapter selection/configuration identity 与 outbound Delivery Observation。Coordinator→Host/Invocation/Workspace choreography 是 Runner 内部私有编排，不是 host-callable Core Interface。Runner 私下保留 wait/resume、checkpoint、branch/workspace assignment 与 custody reacquisition；这些能力都不会变成 DSH 或 public Core resume semantic。
 
 下文所有 EFCR/PCC、four-Contract、“published”与 `runner.open-work.003.*` statement 都只是 frozen legacy profile evidence 与 downstream rebinding input。它们不是 active authority、publication 或 conformance proof。Active target 经 Core-owned Delivery Observation 把 bounded fact 发送给 Evidence；Contract companion 仍是 draft。任何 implementation/conformance claim 都需要在 `concept.obligation.001..004` 下游发布 schema、registry、fixture 与 validation。
 
 权威顺序为 [Concept](../../agent-architecture.zh-CN.md)，其次是拥有 external/Core boundary 的 [Execution System Design](../execution/project-execution-system.zh-CN.md)，最后是拥有 Adapter-private runner behavior 的本 Profile。用户确认需求通过这些 governing owner 被吸收；已删除或 legacy design 仅是 historical evidence，不是 active authority。本文描述预期的私有 Profile behavior；唯一已执行的 substrate evidence 是 §14 返回的窄范围外部 spike 证据，不据此声称更广泛的 LangGraph、Codex、Copilot、SQLite、Git、性能、生产、conformance 或 fault 能力。
 
+external import 是 Execution-owned `ExecutionRuntimeAdapter` projection：`execution-system/src/execution/runtime-adapter.ts`；本 Profile 不重新定义该 seam。compiler 接收 fully admitted `RunnerActivationContext`，并为所选 Host Adapter 产出 minimal execution plan。Runner 内的 Workflow Host 拥有 thread/decision/barrier/checkpoint/terminal proposal；Managed Agent Invocation 拥有 Provider invocation、session、Journal、`awaiting-input` 与 `continueWithInput`。Action-scoped 多轮 input 保持同一 episode/session，不创建 Workflow Wait。只有已返回 Action result 显式请求外部 approval/decision 时，才进入 Workflow Host Wait path。
+
+Runner 创建由配置驱动。Execution 冻结 Runtime Adapter selection/configuration identity；private `RunnerFactory` 创建 configured Provider factory registry instance，选择唯一 exact Workflow Host factory，并装配四个模块。Managed Agent Invocation 拥有 Provider Factory SPI/DSH factory；Workflow Host 拥有 Host Factory SPI/LangGraph factory。创建过程禁止 ambient discovery、priority、fallback，也不替换 in-flight implementation。
+
 ## 2. 设计上下文
 
 Execution Core 拥有 Delivery admission、Manifest/configuration identity、lifecycle sequencing、Adapter qualification 与 outbound Observation。Profile 是可替换 execution seam 的 Adapter，拥有其私有 Workflow execution 与 Runtime truth。Evidence 拥有 admitted fact、factual projection 与 presentation。目标上下文是可信本地 dogfood、每 repository instance 一个活跃 Execution、短生命周期 worker、无 daemon/port、串行写和有界只读 fan-out；不声称隔离恶意 Workflow code。
 
+### 当前实现选择
+
+当前 Wave 4 candidate 是 Node `>=24.12.0 <25` 上的 embedded TypeScript，并绑定以下 exact direct dependency：
+
+| 角色 | 所选依赖 |
+| --- | --- |
+| Workflow Host | `@langchain/langgraph@1.4.12` |
+| LangGraph core | `@langchain/core@1.2.9` |
+| Checkpointer | `@langchain/langgraph-checkpoint-sqlite@1.0.4` |
+| Lockfile 选择的 SQLite runtime | `better-sqlite3@12.11.1` |
+| Concrete Provider | `@deepseek-ai/dsh@0.1.1-rc.2` public closure |
+| Runtime validation support | `zod@4.2.0` 加 Runner-owned fail-closed validation |
+| Git CLI qualification 环境 | `git 2.52.0`；最终 supported-range/fault proof 仍属 Wave 4 工作 |
+
+该 matrix 选择当前 Adapter implementation，不进入 Runner 稳定名称。DSH 是本 candidate 唯一 concrete Provider；Copilot/Codex 是 typed fail-closed shell，仍属后续义务。版本变化必须重新 qualification，且只影响后续 Runner instance/Delivery。
+
 ```mermaid
 flowchart LR
   U[用户] --> C[VS Code / CLI] --> E[Execution：准入 / Manifest / 评估 / 回执]
-  E --> P[第一方 Profile：Workflow / Runtime truth]
+  E --> P[Runner：Workflow / Runtime truth]
   P --> G[Git]
   P --> O[Core-owned Delivery Observation] --> V[Evidence]
   N[约束：不存在 Evidence 到 Profile 的 control 或 callback Interface]
@@ -36,7 +57,7 @@ flowchart LR
 
 ## 3. 问题、目标与范围
 
-本设计关闭 此前委派的 graph、checkpoint、Driver/session、workspace、publication 与 recovery 缺口，同时避免恢复 Execution-owned universal Executor 或泄漏 native identity。它要求准确 qualification evidence、不可变 package/thread activation、typed multi-Driver Action、安全读写并发、持久 Intervention、语义 recovery/cancellation、guarded publication、非控制 observation、owner-specific retirement 与无 in-flight upgrade。
+本设计关闭此前委派的 graph、checkpoint、Provider/session、workspace、publication 与 recovery 缺口，同时避免恢复 Execution-owned universal Executor 或泄漏 native identity。它要求准确 qualification evidence、不可变 package/thread activation、typed managed Provider Action、安全读写并发、持久 Intervention、语义 recovery/cancellation、guarded publication、非控制 observation、owner-specific retirement 与无 in-flight upgrade。当前 concrete Provider 路径仅为 DSH。
 
 范围包括 Profile evidence/preflight、package/graph/thread/checkpoint 意图、managed invocation、workspace/savepoint/publication、lifecycle/recovery/retirement、observation mapping、ownership 与未来 verification。非目标包括 Execution/EFCR/Evidence 权威、字段级 Contract、Installation & Update、Agent Server、专有引擎、Builder/compiler、plugin、HA/分布式/多租户、并行写、exactly-once、跨系统事务、不安全 Git 自动化、恶意代码隔离与活跃迁移。基础设施验证外部化，且不阻塞本文档 workflow。
 
@@ -46,7 +67,7 @@ flowchart LR
 | --- | --- | --- |
 | 独立 qualification | Execution 独占 assessment；Profile 只给 claim/evidence/native validation/preflight。 | `runner.driver.001`；`runner.decision.011` |
 | Immutable Delivery binding | 每 Delivery 一个 immutable package/private thread，注入 checkpointer/SDK，无 in-flight upgrade。 | `runner.driver.002`；`runner.decision.002` |
-| Typed static Drivers | 静态 Codex/Copilot Adapter 返回 typed result，无 fallback。 | `runner.driver.003`；`runner.decision.005` |
+| Typed static Providers | exact configured Provider Adapter 返回 typed result 且无 fallback；当前 concrete support 为 DSH，Copilot/Codex fail closed。 | `runner.driver.003`；`runner.decision.005` |
 | 串行 workspace safety | Host 排序 workspace context；Workspace 独占 mutation；写串行且 guarded publication。 | `runner.driver.004`；`runner.decision.006` |
 | Durable control truth | Wait、cancellation 与 terminal truth 是持久 Runtime state，不来自 receipt/process/free text。 | `runner.driver.005` |
 | Semantic recovery | Recovery 为 `continue | restart-from-savepoint | intervene`；不确定性显式化。 | `runner.driver.006`；`runner.decision.007` |
@@ -65,14 +86,14 @@ flowchart LR
 
 | Module | 职责 | 唯一 writer/retirer | Trace IDs |
 | --- | --- | --- | --- |
-| Profile Lifecycle Coordinator | Profile evidence/preflight；activate/resume/cancel/reconcile/recover/settle/retire 编排 | lifecycle working state 与 immutable terminal settlement record；只 retire eligible working state | `runner.module.001`；`runner.interface.001`；`runner-TERMINAL-SETTLEMENT-RECORD-001` |
-| LangGraph Workflow Host | exact package、注入式 graph compile/advance、closed transition、Wait/checkpoint/proposal | package execution cache、Workflow/checkpoint/thread state | `runner.module.002`；`runner.interface.002` |
+| Runner Lifecycle Coordinator | Adapter lifecycle；activate/resume/cancel/reconcile/recover/settle/retire 编排 | lifecycle working state 与 immutable terminal settlement record；只 retire eligible working state | `runner.module.001`；`runner.interface.001`；`runner-TERMINAL-SETTLEMENT-RECORD-001` |
+| Workflow Host | exact admitted activation、selected Host Adapter、graph advance、closed transition、Wait/checkpoint/proposal | Workflow/checkpoint/thread state；当前 substrate 是 LangGraph | `runner.module.002`；`runner.interface.002` |
 | Managed Agent Invocation | frozen route projection、静态 Driver、session/tool/credential、typed result、fan-out/control | session reference 与 Invocation Journal | `runner.module.003`；`runner.interface.003` |
 | Workspace and Publication Manager | baseline/view/write/savepoint/restore/result/guarded publication | workspace、view、savepoint、result/publication | `runner.module.004`；`runner.interface.004` |
 
-Runtime-observation Adapter 是 thin Adapter，不拥有 domain truth（`runner.interface.005`）。
+Runtime-observation Adapter 是 thin Adapter，不拥有 domain truth（`runner.interface.005`）。稳定模块细节由链接的 Module Detailed Design 所有；本 Profile 拥有 supported composition/profile 与 substrate matrix。
 
-下图的无环方向只约束跨 Module invocation：Coordinator invoke Host、Invocation 与 Workspace；Host invoke Invocation 与 Workspace；Invocation 仅经 authorized handle invoke Workspace。§7 中以 `←` 表示的 result/return 只完成原调用，不形成 reverse invocation 或 reverse dependency。
+下图的无环方向只约束跨 Module invocation：Coordinator invoke Host、Invocation 与 Workspace；Host invoke Invocation 与 Workspace。Workspace 返回 signed capability value，Host 将它随 dispatch 传入 Invocation；Invocation 不获得也不 invoke Workspace service。§7 中以 `←` 表示的 result/return 只完成原调用，不形成 reverse invocation 或 reverse dependency。
 
 ```mermaid
 flowchart TB
@@ -84,11 +105,10 @@ flowchart TB
   M1 -->|物化/恢复/发布/退役| M4[工作区管理器]
   M2 -->|调用/扇出| M3
   M2 -->|view/savepoint 排序| M4
-  M3 -->|仅 authorized handle| M4
-  M1 -->|来源 observation| I5[可观测 Adapter] --> EFCR
-  M2 -->|来源 observation| I5
-  M3 -->|来源 observation| I5
-  M4 -->|来源 observation| I5
+  M4 -.->|经 Host dispatch 传递 signed capability value| M3
+  M1 -->|optional owner facts| I5[Private non-controlling Observation port]
+  I5 -.->|best effort；无控制依赖| M03[Execution Delivery Observation]
+  M03 -.-> EFCR
 ```
 
 ## 7. 协作与端到端流程
@@ -122,7 +142,12 @@ sequenceDiagram
   H-->>C: 返回 terminal proposal
   C->>W: 保存结果并应用 publication guard
   W-->>C: 发布成功并返回 known disposition
-  C->>C: 写 terminal settlement record 与 Runtime truth
+  C->>C: 创建一个 retirement authorization
+  C->>H: retire Host-owned state
+  C->>I: retire Invocation-owned state
+  C->>W: retire Custody-owned state
+  C->>C: retire eligible coordination state
+  C->>C: 收齐四个 known fact 后写 immutable settlement
 ```
 
 **1. Admission 与 activation。** Execution 准入并冻结 Delivery。Coordinator 先请 Workspace Manager materialize exact baseline/binding，再请 Workflow Host activate 一个 immutable package 与一个 private correlated thread。Coordinator 拥有 lifecycle disposition，Workspace 拥有 materialization state，Host 拥有 package/thread/checkpoint state。
@@ -131,7 +156,7 @@ sequenceDiagram
 
 **3. 使 terminal proposal durable。** Host 请 Workspace validate mutation 并写 Action-result savepoint。durable savepoint identity 先返回。随后 Host commit 一个 Workflow checkpoint，其中包含 result、savepoint identity、budget 与作为 terminal proposal 的所选 terminal successor。
 
-**4. Publication 与 settlement。** checkpointed terminal proposal 返回 Coordinator。Coordinator validate terminal obligation，并请 Workspace 保存 result、应用 clean/equal-target publication guard。Workspace 成功发布并返回 known disposition。随后 Coordinator 写 immutable terminal settlement record 与 Runtime terminal truth。
+**4. Publication、retirement 与 settlement。** checkpointed terminal proposal 返回 Coordinator。Coordinator validate terminal obligation，并请 Workspace 在应用 publication guard 前 preserve result。任何 known disposition（包括 conflict）都允许 Coordinator 创建唯一 exact retirement authorization。Host、Invocation、Workspace/Custody、Coordinator 分别只 retire eligible state 并返回 owner fact。只有四个 fact 都 known 才写 immutable terminal settlement。publication/retirement unknown 保持 private reconciliation state，不回滚 preserved result。
 
 ### 状态与异常路线
 
@@ -149,12 +174,13 @@ flowchart TD
   RC -->|未知| W
   A -->|取消| C[停止新 Action 并对账 child] --> TP[已 checkpoint 的 terminal proposal]
   A -->|正常完成| TP
-  TP --> PG{Publication guard 已知且 clean/equal?}
-  PG -->|是| T[Coordinator terminal settlement]
-  PG -->|冲突或未知| W
+  TP --> PG{Publication disposition known?}
+  PG -->|published / already / conflict| RT[一个 authorization 与 owner-scoped retirement]
+  PG -->|unknown| W
   A -. observation outage 不影响控制 .-> A
-  T -->|settlement 加 authorization| RT[每个 owner 只退役 eligible state]
-  RT --> S[Immutable settlement evidence 继续存续]
+  RT -->|四个 known owner facts| T[Immutable terminal settlement]
+  RT -->|任一 owner unknown| W
+  T --> S[Settlement 与 preserved result 继续存续]
 ```
 
 #### Qualification failure 与 in-flight version change
@@ -183,15 +209,15 @@ Coordinator 停止新 Action，请 Invocation cancel child，保留 unknown part
 
 #### Publication conflict
 
-checkpointed terminal proposal 后，Coordinator validate obligation 并调用 Workspace。Workspace 在评估 target guard 前先保存 result。clean/equal target 产生 known disposition；conflict 或 unknown publication 进入 Intervention，绝不伪造 success。
+checkpointed terminal proposal 后，Coordinator validate obligation 并调用 Workspace。Workspace 在评估 target guard 前先保存 result。published、already-at-target、conflict 都是 known disposition，可继续 owner retirement/settlement；unknown publication 进入 Intervention，绝不伪造 success。
 
 #### Observation outage
 
-每个 origin Module 经 thin Adapter 发有界、最小化、保留 provenance 的 observation。delivery failure 或 EFCR outage 只向 origin 返回非 owning delivery status，不能阻塞、推进、取消、恢复、发布或 settle Workflow state。
+Coordinator 可在 lifecycle truth durable 后，通过一个 private Observation port 提供 bounded owner facts。Host、Invocation、Workspace 不导入该 port。disabled、reject、throw、rejected Promise 或 non-settling observer 都不能阻塞、推进、取消、恢复、发布、retire 或 settle Workflow state。
 
 #### Retirement
 
-只有 settlement 加显式 authorization 才启动 durable retirement。Coordinator 调用 Host、Invocation 与 Workspace；每个 owner 只 retire 自己 eligible family 并返回 disposition。Coordinator 记录并重试 partial progress，再只 retire eligible lifecycle working state。authorization、immutable terminal settlement record、result/publication reference、per-owner disposition 与 audit correlation 继续存续。
+只有 publication disposition known 时 Coordinator 才创建显式 retirement authorization。Coordinator 调用 Host、Invocation 与 Workspace；每个 owner 只 retire 自己 eligible family 并返回自己的 fact。Coordinator 用同一 authorization 记录/重试 partial progress，再 retire eligible lifecycle working state。四个 exact known fact 收齐后才创建 immutable settlement。authorization、settlement、result/publication reference 与 owner fact 继续存续；任何 owner 都不接收/写入中央 audit address。
 
 ### 紧凑 Flow/View Traceability
 
@@ -213,21 +239,21 @@ checkpointed terminal proposal 后，Coordinator validate obligation 并调用 W
 
 Manifest/assessment/receipt 属于 Execution；Profile claim 只是 evidence。Host 拥有 Workflow/checkpoint/thread/Wait/proposal；Coordinator 拥有 lifecycle/Intervention/recovery working state 与 immutable terminal settlement record；Invocation 拥有 session/Journal；Workspace 拥有 worktree/view/savepoint/result/publication；Git 与 EFCR/Evidence 保持各自 truth。
 
-跨 seam 使用稳定 Delivery、Workflow/Contract、implementation、Profile/version、Snapshot、Action/Role/route、resource、Artifact、Intervention/control ID；LangGraph/Driver ID 私有。顺序为 assessment→admission/freeze→handoff→workspace/package activation；Workspace savepoint 先 durable，随后 Host checkpoint，而该 checkpoint 先于 durable Workflow progress 与 graph advancement；Invocation 前有 Host context；publication 前有 proposal；retirement 前有 settlement/authorization。same identity/different content fail closed。一个 modifier；read 有界且来自同一 savepoint。
+跨 seam 使用稳定 Delivery、Workflow/Contract、implementation、Profile/version、Snapshot、Action/Role/route、resource、Artifact、Intervention/control ID；LangGraph/Driver ID 私有。顺序为 assessment→admission/freeze→handoff→workspace/package activation；Workspace savepoint 先 durable，随后 Host checkpoint，而该 checkpoint 先于 durable Workflow progress 与 graph advancement；Invocation 前有 Host context；result preservation/known publication 前有 proposal；retirement 前有 authorization；settlement 前有四个 known owner fact。same identity/different content fail closed。一个 modifier；read 有界且来自同一 savepoint。
 
-Ephemeral cleanup 独立于 durable retirement：Invocation 在 Action/worker 结束、failure、cancellation 或 Intervention 时及时终止 child process 并释放 action-scoped authentication；Workspace 及时删除 disposable read view。各 owner 记录有界、脱敏的 cleanup failure 供 reconciliation。Host checkpoint、Invocation Journal/session recovery reference、canonical workspace/savepoint/result 与 Coordinator recovery/terminal record 保留至 settlement 加显式授权。之后 Coordinator 自行 retire 可清理的 lifecycle/worker/control/Intervention working details；immutable authorization、terminal settlement、retirement disposition、result/publication reference 与 audit correlation 继续存续。
+Ephemeral cleanup 独立于 durable retirement：Invocation 在 Action/worker 结束、failure、cancellation 或 Intervention 时及时终止 child process 并释放 action-scoped credential；Workspace 及时删除 disposable read view。各 owner 记录有界、脱敏的 cleanup failure 供 reconciliation。Host checkpoint、Invocation Journal/session recovery reference、canonical workspace/savepoint/result 与 Coordinator recovery/terminal record 保留到 exact authorization 允许 owner-scoped retirement。immutable authorization、terminal settlement、owner fact 与 result/publication reference 继续存续。
 
-Coordinator 可 retire 的 working state 仅包括完成的 worker-attempt bookkeeping、已对账 transient control correlation、已解决 Intervention working payload、recovery scratch/classification 与完成的 retirement retry scheduling。`runner-TERMINAL-SETTLEMENT-RECORD-001` 不被本 retirement 删除，并继续作为 Runtime-authoritative evidence；最少包含 Delivery；Manifest、Profile/version、Workflow/Contract、implementation、Package Snapshot identities；terminal outcome/reason；terminal checkpoint、result/savepoint references；publication disposition/reference；retirement authorization identity；per-owner dispositions；stable audit correlation。仅未来另行授权的 product-retention policy 可处理该 immutable record，但 `runner.flow.010` 不处理它。
+Coordinator 可 retire 的 working state 仅包括完成的 worker-attempt bookkeeping、已对账 transient control correlation、已解决 Intervention working payload、recovery scratch/classification 与完成的 retirement retry scheduling。`runner-TERMINAL-SETTLEMENT-RECORD-001` 在 retirement 后创建，不会被该 operation 删除，并继续作为 Runtime-authoritative evidence；最少包含 Delivery；Manifest、Profile/version、Workflow/Contract、implementation、Package Snapshot identities；terminal outcome/reason；terminal checkpoint、result/savepoint references；known publication disposition；retirement authorization；按 Coordinator/Host/Invocation/Custody 排序的 known owner facts。仅未来另行授权的 product-retention policy 可处理该 immutable record，但 `runner.flow.010` 不处理它。
 
 ## 9. Interface、依赖、Seam 与 Adapter
 
-Execution SPI-facing interface 不做 admission assessment（`runner.interface.001`）。Workflow Host interface 由 Coordinator 调用并隐藏 package/thread/checkpoint semantics（`runner.interface.002`）。Managed Invocation interface 由 Host 调 invoke/fan-out，Coordinator 仅调 cancel/reconcile/retire；它不选 route（`runner.interface.003`）。Workspace interface 由 Coordinator 做 lifecycle、Host 做 ordering、Invocation 仅用 authorized handle；它隐藏 Git state（`runner.interface.004`）。observation interface 只发有界非控制 observation（`runner.interface.005`）。
+Execution SPI-facing interface 不做 admission assessment（`runner.interface.001`）。Workflow Host interface 由 Coordinator 调用并隐藏 package/thread/checkpoint semantics（`runner.interface.002`）。Managed Invocation interface 由 Host 调 invoke/fan-out，Coordinator 仅调 cancel/reconcile/retire；它不选 route（`runner.interface.003`）。Workspace interface 由 Coordinator 做 lifecycle、Host 做 ordering；Invocation 只接收 signed capability value，永远不获得 Workspace service（`runner.interface.004`）。private observation interface 只接收 Coordinator 提供的 bounded non-controlling owner fact（`runner.interface.005`）。
 
 这些 caller rule 只约束 invocation，并保持无环。typed result、savepoint identity、proposal 与 publication disposition 经原 Interface 返回其 caller；return 不授权 callee invoke caller，也不建立 reverse dependency。
 
 所有 Interface 对 identity/authority/state mismatch fail closed，并保留 explicit unknown。Proposed current cross-owner field/error/version rule 由 unpublished Contract draft 与 `concept.obligation.001` 跟踪；`runner.open-work.003` 下历史 four-Contract wording 只保留为 quarantined legacy evidence。implementation workflow 通过 `runner.open-work.012` 确定 `runner.interface.002/003/004` 的内部 shape，并通过 `runner.open-work.011` 给出实测 timeout/capacity 默认值。Driver 与 Execution/EFCR 是真实 Adapter seam；store/cache/tool/credential 保持 internal seam。
 
-Observation caller 完整：Host、Invocation、Workspace、Coordinator 各自调用 `runner.interface.005`，携带 originating Module provenance 与 stable correlation。origin Module 仍是 fact owner；Adapter 只 validate/minimize/map，不改 provenance、不读取 native content、不获得 control。delivery status 只返回 origin caller（Coordinator 可获得非 owner 的 lifecycle summary）；EFCR 无回调。跨 Runtime semantic ingress 属于 `runner.open-work.003.4` / `EX-U-004`；runner-specific fact-to-observation mapping 与 fixture 属于 implementation handoff item `runner.open-work.013`。
+Observation 刻意不在各模块间做 caller-complete。Host、Invocation、Workspace 通过既有 capability 返回 bounded owner fact；只有 Coordinator 可以向 `runner.interface.005` 提供 allow-listed projection。port 只 validate/minimize/map，不改 provenance、不读取 native content、不提供 audit address，也不获得 control；它没有 acknowledgement dependency，EFCR 无回调。跨 Runtime semantic ingress 属于 `runner.open-work.003.4` / `EX-U-004`；production mapping/composition 是 Iteration 3 Observation owner 在 `runner.open-work.013` 下的工作。
 
 `runner.open-work.007` 完成了 quarantined legacy `.4` semantic line 的 representation-binding feasibility experiment，并为 draft 提供信息：required Canonical Evidence 只允许使用 dedicated unsampled/non-trace-based OTel Event 或 Log 路径；Trace、Span 与 Metric carrier 因 sampling 或 aggregation 可能丢失 fact occurrence，只能是 `DIAGNOSTIC_TELEMETRY`。该结果既不发布 Contract，也不证明 conformance；implementation 在 physical Contract 发布且自身 OTLP/Collector-to-EFCR corpus 通过前保持 `CROSS_IMPLEMENTATION_CONFORMANCE_UNPROVEN`。
 
@@ -264,11 +290,11 @@ Driver incompatibility (`runner.open-work.008`、`runner.open-work.010`)、local
 | Acceptance identity | problem_or_goal_ids | scenario_ids | drivers；decisions/mechanisms | Outcome / threshold | Method；evidence_state；reference | Owner；return / reopen |
 | --- | --- | --- | --- | --- | --- | --- |
 | `runner.acceptance.013` | `problem`, `acceptance` | `runner.scenario.01`, `runner.scenario.02`, `runner.scenario.03`, `runner.scenario.04`, `runner.scenario.05`, `runner.scenario.06`, `runner.scenario.07`, `runner.scenario.08`, `runner.scenario.09`, `runner.scenario.10`, `runner.scenario.11`, `runner.scenario.12` | `runner.driver.010`, `runner.decision.014` | coherent bilingual structure and ID parity | independent reviews 与 final document checks；`DESIGN_EVIDENCE_AVAILABLE`；本文 §§1–15 与英文 companion | workflow owner；return `runner.acceptance.013`；ambiguity 时 reopen |
-| `runner.acceptance.014` | `scope`, `open`, `acceptance` | `runner.scenario.01`, `runner.scenario.02`, `runner.scenario.03`, `runner.scenario.04`, `runner.scenario.05`, `runner.scenario.06`, `runner.scenario.07`, `runner.scenario.08`, `runner.scenario.09`, `runner.scenario.10`, `runner.scenario.11`, `runner.scenario.12` | `runner.decision.012`, `runner.decision.015` | no unsupported infra proof claim；Contract/handoff routing complete | ledger audit；`DESIGN_EVIDENCE_AVAILABLE`；本文 §§1、3、13–15、`runner.open-work.003.1`–`.4`、`runner.open-work.006/002` 及 `runner.open-work.008`–`006` | System Designer；return `runner.acceptance.014`；misclaim 时 reopen |
+| `runner.acceptance.014` | `scope`, `open`, `acceptance` | `runner.scenario.01`, `runner.scenario.02`, `runner.scenario.03`, `runner.scenario.04`, `runner.scenario.05`, `runner.scenario.06`, `runner.scenario.07`, `runner.scenario.08`, `runner.scenario.09`, `runner.scenario.10`, `runner.scenario.11`, `runner.scenario.12` | `runner.decision.012`, `runner.decision.015` | no unsupported infra proof claim；Contract/handoff routing complete | ledger audit；`DESIGN_EVIDENCE_AVAILABLE`；本文 §§1、3、13–15、`runner.open-work.003.1`–`.4` 与 `runner.open-work.006`–`.013` | System Designer；return `runner.acceptance.014`；misclaim 时 reopen |
 | `runner.acceptance.001` | `problem`, `constraints` | `runner.scenario.01` | `runner.driver.001`, `runner.decision.011`, `runner.flow.001` | Execution sole assessor；fail closed | authority review；`DESIGN_EVIDENCE_AVAILABLE`；authority sources 与本文 §§1、7、13 | Runtime conformance owner；return `runner.open-work.003.3`, `runner.interface.001`, `runner.acceptance.001`；self-assessment 时 reopen |
 | `runner.acceptance.002` | `problem`, `constraints` | `runner.scenario.02` | `runner.driver.002`, `runner.decision.002`, `runner.flow.002` | exact package/thread | graph tests；`IMPLEMENTATION_PLAN`；`runner.open-work.003.1`, `runner.open-work.003.2`, `runner.open-work.009`, `runner.open-work.010`, `runner.open-work.012` | `runner.module.002` owner；return `runner.interface.002`, `runner.acceptance.002`, `runner.open-work.009`；premise fail 时 reopen |
 | `runner.acceptance.003` | `problem`, `risks` | `runner.scenario.03` | `runner.driver.003`, `runner.decision.004`, `runner.decision.005`, `runner.flow.003` | typed result；bypass rejected | Driver tests；`IMPLEMENTATION_PLAN`；`runner.open-work.003.1`, `runner.open-work.003.3`, `runner.open-work.008`, `runner.open-work.012` | `runner.module.003` owner；return `runner.interface.003`, `runner.acceptance.003`, `runner.open-work.008`；seam fail 时 reopen |
-| `runner.acceptance.004` | `problem`, `risks` | `runner.scenario.04` | `runner.driver.003`, `runner.decision.005` | both sources；no fallback | Driver tests；`IMPLEMENTATION_PLAN`；`runner.open-work.008`, `runner.open-work.010`, `runner.open-work.012` | `runner.module.003` owner；return `runner.interface.003`, `runner.acceptance.004`, `runner.open-work.008`；source fail 时 reopen |
+| `runner.acceptance.004` | `problem`, `risks` | `runner.scenario.04` | `runner.driver.003`, `runner.decision.005` | DSH concrete path；Copilot/Codex typed unsupported；no fallback | DSH integration 加 unsupported-provider negative tests；`IMPLEMENTATION_PLAN`；`runner.open-work.008`, `runner.open-work.010`, `runner.open-work.012` | `runner.module.003` owner；return `runner.interface.003`, `runner.acceptance.004`, `runner.open-work.008`；selected Provider 或 fail-closed shell 绕过 managed seam 时 reopen |
 | `runner.acceptance.005` | `problem`, `quality` | `runner.scenario.05` | `runner.driver.004`, `runner.decision.006`, `runner.flow.004` | stable reads；mutation invalidates | Git tests；`IMPLEMENTATION_PLAN`；`runner.open-work.009`, `runner.open-work.011`, `runner.open-work.012` | `runner.module.004` owner；return `runner.interface.004`, `runner.acceptance.005`, `runner.open-work.009`；isolation fail 时 reopen |
 | `runner.acceptance.006` | `problem`, `constraints` | `runner.scenario.06` | `runner.driver.005`, `runner.decision.004`, `runner.decision.008`, `runner.flow.005` | correlated resume；stale rejected | control tests；`IMPLEMENTATION_PLAN`；`runner.open-work.003.1`, `runner.open-work.003.3`, `runner.open-work.009`, `runner.open-work.012` | `runner.module.002` owner；return `runner.interface.002`, `runner.acceptance.006`, `runner.open-work.009`；unsafe resume 时 reopen |
 | `runner.acceptance.007` | `problem`, `risks` | `runner.scenario.07` | `runner.driver.006`, `runner.decision.007`, `runner.flow.006` | 3 outcomes；no blind replay | fault tests；`IMPLEMENTATION_PLAN`；`runner.open-work.003.1`, `runner.open-work.003.3`, `runner.open-work.008`, `runner.open-work.009`, `runner.open-work.012` | `runner.module.001` owner；return `runner.interface.001`, `runner.acceptance.007`, `runner.open-work.009`；ambiguity uncontained 时 reopen |
@@ -290,14 +316,14 @@ Scope-qualified `PROFILE_DESIGN_READY_REBINDING_REQUIRED` 只表示经审查的�
 | Immutable Delivery binding | 每 Delivery 绑定一个 immutable package/private correlated thread，注入 Profile-owned checkpointer/SDK，绝不 in-flight upgrade。 | `runner.decision.002` |
 | 四 Module structure | 使用 §6 的四个 deep Module 与 acyclic invocation direction。 | `runner.decision.003` |
 | Workflow policy ownership | Workflow Host 独占 legal route、budget、successor、Wait 与 terminal-proposal semantics。 | `runner.decision.004` |
-| Static managed Drivers | static Codex/Copilot Adapter 位于 typed managed invocation 后；拒绝 fallback 与 unmanaged bypass。 | `runner.decision.005` |
+| Static managed Providers | exact configured Provider Adapter 位于 typed managed invocation 后；当前 concrete support 为 DSH，Copilot/Codex fail closed；拒绝 fallback 与 unmanaged bypass。 | `runner.decision.005` |
 | 串行 workspace mutation | Host 排序 workspace context，Workspace 独写 Git，Invocation 只消费 authorized handle，写串行且 publication guarded。 | `runner.decision.006` |
 | 仅 semantic recovery | 只允许 known continue、known restart-from-savepoint、或 uncertainty→Intervention；不声称 blind replay/exactly-once。 | `runner.decision.007` |
 | Owner-scoped retirement | 每 Module 只 retire 自己 eligible family；Coordinator retire working lifecycle family、对账 partial retirement，并保留 `runner-TERMINAL-SETTLEMENT-RECORD-001`。 | `runner.decision.008` |
-| 非控制 observation | 每个 origin Module 经 thin observation interface 发 provenance-preserving bounded observation；EFCR 不控制 Runtime。 | `runner.decision.009`；`runner.interface.005` |
+| 非控制 observation | 只有 Lifecycle Coordinator 通过 private one-way port 把 bounded owner fact 交给 Execution Delivery Observation（M03）；Workspace、Host、Invocation 不持有该 port，EFCR 不控制 Runtime。 | `runner.decision.009`；`runner.interface.005` |
 | Logical writer separation | SQLite 可物理共置 checkpoint/Journal，但 logical writer、state family、retirement 分离。 | `runner.decision.010` |
 | Execution-owned qualification | Execution 独占 qualification assessment；Profile 只提供 claim/evidence/native validation/preflight。 | `runner.decision.011`；`EX-MOD-003` |
-| Readiness 不是 substrate proof | Scope-qualified document readiness 与 infrastructure proof 独立，不声称 supported substrate/version。 | `runner.decision.012` |
+| Readiness 与 substrate proof | 当前 direct-dependency matrix 已选择并锁定，但 document readiness 本身不证明 Wave 4 walking skeleton 或完整 fault corpus。 | `runner.decision.012` |
 
 ### External Contract gaps
 
@@ -329,20 +355,20 @@ Scope-qualified `PROFILE_DESIGN_READY_REBINDING_REQUIRED` 只表示经审查的�
 
 | Item | Supersedes / implementation responsibility | Owner；required completion evidence；state | Concrete future result record / acceptance updates | Reopen |
 | --- | --- | --- | --- | --- |
-| `runner.open-work.008` | `runner.open-work.001`；实现并证明 managed Codex/Copilot Driver projection、无 fallback/bypass、最小 credential lifecycle、typed result、child cancellation 与 unknown attempt handling | Managed Invocation implementation owner；positive/negative Driver 与 credential fixtures；`IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.008.result.md`；更新 `runner.acceptance.003`、`runner.acceptance.004`、`runner.acceptance.007`、`runner.acceptance.008` | required source 或 managed-action seam 失败 |
-| `runner.open-work.009` | `runner.open-work.002`；实现 graph/checkpoint/process/SQLite/Git/retirement fault corpus，并证明 semantic recovery、cancellation reconciliation、guarded publication 与 owner-scoped retirement | Runtime fault implementation owner；executable crash/replay/conflict/partial-retirement corpus；`IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.009.result.md`；更新 `runner.acceptance.002`、`runner.acceptance.005`、`runner.acceptance.006`、`runner.acceptance.007`、`runner.acceptance.008`、`runner.acceptance.009`、`runner.acceptance.011` | local recovery、safety 或 writer separation 失败 |
-| `runner.open-work.010` | `runner.open-work.004`；选择、锁定、记录并测试 supported LangGraph/checkpointer/SQLite/Node/Driver/Git compatibility，且不允许 in-flight substitution | framework/Driver implementation owner；exact version matrix、lock evidence、compatibility tests；`UNSELECTED` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.010.result.md`；更新 `runner.acceptance.002`、`runner.acceptance.004`、`runner.acceptance.009`、`runner.acceptance.012` | required version 或 compatibility premise 失败 |
-| `runner.open-work.011` | `runner.open-work.005`；暴露 bounded configuration 并测量 timeout、budget、fan-out、cache、cost、disk、cleanup 与 retention default；operator 根据实测 evidence 最终确认 | Runtime implementation owner 与 operator 共同参与；benchmark corpus 与 recommended defaults；`UNMEASURED` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.011.result.md`；更新 `runner.acceptance.005`、`runner.acceptance.010`、`runner.acceptance.011` | local/one-writer assumption 或 safe operating bounds 失败 |
-| `runner.open-work.012` | 原 `runner.open-work.003` internal portion；实现并测试 `runner.interface.002/003/004` 的精确 internal operation、type、error、identity/content conflict、ordering、retry 与 retirement behavior，且不提升为 published Contract | owning Module implementations；通过 allowed caller 执行 Interface tests；`IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.012.result.md`；更新 §13 所有 affected acceptance row | internal boundary 变成 cross-release/cross-process，或失去 owner/caller separation |
-| `runner.open-work.013` | 原 `runner.open-work.003` observation-mapping portion；将 runner owner fact 映射到 `runner.open-work.003.4`、最小化 prohibited content、保留 provenance，并证明 outage non-controlling | Observation Adapter implementation owner；mapping matrix 与 conformance/outage fixtures；`IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/first-party-langgraph-runtime-profile/runner.open-work.013.result.md`；更新 `runner.acceptance.010` 与 affected privacy evidence | semantic-ingress Contract、fact availability 或 minimization premise 失败 |
+| `runner.open-work.008` | `runner.open-work.001`；Codex/Copilot 保持 typed unsupported/fail-closed，不得 fallback/bypass；#84/#85 作为 post-MVP obligation 保留 | Managed Invocation implementation owner；unsupported/no-fallback fixtures；`POST_MVP` | `docs/systems/runtime/implementation-results/runner/runner.open-work.008.result.md`；未来实现时更新 `runner.acceptance.003`、`runner.acceptance.004`、`runner.acceptance.007`、`runner.acceptance.008` | required source 或 managed-action seam 失败 |
+| `runner.open-work.009` | `runner.open-work.002`；实现 graph/checkpoint/process/SQLite/Git/retirement fault corpus，并证明 semantic recovery、cancellation reconciliation、guarded publication 与 owner-scoped retirement | Runtime fault implementation owner；executable crash/replay/conflict/partial-retirement corpus；`IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/runner/runner.open-work.009.result.md`；更新 `runner.acceptance.002`、`runner.acceptance.005`、`runner.acceptance.006`、`runner.acceptance.007`、`runner.acceptance.008`、`runner.acceptance.009`、`runner.acceptance.011` | local recovery、safety 或 writer separation 失败 |
+| `runner.open-work.010` | `runner.open-work.004`；保持 selected Node/direct-dependency/lockfile matrix，记录 Git qualification environment，并在不允许 in-flight substitution 的前提下完成 Wave 4 compatibility/fault proof | framework/Provider implementation owner；exact package/lock identity 与当前 Git 环境列于 §2；supported Git range 和 final walking-skeleton/fault proof 仍为 `IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/runner/runner.open-work.010.result.md`；更新 `runner.acceptance.002`、`runner.acceptance.004`、`runner.acceptance.009`、`runner.acceptance.012` | required version 或 compatibility premise 失败 |
+| `runner.open-work.011` | `runner.open-work.005`；暴露 bounded configuration 并测量 timeout、budget、fan-out、cache、cost、disk、cleanup 与 retention default；operator 根据实测 evidence 最终确认 | Runtime implementation owner 与 operator 共同参与；benchmark corpus 与 recommended defaults；`UNMEASURED` | `docs/systems/runtime/implementation-results/runner/runner.open-work.011.result.md`；更新 `runner.acceptance.005`、`runner.acceptance.010`、`runner.acceptance.011` | local/one-writer assumption 或 safe operating bounds 失败 |
+| `runner.open-work.012` | 原 `runner.open-work.003` internal portion；实现并测试 `runner.interface.002/003/004` 的精确 internal operation、type、error、identity/content conflict、ordering、retry 与 retirement behavior，且不提升为 published Contract | owning Module implementations；通过 allowed caller 执行 Interface tests；`IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/runner/runner.open-work.012.result.md`；更新 §13 所有 affected acceptance row | internal boundary 变成 cross-release/cross-process，或失去 owner/caller separation |
+| `runner.open-work.013` | 原 `runner.open-work.003` observation-mapping portion；将 runner owner fact 映射到 `runner.open-work.003.4`、最小化 prohibited content、保留 provenance，并证明 outage non-controlling | Observation Adapter implementation owner；mapping matrix 与 conformance/outage fixtures；`IMPLEMENTATION_PLAN` | `docs/systems/runtime/implementation-results/runner/runner.open-work.013.result.md`；更新 `runner.acceptance.010` 与 affected privacy evidence | semantic-ingress Contract、fact availability 或 minimization premise 失败 |
 
 旧 `runner-FQ-001` 与 `runner-FQ-002` 保持 retired。两个 representation-binding spike 已作为 feasibility evidence 完成；current `EX-U-001`–`004` physical Contract-artifact request 在 `concept.obligation.001` 下仍开放。Implementation result 更新上表指定的 acceptance evidence reference；若 premise 被否定，应 reopen Brief/design，而不是把它归一化为 implementation deviation。
 
-拒绝 server/daemon、proprietary engine/universal Executor、Profile self-assessment、catch-all Core、投机 Module/plugin/fallback、parallel write/implicit merge、exactly-once/cross-system transaction、不安全 Git 自动化、Coordinator 删除他人 state、同步 Evidence control、HA/distribution/migration machinery。
+拒绝 server/daemon、proprietary engine/universal Executor、Profile self-assessment、catch-all Core、投机 Module/plugin、ambient/plugin/marketplace discovery registry、fallback selection、parallel write/implicit merge、exactly-once/cross-system transaction、不安全 Git 自动化、Coordinator 删除他人 state、同步 Evidence control、HA/distribution/migration machinery。Runner composition 拥有的 closed exact-key Provider factory registry 是必需机制，不在拒绝范围内。
 
 ## 15. Module Deepening 与 Implementation Handoff
 
-按依赖顺序深化：Workspace and Publication Manager invariant/handle（`runner.module.004`）；Managed Agent Invocation 与 typed Driver seam（`runner.module.003`）；Workflow Host package/thread/checkpoint semantics（`runner.module.002`）；最后是 Lifecycle Coordinator composition（`runner.module.001`）。implementation workflow 必须把 `runner.open-work.008`–`006` 显式导入其 plan，且只有适用的 physical Contract 已发布并通过 proof gate 后，才能声称相应 integration。测试应穿过 Module Interface，并保持唯一 writer/retirer、caller direction、no fallback、private ID、minimization 与 publication guard。任何 handoff item 都不会仅因从 System Design gap ledger 移出而自动满足。
+按依赖顺序深化：Workspace and Publication Manager invariant/handle（`runner.module.004`）；Managed Agent Invocation 与 typed Provider seam（`runner.module.003`）；Workflow Host package/thread/checkpoint semantics（`runner.module.002`）；最后是 Lifecycle Coordinator composition（`runner.module.001`）。implementation workflow 必须把 `runner.open-work.008`–`013` 显式导入其 plan；当前 Wave 4 只关闭分配给 DSH-only MVP 的事项，并保留具名 post-MVP obligation。只有每个适用 proof gate 通过后，才能声称相应 integration。测试应穿过 Module Interface，并保持唯一 writer/retirer、caller direction、no fallback、private ID、minimization 与 publication guard。任何 handoff item 都不会仅因从 System Design gap ledger 移出而自动满足。
 
 禁止重新解释为 Execution-owned Workflow state、Profile self-assessment、receipt/process/telemetry terminal truth、native-ID leakage、Invocation route/workspace policy、Coordinator foreign-state deletion、parallel write、controlling Evidence、exactly-once claim，或把本 scope-qualified ready design 当作 infra proof。
 

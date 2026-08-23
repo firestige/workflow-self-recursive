@@ -34,11 +34,19 @@
 
 Authority order is: confirmed user intent; normative Concept; current Execution semantics; Workflow composition model; the reviewed direction and feasibility evidence; the [Observation Catalog](../../contracts/observation/observation-catalog.md), [OTel Observation Profile](../../contracts/observation/otel-observation-profile.md), [Execution–Evidence Interaction Contract](../../contracts/execution-evidence/interaction-contract.md), and [Metric Catalog](../../contracts/evaluation/metric-catalog.md) only for their split draft companion scopes. The [Evidence System](../evidence/evidence-system.md) remains a peer owner. This document owns Execution Modules, Interfaces, Package-to-Delivery binding, custody/current-slot lifecycle, Runtime Adapter behavior, and outbound Observation behavior. It does not own Package publication policy, Evidence internals, Observation fact meaning, the payload registry, metric schema, or physical storage schema.
 
-The protected `system-design` and `implementation` Workflow Packages are initial verified distribution content and conformance fixtures, not redesign targets. Their existing semantics and organization remain unchanged. Existing runner profile/code is unchanged. No disposable workspace artifact is required to interpret this document; the identities above are provenance only.
+The protected `system-design` and `implementation` Workflow Packages are initial verified distribution content and conformance fixtures, not redesign targets outside the R6 corrections authorized below. No disposable workspace artifact is required to interpret this document; the identities above are provenance only.
+
+### Runner Delivery-admission and Runtime Adapter projection
+
+For Iteration 2 Runner, Execution owns `agentops.delivery-admission@1.0.0` at `system-contracts/delivery-admission/delivery-admission-contract.json`. Admission deterministically resolves `agentops.workflow-dsl@1.1.0` author intent into one deeply frozen `RunnerActivationContext`; this includes exact Agent, model, Driver, provider-model, resource, capability, workspace, and local path bindings. The deterministic activation compiler receives only that admitted value, never the eight documents, eight root schemas, or shared meta schema.
+
+Execution also owns the unique TypeScript projection `execution-system/src/execution/runtime-adapter.ts`. Its `ExecutionRuntimeAdapter` public operation set is exactly `execute`, `inspect`, and `cancel`. The Runner Lifecycle Coordinator implements and consumes that import surface. Resume, recovery, checkpoint, thread, and provider-session operations remain private behind the Adapter and must not be copied into or exposed through an Execution public interface.
+
+Runtime Interaction (M02) owns Runtime Adapter selection and the exact configuration identity recorded for a Delivery. For Runner, the private `RunnerFactory` consumes that frozen configuration and creates the configured Provider factory registry instance, exact Workflow Host factory/instance and four Runner modules. Provider/Host factory semantics remain owned by their Runner modules; M02 does not construct DSH sessions or LangGraph threads. See the [Runner Module Detailed Design](modules/runner/runner.md).
 <a id="ee-execution-2"></a>
 ## 2. Design Context
 
-workflow-self-recursive runs valuable logical Workflows through a small host-neutral execution seam and optionally emits factual Observation. Execution is embedded per repository/workspace. DSH rc.6 is the first Runtime Adapter; DSH owns native Session and Workflow State and does not support resume. A later runner Adapter may retain richer pause/resume behavior privately without changing Core semantics.
+workflow-self-recursive runs valuable logical Workflows through a small host-neutral execution seam and optionally emits factual Observation. Execution is embedded per repository/workspace. Runner is the selected Runtime Adapter. It privately composes a replaceable Workflow Host and configured Provider Adapters; the current Host substrate is LangGraph and the only concrete Provider is DSH. Native sessions, checkpoints and private resume remain behind the Adapter and do not change Core semantics.
 
 The first distribution contains the protected Implementation and System Design Workflow Packages. Contributors may publish other Packages conforming to the open Agent Ops Workflow composition model. GitHub is the first remote host, and the plugin may bundle the two initial Packages. GitHub and bundle are private Adapters at one Package Source seam.
 
@@ -51,7 +59,7 @@ Actors and ownership:
 - **Delivery Binding** resolves and validates Packages, owns simple local Package storage, returns one exact resolved Package, and constructs Manifest content.
 - **Runtime Interaction** owns canonical worktree exclusivity, the current Delivery slot, Manifest persistence, Runtime invocation, recovery, and final handling.
 - **GitHub and plugin-bundle Adapters** fetch explicitly selected Package content.
-- **DSH Runtime/Profile** owns native Session/Workflow State and terminal truth.
+- **Runner Runtime Adapter** owns private Workflow execution and terminal truth; its Managed Invocation module owns DSH-native sessions.
 - **Evidence** receives optional one-way Observation and never controls Execution.
 
 <a id="ee-execution-3"></a>
@@ -65,10 +73,10 @@ The goal is an implementable local-preview path from a generic selector to DSH:
 WorkflowSelector
 → ResolvedWorkflowPackage(name, exactVersion, packageDigest, localPath, workflowId)
 → DeliveryManifest
-→ DSH Runtime Adapter
+→ Runner Runtime Adapter
 ```
 
-A successful call first obtains `NEW` admission, resolves one exact local Package, creates and persists a Delivery Manifest before DSH effect, and validates the Runtime result against that Manifest. `CONTENDED` and `RECOVERY` return before Package work. For `NEW`, a valid local hit does not contact GitHub. A miss downloads from the configured public GitHub repository or accepts an explicitly selected bundle, validates before publishing `READY`, and never falls back to another source/version. Any selector, fetch, Package, cache, compatibility, contention, or Manifest error returns at its own phase. Package preparation failure releases the ordinary holder, creates no Delivery, and is not a Delivery outcome.
+A successful call first obtains `NEW` admission, resolves one exact local Package, creates and persists a Delivery Manifest before Runner effect, projects the fully admitted activation, and validates the Runtime result against that Manifest. `CONTENDED` and `RECOVERY` return before Package work. For `NEW`, a valid local hit does not contact GitHub. A miss downloads from the configured public GitHub repository or accepts an explicitly selected bundle, validates before publishing `READY`, and never falls back to another source/version. Any selector, fetch, Package, cache, compatibility, contention, or Manifest error returns at its own phase. Package preparation failure releases the ordinary holder, creates no Delivery, and is not a Delivery outcome.
 
 In scope are generic Intake, exact/sticky-latest selectors, local hit, public GitHub miss/refresh, explicit bundle input, contributed conforming Packages, `MISSING/STAGING/READY` storage, ordinary format/required-resource/relationship/version/digest checks, DSH compatibility checks, immutable Manifest binding, existing current-slot recovery, DSH result validation, and unchanged Observation.
 
@@ -83,11 +91,11 @@ Success means an implementer can build the path through the three existing Modul
 | --- | --- | --- |
 | Delivery Binding depth | Hosts do not implement Package import choreography | M01 exposes one resolve/prepare operation and owns private Source/Store seams |
 | Admit before request Package work | contender and stored recovery avoid needless selector/cache/download work | Core calls M02 first; only `NEW` calls M01 |
-| Prepare before Delivery | acquisition or validation failure is not a Delivery failure | under the ordinary `NEW` holder, M01 completes before Core creates Manifest content or invokes DSH |
+| Prepare before Delivery | acquisition or validation failure is not a Delivery failure | under the ordinary `NEW` holder, M01 completes before Core creates Manifest content or invokes Runner |
 | Exact binding | alias or Release movement cannot alter a created Delivery | resolved value contains exact version, digest, local path, and Workflow ID |
 | Docker-like local-first | valid exact/latest hit avoids GitHub; bare name means latest | Store lookup precedes Source Adapter; sticky alias points to a `READY` exact Package |
 | Ordinary fault containment | malformed/unavailable input stops early without a recovery subsystem | typed early-return results at selector, source, validation, cache, admission, and Manifest phases |
-| Simple exclusivity | one current DSH Delivery per worktree | M02 attempts exclusive admission and immediately returns `CONTENDED` when unavailable |
+| Simple exclusivity | one current Runner Delivery per worktree | M02 attempts exclusive admission and immediately returns `CONTENDED` when unavailable |
 | No fallback/default completion | failure never chooses another source/version/resource | one configured source or explicit bundle; DSH validates before native effect |
 | Open contribution | compatible third-party Package uses the common path | composition and DSH checks, no first-party allow-list |
 | Preview restraint | complexity must match trusted local use | no security platform, concurrent Store protocol, automatic eviction, or production recovery |
@@ -119,8 +127,10 @@ flowchart LR
     M01 --> Store[private Local Package Store]
     Core -->|persist / run| M02
     M02 --> Runtime[private Runtime Adapter Interface]
-    DSH[DSH Adapter and Session] --> Runtime
-    runner[Later runner Adapter] --> Runtime
+    Runner[Runner Runtime Adapter] --> Runtime
+    Runner --> HostAdapter[exact configured Workflow Host factory]
+    Runner --> ProviderRegistry[configured Provider factory registry]
+    ProviderRegistry --> DSH[DSH Provider Adapter]
     M02 -. bounded facts after Manifest .-> M03[Delivery Observation]
     M01 -. exact bound facts .-> M03
     M03 -. best-effort OTLP .-> Evidence[Evidence Admission peer]
@@ -142,6 +152,8 @@ The result is a plain immutable value: `name`, `exactVersion`, `packageDigest`, 
 
 M02 hides canonical worktree derivation, immediate exclusive admission, current-slot state, Manifest persistence, start uncertainty, Runtime invocation, inspection, recovery, final handling, authorized abandonment, and private runner lifecycle mapping. It remains the unique writer of custody/current-slot state and persister of the current Manifest. It does not interpret selectors, download Packages, or write Package Store state.
 
+M02 also freezes the exact Runtime Adapter selection and configuration identity. The Runner factory is inside the selected Adapter boundary: it consumes that configuration to assemble module instances, but cannot change the selected identity, use ambient discovery, prioritize factories, fall back to another Provider/Host, or substitute an in-flight Delivery. M02 sees only `ExecutionRuntimeAdapter`; Provider-native and Host-native factories remain private.
+
 The preview does not add a second pre-Manifest lifecycle. Before a Manifest exists, failure releases the ordinary in-process/OS-backed exclusive holder and returns. A process death releases that holder. If death occurs after the Manifest becomes visible, the existing occupied-slot recovery reads that Manifest on the next call. No `ARMED`/commit-unknown/reconciliation state is introduced.
 
 ### Delivery Observation (`execution.milestone.03`)
@@ -160,7 +172,7 @@ For ordinary and Recheck summaries, owner input with a nonnegative observed coun
 
 - The **Package Source Interface** is real because GitHub and bundle are two Adapters. It accepts an exact or latest candidate request and returns candidate bytes plus ordinary version/digest metadata, or a typed not-found/fetch failure. It does not construct resolved values or Manifests.
 - The **Local Package Store** is private M01 state. Lookup exposes only `MISSING` or `READY`; `STAGING` is never addressable. The implementation may use a temporary directory and rename to publish a complete Package, but the System Design does not require a transaction manager or concurrent-writer protocol.
-- The **Runtime Adapter Interface** accepts a persisted exact Manifest binding. DSH and later runner differ privately; no native type crosses Core.
+- The **Runtime Adapter Interface** accepts the fully admitted immutable activation projected from the persisted exact Manifest binding. Runner implements exactly `execute`, `inspect`, and `cancel`; no native Host, Provider, resume, checkpoint or retirement type crosses Core.
 
 Dependency direction is acyclic toward Core-owned meaning. Host does not orchestrate M01 internals; M02 never accesses Source/Store; source Adapters never construct Manifests; M01 does not depend on Evidence; DSH does not choose Package identity.
 
@@ -177,7 +189,7 @@ sequenceDiagram
     participant RI as Runtime Interaction
     participant DB as Delivery Binding
     participant SS as Source and Store
-    participant DSH as DSH Runtime Adapter
+    participant Runtime as Runner Runtime Adapter
     participant DO as Delivery Observation
 
     User->>Host: run selector with task intent
@@ -196,8 +208,8 @@ sequenceDiagram
     DB-->>Core: immutable Manifest content
     Core->>RI: persist Manifest/current slot
     Core->>RI: run persisted Delivery
-    RI->>DSH: activate exact local Package
-    DSH-->>RI: correlation and terminal result
+    RI->>Runtime: execute fully admitted activation
+    Runtime-->>RI: correlation and terminal result
     RI->>DB: validate result against Manifest
     DB-->>RI: valid result
     RI->>RI: final handling, clear slot, release holder
@@ -205,7 +217,7 @@ sequenceDiagram
     Core-->>Host: final Delivery outcome
 ```
 
-The successful ordering is admit `NEW`, resolve/prepare, construct Manifest, persist current Manifest, mark start uncertainty, invoke DSH, validate result, finalize, then observe. Package preparation occurs under the ordinary Delivery exclusivity holder but has no Delivery identity or Delivery Observation. This holder prevents another current Delivery; it is not a Package proof, hold, transaction, or concurrent Store protocol.
+The successful ordering is admit `NEW`, resolve/prepare, construct Manifest, persist current Manifest, project the admitted activation, mark start uncertainty, invoke Runner, validate result, finalize, then observe. Package preparation occurs under the ordinary Delivery exclusivity holder but has no Delivery identity or Delivery Observation. This holder prevents another current Delivery; it is not a Package proof, hold, transaction, or concurrent Store protocol.
 
 Every selector, source, Package, version, digest, cache, and DSH compatibility branch owned by M01 occurs only after M02 returns `NEW`. Any such failure releases the ordinary holder and returns before Manifest persistence, Delivery creation, Runtime/Session/worktree effect, or Observation. Canonical worktree and request-shape checks needed by M02 to perform admission remain M02 preconditions. `CONTENDED` and `RECOVERY` never call M01, Source, or Store.
 
@@ -255,15 +267,15 @@ If admission finds an existing current Manifest, M02 returns recovery for that s
 
 ### Manifest creation or persistence failure
 
-If M01 cannot construct a complete Manifest, Core releases the exclusive holder and returns `DELIVERY_BINDING_FAILED`. If M02 cannot persist the Manifest/current slot, it releases the holder and returns `DELIVERY_CREATE_FAILED`. Neither error is a Delivery outcome and neither invokes DSH or M03. A process death after the Manifest becomes visible is handled by ordinary occupied-slot recovery; no separate commit-resolution protocol exists.
+If M01 cannot construct a complete Manifest, Core releases the exclusive holder and returns `DELIVERY_BINDING_FAILED`. If M02 cannot persist the Manifest/current slot, it releases the holder and returns `DELIVERY_CREATE_FAILED`. Neither error is a Delivery outcome and neither invokes Runner or M03. A process death after the Manifest becomes visible is handled by ordinary occupied-slot recovery; no separate commit-resolution protocol exists.
 
-### DSH activation, invalid result, and Observation loss
+### Runner activation, invalid result, and Observation loss
 
-The DSH Adapter validates that the persisted Manifest points to the exact local `READY` Package before native invocation. It does not scan ambient paths or replace resources. After invocation, existing `START_UNCERTAIN`, `START_FAILED`, `RESULT_UNRESOLVED`, terminal-result, final-handling, and exact authorized-abandonment rules remain. Disabled/refused/timed-out/tail-loss Observation changes no Runtime result or slot handling.
+Delivery admission validates the persisted Manifest and projects one deeply frozen `RunnerActivationContext` before Runner effect. Runner does not scan ambient Package paths or replace resources. After invocation, existing `START_UNCERTAIN`, `START_FAILED`, `RESULT_UNRESOLVED`, terminal-result, final-handling, and exact authorized-abandonment rules remain. Disabled/refused/timed-out/tail-loss Observation changes no Runtime result or slot handling.
 
-### Later runner lifecycle
+### Runner private lifecycle
 
-runner satisfies the same Core-owned lifecycle meaning but may privately park resumable state, checkpoint, release physical custody, and reacquire valid custody. Those mechanics do not become DSH or public Core requirements, and this revision changes no runner profile/code.
+Runner satisfies the Core-owned lifecycle meaning while privately parking resumable state, checkpointing, releasing physical custody and reacquiring valid custody. Those mechanics do not become DSH or public Core requirements. The stable design is detailed in [Runner modules](modules/runner/runner.md) and the [Runner Runtime Profile](../runtime/runner-runtime-profile.md).
 
 <a id="ee-execution-8"></a>
 ## 8. Data, State, Identity, and Ownership
@@ -274,7 +286,7 @@ runner satisfies the same Core-owned lifecycle meaning but may privately park re
 WorkflowSelector
 → ResolvedWorkflowPackage
 → DeliveryManifest
-→ Adapter-private DSH Session/Workflow State
+→ Runner-private Workflow Host state plus Provider-native session
 → bounded result validated against Manifest
 ```
 
@@ -350,7 +362,7 @@ The Source Interface accepts one candidate request. The public GitHub Adapter ob
 
 The Store implementation performs lookup, private candidate staging, complete publication, exact conflict detection, and sticky-alias update after the new exact Package is `READY`. Initial failure leaves `MISSING`; refresh failure preserves the prior `READY` Package and alias. A local filesystem implementation may stage in a sibling temporary directory and rename into the final exact path. That is an implementation technique for avoiding partial hits, not a production transaction protocol. No caller sees Store choreography.
 
-The Runtime Adapter accepts only the persisted Manifest and resolves its exact local `READY` path. DSH validates before native effect and privately projects it. Existing representative rc.6 feasibility evidence proves only the seam direction, not production conformance.
+The Runtime Adapter accepts only the fully admitted immutable activation derived from the persisted Manifest and exact local `READY` Package. Runner validates exact correlation/bindings before child effect. The selected DSH Provider remains private. Existing module tests prove bounded seams; Wave 4 walking-skeleton and fault-corpus evidence are still required for full production conformance.
 
 <a id="ee-execution-10"></a>
 ## 10. Failure, Recovery, and System-wide Behavior
@@ -445,7 +457,7 @@ Tests cross the M01, M02, and Runtime Adapter Interfaces and assert observable r
 | Count presence semantics | C17 zero/positive/omission remain distinct; invalid values and Finding carriers cannot land malformed count state | ordinary/Recheck zero/positive/absence and negative fixtures |
 | Role lineage and usage | local/lineage pair remains distinct; provider-native quantities remain exact kind/unit/source groups | lineage duplicate/conflict/privacy and usage compatibility fixtures |
 | Span/Event identity | Event ID and `(trace_id, span_id)` retain exact dedup/conflict meaning | new/identical/conflicting identity fixtures |
-| Later runner | private resume remains available without public resume/native leakage | contrasting DSH/runner lifecycle/type fixture |
+| Runner private lifecycle | private resume remains available without public resume/native leakage | Runner Adapter lifecycle/type fixture |
 
 <a id="ee-execution-14"></a>
 ## 14. Decisions, Downstream Work, and Rejected Alternatives
@@ -493,7 +505,7 @@ Recommended detailed-design order is:
 
 1. **Runtime Interaction**, freezing M02-first `CONTENDED/RECOVERY/NEW` admission, the ordinary holder, Manifest persistence, and existing current-slot/DSH recovery without adding pre-Manifest state.
 2. **Delivery Binding**, defining `resolveWorkflowPackage` for `NEW`, selector rules, Source/Store internals, validation order, resolved-value construction, Manifest construction, result validation, typed errors, and holder release on pre-Manifest return.
-3. **DSH Runtime Adapter**, projecting a persisted Manifest to the exact local `READY` Package and proving no ambient completion for the two protected and contributed conforming Packages.
+3. **Runner Runtime Adapter**, consuming the admitted activation projected from the persisted Manifest and exact local `READY` Package; its DSH Provider proof must demonstrate no ambient completion for protected and contributed conforming Packages.
 4. **Delivery Observation**, only if exact Package fields require new scalar mapping; otherwise its current profile and tests remain unchanged.
 
 Module Detailed Design must explain executable control and data flow, not restate these decisions as a checklist. The M01 Interface is the primary import test surface; Source/Store test Adapters remain private. Implementation should prefer a temporary staging directory plus complete publish/rename, simple typed results, and ordinary cleanup. It must not add caller choreography, a Prepared handle, proof store, reference count, transaction manager, background reconciler, concurrent-writer schedule, credential flow, security scanner, automatic eviction, fallback, or ambient Package lookup.
@@ -506,7 +518,7 @@ Return for a new System Design version only if evidence requires a new Module or
 - [x] The three existing Modules remain, with implementable responsibilities, small Interfaces, private seams, and acyclic dependencies.
 - [x] The successful flow is branch-free and all required local-hit/miss/bundle/validation/cache/contention/Manifest/DSH branches are named with typed outcomes.
 - [x] `ResolvedWorkflowPackage` and `MISSING/STAGING/READY` replace the former proof/Prepared-hold/transaction machinery.
-- [x] M02 admission precedes Package work; only `NEW` prepares; preparation precedes Delivery creation; Manifest persistence precedes DSH effect; pre-Delivery failure creates no Delivery outcome or Observation.
+- [x] M02 admission precedes Package work; only `NEW` prepares; preparation precedes Delivery creation; Manifest persistence and admitted activation projection precede Runner effect; pre-Delivery failure creates no Delivery outcome or Observation.
 - [x] Exact/local-first/sticky-latest/no-fallback/no-ambient/open-contribution/DSH-first semantics remain.
 - [x] Existing current-slot recovery, M03 Observation, Evidence relationship, protected Packages, and runner semantics remain unchanged.
 - [x] Acceptance is Interface-oriented and does not demand Spike, production security, concurrency schedule, transaction, response-loss, power-loss, eviction, or HA evidence.

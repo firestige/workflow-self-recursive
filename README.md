@@ -4,7 +4,7 @@ English | [中文](README.zh-CN.md)
 
 workflow-self-recursive is an open-source architecture for running agent workflows through a small, host-neutral execution boundary and making each run inspectable.
 
-It binds each delivery to one resolved version and digest of a Workflow Package, keeps runtime results authoritative, and can record a minimal set of facts through OpenTelemetry. The initial design targets [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) as its first runtime host; a first-party LangGraph adapter is planned.
+It binds each delivery to one resolved version and digest of a Workflow Package, keeps runtime results authoritative, and can record a minimal set of facts through OpenTelemetry. Runner is the selected Runtime Adapter; LangGraph is its current replaceable Workflow Host substrate and [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) is its current concrete Agent Provider.
 
 ## Developer preview
 
@@ -42,7 +42,8 @@ Start with the [conceptual architecture](docs/agent-architecture.md), then conti
 - [Execution System design](docs/systems/execution/project-execution-system.md)
 - [Evidence System design](docs/systems/evidence/evidence-system.md)
 - [Execution–Evidence contracts](docs/contracts/execution-evidence/interaction-contract.md)
-- [Planned first-party LangGraph runtime profile](docs/systems/runtime/first-party-langgraph-runtime-profile.md)
+- [Runner Runtime Profile](docs/systems/runtime/runner-runtime-profile.md)
+- [Runner module detailed design](docs/systems/execution/modules/runner/runner.md)
 
 The source is split into five Git submodules: [Workflow Package](https://github.com/firestige/workflow-package), [Execution System](https://github.com/firestige/execution-system), [Evidence System](https://github.com/firestige/evidence-system), [Evolution System](https://github.com/firestige/evolution-system), and [System Contracts](https://github.com/firestige/system-contracts). These are repository workstreams, not five product systems.
 
