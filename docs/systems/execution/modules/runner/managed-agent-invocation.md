@@ -1,15 +1,17 @@
-# Managed Agent Invocation Module Detailed Design
+# Managed Agent Invocation Submodule Detailed Design
 
 ## 1. Status and role
 
 | Field | Value |
 | --- | --- |
-| Status | `WAVE4_ENTRY_REVIEW_CANDIDATE` |
-| Module | Managed Agent Invocation |
+| Status | `ITERATION_2_IMPLEMENTED_DOCUMENT_CALIBRATION_CANDIDATE` |
+| Submodule | Managed Agent Invocation |
 | Current production Provider | DSH Adapter |
+| Structure authority | GitHub issue `execution-system#65` |
+| Implementation evidence | `execution-system/src/invocation` |
 | Companion | [Chinese non-normative companion](managed-agent-invocation.zh-CN.md) |
 
-Managed Agent Invocation owns one admitted Agent Action's Provider effects, native session lifecycle, credential lease, structured completion and durable Invocation Journal. It is the only Runner module that understands Provider-private state.
+Managed Agent Invocation owns one admitted Agent Action's Provider effects, native session lifecycle, credential lease, structured completion and durable Invocation Journal. It is the only Runner submodule that understands Provider-private state.
 
 ## 2. Creation boundary
 

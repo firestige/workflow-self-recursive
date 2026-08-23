@@ -79,3 +79,13 @@ jobs:
           if git grep -n "first-party-langgraph-runtime-profile" -- README.md README.zh-CN.md docs; then
             exit 1
           fi
+
+      - name: Enforce Runner document ownership and readable IDs
+        run: |
+          test ! -d docs/systems/runtime
+          if git grep -n -E 'Runner Runtime Profile|systems/runtime|runner-runtime-profile' -- README.md README.zh-CN.md docs; then
+            exit 1
+          fi
+          if git grep -n -E '\b(SC-WI-[0-9]+|AF-WI-[0-9]+|DEC-WI-[0-9]+|EX-U-[0-9]+|EX-MOD-[0-9]+|runner-TERMINAL-SETTLEMENT-RECORD-[0-9]+|runner\.module\.[0-9]+)\b' -- README.md README.zh-CN.md docs; then
+            exit 1
+          fi

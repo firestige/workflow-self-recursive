@@ -4,20 +4,23 @@
 
 | 字段 | 值 |
 | --- | --- |
-| 状态 | `WAVE4_ENTRY_REVIEW_CANDIDATE`；不代表实现已符合要求 |
-| 稳定身份 | Runner / Runner Runtime Adapter |
+| 状态 | `ITERATION_2_DOCUMENT_CALIBRATION_CANDIDATE`；实现已交付，但不代表更广泛 conformance |
+| 稳定身份 | Runner；Execution module M02 |
 | System owner | Project Execution System |
-| 外部接口 | Execution-owned `ExecutionRuntimeAdapter` |
+| 结构权威 | GitHub issue [#47](https://github.com/firestige/workflow-self-recursive/issues/47) 与子 issue [#62–#66](https://github.com/firestige/workflow-self-recursive/issues/62) |
+| 实现证据 | pinned Iteration 2 submodule revision 下的 `execution-system/src/{interpreter,coordinator,host,invocation,custody,composition}` |
+| Core 接口 | `execute`、`inspect`、`cancel`；当前由 `ExecutionRuntimeAdapter` 类型描述 |
 | Companion | [英文规范原文](runner.md)；本文是 non-normative 中文 companion |
-| 相关设计 | [Execution System](../../project-execution-system.zh-CN.md)、[Runner Runtime Profile](../../../runtime/runner-runtime-profile.zh-CN.md) |
+| 上层设计 | [Execution System](../../project-execution-system.zh-CN.md) |
+| 追踪资料 | [Runner 追踪与实现记录](traceability.zh-CN.md) |
 
-本文从已冻结的 Iteration 2 设计谱系中吸收稳定的模块设计。谱系记录继续作为来源；交付 Goal 名称和特定 revision 的问答上下文不作为长期产品身份。如果本文与 Execution-owned 外部接口或已发布 Contract 冲突，以相应 owner 为准。
+本文把旧设计校准到 issue-authoritative Iteration 2 结构。Runner 是 Execution module M02，不是产品 System、subsystem、另一 M02 module 后面的实现，也不是第四个 Execution module。内部五个单元是 Interpreter、Lifecycle Coordinator、Workflow Host、Managed Agent Invocation 与 Custody submodule。`ExecutionRuntimeAdapter` 是当前 Core-to-Runner 类型名，不代表已经提升出的多态 Runner 抽象。只有未来确实需要多个 Runner 实现时，才可以把 M02 提升成该抽象，并且每个具体实现必须使用不同名称。[追踪 companion](traceability.zh-CN.md)只索引设计 ID 与证据，不形成另一 behavior owner。
 
 ## 2. 身份与目的
 
-Runner 是执行 fully admitted Workflow activation 的 embedded Runtime Adapter。它的稳定身份不包含 LangGraph 或其他可替换实现依赖。LangGraph 是当前选定的 Workflow Host substrate；未来可以由兼容 Host Adapter 替换，而不改变 Execution-facing 接口或 in-flight Delivery。
+Runner 是执行 fully admitted Workflow activation 的 embedded Execution module。它的稳定身份不包含 LangGraph 或其他可替换实现依赖。LangGraph 是当前选定的 Workflow Host substrate；未来可以由兼容 Host Adapter 替换，而不改变 Execution-facing 接口或 in-flight Delivery。
 
-Runner 只接收 deeply frozen `RunnerActivationContext`。Delivery admission 已经校验并解析 Workflow Package、schema、resource、Agent/model/Driver/provider binding、workspace 和 correlation。Runner 不读取 raw Package document set、root schema、shared meta、selector、source Adapter 或 admission service。
+Runner 只接收 deeply frozen `RunnerActivationContext`。`execution.delivery` 已完成 worktree admission、Package resolution、Manifest binding/persistence，并投影 exact Package、resource、Agent/model/Driver/provider、workspace 与 correlation binding。Runner 不拥有 Package Source/Store、worktree admission、current-slot state 或 Manifest persistence，也不读取 raw Package/schema document 或 selector。
 
 Runner 严格实现 Execution owner 定义的三个 public operation：
 
@@ -31,12 +34,13 @@ Resume、recovery、checkpoint、native session 和 retirement operation 都留�
 
 ## 3. 创建平面
 
-Execution Runtime Interaction 选择 Runtime Adapter 并冻结所选 configuration identity。private `RunnerFactory` 根据该 exact configuration 物化一个 Runner instance。
+Execution 冻结 exact Runner configuration identity。private `RunnerFactory` 根据该 configuration 物化一个 Runner instance；它不在多个 Runner 实现之间进行选择。
 
 ```text
-Execution Runtime Adapter selection + configuration identity
+Execution Runner configuration identity
   → RunnerFactory
-      → Workspace and Publication Manager
+      → Interpreter
+      → Custody
       → configured Provider Adapter Factory registry instance
           → exact Provider Adapter Factory
           → concrete Provider runtime
@@ -44,7 +48,7 @@ Execution Runtime Adapter selection + configuration identity
           → concrete Workflow Host
       → Managed Agent Invocation
       → Lifecycle Coordinator
-  → ExecutionRuntimeAdapter
+  → Runner（M02），通过 ExecutionRuntimeAdapter 暴露
 ```
 
 `RunnerFactoryConfig` 是 closed immutable composition value。它包含创建实例所需的 exact storage root、所选 Workflow Host engine、Provider factory key/configuration。它不包含预构造的 provider-native service、任意 callback、ambient discovery、priority ordering 或 fallback rule。
@@ -60,32 +64,33 @@ Factory selection 只发生在创建期。active Delivery 保持启动时的 exa
 Agent Action 主路径是：
 
 ```text
-Execution → Lifecycle Coordinator → Workflow Host → Managed Agent Invocation
+Execution Core → Runner（M02）/ Lifecycle Coordinator → Workflow Host → Managed Agent Invocation
 ```
 
 完整 capability graph 是：
 
 ```text
-Lifecycle Coordinator → deterministic activation compiler
+Lifecycle Coordinator → Interpreter
 Lifecycle Coordinator → Workflow Host
 Lifecycle Coordinator → Managed Invocation control
-Lifecycle Coordinator → Workspace/Publication lifecycle
+Lifecycle Coordinator → Custody lifecycle
 Workflow Host → Managed Invocation action capability
-Workflow Host → Workspace/Custody capability
+Workflow Host → Custody capability
 ```
 
-Workspace authority 只以 signed `AuthorizedWorkspaceCapability` value 的形式随 Host dispatch 到达 Managed Invocation。Managed Invocation 永远不获得 Workspace/Custody service。返回值只完成原始调用，不形成 reverse dependency。
+Workspace authority 只以 signed `AuthorizedWorkspaceCapability` value 的形式随 Host dispatch 到达 Managed Invocation。Managed Invocation 永远不获得 Custody service。返回值只完成原始调用，不形成 reverse dependency。
 
-deterministic activation compiler 是 composition helper，不是另一个 Runtime module。它消费 admitted activation，校验 exact closure/binding identity 并产生 minimal execution plan。它没有 durable state，也不执行 admission、Provider、Host 或 Workspace effect。
+Interpreter 是一等 Runner submodule。其 `compileRunnerActivation` 实现消费 admitted activation、校验 exact closure/binding identity，并产生 minimal execution plan。它没有 durable state，也不执行 Delivery admission、Provider、Host 或 Custody effect。
 
-## 5. 模块 ownership
+## 5. Submodule ownership
 
-| 模块 | 拥有 | 不拥有 |
+| Submodule | 拥有 | 不拥有 |
 | --- | --- | --- |
+| [Interpreter](interpreter.zh-CN.md) | admitted activation validation 与 Definition-to-executable-graph compilation | Delivery/worktree admission、durable state、graph progress |
 | [Lifecycle Coordinator](lifecycle-coordinator.zh-CN.md) | Adapter lifecycle、external bridge、cancel/recovery coordination、terminal settlement | graph decision、Provider session、Git mutation |
 | [Workflow Host](workflow-host.zh-CN.md) | thread、graph path、dataflow、barrier、checkpoint、suspension、terminal proposal | Provider-native state、Delivery settlement、publication |
 | [Managed Agent Invocation](managed-agent-invocation.zh-CN.md) | Provider invocation、native session、credential、Journal、structured completion | graph progression、Workflow Wait、Custody service |
-| [Workspace and Publication Manager](workspace-publication-manager.zh-CN.md) | baseline、savepoint、workspace authority、restore、result preservation、publication | Action result semantic、graph path、terminal arbitration |
+| [Custody](custody.zh-CN.md) | savepoint、Git-tree identity、scoped workspace authority、restore、result preservation、publication | worktree admission/lifecycle、file-editing API、graph path |
 
 每个 durable fact 只有一个 writer。caller-specific capability 防止调用者触达不归其所有的 operation。
 
@@ -104,13 +109,23 @@ deterministic activation compiler 是 composition helper，不是另一个 Runti
 2. unknown start/recovery disposition 保持 unknown；Runner 不伪造 non-start，也不 blind retry。
 3. Action-scoped input 保持同一 episode/native session，与 Workflow Wait 不同。
 4. Host result validation 与 Workspace validation 必须都通过，才能提交 result/data edge 和 next savepoint。
-5. terminal 顺序是 proposal → preserve result → known publication → one retirement authorization → owner-scoped retirement → four known owner facts → immutable settlement → optional Observation。
+5. terminal 顺序是 proposal → preserve result → known publication → one retirement authorization → owner-scoped retirement → four known durable-owner facts → immutable settlement → optional Observation。Interpreter 没有 durable state，不是 retirement owner。
 6. publication conflict 是 known，可进入 settlement；publication unknown 不可。
 7. partial retirement retry 使用同一 authorization；已完成 owner 重放同一 fact，不重复 destructive cleanup。
 8. public Adapter shape 始终严格为 `execute`、`inspect`、`cancel`。
 
 ## 8. 验证与 reopen 条件
 
-必须证明 exact configuration selection、duplicate/unknown factory-key negative、真实 Provider/Host factory construction、import DAG/caller capability、admitted activation input、raw Package 不可达、两种 suspension、cancel/recovery、真实 DSH 本地 transport 路径、terminal ordering、Observation 隔离，以及 full/coverage/static/typecheck/build gate。
+必须包含以下 conformance 证明：
 
-当 Runtime 必须变成 remote service、多个 active instance 共享 current slot、Provider/Host 必须运行时 fallback、native state 必须穿过 Execution public seam，或 shared Contract 无法表达必要 cross-owner fact 时，重新打开本设计。
+- exact configuration selection，以及 duplicate/unknown factory-key negative；
+- 使用真实 Provider/Host factory 构造，且不接收预构造 native service；
+- import DAG 与 caller-capability check；
+- admitted activation input，并从构造上拒绝 raw Package；
+- same-episode interaction、Workflow Wait、cancel 与 three-way recovery fixture；
+- 真实 DSH local-transport acceptance path；
+- workspace/checkpoint/result/publication/retirement/settlement ordering；
+- Observation unavailable 时的隔离；
+- full、coverage、static-boundary、typecheck 与 build gate。
+
+当 Runner 必须变成 remote service、多个 active instance 共享同一 Delivery、出现第二个 Runner implementation 或 Runner-selection 需求、Provider/Host 必须 runtime fallback、native state 必须穿过 Execution public seam，或 shared Contract 无法表达必要 cross-owner fact 时，重新打开本设计。

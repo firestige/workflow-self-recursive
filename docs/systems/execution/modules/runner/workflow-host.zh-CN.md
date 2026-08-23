@@ -1,12 +1,14 @@
-# Workflow Host 模块详细设计
+# Workflow Host Submodule 详细设计
 
 ## 1. 状态与角色
 
 | 字段 | 值 |
 | --- | --- |
-| 状态 | `WAVE4_ENTRY_REVIEW_CANDIDATE` |
-| 模块 | Workflow Host |
+| 状态 | `ITERATION_2_IMPLEMENTED_DOCUMENT_CALIBRATION_CANDIDATE` |
+| Submodule | Workflow Host |
 | 当前 Adapter | LangGraph Workflow Host Adapter |
+| 结构权威 | GitHub issue `execution-system#64` |
+| 实现证据 | `execution-system/src/host` |
 | Companion | [英文规范原文](workflow-host.md)；本文是 non-normative 中文 companion |
 
 Workflow Host 在 private durable thread 上执行 admitted control graph。稳定模块身份不依赖 LangGraph。当前 Adapter 使用 LangGraph 与 SQLite；其他 substrate 可以实现同一 capability，而不改变 Runner 或 Execution identity。

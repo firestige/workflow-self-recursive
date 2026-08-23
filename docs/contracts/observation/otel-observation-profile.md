@@ -95,7 +95,7 @@ The decoded logical Span shape preserves the official native carrier fields that
 <a id="otel-profile-6"></a>
 ## 6. Exact Closed EventName Set
 
-The proposed profile has exactly these ten EventNames:
+The frozen and published profile has exactly these ten EventNames:
 
 1. `delivery.summary`
 2. `review.finding`

@@ -1,15 +1,17 @@
-# Runner Lifecycle Coordinator Module Detailed Design
+# Runner Lifecycle Coordinator Submodule Detailed Design
 
 ## 1. Status and role
 
 | Field | Value |
 | --- | --- |
-| Status | `WAVE4_ENTRY_REVIEW_CANDIDATE` |
-| Module | Runner Lifecycle Coordinator |
+| Status | `ITERATION_2_IMPLEMENTED_DOCUMENT_CALIBRATION_CANDIDATE` |
+| Submodule | Runner Lifecycle Coordinator |
 | Public projection | Execution-owned `ExecutionRuntimeAdapter` |
+| Structure authority | GitHub issue `execution-system#63` |
+| Implementation evidence | `execution-system/src/coordinator` |
 | Companion | [Chinese non-normative companion](lifecycle-coordinator.zh-CN.md) |
 
-The Coordinator is Runner's lifecycle and composition-facing control module. It implements the Execution Adapter without widening its public operations. It coordinates modules through narrow capabilities and owns durable Delivery lifecycle truth; it does not interpret graph internals or perform Agent work.
+The Coordinator is Runner's lifecycle and composition-facing control submodule. Within the current Runner, it implements the Core seam without widening its public operations. It coordinates submodules through narrow capabilities and owns durable Runner lifecycle truth; it does not interpret graph internals or perform Agent work.
 
 ## 2. Responsibilities
 

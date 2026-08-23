@@ -1,15 +1,17 @@
-# Runner Lifecycle Coordinator 模块详细设计
+# Runner Lifecycle Coordinator Submodule 详细设计
 
 ## 1. 状态与角色
 
 | 字段 | 值 |
 | --- | --- |
-| 状态 | `WAVE4_ENTRY_REVIEW_CANDIDATE` |
-| 模块 | Runner Lifecycle Coordinator |
+| 状态 | `ITERATION_2_IMPLEMENTED_DOCUMENT_CALIBRATION_CANDIDATE` |
+| Submodule | Runner Lifecycle Coordinator |
 | Public projection | Execution-owned `ExecutionRuntimeAdapter` |
+| 结构权威 | GitHub issue `execution-system#63` |
+| 实现证据 | `execution-system/src/coordinator` |
 | Companion | [英文规范原文](lifecycle-coordinator.md)；本文是 non-normative 中文 companion |
 
-Coordinator 是 Runner 的 lifecycle 和 composition-facing control 模块。它实现 Execution Adapter，但不扩张 public operations。它通过 narrow capability 编排模块并拥有 durable Delivery lifecycle truth；不解释 graph internals，也不执行 Agent 工作。
+Coordinator 是 Runner 的 lifecycle 和 composition-facing control submodule。在当前 Runner 内，它实现 Core seam，但不扩张 public operations。它通过 narrow capability 编排 submodule 并拥有 durable Runner lifecycle truth；不解释 graph internals，也不执行 Agent 工作。
 
 ## 2. 职责
 
