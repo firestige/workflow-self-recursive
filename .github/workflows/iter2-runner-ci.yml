@@ -23,9 +23,9 @@ jobs:
 
       - name: Verify frozen submodule identities
         run: |
-          test "$(git -C execution-system rev-parse HEAD)" = "499a1f91b78b0649751061276c04e2bd6a5fe0c1"
+          test "$(git -C execution-system rev-parse HEAD)" = "b00dc40137259eee4dc488b1781fde7ed731e36e"
           test "$(git -C workflow-package rev-parse HEAD)" = "ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb"
-          test "$(git -C system-contracts rev-parse HEAD)" = "6d3a0b74c8de594020747022447aab5df1058570"
+          test "$(git -C system-contracts rev-parse HEAD)" = "c8e090f80073e3a4a37063d2d0165f190f2ec7f1"
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -43,6 +43,10 @@ jobs:
 
       - name: Install Workflow Contract dependencies
         working-directory: system-contracts/workflow-dsl
+        run: npm ci
+
+      - name: Install Observation Contract dependencies
+        working-directory: system-contracts/observation
         run: npm ci
 
       - name: Run Runner full and coverage gates
