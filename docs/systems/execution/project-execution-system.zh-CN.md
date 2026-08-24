@@ -7,7 +7,7 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `execution.identity.001` |
-| 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。2026-08-23 用户审核已批准本次 bounded Intake/TaskPrompt/Action-finish calibration；精确发布前仍需 fresh deterministic parity/publication binding。 |
+| 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。2026-08-23 用户审核已批准 Intake/TaskPrompt/Action-finish calibration。2026-08-24 Iteration 3 corrective addendum 是等待 Wave 0 审核的 bounded reopen；精确发布前仍需 fresh deterministic parity/publication binding。 |
 | 精确发布绑定 | 外部 publication set/application record 必须用 SHA-256 绑定本字节流及配套 canonical Concept 字节流，记录适用的 review、SD-12、fresh-reader 与 deterministic-verification 证据，并证明精确安装。本文件有意不声明自身 digest 或配套文件 digest。 |
 | 提升后的权威 | 唯一的无版本英文 Project Execution System Design authority |
 | 当前结构权威 | GitHub issue [#45 execution.delivery](https://github.com/firestige/workflow-self-recursive/issues/45)、[#46 execution.observation](https://github.com/firestige/workflow-self-recursive/issues/46) 与 [#47 execution.runner](https://github.com/firestige/workflow-self-recursive/issues/47)；本 candidate 按这些决定校准文档 |
@@ -366,7 +366,7 @@ sequenceDiagram
     Core-->>Host: final Delivery outcome
 ```
 
-成功顺序是 admit `NEW`、resolve/prepare、construct Manifest、persist current Manifest、project admitted activation、mark start uncertainty、invoke Runner、validate result、finalize、observe。Package preparation 在 ordinary Delivery exclusivity holder 下执行，但没有 Delivery identity 或 Delivery Observation。该 holder 防止另一 current Delivery；它不是 Package proof、hold、transaction 或 concurrent Store protocol。
+成功顺序是 admit `NEW`、resolve/prepare、construct Manifest、persist current Manifest 与 start uncertainty、project admitted activation、完成 Section 16 pre-effect Runner-to-Delivery start-correlation acknowledgement、执行 Runner effect、validate result、finalize、observe。Package preparation 在 ordinary Delivery exclusivity holder 下执行，但没有 Delivery identity 或 Delivery Observation。该 holder 防止另一 current Delivery；它不是 Package proof、hold、transaction 或 concurrent Store protocol。
 
 M01 拥有的所有 selector、source、Package、version、digest、cache 与 DSH compatibility 分支只在 M01 admission phase 返回 `NEW` 后、于 M01 内发生。任何此类 failure 都释放 ordinary holder，并在 Manifest persistence、Delivery creation、Runtime/Session/worktree effect 或 Observation 之前返回。这些 canonical worktree 与 request-shape check 属于 M01 admission。`CONTENDED` 与 `RECOVERY` 不执行 selector、prompt snapshot、attachment read/copy、Source、Store 或 new-binding work。
 
@@ -663,7 +663,7 @@ Iteration 3 test 跨越 host-neutral Core、M01 Delivery、M02 Core-to-Runner、
 | `execution.decision.004` | Composition 与 selected DSH compatibility 保持 ordinary validation step，返回 typed error；不存在 persisted proof identity |
 | `execution.decision.005` | M01 返回普通 immutable `ResolvedWorkflowPackage`，绝不返回 opaque Prepared Binding、hold 或 caller-managed capability |
 | `execution.decision.006` | Pre-Delivery failure 使用 phase-typed early return 与 ordinary holder/staging cleanup；不形成 transaction、Delivery outcome 或 Observation |
-| `execution.decision.007` | 首个 GitHub mechanism 使用一个 versioned Release asset；exact/latest resolution 遵循 Docker-like local-first behavior |
+| `execution.decision.007` | GitHub Source 从 bounded Release enumeration 规范化 package-version record。新 Release 为单 Package、package-scoped；immutable initial `0.3.0` cohort 由同一路径规范化。Exact/latest resolution 保持 local-first 且无 fallback |
 | `execution.decision.008` | Store lookup 暴露 `MISSING`/`READY`；`STAGING` private/non-addressable；latest alias 只在 exact `READY` 后改变；不 automatic eviction |
 | `execution.decision.009` | Preview 不增加 pre-Manifest lifecycle。Existing current-slot authority 从 persisted Manifest 开始，并保留之后既有 DSH uncertainty/recovery |
 | `execution.decision.010` | 在明确的 trust/exposure/scale trigger 变化前，不设计 authentication、authorization、signing、injection defense、sandbox、concurrent Store protocol、distributed lock、HA、failover 或 production recovery mechanism |
@@ -678,9 +678,9 @@ Iteration 3 test 跨越 host-neutral Core、M01 Delivery、M02 Core-to-Runner、
 
 既有 Execution decision 继续有效：三个 deep Module；Runner-owned Workflow outcome 位于 Core-owned Runner seam 后；每个 worktree 一个 current-slot lifecycle 且无 Execution history；standard-first allow-listed best-effort Observation；canonical worktree revalidation；对 persisted Runner uncertainty 的 conclusive handling；以及由已冻结发布的 Profile `1.0.0` 编码的 adopted Observation semantics。
 
-已批准的 Action-finish requirement 触发 bounded reopen rule。必须先用 RED fixture 证明当前 schema-validated `ActionInputResponse` 无法携带独立 finish request。唯一授权的 Runner change 是最小化区分 ordinary answer 与 `ACTION_FINISH_REQUESTED` 的 internal Action-interaction input；public `execute`/`inspect`/`cancel` operation set、exact Episode/request correlation、same-session resume、Action-owned closure 与 `workflow_complete` 唯一 completion protocol 全部保持不变。Initial Workflow Package content 继续冻结；只有后续 executable RED 证明 generic control 无法到达 Action-owned closure 时，才可另提 Package reopen，本次不预先授权。
+已批准的 Action-finish requirement 触发 bounded reopen rule。必须先用 RED fixture 证明当前 schema-validated `ActionInputResponse` 无法携带独立 finish request。它授权的 Runner change 是最小化区分 ordinary answer 与 `ACTION_FINISH_REQUESTED` 的 internal Action-interaction input；Section 16 另行只授权 pre-effect start-correlation acknowledgement。两者都保持 public `execute`/`inspect`/`cancel` operation set、exact Episode/request correlation、same-session resume、Action-owned closure 与 `workflow_complete` 唯一 completion protocol。Initial Workflow Package content 继续冻结；只有后续 executable RED 证明 generic control 无法到达 Action-owned closure 时，才可另提 Package reopen，本次不预先授权。
 
-本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；request-selected Source；automatic GitHub-to-alternate fallback；source/version fallback；ambient completion；embedded initial Package content；parallel plugin composition；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；shared DSH Intake/Execution Context；public DSH resume；DSH-native Core type；任何超出已批准、由 RED 限定的 Action-finish interaction distinction 的 Runner change。
+本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；request-selected Source；automatic GitHub-to-alternate fallback；source/version fallback；ambient completion；embedded initial Package content；parallel plugin composition；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；shared DSH Intake/Execution Context；public DSH resume；DSH-native Core type；任何超出 approved RED-bounded Action-finish distinction 与 Section 16 start-correlation acknowledgement 的 Runner change。
 
 ### Execution implementation-evidence register
 
@@ -718,7 +718,7 @@ Concept obligation register 仍是 owner-complete authority。Execution-local vi
 
 Module Detailed Design 必须说明可执行 control/data flow，而不是把这些 decision 重述成 checklist。M01 Interface 是主要 import test surface；Source/Store test Adapter 保持 private。Implementation 应优先使用 temporary staging directory 加 complete publish/rename、simple typed result 与 ordinary cleanup。不得增加 caller choreography、Prepared handle、proof store、reference count、transaction manager、background reconciler、concurrent-writer schedule、credential flow、security scanner、automatic eviction、fallback 或 ambient Package lookup。
 
-只有 evidence 要求新 Module/semantic writer、Package rewrite、mutable active binding、source/version fallback、concurrent/shared Store correctness、automated eviction、authentication/authorization、hostile-source isolation、remote multi-user operation、HA/failover、changed current-slot semantics、public native type、Observation control dependency 或 runner change 时，才返回创建新 System Design version。
+只有 evidence 要求新 Module/semantic writer、Package rewrite、mutable active binding、source/version fallback、concurrent/shared Store correctness、automated eviction、authentication/authorization、hostile-source isolation、remote multi-user operation、HA/failover、超出 Section 16 的 changed current-slot semantics、public native type、Observation control dependency 或其他 Runner change 时，才返回创建新 System Design version。
 
 ### 文档完成检查
 
@@ -728,8 +728,71 @@ Module Detailed Design 必须说明可执行 control/data flow，而不是把这
 - [x] `ResolvedWorkflowPackage` 与 `MISSING/STAGING/READY` 替代原 proof/Prepared-hold/transaction machinery。
 - [x] M01 admission 先于 Package work；只有 `NEW` preparation；M01 在任何 Runner submodule effect 前持久化 Manifest 并投影 activation；pre-Delivery failure 不创建 Delivery outcome 或 Observation。
 - [x] Exact/local-first/sticky-latest/no-fallback/no-ambient/open-contribution/DSH-first 语义保留。
-- [x] Existing current-slot recovery、M03 Observation、Evidence relationship、protected Package、runner 语义不变。
+- [x] Existing current-slot recovery、M03 Observation、Evidence relationship 与 protected Package 保持不变；Runner change 只限两个 explicit bounded reopen。
 - [x] 已冻结一份 canonical configuration、互不合并的三层 identity、installation/Delivery factory DAG、Bootstrap state machine、multi-slot recovery、reverse shutdown、release ownership、exact DSH Intake value 与 `DSH-I`/`DSH-E` isolation，且未增加第四个 Module。
 - [x] Acceptance 面向 Interface，不要求 Spike、production security、concurrency schedule、transaction、response-loss、power-loss、eviction 或 HA evidence。
 
 Publication 仍受 external exact-byte publication record 与 Concept-owned obligation register 约束。这些候选字节不包含 Workflow routing authority。
+
+<a id="ee-execution-16"></a>
+## 16. Iteration 3 修正 Implementation Freeze
+
+本 bounded addendum 只取代 Section 7 的 earlier start-ordering sentence、`execution.decision.007`、`concept.obligation.011`/`concept.decision.025` 的 Runner-unchanged clause，以及相应 completion check。Public Runtime、terminal/retirement/settlement semantics、frozen Workflow Contract/DSL、initial Package byte 与 DSH source 保持不变。
+
+### 冻结的 ownership 与 landing map
+
+| 能力 | Semantic owner | 授权 implementation landing | 明确排除 |
+| --- | --- | --- | --- |
+| A1 presentation | Execution Core event contract；DSH Intake transport/view | Core presentation module 与 Intake presentation port/broker/service；`packages/dsh-intake` command result 加官方 `conversation.chat.commandview` client contribution | 不允许 Core 中出现 DSH type、修改 DSH source 或伪造 assistant turn |
+| A2 start correlation | M01 拥有 Delivery state；M02 拥有 Runner start fact | Runner Coordinator/factory/composition、Delivery lifecycle/current-slot、Bootstrap wiring、focused recovery test | 不修改 public Runtime、terminal、retirement、settlement 或无关 Runner 语义 |
+| A3 route authority | M01 拥有 admitted projection；M02 Host/Custody enforce | Delivery admission projector、DSH workspace-operation adapter 与 authority test | 不解释 target text 为 path，不改 Contract/DSL |
+| A4 browser oracle | DSH Intake qualification | interactive qualification driver、locked DSH web client、DOM/screenshot evidence | RPC/history 仅为辅助 |
+| B1 Source/release | Workflow Package release 拥有 asset；M01 Source 拥有 resolution | package release tooling/docs；GitHub Source enumeration/normalization 与 test | 不耦合 repository-wide latest，不 fallback |
+| B2 proof Package | Workflow Package 拥有 behavior；Core 拥有 generic prompt projection | 新 `hello-world-workflow@0.1.0`；generic `TaskPrompt`/attachment projection | 不修改 initial Package，不加 Workflow-specific Core branch |
+
+### A1：presentation envelope 与 view
+
+Canonical envelope 为 `wsr.presentation@1.0.0`，带 correlation identity、一个 event kind 与 kind-specific data。封闭 kind 是 `command-accepted`、`delivery-running`、`delivery-list`、`delivery-status`、`action-output`、`action-input-request`、`terminal-result` 和 `error`；empty list 是带 `items: []` 的 `delivery-list`。Core 把 durable envelope 序列化进 command name 为 `wsr` 的 DSH `command/done.text` result。Keyed DSH command view 校验并渲染，stable root 为 `data-wsr-presentation`、`data-wsr-version` 与 `data-wsr-kind`；malformed/unknown envelope 渲染 bounded WSR error。
+
+Output 与 input request 在 exact causal order 中保持不同 event。Adapter 通过既有 host-neutral Intake interaction seam 把 ordinary user message 与 attachment 送回。不得创建 assistant message 模拟 output。
+
+### A2：pre-effect start-correlation handshake
+
+成功 start sequence 改为：
+
+1. M01 persist current Manifest 与 `START_UNCERTAIN`，再调用 M02。
+2. M02 在 `Host.start` 或任何 Action effect 前 durable save exact Delivery/Manifest/activation-correlated start-pending fact。
+3. M02 调用 private `RunnerStartCorrelationPort`；M01 校验 exact identity，并 durable transition 到 `RUNNING_CORRELATED`。
+4. Exact duplicate correlation 幂等 ACK；mismatch fail closed。M02 在首个 Host/Action effect 前 durable record acknowledgement。
+5. Lost acknowledgement 通过 replay 同一 durable fact 恢复；既有 Host/Custody idempotency 防止 duplicate Action effect。
+6. M03 只在 owning fact 存在后接收 non-controlling best-effort copy；refusal/outage 不得改变 ACK 或 execution。
+
+首个 RED oracle 必须复现 Runner 已有 terminal output 而 Delivery 仍为 `START_UNCERTAIN`。GREEN 要求 durable pre-effect ordering、exact replay、mismatch rejection、crash/restart recovery、无 duplicate effect、Observation outage independence。
+
+### A3：trusted-domain route-mode projection
+
+Projection 对 admitted route mode 去重：至少一个 `read` 变为 `{ mode: "read", path: "**" }`，至少一个 `write` 变为 `{ mode: "write", path: "**" }`，`execute` 不产生 workspace rule。`**` 只表示 canonical worktree root 与 descendants。Workspace operation 为 `list`、`read`、`write`；directory listing deterministic/sorted。继续拒绝 absolute path、`..`、realpath/symlink escape。Managed invocation 检查 signed authority digest，Custody 验证每次 attempt。Exact admitted Host operation 继续承载 execute。
+
+RED oracle 是 target 不是 filesystem path 的 contributed route，而其合法 workspace access 被当前 hard-coded projection 拒绝。GREEN 证明 read/write/list、root containment、无相应 mode 时拒绝、symlink escape rejection、digest validation 与 exact Host-operation behavior。
+
+### A4：executable browser oracle
+
+Automated qualification 使用 DSH `0.1.1-rc.2`、其 built-in `web` contribution、fresh temporary DSH home、被测 candidate artifact 与 real browser driver。Stable DOM root 与 visible semantics 是 primary assertion。覆盖 command acknowledgement、empty/list/status rendering、output/input-request order、ordinary-message/attachment continuation、terminal result 与 malformed-envelope error。Credential-backed evidence 还覆盖 model-backed hello flow 和既有 system-design multi-turn/finish/recovery flow。每次运行记录 URL、environment tuple、exact commit/artifact digest 与 screenshot 或 DOM snapshot。
+
+### B1：package-scoped Source 与 release record
+
+每个新发布 Package release 恰好包含一个 Package，并使用 tag `workflow-package/<name>/v<version>`、archive `workflow-package-<name>-<version>.tar.gz`、descriptor `workflow-package-<name>-<version>.json` 及其 checksum。Source 以 `per_page=100&page=N` deterministic 枚举 GitHub release，直到 short/empty page；固定最大页数，超出时 fail unavailable，而非静默截断。忽略 draft release。
+
+Normalizer 从 exact asset name 与 descriptor entry 产生 package-version record。Immutable 双 Package `0.3.0` initial release 由同一算法规范化为两条 record。Exact 按 exact name/version filter。Bare/latest 按 name filter，排除 GitHub prerelease 与 SemVer prerelease version，并按 SemVer 2 precedence 选择。Duplicate name/version record 或 ambiguous stable precedence fail closed。Exact prerelease selector 保持 exact。Local `READY` 与 sticky alias hit 仍先于 Source access；不允许 alternate source、version、tag 或 ambient fallback。
+
+RED 覆盖 repository-wide `/releases/latest` 选择 unrelated Package。GREEN 覆盖 pagination boundary、initial-cohort compatibility、exact/latest parity、prerelease policy、duplicate、malformed descriptor/asset、network failure、local-first 与 no fallback。
+
+### B2：`hello-world-workflow@0.1.0`
+
+新 non-initial Package 包含一个 model-backed Action，不声明 tool 与 route authority，并返回含 model greeting 的 structured success。Generic initial Action input 携带 immutable prompt text，以及有 identity、media type 与 content 的 ordered attachment snapshot；image attachment 成为 model-consumable content，且不访问 environment、secret、workspace 或 Git。Package 没有 `--intent` 替代，并使用 ordinary Action closure。
+
+RED 先证明当前 generic projection 丢失 attachment content 或无法完成最小 Source-to-model flow。GREEN 证明 schema/conformance、deterministic archive/descriptor/checksum、exact remote resolution、真实 Runner/model output、attachment visibility、structured completion 与零 unexpected operation attempt。
+
+### Wave implementation rule 与 return gate
+
+每项 behavior change 从具名 failing test 开始，保留 RED evidence，再达到 focused GREEN 与风险相称的 full gate。若任一 RED 只能通过越过上表 explicit exclusion 修复，必须停止并返回人工裁决。不得用 later-wave implementation evidence 替代属于各自 wave 的 browser、remote release、recovery 或 publication evidence。
