@@ -2,16 +2,29 @@
 
 This guide builds the current Iteration 3 candidate from this checkout and installs it for pre-release E2E in a trusted local environment. It deliberately does not download an Execution GitHub Release. The DSH plugin is the first Intake Adapter distribution; `@workflow-self-recursive/execution-system` remains a host-neutral package that can be embedded without DSH.
 
-## 0. Install the locked host prerequisites
+## 0. Check the host prerequisites
 
-Use Node `24.12.x`, pnpm `9.15.0`, and DSH `0.1.1-rc.2`. Installing DSH with npm is supported; DSH's own `plugin` subcommand invokes pnpm from `PATH` to manage profile packages:
+Use Node `>=24.12.0 <25` and DSH `0.1.1-rc.2`. DSH's `plugin` subcommand requires a `pnpm` command on `PATH`, but it does not declare an exact pnpm version. Release qualification uses pnpm `9.15.0` for reproducibility; that is not an end-user version constraint. Check first and install only a missing command:
 
 ```sh
-npm install --global pnpm@9.15.0 @deepseek-ai/dsh@0.1.1-rc.2
+command -v node >/dev/null 2>&1 || { echo "Node >=24.12.0 <25 is required" >&2; exit 1; }
+command -v npm >/dev/null 2>&1 || { echo "npm is required to install a missing host command" >&2; exit 1; }
+if ! command -v pnpm >/dev/null 2>&1; then
+  npm install --global pnpm
+fi
+if ! command -v dsh >/dev/null 2>&1; then
+  npm install --global @deepseek-ai/dsh@0.1.1-rc.2
+fi
 node --version
 pnpm --version
+if [ "$(dsh --version)" != "0.1.1-rc.2" ]; then
+  echo "This candidate requires DSH 0.1.1-rc.2; found $(dsh --version)" >&2
+  exit 1
+fi
 dsh --help
 ```
+
+The check never replaces an existing pnpm or DSH installation. If an existing DSH has another version, it stops instead of silently changing the user's global environment.
 
 ## 1. Build the two candidate artifacts from this checkout
 
