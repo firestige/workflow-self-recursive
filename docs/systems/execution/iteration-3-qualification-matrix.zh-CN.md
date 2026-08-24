@@ -13,7 +13,7 @@
 - host-neutral `TaskPrompt` 保留 triggering turn text/attachments；只有 `NEW` 创建 immutable snapshot 并绑定 identity，命令面不存在 prompt parameter；
 - `/wsr list/create/recover/status/action finish/abandon` exact command surface，以及 command/skill 共同调用一个 DSH-I-only `workflow_execution_intake` operation union；
 - 一个 Intake session 最多绑定一个 Delivery、一个 active Delivery 恰好绑定一个 session；不同 session 可服务不同 worktree，restart 按 exact durable binding 恢复或进入 detached；
-- DSH-I/DSH-E 的 owner、创建点、配置、service/tool view、persistence、namespace、级联 dispose、restart recovery 与 crash boundary；
+- DSH-I/DSH-E 的 owner、创建点、配置、service/tool view、persistence、namespace、级联 dispose、restart/reinstall recovery 与 crash boundary；DSH package update/remove 不经过 WSR admission，外置 durable truth 保留，兼容版本从最后一个 durable boundary 恢复，尚未持久化的交互状态允许丢失；
 - 无 public DSH resume 不排除 Bootstrap recovery establishment；user recover 只把 unbound session 绑定到 exact detached Delivery 或 current-worktree Delivery；
 - `/wsr action finish` 只表示 `ACTION_FINISH_REQUESTED`；current Action 仍通过唯一 `workflow_complete` protocol 决定 completion；
 - Action-finish 触发的 bounded Runner reopen 必须先有 RED，且只能修改 internal Action-interaction distinction，不得扩大 public Runner surface 或预先修改 initial Workflow Package；
