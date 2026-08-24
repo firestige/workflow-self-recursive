@@ -24,7 +24,7 @@ This document is a durable evidence index, not an execution checklist. Completio
 | #46 producer roles | Bootstrap composition | M01 and M02 owner-fact spies around a real Runner effect | M03 ingress is wired before the effect; M03 derives no owner fact and cannot call back | production composition and role-verification test |
 | #57 host-neutral entry | Execution Core | TypeScript consumer importing only the package root | request/result and lifecycle surface contain no Cordis/DSH/provider-native type or private Module import | public exports and package type probe |
 | #57 replaceable Intake | Execution Core | direct embedding Adapter and DSH command/tool Adapters with the same turn text/attachments | all create byte-equivalent semantic `ExecutionRequest`/`TaskPrompt`; only bounded presentation correlation may differ | `ExecutionApplication` and Adapter contract tests |
-| #57 DSH distribution | DSH Intake | clean locked DSH profile installing the released package | loader discovers one row and config path; startup performs no activation | `packages/dsh-intake`; real-loader install test |
+| #57 DSH distribution | DSH Intake | clean locked DSH built-in `web` profile installing the released packages | loader discovers the WSR row beside the official conversation/attachment/command UI; startup performs no activation | `packages/dsh-intake`; real-loader install and interactive Web-session tests |
 | #57 command/skill convergence | DSH Intake | every `/wsr` command and explicit `/workflow-execution` invocation | both call one `WorkflowIntakeService`; skill calls `workflow_execution_intake` exactly once; create strips only its directive and preserves the host turn | command, tool, skill bundle and equivalence tests |
 | #57 capability isolation | DSH Intake and Runner Provider Adapter | inspect Intake and admitted execution tool/service views | Intake tool is visible only in DSH-I and absent from Workflow capability, Runner catalog and DSH-E | dual-context isolation test |
 | #57 Intake session binding | DSH Intake | multiple host sessions/worktrees, duplicate claims, detached recovery and restart | one session binds at most one Delivery; one active Delivery binds exactly one session; valid bindings restore; conflicts fail closed | Adapter-private binding repository and concurrency tests |
@@ -129,7 +129,7 @@ The Action-finish requirement is an approved bounded reopen. A RED fixture must 
 | --- | --- | --- |
 | Host-neutral Execution package | `@workflow-self-recursive/execution-system@0.1.0` | Execution Release |
 | DSH Intake package | `@workflow-self-recursive/dsh-intake@0.1.0` | Execution Release |
-| DSH profile | `workflow-execution` | user installation |
+| DSH profile | built-in `web` (`dsh-base` + `dsh-web-app`) | user installation |
 | Cordis row ID | `workflow-execution` | DSH Intake package |
 | Execution config schema/defaults | `execution.config@1.0.0`; `config/defaults/execution.default.yaml` and `.json` | Execution Release |
 | command surface | `/wsr list`; `/wsr create <selector>`; `/wsr recover [<delivery-id>]`; `/wsr status [<delivery-id>]`; `/wsr action finish`; `/wsr abandon <delivery-id>` | DSH Intake package |
@@ -139,4 +139,4 @@ The Action-finish requirement is an approved bounded reopen. A RED fixture must 
 | Workflow Package assets | `workflow-package-{name}-{version}.tar.gz` | Workflow Package GitHub Release |
 | initial assets | `workflow-package-implementation-1.1.0.tar.gz`; `workflow-package-system-design-1.1.0.tar.gz` | Workflow Package GitHub Release only |
 
-The DSH profile patch contains only the plugin row and absolute Execution config path. “DSH profile/plugin bundle” refers only to the DSH loading layer; it never means a Workflow Package source, embedded initial Package or fallback path.
+The DSH profile patch contains only the plugin row and absolute Execution config/binding paths. The plugin bundle supplies no UI and must not be presented as interactive on a custom base-only profile; the first distribution uses locked DSH's built-in `web` profile. “DSH profile/plugin bundle” refers only to the DSH loading layer; it never means a Workflow Package source, embedded initial Package or fallback path.

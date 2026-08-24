@@ -1,10 +1,12 @@
 # Iteration 3 Execution implementation result
 
-Status: `RELEASED`
+Status: `REOPENED_#57`
 Scope: [#45](https://github.com/firestige/workflow-self-recursive/issues/45), [#46](https://github.com/firestige/workflow-self-recursive/issues/46), [#57](https://github.com/firestige/workflow-self-recursive/issues/57), [#86](https://github.com/firestige/workflow-self-recursive/issues/86), and Execution-level Configuration/Factory/Bootstrap support  
 Version: Execution Core and DSH Intake `0.1.0`; Workflow Package release `0.3.0`
 
 This result records implementation evidence; it does not redefine the frozen Workflow or Delivery Admission Contracts, the Iteration 2 Runner five-component meaning, or either initial Workflow Package. #87 remains separate and is not claimed here.
+
+Correction note (2026-08-24): the original qualification installed WSR into a custom base-only DSH profile. That proved package loading but supplied no interactive conversation surface, so it did not satisfy #57's user E2E gate. #57 and Iteration 3 were reopened. The corrected assembly installs the same Adapter into locked DSH's built-in `web` profile. Automated clean-profile evidence now boots the real browser surface, creates a real DSH session, discovers `/wsr` through the Web command transport, executes `/wsr list`, and reads the durable rendered result. Iteration 3 remains open until a credentialed `/wsr create ...` manual E2E executes a Workflow and its result is observed from that same Intake session.
 
 ## #45 — M01 Delivery
 
@@ -30,6 +32,8 @@ The frozen `agentops.observation@1.0.0` publication record remains `VALIDATOR_ON
 The package root exports the host-neutral `ExecutionApplication`, `ExecutionApplicationFactory`/`DefaultExecutionApplicationFactory`, `ExecutionRequest`, `TaskPrompt`, lifecycle/control types, configuration schema/types, and one production bootstrap path. Replacement-Intake contract tests consume the same request/result corpus without installing the DSH plugin.
 
 `@workflow-self-recursive/dsh-intake@0.1.0` is the first Adapter distribution. It owns `/wsr`, explicit `/workflow-execution`, DSH-I-only `workflow_execution_intake`, bounded rendering, and external adapter-private session↔Delivery bindings. DSH-I and Runner-owned DSH-E use distinct Context/service/session/persistence identities; Intake lifecycle cascades shutdown to Execution/DSH-E and preserves durable truth for restart. Command and skill-mediated create preserve the current turn and attachments and converge on one `WorkflowIntakeService` and M01 path.
+
+The supported interactive host assembly is DSH's built-in `web` profile, not the base-only custom `workflow-execution` profile described in the original quickstart. `workflow-execution` remains the stable Cordis row and skill name. `test/tooling/dsh-interactive-intake-qualification.test.ts` exercises the same `commands/list`/`commands/execute` Web transport used by the browser and verifies the user-visible `command/run`/`command/done` result in session history.
 
 ## #86 — production composition evidence
 

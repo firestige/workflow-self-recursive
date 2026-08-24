@@ -12,6 +12,7 @@
 - `execution.config@1.0.0` 每个 exact key 的 type、required/default policy、secret classification、consumer、Manifest binding、reload behavior 与 redacted error；
 - host-neutral `TaskPrompt` 保留 triggering turn text/attachments；只有 `NEW` 创建 immutable snapshot 并绑定 identity，命令面不存在 prompt parameter；
 - `/wsr list/create/recover/status/action finish/abandon` exact command surface，以及 command/skill 共同调用一个 DSH-I-only `workflow_execution_intake` operation union；
+- 首个 distribution 安装到 locked DSH 内置 `web` profile；plugin row `workflow-execution` 不拥有 UI，clean-profile evidence 必须覆盖官方 conversation/attachment/command/result surface 与真实 Web session 往返；
 - 一个 Intake session 最多绑定一个 Delivery、一个 active Delivery 恰好绑定一个 session；不同 session 可服务不同 worktree，restart 按 exact durable binding 恢复或进入 detached；
 - DSH-I/DSH-E 的 owner、创建点、配置、service/tool view、persistence、namespace、级联 dispose、restart/reinstall recovery 与 crash boundary；DSH package update/remove 不经过 WSR admission，外置 durable truth 保留，兼容版本从最后一个 durable boundary 恢复，尚未持久化的交互状态允许丢失；
 - 无 public DSH resume 不排除 Bootstrap recovery establishment；user recover 只把 unbound session 绑定到 exact detached Delivery 或 current-worktree Delivery；

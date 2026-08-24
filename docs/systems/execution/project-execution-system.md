@@ -299,17 +299,17 @@ The exact first-release values are:
 
 | Item | Value |
 | --- | --- |
-| recommended profile | `workflow-execution` |
-| install/update/remove | `dsh plugin --profile workflow-execution add|update|remove @workflow-self-recursive/dsh-intake@0.1.0` |
+| recommended profile | locked DSH built-in `web` profile; it composes `dsh-base` plus `dsh-web-app` |
+| install/update/remove | `dsh plugin --profile web add|update|remove @workflow-self-recursive/dsh-intake@0.1.0` |
 | package bundle declaration | `dsh.bundle.patch = "./cordis.patch.yml"` |
 | stable Cordis row ID/name | `workflow-execution` / `@workflow-self-recursive/dsh-intake` |
-| profile override | row `workflow-execution`, complete config `{ configFile: <absolute path> }` |
+| profile override | row `workflow-execution`, complete config `{ configFile: <absolute path>, bindingFile: <absolute path> }` |
 | user command surface | `/wsr list`; `/wsr create <selector>`; `/wsr recover [<delivery-id>]`; `/wsr status [<delivery-id>]`; `/wsr action finish`; `/wsr abandon <delivery-id>` |
 | create prompt | the triggering chat turn after the activation directive, plus its attachments; no `--intent` parameter |
 | Intake-only capability | `workflow_execution_intake`, a closed operation union owned by the plugin; it carries host-neutral prompt/correlation values and is visible only in DSH-I |
 | first-party skill | package path `skills/workflow-execution/SKILL.md`, name `/workflow-execution`; explicit invocation only in the first release |
 
-The bundle registers the package skill root with locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2`; `@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` loads its instruction. The instruction selects one closed `/wsr` operation and invokes `workflow_execution_intake` exactly once. It imports no executable code and does not call Core/M01/Runner directly. The command Adapter and skill-mediated tool Adapter call one plugin-owned `WorkflowIntakeService`; create produces meaning-equivalent `ExecutionRequest` bytes, while list/status/recover/action-finish/abandon retain their distinct control meaning. Startup never creates a Workflow.
+The bundle registers the package skill root with locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2`; `@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` loads its instruction. The instruction selects one closed `/wsr` operation and invokes `workflow_execution_intake` exactly once. It imports no executable code and does not call Core/M01/Runner directly. The command Adapter and skill-mediated tool Adapter call one plugin-owned `WorkflowIntakeService`; create produces meaning-equivalent `ExecutionRequest` bytes, while list/status/recover/action-finish/abandon retain their distinct control meaning. Startup never creates a Workflow. The plugin bundle does not own a UI; the supported first distribution installs into DSH's built-in `web` profile so the official conversation, attachment, command-discovery, command-execution, and result-rendering surface supplies the Intake channel.
 
 `DSH-I` is the Cordis `Context` supplied to the Intake plugin. It can host multiple Intake sessions. An Intake session is one host conversation and is the exclusive input/output channel for one active Delivery: one session binds at most one Delivery, and one active Delivery binds exactly one session. Different sessions may bind Deliveries for different worktrees concurrently within the installation bound. The binding lasts for the active Delivery lifecycle and is released only by terminal handling, exact authorized abandonment, or a durable detached/recoverable transition; it is not acquired only while an Action awaits input.
 

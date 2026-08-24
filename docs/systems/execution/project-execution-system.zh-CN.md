@@ -299,17 +299,17 @@ Execution Release 只拥有 host-neutral package、configuration schema/default 
 
 | Item | Value |
 | --- | --- |
-| recommended profile | `workflow-execution` |
-| install/update/remove | `dsh plugin --profile workflow-execution add|update|remove @workflow-self-recursive/dsh-intake@0.1.0` |
+| recommended profile | locked DSH 内置 `web` profile；它组合 `dsh-base` 与 `dsh-web-app` |
+| install/update/remove | `dsh plugin --profile web add|update|remove @workflow-self-recursive/dsh-intake@0.1.0` |
 | package bundle declaration | `dsh.bundle.patch = "./cordis.patch.yml"` |
 | stable Cordis row ID/name | `workflow-execution` / `@workflow-self-recursive/dsh-intake` |
-| profile override | row `workflow-execution`，完整 config `{ configFile: <absolute path> }` |
+| profile override | row `workflow-execution`，完整 config `{ configFile: <absolute path>, bindingFile: <absolute path> }` |
 | user command surface | `/wsr list`；`/wsr create <selector>`；`/wsr recover [<delivery-id>]`；`/wsr status [<delivery-id>]`；`/wsr action finish`；`/wsr abandon <delivery-id>` |
 | create prompt | activation directive 后的 triggering chat turn 及其 attachments；不存在 `--intent` parameter |
 | Intake-only capability | `workflow_execution_intake`，plugin-owned closed operation union；只携带 host-neutral prompt/correlation value，且只在 DSH-I 可见 |
 | first-party skill | package path `skills/workflow-execution/SKILL.md`，name `/workflow-execution`；首发只允许 explicit invocation |
 
-Bundle 使用 locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2` 注册 package skill root；`@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` 加载 instruction。Instruction 选择一个 closed `/wsr` operation，并恰好一次调用 `workflow_execution_intake`；它不 import executable code，也不直接调用 Core/M01/Runner。Command Adapter 与 skill-mediated tool Adapter 共同调用一个 plugin-owned `WorkflowIntakeService`；create 产生 meaning-equivalent `ExecutionRequest` bytes，而 list/status/recover/action-finish/abandon 保留各自独立的 control meaning。Startup 从不创建 Workflow。
+Bundle 使用 locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2` 注册 package skill root；`@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` 加载 instruction。Instruction 选择一个 closed `/wsr` operation，并恰好一次调用 `workflow_execution_intake`；它不 import executable code，也不直接调用 Core/M01/Runner。Command Adapter 与 skill-mediated tool Adapter 共同调用一个 plugin-owned `WorkflowIntakeService`；create 产生 meaning-equivalent `ExecutionRequest` bytes，而 list/status/recover/action-finish/abandon 保留各自独立的 control meaning。Startup 从不创建 Workflow。Plugin bundle 不拥有 UI；首个受支持 distribution 安装到 DSH 内置 `web` profile，由官方 conversation、attachment、command discovery/execution 与 result rendering surface 提供 Intake channel。
 
 `DSH-I` 是提供给 Intake plugin 的 Cordis `Context`，可承载多个 Intake session。一个 Intake session 对应一个 host conversation，是一个 active Delivery 的排他输入输出通道：一个 session 最多绑定一个 Delivery，一个 active Delivery 恰好绑定一个 session。不同 session 可以在 installation bound 内并行绑定不同 worktree 的 Delivery。Binding 持续覆盖 active Delivery lifecycle，只有 terminal handling、exact authorized abandonment 或 durable detached/recoverable transition 才释放；它不是仅在 Action 等待输入时才获取的临时占用。
 
