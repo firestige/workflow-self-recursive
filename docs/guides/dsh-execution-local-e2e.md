@@ -84,7 +84,17 @@ dsh --profile web --dump-config
 dsh --help
 ```
 
-Expected: the dump includes `webserver`, `ui-conversation`, `ui-commands`, row `workflow-execution`, the absolute `configFile`/`bindingFile`, `skill-filesystem`, and `tool-skill`; it does not contain the API key. In locked DSH `0.1.1-rc.2`, launcher-level `dsh --help` verifies syntax without booting the interactive profile. Neither help surface is the plugin command catalog. The exact product commands are:
+Expected: the dump includes `webserver`, `ui-conversation`, `ui-commands`, row `workflow-execution`, the absolute `configFile`/`bindingFile`, `skill-filesystem`, and `tool-skill`; it does not contain the API key. In locked DSH `0.1.1-rc.2`, launcher-level `dsh --help` verifies syntax without booting the interactive profile. This step verifies assembly only; it does not execute any `/wsr` product command.
+
+## 4. Start and invoke
+
+Start DSH Web from the target worktree:
+
+```sh
+dsh web
+```
+
+Enter every `/wsr` command below in the browser conversation opened by DSH Web, not in the shell. The complete command reference is shown here for orientation; the manual acceptance run below tells you which commands to execute for this E2E, so you do not need to exercise every command in this list:
 
 ```text
 /wsr list
@@ -93,14 +103,6 @@ Expected: the dump includes `webserver`, `ui-conversation`, `ui-commands`, row `
 /wsr status [delivery-id]
 /wsr action finish
 /wsr abandon <delivery-id>
-```
-
-## 4. Start and invoke
-
-Start DSH Web from the target worktree:
-
-```sh
-dsh web
 ```
 
 Direct command example—everything after the activation directive, plus chat attachments, becomes the `TaskPrompt`; there is no `--intent` argument:

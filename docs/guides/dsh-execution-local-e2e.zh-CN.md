@@ -84,7 +84,17 @@ dsh --profile web --dump-config
 dsh --help
 ```
 
-预期：dump 包含 `webserver`、`ui-conversation`、`ui-commands`、`workflow-execution` row、absolute `configFile`/`bindingFile`、`skill-filesystem` 与 `tool-skill`，但不含 API key。锁定的 DSH `0.1.1-rc.2` 中，launcher-level `dsh --help` 不启动交互 profile，只验证语法。两个 help surface 都不充当 plugin command catalog。精确产品命令为：
+预期：dump 包含 `webserver`、`ui-conversation`、`ui-commands`、`workflow-execution` row、absolute `configFile`/`bindingFile`、`skill-filesystem` 与 `tool-skill`，但不含 API key。锁定的 DSH `0.1.1-rc.2` 中，launcher-level `dsh --help` 不启动交互 profile，只验证语法。本节只验证 assembly，不执行任何 `/wsr` 产品命令。
+
+## 4. 启动与调用
+
+从目标 worktree 启动 DSH Web：
+
+```sh
+dsh web
+```
+
+下面所有 `/wsr` 命令都要输入到 DSH Web 打开的浏览器 conversation 中，而不是 shell。这里先列出完整命令作为参考；随后“#57 人工验收流程”会明确本次 E2E 实际需要执行哪些命令，不要求在本次验收中逐一测试整个清单：
 
 ```text
 /wsr list
@@ -93,14 +103,6 @@ dsh --help
 /wsr status [delivery-id]
 /wsr action finish
 /wsr abandon <delivery-id>
-```
-
-## 4. 启动与调用
-
-从目标 worktree 启动 DSH Web：
-
-```sh
-dsh web
 ```
 
 Direct command 示例——activation directive 后的正文与聊天附件共同构成 `TaskPrompt`，不存在 `--intent` 参数：
