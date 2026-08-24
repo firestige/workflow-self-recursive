@@ -53,7 +53,7 @@ export WSR_CREDENTIALS="$PWD/../wsr-local/credentials.yml"
 
 请从 super project 根目录执行 preparation 命令。它会一次完成 repository dependency 安装、当前 `execution-system` worktree 编译、两个 `0.1.1` archive 的构建与验证、本地部署路径初始化，以及 DSH `web` profile 对账。
 
-对于 fresh profile，对账会先安装 Core，再安装 Intake。对于 existing profile，它会先 remove Intake、再 remove Core，随后安装刚刚构建的准确 Core 与 Intake archive。即使 package version 没有变化，这个 remove/re-add 顺序也能替换内容已变化的本地 archive。修改 profile 之前，preparation 会用 production configuration loader 加载生成的配置。旧版自动生成配置曾让 workspace 包含相邻的 `wsr-local/state`；命令会把这种准确的旧结构收窄到目标 worktree，同时保留 state 路径和全部非路径用户修改，其他无效的已有配置则 fail closed。随后，命令只会在 `$DSH_HOME/profiles/web/cordis.patch.yml` 中插入或替换 WSR 自己的 `workflow-execution` row，保留无关的用户 patch entry，并通过 `dsh --profile web --dump-config` 验证 composed profile。如果 composed profile 仍有 `__REQUIRED__` placeholder，或者没有解析到生成的配置与 binding 路径，命令会失败。
+任何 package operation 之前，对账会把 `better-sqlite3: true` 合入 profile 的 pnpm 11 `allowBuilds` map，并保留全部已有审批。对于 fresh profile，对账随后先安装 Core，再安装 Intake。对于 existing profile，它会先 remove Intake、再 remove Core，随后安装刚刚构建的准确 Core 与 Intake archive。即使 package version 没有变化，这个 remove/re-add 顺序也能替换内容已变化的本地 archive。修改 profile 之前，preparation 会用 production configuration loader 加载生成的配置。旧版自动生成配置曾让 workspace 包含相邻的 `wsr-local/state`；命令会把这种准确的旧结构收窄到目标 worktree，同时保留 state 路径和全部非路径用户修改，其他无效的已有配置则 fail closed。随后，命令只会在 `$DSH_HOME/profiles/web/cordis.patch.yml` 中插入或替换 WSR 自己的 `workflow-execution` row，保留无关的用户 patch entry，并通过 `dsh --profile web --dump-config` 验证 composed profile。如果 composed profile 仍有 `__REQUIRED__` placeholder，或者没有解析到生成的配置与 binding 路径，命令会失败。
 
 重复执行会重建临时 artifact 并对账 plugin package，但保留已有的 Execution 配置、credential material、durable state、binding state 与无关 DSH user override。命令完成后再重新启动 `dsh web`。
 

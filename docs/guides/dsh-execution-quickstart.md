@@ -81,9 +81,10 @@ npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-sy
 
 ## 3. Install the DSH Intake Adapter
 
-Use locked DSH's built-in `web` profile. It is the supported interactive assembly because it includes DSH's conversation, attachment, command, and result-rendering surface; a new custom profile contains only `dsh-base` and is not interactive. The current DSH preview requires `--workspace-root` for its generated workspace. Install the host-neutral package first so the plugin can import its public surface:
+Use locked DSH's built-in `web` profile. It is the supported interactive assembly because it includes DSH's conversation, attachment, command, and result-rendering surface; a new custom profile contains only `dsh-base` and is not interactive. The current DSH preview requires `--workspace-root` for its generated workspace. Core uses `better-sqlite3` for durable checkpoints, so pnpm 11 must approve that native build in the DSH profile before either artifact is added. For a fresh profile, the first command below creates the profile and its `allowBuilds` map. For an existing profile, preserve every existing `allowBuilds` entry and merge `better-sqlite3: true` in `$DSH_HOME/profiles/web/pnpm-workspace.yaml` instead of replacing the map. Then install the host-neutral package first so the plugin can import its public surface:
 
 ```sh
+dsh plugin --profile web config set --location=project --json allowBuilds '{"better-sqlite3":true}'
 dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
 dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
 ```

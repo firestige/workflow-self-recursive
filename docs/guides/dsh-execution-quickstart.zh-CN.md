@@ -79,9 +79,10 @@ npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-sy
 
 ## 3. 安装 DSH Intake Adapter
 
-使用 locked DSH 内置 `web` profile。它包含 DSH 官方 conversation、attachment、command 与 result-rendering surface，是首个受支持的 interactive assembly；新建 custom profile 只有 `dsh-base`，不能交互。当前 DSH preview 的 workspace 需要 `--workspace-root`；先安装 host-neutral package，使 plugin 可导入其 public surface：
+使用 locked DSH 内置 `web` profile。它包含 DSH 官方 conversation、attachment、command 与 result-rendering surface，是首个受支持的 interactive assembly；新建 custom profile 只有 `dsh-base`，不能交互。Core 通过 `better-sqlite3` 持久化 checkpoint，因此 pnpm 11 必须在添加 artifact 前由 DSH profile 的 `allowBuilds` 批准该 native build。对于 fresh profile，下面第一条命令会创建 profile 和审批 map；对于 existing profile，应在 `$DSH_HOME/profiles/web/pnpm-workspace.yaml` 保留全部已有 `allowBuilds` entry 并合入 `better-sqlite3: true`，不要覆盖原 map。当前 DSH preview 的 workspace 需要 `--workspace-root`；随后先安装 host-neutral package，使 plugin 可导入其 public surface：
 
 ```sh
+dsh plugin --profile web config set --location=project --json allowBuilds '{"better-sqlite3":true}'
 dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
 dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
 ```
