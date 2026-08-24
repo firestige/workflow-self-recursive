@@ -20,6 +20,14 @@ dsh --version
 npm install --global pnpm
 ```
 
+已有 pnpm 9 仍然可以工作，但 DSH 调用这个旧 CLI 时，Node 24 可能报告 `DEP0169`。如果要消除该工具链 warning，可以选择让 Corepack 对齐仓库完成 qualification 的版本，然后重新执行 `pnpm --version`：
+
+```sh
+corepack install --global pnpm@11.23.0
+```
+
+这是工具链升级，不是 Execution runtime compatibility 要求。
+
 如果 `dsh --version` 因为未安装 DSH 而失败，或者输出的版本不是 `0.1.1-rc.2`，安装所需 preview 后重新检查：
 
 ```sh
@@ -63,6 +71,12 @@ preparation 命令会用 owner-only 权限创建该文件，并且永不覆盖�
 dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-execution-system-0.1.1.tgz"
 dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-dsh-intake-0.1.1.tgz"
 ```
+
+两条命令以 `Done` 结束，并在 `dependencies` 下列出对应 package，即表示安装成功。下面三种 warning 不会使本次安装失败：
+
+- `DEP0169` 表示 DSH 在 `PATH` 中找到了旧 pnpm CLI；可用上面的可选 Corepack 升级消除。
+- `prebuild-install@7.1.3` 是 `better-sqlite3` 下的 deprecated installer，由 `@langchain/langgraph-checkpoint-sqlite` 间接引入；它不是安装得到的 Execution runtime version。
+- Core `declares no dsh.bundle` 是预期输出。`@workflow-self-recursive/execution-system` 按设计作为 host-neutral plain dependency 安装，`@workflow-self-recursive/dsh-intake` 才提供 DSH profile layer。
 
 编辑 `$DSH_HOME/profiles/web/cordis.patch.yml`，stable WSR row 只保留 absolute presentation path。`web` 是 DSH profile name；`workflow-execution` 仍是 plugin 的 stable Cordis row ID：
 

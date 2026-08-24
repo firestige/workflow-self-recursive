@@ -20,6 +20,14 @@ If `pnpm --version` fails because pnpm is missing, install it and rerun the chec
 npm install --global pnpm
 ```
 
+An existing pnpm 9 installation still works, but Node 24 may report `DEP0169` from that old CLI when DSH invokes it. To remove that tooling warning, optionally align Corepack with the repository-qualified version, then rerun `pnpm --version`:
+
+```sh
+corepack install --global pnpm@11.23.0
+```
+
+This is a tooling upgrade, not an Execution runtime compatibility requirement.
+
 If `dsh --version` fails because DSH is missing, or reports a version other than `0.1.1-rc.2`, install the required preview and rerun the check:
 
 ```sh
@@ -63,6 +71,12 @@ Use locked DSH's built-in `web` profile. It is the supported interactive assembl
 dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-execution-system-0.1.1.tgz"
 dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-dsh-intake-0.1.1.tgz"
 ```
+
+Both commands succeed when they end with `Done` and list the expected package under `dependencies`. The following warnings do not invalidate this installation:
+
+- `DEP0169` means DSH found an old pnpm CLI on `PATH`; use the optional Corepack upgrade above to remove it.
+- `prebuild-install@7.1.3` is a deprecated installer below `better-sqlite3`, reached through `@langchain/langgraph-checkpoint-sqlite`; it is not the installed Execution runtime version.
+- Core `declares no dsh.bundle` is expected. `@workflow-self-recursive/execution-system` is deliberately installed as a host-neutral plain dependency, while `@workflow-self-recursive/dsh-intake` supplies the DSH profile layer.
 
 Edit `$DSH_HOME/profiles/web/cordis.patch.yml` so the stable WSR row contains only absolute presentation paths. `web` is the DSH profile name; `workflow-execution` remains the plugin's stable Cordis row ID:
 
