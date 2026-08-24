@@ -743,7 +743,7 @@ Publication 仍受 external exact-byte publication record 与 Concept-owned obli
 
 | 能力 | Semantic owner | 授权 implementation landing | 明确排除 |
 | --- | --- | --- | --- |
-| A1 presentation | Execution Core event contract；DSH Intake transport/view | Core presentation module 与 Intake presentation port/broker/service；`packages/dsh-intake` command result 加官方 `conversation.chat.commandview` client contribution | 不允许 Core 中出现 DSH type、修改 DSH source 或伪造 assistant turn |
+| A1 presentation | Execution Core event contract；DSH Intake transport/view | Core presentation module 与 Intake presentation port/broker/service；`packages/dsh-intake` command result 加官方 `conversation.chat.commandview` 与 additive `sidebar.footer.action` client contribution | 不允许 Core 中出现 DSH type、修改 DSH source、伪造 assistant turn 或替换 workspace navigation |
 | A2 start correlation | M01 拥有 Delivery state；M02 拥有 Runner start fact | Runner Coordinator/factory/composition、Delivery lifecycle/current-slot、Bootstrap wiring、focused recovery test | 不修改 public Runtime、terminal、retirement、settlement 或无关 Runner 语义 |
 | A3 route authority | M01 拥有 admitted projection；M02 Host/Custody enforce | Delivery admission projector、DSH workspace-operation adapter 与 authority test | 不解释 target text 为 path，不改 Contract/DSL |
 | A4 browser oracle | DSH Intake qualification | interactive qualification driver、locked DSH web client、DOM/screenshot evidence | RPC/history 仅为辅助 |
@@ -752,7 +752,7 @@ Publication 仍受 external exact-byte publication record 与 Concept-owned obli
 
 ### A1：presentation envelope 与 view
 
-Canonical envelope 为 `wsr.presentation@1.0.0`，带 correlation identity、一个 event kind 与 kind-specific data。封闭 kind 是 `command-accepted`、`delivery-running`、`delivery-list`、`delivery-status`、`action-output`、`action-input-request`、`terminal-result` 和 `error`；empty list 是带 `items: []` 的 `delivery-list`。Core 把 durable envelope 序列化进 command name 为 `wsr` 的 DSH `command/done.text` result。Keyed DSH command view 校验并渲染，stable root 为 `data-wsr-presentation`、`data-wsr-version` 与 `data-wsr-kind`；malformed/unknown envelope 渲染 bounded WSR error。
+Canonical envelope 为 `wsr.presentation@1.0.0`，带 correlation identity、一个 event kind 与 kind-specific data。封闭 kind 是 `command-accepted`、`delivery-running`、`delivery-list`、`delivery-status`、`action-output`、`action-input-request`、`terminal-result` 和 `error`；empty list 是带 `items: []` 的 `delivery-list`。Core 把 durable envelope 序列化进 command name 为 `wsr` 的 DSH `command/done.text` result。Keyed DSH command view 与 additive sidebar-footer projection 校验并渲染同一个 event，stable root 为 `data-wsr-presentation`、`data-wsr-version` 与 `data-wsr-kind`；sidebar 另带 `data-wsr-sidebar`，且只订阅当前选中 session 的 observable command nodes。这个 root-scoped projection 用于处理锁定 DSH 把 command-only session 保持为 blank/hero、不会把 command row 放入可见 conversation DOM 的行为；它不替换 `sidebar.workspaces`、不创建 turn，也不控制 Execution。Malformed/unknown envelope 渲染 bounded WSR error。
 
 Output 与 input request 在 exact causal order 中保持不同 event。Adapter 通过既有 host-neutral Intake interaction seam 把 ordinary user message 与 attachment 送回。不得创建 assistant message 模拟 output。
 
