@@ -7,7 +7,7 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `execution.identity.001` |
-| Publication status | `WORKING_REVIEW_CANDIDATE`; prior bounded review, translation, and fresh-reader closure apply to earlier bytes only. The 2026-08-23 user review approved this bounded Intake/TaskPrompt/Action-finish calibration; fresh deterministic parity/publication binding remains required before exact publication. |
+| Publication status | `WORKING_REVIEW_CANDIDATE`; prior bounded review, translation, and fresh-reader closure apply to earlier bytes only. The 2026-08-23 user review approved the Intake/TaskPrompt/Action-finish calibration. The 2026-08-24 Iteration 3 corrective addendum is a bounded reopen awaiting Wave 0 review; fresh deterministic parity/publication binding remains required before exact publication. |
 | Exact publication binding | The external publication set/application record must bind this byte stream and the companion canonical Concept byte stream by SHA-256, record the applicable review, SD-12, fresh-reader, and deterministic-verification evidence, and prove exact installation. This document intentionally declares no self-digest or companion digest. |
 | Authority after promotion | Sole versionless English Project Execution System Design authority |
 | Current structure authority | GitHub issues [#45 execution.delivery](https://github.com/firestige/workflow-self-recursive/issues/45), [#46 execution.observation](https://github.com/firestige/workflow-self-recursive/issues/46), and [#47 execution.runner](https://github.com/firestige/workflow-self-recursive/issues/47); this candidate calibrates the document to those decisions |
@@ -299,17 +299,17 @@ The exact first-release values are:
 
 | Item | Value |
 | --- | --- |
-| recommended profile | `workflow-execution` |
-| install/update/remove | `dsh plugin --profile workflow-execution add|update|remove @workflow-self-recursive/dsh-intake@0.1.0` |
+| recommended profile | locked DSH built-in `web` profile; it composes `dsh-base` plus `dsh-web-app` |
+| install/update/remove | `dsh plugin --profile web add|update|remove @workflow-self-recursive/dsh-intake@0.1.0` |
 | package bundle declaration | `dsh.bundle.patch = "./cordis.patch.yml"` |
 | stable Cordis row ID/name | `workflow-execution` / `@workflow-self-recursive/dsh-intake` |
-| profile override | row `workflow-execution`, complete config `{ configFile: <absolute path> }` |
+| profile override | row `workflow-execution`, complete config `{ configFile: <absolute path>, bindingFile: <absolute path> }` |
 | user command surface | `/wsr list`; `/wsr create <selector>`; `/wsr recover [<delivery-id>]`; `/wsr status [<delivery-id>]`; `/wsr action finish`; `/wsr abandon <delivery-id>` |
 | create prompt | the triggering chat turn after the activation directive, plus its attachments; no `--intent` parameter |
 | Intake-only capability | `workflow_execution_intake`, a closed operation union owned by the plugin; it carries host-neutral prompt/correlation values and is visible only in DSH-I |
 | first-party skill | package path `skills/workflow-execution/SKILL.md`, name `/workflow-execution`; explicit invocation only in the first release |
 
-The bundle registers the package skill root with locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2`; `@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` loads its instruction. The instruction selects one closed `/wsr` operation and invokes `workflow_execution_intake` exactly once. It imports no executable code and does not call Core/M01/Runner directly. The command Adapter and skill-mediated tool Adapter call one plugin-owned `WorkflowIntakeService`; create produces meaning-equivalent `ExecutionRequest` bytes, while list/status/recover/action-finish/abandon retain their distinct control meaning. Startup never creates a Workflow.
+The bundle registers the package skill root with locked `@deepseek-ai/dsh-skill-filesystem@0.1.1-rc.2`; `@deepseek-ai/dsh-tool-skill@0.1.1-rc.2` loads its instruction. The instruction selects one closed `/wsr` operation and invokes `workflow_execution_intake` exactly once. It imports no executable code and does not call Core/M01/Runner directly. The command Adapter and skill-mediated tool Adapter call one plugin-owned `WorkflowIntakeService`; create produces meaning-equivalent `ExecutionRequest` bytes, while list/status/recover/action-finish/abandon retain their distinct control meaning. Startup never creates a Workflow. The plugin bundle does not own a UI; the supported first distribution installs into DSH's built-in `web` profile so the official conversation, attachment, command-discovery, command-execution, and result-rendering surface supplies the Intake channel.
 
 `DSH-I` is the Cordis `Context` supplied to the Intake plugin. It can host multiple Intake sessions. An Intake session is one host conversation and is the exclusive input/output channel for one active Delivery: one session binds at most one Delivery, and one active Delivery binds exactly one session. Different sessions may bind Deliveries for different worktrees concurrently within the installation bound. The binding lasts for the active Delivery lifecycle and is released only by terminal handling, exact authorized abandonment, or a durable detached/recoverable transition; it is not acquired only while an Action awaits input.
 
@@ -366,7 +366,7 @@ sequenceDiagram
     Core-->>Host: final Delivery outcome
 ```
 
-The successful ordering is admit `NEW`, resolve/prepare, construct Manifest, persist current Manifest, project the admitted activation, mark start uncertainty, invoke Runner, validate result, finalize, then observe. Package preparation occurs under the ordinary Delivery exclusivity holder but has no Delivery identity or Delivery Observation. This holder prevents another current Delivery; it is not a Package proof, hold, transaction, or concurrent Store protocol.
+The successful ordering is admit `NEW`, resolve/prepare, construct Manifest, persist current Manifest and start uncertainty, project the admitted activation, complete the Section 16 pre-effect Runner-to-Delivery start-correlation acknowledgement, perform Runner effects, validate result, finalize, then observe. Package preparation occurs under the ordinary Delivery exclusivity holder but has no Delivery identity or Delivery Observation. This holder prevents another current Delivery; it is not a Package proof, hold, transaction, or concurrent Store protocol.
 
 Every selector, source, Package, version, digest, cache, and DSH compatibility branch owned by M01 occurs only inside M01 after its admission phase returns `NEW`. Any such failure releases the ordinary holder and returns before Manifest persistence, Delivery creation, Runtime/Session/worktree effect, or Observation. Canonical worktree and request-shape checks belong to M01 admission. `CONTENDED` and `RECOVERY` perform no selector, prompt snapshot, attachment read/copy, Source, Store, or new-binding work.
 
@@ -663,7 +663,7 @@ For the three MVP Evaluation/BI owner facts, Execution's boundary is exact: the 
 | `execution.decision.004` | Composition and selected DSH compatibility remain ordinary validation steps returning typed errors; no persisted proof identities exist. |
 | `execution.decision.005` | M01 returns a plain immutable `ResolvedWorkflowPackage` and never an opaque Prepared Binding, hold, or caller-managed capability. |
 | `execution.decision.006` | Pre-Delivery failures use phase-typed early return and ordinary holder/staging cleanup; they do not form a transaction, Delivery outcome, or Observation. |
-| `execution.decision.007` | The first GitHub mechanism uses one versioned Release asset; exact/latest resolution follows Docker-like local-first behavior. |
+| `execution.decision.007` | GitHub Source normalizes package-version records from bounded Release enumeration. New releases are one-Package and package-scoped; the immutable initial `0.3.0` cohort is normalized by the same path. Exact/latest resolution remains local-first and has no fallback. |
 | `execution.decision.008` | Store lookup exposes `MISSING`/`READY`; `STAGING` is private and non-addressable; latest alias changes only after exact `READY`; no automatic eviction. |
 | `execution.decision.009` | The preview adds no pre-Manifest lifecycle. Existing current-slot authority starts with persisted Manifest and preserves existing DSH uncertainty/recovery after that point. |
 | `execution.decision.010` | No authentication, authorization, signing, injection defense, sandbox, concurrent Store protocol, distributed lock, HA, failover, or production recovery mechanism is designed until a stated trust/exposure/scale trigger changes. |
@@ -678,9 +678,9 @@ For the three MVP Evaluation/BI owner facts, Execution's boundary is exact: the 
 
 Existing Execution decisions remain in force: three deep Modules; Runner-owned Workflow outcome behind the Core-owned Runner seam; one-current-slot-per-worktree lifecycle with no Execution history; standard-first allow-listed best-effort Observation; canonical worktree revalidation; conclusive handling of persisted Runner uncertainty; and the adopted Observation semantics encoded by the frozen and published Profile `1.0.0`.
 
-The approved Action-finish requirement triggers the bounded reopen rule. A RED fixture must first prove that the current schema-validated `ActionInputResponse` cannot carry an independent finish request. The only authorized Runner change is the minimum internal Action-interaction input distinction between an ordinary answer and `ACTION_FINISH_REQUESTED`, preserving the public `execute`/`inspect`/`cancel` operation set, exact Episode/request correlation, same-session resume, Action-owned closure, and `workflow_complete` as the sole completion protocol. Initial Workflow Package content remains frozen unless a later executable RED proves that this generic control cannot reach Action-owned closure; such a result requires a separate reopen and is not pre-authorized here.
+The approved Action-finish requirement triggers the bounded reopen rule. A RED fixture must first prove that the current schema-validated `ActionInputResponse` cannot carry an independent finish request. Its authorized Runner change is the minimum internal Action-interaction input distinction between an ordinary answer and `ACTION_FINISH_REQUESTED`; Section 16 separately authorizes only the pre-effect start-correlation acknowledgement. Both preserve the public `execute`/`inspect`/`cancel` operation set, exact Episode/request correlation, same-session resume, Action-owned closure, and `workflow_complete` as the sole completion protocol. Initial Workflow Package content remains frozen unless a later executable RED proves that this generic control cannot reach Action-owned closure; such a result requires a separate reopen and is not pre-authorized here.
 
-Rejected for this preview: Host-owned Package import; Package import inside M02/DSH; a fourth Module; first-party Package allow-list; mutable alias in Manifest; request-selected Source; automatic GitHub-to-alternate fallback; source/version fallback; ambient completion; embedded initial Package content; parallel plugin composition; opaque Prepared Binding; proof/capability identity; Package hold/reference-count/liveness transfer; commit-resolution state machine; concurrent cache correctness; automated eviction; authentication/authorization/security platform; registry/marketplace; HA/failover; shared DSH Intake/Execution Context; public DSH resume; DSH-native Core types; any Runner change beyond the approved RED-bounded Action-finish interaction distinction.
+Rejected for this preview: Host-owned Package import; Package import inside M02/DSH; a fourth Module; first-party Package allow-list; mutable alias in Manifest; request-selected Source; automatic GitHub-to-alternate fallback; source/version fallback; ambient completion; embedded initial Package content; parallel plugin composition; opaque Prepared Binding; proof/capability identity; Package hold/reference-count/liveness transfer; commit-resolution state machine; concurrent cache correctness; automated eviction; authentication/authorization/security platform; registry/marketplace; HA/failover; shared DSH Intake/Execution Context; public DSH resume; DSH-native Core types; any Runner change beyond the approved RED-bounded Action-finish distinction and Section 16 start-correlation acknowledgement.
 
 ### Execution implementation-evidence register
 
@@ -718,7 +718,7 @@ Recommended detailed-design order is:
 
 Module Detailed Design must explain executable control and data flow, not restate these decisions as a checklist. The M01 Interface is the primary import test surface; Source/Store test Adapters remain private. Implementation should prefer a temporary staging directory plus complete publish/rename, simple typed results, and ordinary cleanup. It must not add caller choreography, a Prepared handle, proof store, reference count, transaction manager, background reconciler, concurrent-writer schedule, credential flow, security scanner, automatic eviction, fallback, or ambient Package lookup.
 
-Return for a new System Design version only if evidence requires a new Module or semantic writer, Package rewrite, mutable active binding, source/version fallback, concurrent/shared Store correctness, automated eviction, authentication/authorization, hostile-source isolation, remote multi-user operation, HA/failover, changed current-slot semantics, public native type, Observation control dependency, or runner change.
+Return for a new System Design version only if evidence requires a new Module or semantic writer, Package rewrite, mutable active binding, source/version fallback, concurrent/shared Store correctness, automated eviction, authentication/authorization, hostile-source isolation, remote multi-user operation, HA/failover, changed current-slot semantics beyond Section 16, public native type, Observation control dependency, or another Runner change.
 
 ### Document completion check
 
@@ -728,8 +728,71 @@ Return for a new System Design version only if evidence requires a new Module or
 - [x] `ResolvedWorkflowPackage` and `MISSING/STAGING/READY` replace the former proof/Prepared-hold/transaction machinery.
 - [x] M01 admission precedes Package work; only `NEW` prepares; M01 persists the Manifest and projects activation before any Runner submodule effect; pre-Delivery failure creates no Delivery outcome or Observation.
 - [x] Exact/local-first/sticky-latest/no-fallback/no-ambient/open-contribution/DSH-first semantics remain.
-- [x] Existing current-slot recovery, M03 Observation, Evidence relationship, protected Packages, and runner semantics remain unchanged.
+- [x] Existing current-slot recovery, M03 Observation, Evidence relationship, and protected Packages remain unchanged; Runner change is limited to the two explicit bounded reopens.
 - [x] One canonical configuration, distinct three-layer identities, installation/Delivery factory DAGs, Bootstrap state machine, multi-slot recovery, reverse shutdown, release ownership, exact DSH Intake values and `DSH-I`/`DSH-E` isolation are frozen without adding a fourth Module.
 - [x] Acceptance is Interface-oriented and does not demand Spike, production security, concurrency schedule, transaction, response-loss, power-loss, eviction, or HA evidence.
 
 Publication remains governed by the external exact-byte publication record and the Concept-owned obligation register. These candidate bytes contain no Workflow routing authority.
+
+<a id="ee-execution-16"></a>
+## 16. Iteration 3 Corrective Implementation Freeze
+
+This bounded addendum supersedes only the earlier start-ordering sentence in Section 7, `execution.decision.007`, the Runner-unchanged clauses in `concept.obligation.011`/`concept.decision.025`, and the matching completion check. The public Runtime, terminal/retirement/settlement semantics, frozen Workflow Contract/DSL, initial Package bytes, and DSH source remain unchanged.
+
+### Frozen ownership and landing map
+
+| Capability | Semantic owner | Authorized implementation landing | Explicit exclusion |
+| --- | --- | --- | --- |
+| A1 presentation | Execution Core event contract; DSH Intake transport/view | Core presentation module and Intake presentation port/broker/service; `packages/dsh-intake` command result plus official `conversation.chat.commandview` and additive `sidebar.footer.action` client contributions | no DSH type in Core, DSH source edit, fabricated assistant turn, or replacement of workspace navigation |
+| A2 start correlation | M01 owns Delivery state; M02 owns Runner start fact | Runner Coordinator/factory/composition, Delivery lifecycle/current-slot, Bootstrap wiring, focused recovery tests | no public Runtime, terminal, retirement, settlement, or unrelated Runner change |
+| A3 route authority | M01 owns admitted projection; M02 Host/Custody enforce | Delivery admission projector plus DSH workspace-operation adapter and authority tests | no target-text path interpretation or Contract/DSL change |
+| A4 browser oracle | DSH Intake qualification | interactive qualification driver, locked DSH web client, DOM/screenshot evidence | RPC/history is auxiliary only |
+| B1 Source/release | Workflow Package release owns assets; M01 Source owns resolution | package release tooling/docs; GitHub Source enumeration/normalization and tests | no repository-wide latest coupling or fallback |
+| B2 proof Package | Workflow Package owns behavior; Core owns generic prompt projection | new `hello-world-workflow@0.1.0`; generic `TaskPrompt`/attachment projection | no initial Package edit or Workflow-specific Core branch |
+
+### A1: presentation envelope and view
+
+The canonical envelope is `wsr.presentation@1.0.0` with correlation identity, one event kind, and kind-specific data. Its closed kinds are `command-accepted`, `delivery-running`, `delivery-list`, `delivery-status`, `action-output`, `action-input-request`, `terminal-result`, and `error`; an empty list is `delivery-list` with `items: []`. Core serializes the durable envelope into the DSH `command/done.text` result for command name `wsr`. The keyed DSH command view and additive sidebar-footer projection validate and render the same event with stable roots `data-wsr-presentation`, `data-wsr-version`, and `data-wsr-kind`; the sidebar adds `data-wsr-sidebar` and subscribes only to the currently selected session's observable command nodes. This root-scoped projection exists because locked DSH keeps a command-only session blank/hero and does not place its command row in the visible conversation DOM. It does not replace `sidebar.workspaces`, create a turn, or control Execution. Malformed or unknown envelopes render a bounded WSR error.
+
+Output and input requests remain distinct events in exact causal order. The adapter sends ordinary user messages and attachments back through the existing host-neutral Intake interaction seam. It must never create an assistant message to simulate output.
+
+### A2: pre-effect start-correlation handshake
+
+The successful start sequence is now:
+
+1. M01 persists the current Manifest and `START_UNCERTAIN`, then invokes M02.
+2. M02 durably saves an exact Delivery/Manifest/activation-correlated start-pending fact before `Host.start` or any Action effect.
+3. M02 calls a private `RunnerStartCorrelationPort`; M01 validates exact identity and durably transitions to `RUNNING_CORRELATED`.
+4. Exact duplicate correlation is idempotently acknowledged; mismatch fails closed. M02 durably records the acknowledgement before the first Host/Action effect.
+5. A lost acknowledgement is recovered by replaying the same durable fact. Existing Host/Custody idempotency prevents duplicate Action effect.
+6. M03 receives a non-controlling best-effort copy only after the owning fact exists; refusal or outage cannot change acknowledgement or execution.
+
+The first RED oracle must reproduce terminal Runner output while the Delivery remains `START_UNCERTAIN`. GREEN requires the durable pre-effect ordering, exact replay, mismatch rejection, crash/restart recovery, no duplicate effect, and Observation-outage independence.
+
+### A3: trusted-domain route-mode projection
+
+Projection deduplicates admitted route modes: at least one `read` becomes `{ mode: "read", path: "**" }`, at least one `write` becomes `{ mode: "write", path: "**" }`, and `execute` produces no workspace rule. `**` means the canonical worktree root and descendants only. Workspace operations are `list`, `read`, and `write`; directory listing is deterministic and sorted. Absolute paths, `..`, realpath or symlink escape remain rejected. The signed authority digest is checked at managed invocation and Custody validates every attempt. Exact admitted Host operations remain the execute path.
+
+The RED oracle is a contributed route whose human target is not a filesystem path and whose legitimate workspace access is denied by the current hard-coded projection. GREEN proves read/write/list, root containment, denial without the matching mode, symlink escape rejection, digest validation, and exact Host-operation behavior.
+
+### A4: executable browser oracle
+
+Automated qualification uses DSH `0.1.1-rc.2`, its built-in `web` contribution, a fresh temporary DSH home, the candidate artifact under test, and a real browser driver. Stable DOM roots and visible semantics are the primary assertions. It covers command acknowledgement, empty/list/status rendering, output and input-request order, ordinary-message/attachment continuation, terminal result, and malformed-envelope error. Credential-backed evidence additionally covers the model-backed hello flow and the existing system-design multi-turn/finish/recovery flow. Each run records URL, environment tuple, exact commits/artifact digests, and screenshots or DOM snapshots.
+
+### B1: package-scoped Source and release records
+
+Every newly published Package release contains one Package and uses tag `workflow-package/<name>/v<version>`, archive `workflow-package-<name>-<version>.tar.gz`, descriptor `workflow-package-<name>-<version>.json`, and its checksum. Source enumerates GitHub releases deterministically with `per_page=100&page=N` until a short/empty page, with a fixed maximum that fails unavailable rather than silently truncating. Draft releases are ignored.
+
+The normalizer emits package-version records from exact asset names and descriptor entries. The immutable two-Package `0.3.0` initial release is normalized into two records by the same algorithm. Exact filters exact name and version. Bare/latest filters name, excludes GitHub prereleases and SemVer prerelease versions, and selects SemVer 2 precedence. Duplicate name/version records or ambiguous stable precedence fail closed. Exact prerelease selectors remain exact. Local `READY` and sticky alias hits still precede Source access; no alternate source, version, tag, or ambient fallback is permitted.
+
+RED covers repository-wide `/releases/latest` choosing an unrelated Package. GREEN covers pagination boundaries, initial-cohort compatibility, exact/latest parity, prerelease policy, duplicates, malformed descriptors/assets, network failure, local-first behavior, and no fallback.
+
+### B2: `hello-world-workflow@0.1.0`
+
+The new non-initial Package contains one model-backed Action, declares no tools and no route authority, and returns structured success containing the model's greeting. Generic initial Action input carries immutable prompt text plus ordered attachment snapshots with identity, media type, and content; image attachments become model-consumable content without environment, secret, workspace, or Git access. The Package has no `--intent` substitute and uses ordinary Action closure.
+
+RED first proves the current generic projection loses attachment content or cannot complete this minimal Source-to-model flow. GREEN proves schema/conformance, deterministic archive/descriptor/checksum, exact remote resolution, real Runner/model output, attachment visibility, structured completion, and zero unexpected operation attempts.
+
+### Wave implementation rule and return gate
+
+Each behavior change begins with the named failing test, preserves that RED evidence, then reaches focused GREEN and the risk-proportionate full gates. Stop for human ruling if any RED can be fixed only by crossing an explicit exclusion above. No later-wave implementation evidence may substitute for the browser, remote release, recovery, or publication evidence assigned to its own wave.

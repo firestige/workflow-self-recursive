@@ -42,6 +42,8 @@ Use `execution-config init|copy <absolute-path> [yaml|json]`, fill the required 
 
 The loader derives `<stateRoot>/packages`, `manifests`, `current-slots`, `staging`, and `runner/{journal,checkpoints,sessions,custody}`. Manifest/current-slot and Runner roots are durable truth; staging is temporary. The DSH plugin's separate `bindingFile` stores adapter-private session↔Delivery bindings and must also remain outside the plugin installation directory.
 
+In the DSH Web product, configuration does not change the UI responsibility boundary: sidebar tabs invoke the existing list/status control-plane operations, while the chat timeline carries interactive commands, Action conversation, ordinary answers, and terminal results. The `/wsr list` and `/wsr status` aliases remain available for compatibility and automation.
+
 The credential document is separate:
 
 ```yaml
@@ -66,4 +68,3 @@ The application moves through `CREATED → STARTING → RECOVERING → READY →
 Closing first rejects new Intake, then quiesces, performs bounded Observation flush, and reverse-disposes Runner-owned `DSH-E` resources. Restart uses persisted Manifest/binding and Runner facts; it does not rebind an old Delivery to changed config, selector, or Package alias. State written after the last durable boundary may be lost.
 
 Version `0.1.0` is an MVP developer preview. Configuration schema `1.0.0` is closed; unknown keys and incompatible schema versions fail closed. A future incompatible configuration schema or public TypeScript surface may require a new package version and explicit migration.
-

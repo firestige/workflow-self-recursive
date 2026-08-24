@@ -1,10 +1,12 @@
 # Iteration 3 Execution 实施结果
 
-状态：`RELEASED`
+状态：`REOPENED_#57`
 范围：[#45](https://github.com/firestige/workflow-self-recursive/issues/45)、[#46](https://github.com/firestige/workflow-self-recursive/issues/46)、[#57](https://github.com/firestige/workflow-self-recursive/issues/57)、[#86](https://github.com/firestige/workflow-self-recursive/issues/86)，以及 Execution-level Configuration/Factory/Bootstrap support  
 版本：Execution Core 与 DSH Intake `0.1.0`；Workflow Package release `0.3.0`
 
 本文记录 implementation evidence，不重新定义 frozen Workflow/Delivery Admission Contract、Iteration 2 Runner 五组件语义或两个 initial Workflow Package。#87 保持独立，不在本轮声明完成。
+
+修正说明（2026-08-24）：原 qualification 把 WSR 安装到 custom base-only DSH profile，只证明 package loading，没有提供 interactive conversation surface，因此不满足 #57 的用户 E2E 门禁。#57 与 Iteration 3 已重新打开。修正后的 assembly 把同一个 Adapter 安装到 locked DSH 内置 `web` profile。Automated clean-profile evidence 已启动真实 browser surface、创建真实 DSH session、经 Web command transport 发现 `/wsr`、执行 `/wsr list`，并读取 durable rendered result。在同一 Intake session 中完成 credentialed `/wsr create ...` 人工 E2E、实际执行 Workflow 并观察结果前，Iteration 3 保持未完成。
 
 ## #45 — M01 Delivery
 
@@ -26,6 +28,8 @@ Package root 导出 host-neutral `ExecutionApplication`、`ExecutionApplicationF
 
 `@workflow-self-recursive/dsh-intake@0.1.0` 是首个 Adapter distribution。它拥有 `/wsr`、显式 `/workflow-execution`、DSH-I-only `workflow_execution_intake`、bounded rendering 与外置 adapter-private session↔Delivery binding。DSH-I 与 Runner-owned DSH-E 的 Context/service/session/persistence identity 均不同；Intake lifecycle 级联关闭 Execution/DSH-E，并保留 restart 所需 durable truth。Command 与 skill-mediated create 原样保留 current turn/attachments，并收敛到一个 `WorkflowIntakeService` 与 M01 path。
 
+受支持的 interactive host assembly 是 DSH 内置 `web` profile，而不是原 quickstart 所写的 base-only custom `workflow-execution` profile。`workflow-execution` 仍是 stable Cordis row 与 skill name。`test/tooling/dsh-interactive-intake-qualification.test.ts` 走 browser 使用的同一 `commands/list`/`commands/execute` Web transport，并从 session history 验证 user-visible `command/run`/`command/done` result。
+
 ## #86 — production composition evidence
 
 Iteration 2 Runner 继续只依赖 lightweight one-way Observation port。Iteration 3 在外层 production composition 提供 mapping/exporter。受保护的 Interpreter、Lifecycle Coordinator、Workflow Host、Managed Agent Invocation、Custody 与 DSH Provider implementation path 相对 Iteration 2 baseline 保持 source zero-diff。Observation transport、sink、retry queue、outbox 或 Evidence storage 均未进入 Runner。
@@ -34,7 +38,7 @@ Iteration 2 Runner 继续只依赖 lightweight one-way Observation port。Iterat
 
 `execution.config@1.0.0` 是 closed YAML/JSON input，提供 canonical identity、external credential reference、唯一 Source、explicit model/provider binding、optional loopback OTLP endpoint、bounded global controls、versioned defaults/examples、schema、CLI 与 redacted diagnostic。只有 Bootstrap 执行 load/validate、installation construction、multi-slot recovery、Delivery-scoped composition、ready publication、rollback 与 reverse shutdown。
 
-Repository [quickstart](../../../guides/dsh-execution-quickstart.zh-CN.md)与[配置参考](../../../reference/execution-configuration.zh-CN.md)既是 CI 输入，也是 GitHub Release documentation asset。Clean-checkout CI 执行 full/coverage/typecheck/build/static/feasibility/conformance/config/bootstrap/install gates，构建两个 archive，校验独立 inventory/digest publication record，在 clean npm consumer 安装 Core，验证无 WSR hook 的 DSH add/update/remove/reinstall，并核对 owner-provided Workflow Package `0.3.0` asset：
+Repository [本地发布前 E2E 指南](../../../guides/dsh-execution-local-e2e.zh-CN.md)、final-Release [quickstart](../../../guides/dsh-execution-quickstart.zh-CN.md)与[配置参考](../../../reference/execution-configuration.zh-CN.md)是彼此独立的 CI 输入；后两者同时是 GitHub Release documentation asset。Clean-checkout CI 执行 full/coverage/typecheck/build/static/feasibility/conformance/config/bootstrap/install gates，构建两个 archive，校验独立 inventory/digest publication record，在 clean npm consumer 安装 Core，验证无 WSR hook 的 DSH add/update/remove/reinstall，并核对 owner-provided Workflow Package `0.3.0` asset：
 
 | Asset | SHA-256 |
 | --- | --- |

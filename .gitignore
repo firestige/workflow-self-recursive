@@ -1,2 +1,3 @@
 # Temporary working resources (spike prompts, scratch, run workspaces)
 tmp/
+.wsr-release/
