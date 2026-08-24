@@ -42,6 +42,8 @@ dsh --help
 
 ## 1. Prepare the local candidate
 
+Stop `dsh web` first if this profile is already running, then run:
+
 ```sh
 pnpm --dir execution-system quickstart:prepare
 export WSR_RELEASE_DIR="$PWD/tmp/local-e2e/release"
@@ -49,7 +51,17 @@ export WSR_CONFIG="$PWD/../wsr-local/execution.json"
 export WSR_CREDENTIALS="$PWD/../wsr-local/credentials.yml"
 ```
 
-Run the preparation command from the super-project root. It installs the repository dependencies, compiles the current `execution-system` worktree, builds and verifies both `0.1.1` archives, and initializes deployment-specific local paths in one operation. Repeated preparation rebuilds temporary artifacts but preserves an existing configuration and credential file.
+Run the preparation command from the super-project root. It installs the repository dependencies, compiles the current `execution-system` worktree, builds and verifies both `0.1.1` archives, initializes deployment-specific local paths, and reconciles the DSH `web` profile in one operation.
+
+For a fresh profile, reconciliation installs Core first and Intake second. For an existing profile, it remove Intake first and remove Core second, then installs the exact newly built Core and Intake archives. This remove/re-add sequence deliberately replaces a changed local archive even when its package version is unchanged. The command inserts or replaces only WSR's `workflow-execution` row in `$DSH_HOME/profiles/web/cordis.patch.yml`, preserves unrelated user patch entries, and verifies the composed profile with `dsh --profile web --dump-config`. It fails if the composed profile retains a `__REQUIRED__` placeholder or does not resolve the generated configuration and binding paths.
+
+Repeated preparation rebuilds temporary artifacts and reconciles the plugin packages, but preserves existing Execution configuration, credential material, durable state, binding state, and unrelated DSH user overrides. Restart `dsh web` after the command completes.
+
+The following package-manager warnings can appear during reconciliation without invalidating it:
+
+- `DEP0169` means DSH found an old pnpm CLI on `PATH`; use the optional Corepack upgrade above to remove it.
+- `prebuild-install@7.1.3` is a deprecated installer below `better-sqlite3`, reached through `@langchain/langgraph-checkpoint-sqlite`; it is not the installed Execution runtime version.
+- Core `declares no dsh.bundle` is expected. `@workflow-self-recursive/execution-system` is deliberately installed as a host-neutral plain dependency, while `@workflow-self-recursive/dsh-intake` supplies the DSH profile layer.
 
 ## 2. Add the credential
 
@@ -63,31 +75,9 @@ refs:
 
 The preparation command creates this file with owner-only permissions and never overwrites it. If this E2E uses another compatible provider deployment, edit only `runner.provider` in `$WSR_CONFIG`. See the [configuration reference](../reference/execution-configuration.md).
 
-## 3. Install the DSH Intake Adapter
+## 3. Verify the DSH Intake Adapter
 
-Use locked DSH's built-in `web` profile. It is the supported interactive assembly because it includes DSH's conversation, attachment, command, and result-rendering surface; a new custom profile contains only `dsh-base` and is not interactive. The current DSH preview requires `--workspace-root` for its generated workspace. Install the host-neutral package first so the plugin can import its public surface:
-
-```sh
-dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-dsh-intake-0.1.1.tgz"
-```
-
-Both commands succeed when they end with `Done` and list the expected package under `dependencies`. The following warnings do not invalidate this installation:
-
-- `DEP0169` means DSH found an old pnpm CLI on `PATH`; use the optional Corepack upgrade above to remove it.
-- `prebuild-install@7.1.3` is a deprecated installer below `better-sqlite3`, reached through `@langchain/langgraph-checkpoint-sqlite`; it is not the installed Execution runtime version.
-- Core `declares no dsh.bundle` is expected. `@workflow-self-recursive/execution-system` is deliberately installed as a host-neutral plain dependency, while `@workflow-self-recursive/dsh-intake` supplies the DSH profile layer.
-
-Edit `$DSH_HOME/profiles/web/cordis.patch.yml` so the stable WSR row contains only absolute presentation paths. `web` is the DSH profile name; `workflow-execution` remains the plugin's stable Cordis row ID:
-
-```yaml
-- id: workflow-execution
-  config:
-    configFile: /absolute/path/wsr-local/execution.json
-    bindingFile: /absolute/path/wsr-local/dsh-intake-bindings.json
-```
-
-Do not copy the Execution config or API key into this patch. Verify the composed profile and launcher:
+Use locked DSH's built-in `web` profile. It is the supported interactive assembly because it includes DSH's conversation, attachment, command, and result-rendering surface; a new custom profile contains only `dsh-base` and is not interactive. Preparation already installed the host-neutral Core package and the Intake profile layer and wrote only their absolute presentation paths to the WSR-owned override. It never copies the Execution config or API key into the patch. Verify the composed profile and launcher:
 
 ```sh
 dsh --profile web --dump-config
