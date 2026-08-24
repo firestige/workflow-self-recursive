@@ -22,7 +22,7 @@ RC tag 只用于让 candidate 可以被远程安装。它必须标记为 GitHub 
 
 ## 1. 本地 qualification
 
-按照 [DSH Execution 发布前 E2E 指南](dsh-execution-quickstart.zh-CN.md)从当前 checkout 构建两个 tgz。除了自动化 `/wsr list` transport qualification，还要在 DSH Web 中执行带真实 credential 的 #57 路径：用聊天正文和附件创建 Workflow，在同一 conversation 中看到结果；Workflow 提供多轮交互时完成输入，并用 `/wsr action finish` 结束该阶段。把可重放结果记录到 tracking issue。
+按照 [DSH Execution 本地发布前 E2E 指南](dsh-execution-local-e2e.zh-CN.md)，用一条 preparation 命令从当前 checkout 构建两个 tgz 并初始化本地配置。除了自动化 `/wsr list` transport qualification，还要在 DSH Web 中执行带真实 credential 的 #57 路径：用聊天正文和附件创建 Workflow，在同一 conversation 中看到结果；Workflow 提供多轮交互时完成输入，并用 `/wsr action finish` 结束该阶段。把可重放结果记录到 tracking issue。
 
 本阶段不创建任何 GitHub Release 或 tag。
 

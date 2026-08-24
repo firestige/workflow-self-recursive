@@ -1,10 +1,10 @@
-# DSH Execution quickstart
+# DSH Execution local pre-release E2E
 
-This guide installs a qualified final Execution Release in a trusted local environment. Do not use it for an unpublished candidate; use the [local pre-release E2E guide](dsh-execution-local-e2e.md) instead. The DSH plugin is the first Intake Adapter distribution; `@workflow-self-recursive/execution-system` remains a host-neutral package that can be embedded without DSH.
+This guide builds the current Iteration 3 candidate from this checkout and installs it for pre-release E2E in a trusted local environment. It deliberately does not download an Execution GitHub Release. The DSH plugin is the first Intake Adapter distribution; `@workflow-self-recursive/execution-system` remains a host-neutral package that can be embedded without DSH.
 
 ## 0. Check the host prerequisites
 
-Use Node `>=24.12.0 <25` and DSH `0.1.1-rc.2`. DSH's `plugin` subcommand requires pnpm, but it does not declare an exact pnpm version. The download example also uses GitHub CLI.
+Use Node `>=24.12.0 <25` and DSH `0.1.1-rc.2`. DSH's `plugin` subcommand requires pnpm, but it does not declare an exact pnpm version. Release qualification currently uses pnpm `11.23.0` for reproducibility; that is not an end-user version constraint.
 
 First, inspect the installed versions:
 
@@ -12,7 +12,6 @@ First, inspect the installed versions:
 node --version
 pnpm --version
 dsh --version
-gh --version
 ```
 
 If `pnpm --version` fails because pnpm is missing, install it and rerun the check:
@@ -33,33 +32,20 @@ Finally, inspect the launcher help:
 dsh --help
 ```
 
-## 1. Download the qualified final Release
+## 1. Prepare the local candidate
 
 ```sh
-export WSR_VERSION="0.1.1"
-export WSR_RELEASE_DIR="$PWD/.wsr-release"
-mkdir -p "$WSR_RELEASE_DIR"
-gh release download "$WSR_VERSION" --repo firestige/execution-system --dir "$WSR_RELEASE_DIR"
-```
-
-Continue only when `0.1.1` exists as a non-prerelease GitHub Release. `release-metadata.json` and the publication records bind the downloaded archives to their SHA-256, package version, inventory, and compatibility tuple.
-
-## 2. Initialize the canonical configuration
-
-Choose durable paths outside the repository, worktree, and DSH plugin installation directory. The only installation schema is `execution.config@1.0.0`:
-
-```sh
-export WSR_CONFIG="$PWD/../wsr-local/execution.yaml"
-export WSR_STATE="$PWD/../wsr-local/state"
+pnpm --dir execution-system quickstart:prepare
+export WSR_RELEASE_DIR="$PWD/tmp/local-e2e/release"
+export WSR_CONFIG="$PWD/../wsr-local/execution.json"
 export WSR_CREDENTIALS="$PWD/../wsr-local/credentials.yml"
-mkdir -p "$(dirname "$WSR_CONFIG")" "$WSR_STATE"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
-  execution-config init "$WSR_CONFIG" yaml
 ```
 
-Replace only the values marked `__REQUIRED__`: `paths.repositoryRoot`, `paths.workspaceRoot`, the matching `paths.allowedWorktreeRoots` item, `paths.stateRoot`, `paths.credentialStorePath`, and `runner.provider.route/modelId/baseUrl/credentialRef`. Keep the default single Source, `firestige/workflow-package`, unless this installation deliberately selects one alternate Adapter.
+Run the preparation command from the super-project root. It installs the repository dependencies, compiles the current `execution-system` worktree, builds and verifies both `0.1.1` archives, and initializes deployment-specific local paths in one operation. Repeated preparation rebuilds temporary artifacts but preserves an existing configuration and credential file.
 
-Provision the referenced key outside the Execution config:
+## 2. Add the credential
+
+The generated `execution.config@1.0.0` already points at this worktree, the sibling durable state directory, the public `firestige/workflow-package` Source, and the default DeepSeek route. Open `$WSR_CREDENTIALS` and replace only `replace-with-the-provider-key`:
 
 ```yaml
 version: 1
@@ -67,25 +53,15 @@ refs:
   DEEPSEEK_API_KEY: replace-with-the-provider-key
 ```
 
-Set the credential file to owner-only access, then validate and inspect the redacted effective value:
-
-```sh
-chmod 600 "$WSR_CREDENTIALS"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
-  execution-config validate "$WSR_CONFIG"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
-  execution-config dump-effective "$WSR_CONFIG"
-```
-
-`dump-effective` prints an installation identity and redacts paths, endpoints, and credential references. See the [configuration reference](../reference/execution-configuration.md).
+The preparation command creates this file with owner-only permissions and never overwrites it. If this E2E uses another compatible provider deployment, edit only `runner.provider` in `$WSR_CONFIG`. See the [configuration reference](../reference/execution-configuration.md).
 
 ## 3. Install the DSH Intake Adapter
 
 Use locked DSH's built-in `web` profile. It is the supported interactive assembly because it includes DSH's conversation, attachment, command, and result-rendering surface; a new custom profile contains only `dsh-base` and is not interactive. The current DSH preview requires `--workspace-root` for its generated workspace. Install the host-neutral package first so the plugin can import its public surface:
 
 ```sh
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-execution-system-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-dsh-intake-0.1.1.tgz"
 ```
 
 Edit `$DSH_HOME/profiles/web/cordis.patch.yml` so the stable WSR row contains only absolute presentation paths. `web` is the DSH profile name; `workflow-execution` remains the plugin's stable Cordis row ID:
@@ -93,7 +69,7 @@ Edit `$DSH_HOME/profiles/web/cordis.patch.yml` so the stable WSR row contains on
 ```yaml
 - id: workflow-execution
   config:
-    configFile: /absolute/path/wsr-local/execution.yaml
+    configFile: /absolute/path/wsr-local/execution.json
     bindingFile: /absolute/path/wsr-local/dsh-intake-bindings.json
 ```
 
@@ -176,8 +152,8 @@ dsh plugin --profile web update --workspace-root @workflow-self-recursive/execut
 dsh plugin --profile web update --workspace-root @workflow-self-recursive/dsh-intake@<new-exact-version>
 dsh plugin --profile web remove --workspace-root @workflow-self-recursive/dsh-intake
 dsh plugin --profile web remove --workspace-root @workflow-self-recursive/execution-system
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-execution-system-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-dsh-intake-0.1.1.tgz"
 ```
 
 DSH owns these package-lifecycle operations. WSR does not add install/remove hooks. Removal leaves external durable state untouched; a compatible reinstall resumes the same persisted Delivery binding. Interaction state written after the last durable boundary may be lost.

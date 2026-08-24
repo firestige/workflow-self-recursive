@@ -38,7 +38,7 @@ Iteration 2 Runner 继续只依赖 lightweight one-way Observation port。Iterat
 
 `execution.config@1.0.0` 是 closed YAML/JSON input，提供 canonical identity、external credential reference、唯一 Source、explicit model/provider binding、optional loopback OTLP endpoint、bounded global controls、versioned defaults/examples、schema、CLI 与 redacted diagnostic。只有 Bootstrap 执行 load/validate、installation construction、multi-slot recovery、Delivery-scoped composition、ready publication、rollback 与 reverse shutdown。
 
-Repository [quickstart](../../../guides/dsh-execution-quickstart.zh-CN.md)与[配置参考](../../../reference/execution-configuration.zh-CN.md)既是 CI 输入，也是 GitHub Release documentation asset。Clean-checkout CI 执行 full/coverage/typecheck/build/static/feasibility/conformance/config/bootstrap/install gates，构建两个 archive，校验独立 inventory/digest publication record，在 clean npm consumer 安装 Core，验证无 WSR hook 的 DSH add/update/remove/reinstall，并核对 owner-provided Workflow Package `0.3.0` asset：
+Repository [本地发布前 E2E 指南](../../../guides/dsh-execution-local-e2e.zh-CN.md)、final-Release [quickstart](../../../guides/dsh-execution-quickstart.zh-CN.md)与[配置参考](../../../reference/execution-configuration.zh-CN.md)是彼此独立的 CI 输入；后两者同时是 GitHub Release documentation asset。Clean-checkout CI 执行 full/coverage/typecheck/build/static/feasibility/conformance/config/bootstrap/install gates，构建两个 archive，校验独立 inventory/digest publication record，在 clean npm consumer 安装 Core，验证无 WSR hook 的 DSH add/update/remove/reinstall，并核对 owner-provided Workflow Package `0.3.0` asset：
 
 | Asset | SHA-256 |
 | --- | --- |

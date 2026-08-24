@@ -22,7 +22,7 @@ The RC tag exists only to make the candidate remotely installable. It is marked 
 
 ## 1. Local qualification
 
-Use the [DSH Execution pre-release E2E guide](dsh-execution-quickstart.md). It builds both tgz files from the current checkout. In addition to automated `/wsr list` transport qualification, perform the credentialed #57 path in DSH Web: create a Workflow from chat text and attachments, observe the result in the same conversation, exercise multi-turn input when offered, and finish that phase with `/wsr action finish`. Record the replayable result in the tracking issue.
+Use the [DSH Execution local pre-release E2E guide](dsh-execution-local-e2e.md). Its single preparation command builds both tgz files and initializes local configuration from the current checkout. In addition to automated `/wsr list` transport qualification, perform the credentialed #57 path in DSH Web: create a Workflow from chat text and attachments, observe the result in the same conversation, exercise multi-turn input when offered, and finish that phase with `/wsr action finish`. Record the replayable result in the tracking issue.
 
 No GitHub release or tag is created during this stage.
 

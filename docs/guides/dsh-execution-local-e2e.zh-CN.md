@@ -1,10 +1,10 @@
-# DSH Execution 快速开始
+# DSH Execution 本地发布前 E2E
 
-本指南在可信本地环境安装已经完成 qualification 的 final Execution Release。未发布 candidate 不使用本指南，应使用[本地发布前 E2E 指南](dsh-execution-local-e2e.zh-CN.md)。DSH plugin 是首个 Intake Adapter distribution；`@workflow-self-recursive/execution-system` 仍是可脱离 DSH 嵌入的 host-neutral package。
+本指南从当前 checkout 构建 Iteration 3 candidate，并在可信本地环境进行发布前 E2E 安装。它明确不下载 Execution GitHub Release。DSH plugin 是首个 Intake Adapter distribution；`@workflow-self-recursive/execution-system` 仍是可脱离 DSH 嵌入的 host-neutral package。
 
 ## 0. 检查宿主前置项
 
-使用 Node `>=24.12.0 <25` 与 DSH `0.1.1-rc.2`。DSH 的 `plugin` 子命令要求 pnpm，但 DSH 没有声明 pnpm 的准确版本。下载示例还使用 GitHub CLI。
+使用 Node `>=24.12.0 <25` 与 DSH `0.1.1-rc.2`。DSH 的 `plugin` 子命令要求 pnpm，但 DSH 没有声明 pnpm 的准确版本。Release qualification 当前为可重放而使用 pnpm `11.23.0`；这不是终端用户的版本限制。
 
 先查看已经安装的版本：
 
@@ -12,7 +12,6 @@
 node --version
 pnpm --version
 dsh --version
-gh --version
 ```
 
 如果 `pnpm --version` 因为未安装 pnpm 而失败，安装后重新检查：
@@ -33,33 +32,20 @@ npm install --global @deepseek-ai/dsh@0.1.1-rc.2
 dsh --help
 ```
 
-## 1. 下载完成 qualification 的 final Release
+## 1. 准备本地 candidate
 
 ```sh
-export WSR_VERSION="0.1.1"
-export WSR_RELEASE_DIR="$PWD/.wsr-release"
-mkdir -p "$WSR_RELEASE_DIR"
-gh release download "$WSR_VERSION" --repo firestige/execution-system --dir "$WSR_RELEASE_DIR"
-```
-
-只有 `0.1.1` 已经成为 non-prerelease GitHub Release 时才能继续。`release-metadata.json` 与 publication records 会把下载的 archive 绑定到 SHA-256、package version、inventory 和 compatibility tuple。
-
-## 2. 初始化唯一配置
-
-选择位于 repository、worktree 和 DSH plugin 安装目录之外的 durable 路径。唯一 installation schema 是 `execution.config@1.0.0`：
-
-```sh
-export WSR_CONFIG="$PWD/../wsr-local/execution.yaml"
-export WSR_STATE="$PWD/../wsr-local/state"
+pnpm --dir execution-system quickstart:prepare
+export WSR_RELEASE_DIR="$PWD/tmp/local-e2e/release"
+export WSR_CONFIG="$PWD/../wsr-local/execution.json"
 export WSR_CREDENTIALS="$PWD/../wsr-local/credentials.yml"
-mkdir -p "$(dirname "$WSR_CONFIG")" "$WSR_STATE"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
-  execution-config init "$WSR_CONFIG" yaml
 ```
 
-只替换 `__REQUIRED__`：`paths.repositoryRoot`、`paths.workspaceRoot`、对应的 `paths.allowedWorktreeRoots` 项、`paths.stateRoot`、`paths.credentialStorePath`，以及 `runner.provider.route/modelId/baseUrl/credentialRef`。除非 installation 明确选择 alternate Adapter，否则保留唯一默认 Source `firestige/workflow-package`。
+请从 super project 根目录执行 preparation 命令。它会一次完成 repository dependency 安装、当前 `execution-system` worktree 编译、两个 `0.1.1` archive 的构建与验证，并初始化本地部署路径。重复执行会重建临时 artifact，但保留已经存在的配置和 credential 文件。
 
-在 Execution config 外 provision 引用的 key：
+## 2. 填写 credential
+
+生成的 `execution.config@1.0.0` 已经指向当前 worktree、外置 durable state、public `firestige/workflow-package` Source 和默认 DeepSeek route。打开 `$WSR_CREDENTIALS`，只替换 `replace-with-the-provider-key`：
 
 ```yaml
 version: 1
@@ -67,23 +53,15 @@ refs:
   DEEPSEEK_API_KEY: replace-with-the-provider-key
 ```
 
-```sh
-chmod 600 "$WSR_CREDENTIALS"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
-  execution-config validate "$WSR_CONFIG"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
-  execution-config dump-effective "$WSR_CONFIG"
-```
-
-`dump-effective` 输出 installation identity，并遮盖 path、endpoint 与 credential reference。字段说明见[配置参考](../reference/execution-configuration.zh-CN.md)。
+preparation 命令会用 owner-only 权限创建该文件，并且永不覆盖。如果本次 E2E 使用其他 compatible provider deployment，只编辑 `$WSR_CONFIG` 中的 `runner.provider`。字段说明见[配置参考](../reference/execution-configuration.zh-CN.md)。
 
 ## 3. 安装 DSH Intake Adapter
 
 使用 locked DSH 内置 `web` profile。它包含 DSH 官方 conversation、attachment、command 与 result-rendering surface，是首个受支持的 interactive assembly；新建 custom profile 只有 `dsh-base`，不能交互。当前 DSH preview 的 workspace 需要 `--workspace-root`；先安装 host-neutral package，使 plugin 可导入其 public surface：
 
 ```sh
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-execution-system-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-dsh-intake-0.1.1.tgz"
 ```
 
 编辑 `$DSH_HOME/profiles/web/cordis.patch.yml`，stable WSR row 只保留 absolute presentation path。`web` 是 DSH profile name；`workflow-execution` 仍是 plugin 的 stable Cordis row ID：
@@ -91,7 +69,7 @@ dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-r
 ```yaml
 - id: workflow-execution
   config:
-    configFile: /absolute/path/wsr-local/execution.yaml
+    configFile: /absolute/path/wsr-local/execution.json
     bindingFile: /absolute/path/wsr-local/dsh-intake-bindings.json
 ```
 
@@ -174,8 +152,8 @@ dsh plugin --profile web update --workspace-root @workflow-self-recursive/execut
 dsh plugin --profile web update --workspace-root @workflow-self-recursive/dsh-intake@<new-exact-version>
 dsh plugin --profile web remove --workspace-root @workflow-self-recursive/dsh-intake
 dsh plugin --profile web remove --workspace-root @workflow-self-recursive/execution-system
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-execution-system-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-dsh-intake-0.1.1.tgz"
 ```
 
 这些 package lifecycle operation 归 DSH。WSR 不增加 install/remove hook。Remove 保留外置 durable state；兼容版本 reinstall 后恢复相同 persisted Delivery binding。最后一个 durable boundary 之后的 interaction state 允许丢失。
