@@ -542,7 +542,7 @@ The Source Interface accepts one candidate request. The public GitHub Adapter ob
 
 The Store implementation performs lookup, private candidate staging, complete publication, exact conflict detection, and sticky-alias update after the new exact Package is `READY`. Initial failure leaves `MISSING`; refresh failure preserves the prior `READY` Package and alias. A local filesystem implementation may stage in a sibling temporary directory and rename into the final exact path. That is an implementation technique for avoiding partial hits, not a production transaction protocol. No caller sees Store choreography.
 
-Runner accepts only the fully admitted immutable activation derived from the persisted Manifest and exact local `READY` Package. It validates exact correlation/bindings before child effect. The selected DSH Provider remains private. Existing module tests prove bounded seams; Wave 4 walking-skeleton and fault-corpus evidence are still required for full production conformance.
+Runner accepts only the fully admitted immutable activation derived from the persisted Manifest and exact local `READY` Package. It validates exact correlation/bindings before child effect. The selected DSH Provider remains private. Iteration 3 production walking-skeleton, protected/contributed Package projection, no-ambient negatives and fault-corpus evidence are recorded in the [implementation result](implementation-results/iteration-3.md).
 
 <a id="ee-execution-10"></a>
 ## 10. Failure, Recovery, and System-wide Behavior
@@ -602,23 +602,23 @@ Concurrency scalability, adversarial security, authentication/authorization, pro
 
 | Scenario | Mechanism | Expected outcome | Verification state |
 | --- | --- | --- | --- |
-| generic intake (`execution.scenario.00`) | one generic Core operation bound to immutable application config | no host/DSH/source-native/config override field crosses Core | implementation type scan planned |
-| exact local hit (`execution.scenario.01`) | Store lookup before Source | exact resolved value; zero Source call | Interface fixture planned |
-| exact miss (`execution.scenario.02`) | one configured GitHub Release asset | validated exact Package becomes `READY` | Source/Store fixture planned |
-| sticky latest (`execution.scenario.03`) | alias points to `READY` exact Package | zero Source call on hit; no active drift | alias fixture planned |
-| explicit refresh (`execution.scenario.04`) | candidate staging beside prior `READY`; publish exact before alias update | success installs new exact then alias; failure discards candidate and preserves prior `READY`+alias | initial-fill versus refresh Store fixture planned |
-| contribution (`execution.scenario.05`) | shared composition/DSH validation | conforming third-party Package uses same path | production conformance planned |
-| invalid/incompatible (`execution.scenario.06`) | M01 `NEW`, then ordinary Package validation and typed error | release ordinary holder; no Manifest, Delivery, DSH/Runtime/worktree effect, or Observation; non-`NEW` performs no M01/Source/Store work | admission/M01/Source/Store spy and negative matrix planned |
-| preparation/Manifest failure (`execution.scenario.07`) | early return before/at Manifest persistence | no Delivery outcome or Observation | Core/M01 negative fixtures planned |
-| configured alternate Source (`execution.scenario.08`) | alternate variant of the exact-key Source factory | same validation/resolution path; request cannot select it; no fallback | paired Adapter evidence exists; production fixture planned |
-| evolution (`execution.scenario.09`) | exact fields copied into Manifest | later alias/Release affects later Delivery only | movement fixture planned |
-| no ambient (`execution.scenario.10`) | Adapter-first exact local validation | missing resource rejects before native effect | production no-default negatives planned |
-| host portability (`execution.scenario.11`) | generic Core, private Adapters | no native type/public resume | type/contrast fixture planned |
-| GitHub outage/not-found (`execution.scenario.12`) | typed Source result | local hit works; required remote call returns without Delivery/fallback | dead-network/not-found fixture planned |
-| Delivery contention (`execution.scenario.13`) | M01 admission before Package work | `CONTENDED`; no wait, queue, Package work, or Manifest | admission/M01/Source/Store spy fixture planned |
-| occupied recovery (`execution.scenario.14`) | M01 admission before Package work; stored Manifest authority | existing Delivery inspected; no new selector Package work or replacement | existing recovery plus M01/Source/Store spy fixture |
-| DSH success/result | exact persisted Manifest | one native Session path and exact result validation | production end-to-end planned |
-| Observation loss | unchanged one-way M03 | identical Delivery outcome and slot handling | existing loss fixtures planned |
+| generic intake (`execution.scenario.00`) | one generic Core operation bound to immutable application config | no host/DSH/source-native/config override field crosses Core | package-root type/static/contrast fixtures pass |
+| exact local hit (`execution.scenario.01`) | Store lookup before Source | exact resolved value; zero Source call | Interface local-hit fixture passes |
+| exact miss (`execution.scenario.02`) | one configured GitHub Release asset | validated exact Package becomes `READY` | Source/Store miss fixture passes |
+| sticky latest (`execution.scenario.03`) | alias points to `READY` exact Package | zero Source call on hit; no active drift | alias hit/movement fixtures pass |
+| explicit refresh (`execution.scenario.04`) | candidate staging beside prior `READY`; publish exact before alias update | success installs new exact then alias; failure discards candidate and preserves prior `READY`+alias | initial-fill/refresh Store corpus passes |
+| contribution (`execution.scenario.05`) | shared composition/DSH validation | conforming third-party Package uses same path | contributed alternate-Source fixture passes the common validation/READY path |
+| invalid/incompatible (`execution.scenario.06`) | M01 `NEW`, then ordinary Package validation and typed error | release ordinary holder; no Manifest, Delivery, DSH/Runtime/worktree effect, or Observation; non-`NEW` performs no M01/Source/Store work | admission/M01/Source/Store spy and negative matrix pass |
+| preparation/Manifest failure (`execution.scenario.07`) | early return before/at Manifest persistence | no Delivery outcome or Observation | Core/M01 negative fixtures pass |
+| configured alternate Source (`execution.scenario.08`) | alternate variant of the exact-key Source factory | same validation/resolution path; request cannot select it; no fallback | paired production Adapter corpus proves the same path and zero fallback |
+| evolution (`execution.scenario.09`) | exact fields copied into Manifest | later alias/Release affects later Delivery only | binding movement matrix passes |
+| no ambient (`execution.scenario.10`) | Adapter-first exact local validation | missing resource rejects before native effect | production no-default/native-leak negatives pass |
+| host portability (`execution.scenario.11`) | generic Core, private Adapters | no native type/public resume | type/contrast and replacement-Intake fixtures pass |
+| GitHub outage/not-found (`execution.scenario.12`) | typed Source result | local hit works; required remote call returns without Delivery/fallback | dead-network/not-found corpus passes |
+| Delivery contention (`execution.scenario.13`) | M01 admission before Package work | `CONTENDED`; no wait, queue, Package work, or Manifest | admission/M01/Source/Store spy fixture passes |
+| occupied recovery (`execution.scenario.14`) | M01 admission before Package work; stored Manifest authority | existing Delivery inspected; no new selector Package work or replacement | recovery plus M01/Source/Store spy fixture passes |
+| DSH success/result | exact persisted Manifest | one native Session path and exact result validation | production M01→M02/DSH-E walking skeleton and clean-install path pass |
+| Observation loss | unchanged one-way M03 | identical Delivery outcome and slot handling | disabled/reject/timeout/tail-loss/ambiguous corpus passes |
 
 ### Evidence fixture register
 
@@ -626,12 +626,12 @@ The sparse numbering preserves the migrated identity of the two active Workflow-
 
 | ID | Evidence meaning | Current state |
 | --- | --- | --- |
-| `execution.fixture.001` | protected first-party Package projection through the exact admitted Runner/DSH path with no ambient completion | representative design evidence; production negative qualification remains planned |
-| `execution.fixture.004` | protected GitHub-hosted and contributed alternate-Source Packages use the same Source seam and validation path | paired-Adapter feasibility evidence available; production contribution fixture remains planned |
+| `execution.fixture.001` | protected first-party Package projection through the exact admitted Runner/DSH path with no ambient completion | Iteration 3 production projection and negative qualification pass |
+| `execution.fixture.004` | protected GitHub-hosted and contributed alternate-Source Packages use the same Source seam and validation path | paired production Adapter and contribution fixtures pass |
 
-### Implementation acceptance plan
+### Implementation acceptance evidence
 
-Tests cross the host-neutral Core, M01 Delivery, M02 Core-to-Runner, M03 owner-fact, configuration, factory, Bootstrap and Intake Adapter interfaces and assert observable results. Required coverage is the named local-hit/miss/configured-alternate/validation/cache/contention/Manifest/DSH/result/Observation/lifecycle branches above. Tests do not prescribe private helper functions, lock primitives, or GitHub client library. This revision adds no production security, concurrent Store schedule, distributed transaction, eviction, or HA matrix.
+Iteration 3 tests cross the host-neutral Core, M01 Delivery, M02 Core-to-Runner, M03 owner-fact, configuration, factory, Bootstrap and Intake Adapter interfaces and assert observable results. The [implementation result](implementation-results/iteration-3.md) binds the named local-hit/miss/configured-alternate/validation/cache/contention/Manifest/DSH/result/Observation/lifecycle branches to production code, tests, clean-install documentation and Release artifacts. Tests do not prescribe private helper functions, lock primitives, or GitHub client library. This evidence adds no production security, concurrent Store schedule, distributed transaction, eviction, or HA matrix.
 
 ### Preserved existing Execution acceptance
 
@@ -682,14 +682,14 @@ The approved Action-finish requirement triggers the bounded reopen rule. A RED f
 
 Rejected for this preview: Host-owned Package import; Package import inside M02/DSH; a fourth Module; first-party Package allow-list; mutable alias in Manifest; request-selected Source; automatic GitHub-to-alternate fallback; source/version fallback; ambient completion; embedded initial Package content; parallel plugin composition; opaque Prepared Binding; proof/capability identity; Package hold/reference-count/liveness transfer; commit-resolution state machine; concurrent cache correctness; automated eviction; authentication/authorization/security platform; registry/marketplace; HA/failover; shared DSH Intake/Execution Context; public DSH resume; DSH-native Core types; any Runner change beyond the approved RED-bounded Action-finish interaction distinction.
 
-### Execution open-work register
+### Execution implementation-evidence register
 
 | ID | Current work and authority boundary |
 | --- | --- |
-| `execution.open-work.001` | prove implementation compatibility with the published Workflow Contract projection consumed at the admitted-activation boundary |
-| `execution.open-work.002` | prove the published Delivery Admission contract and immutable Manifest binding in the M01 implementation |
-| `execution.open-work.003` | prove the current Core-to-Runner `execute` / `inspect` / `cancel` seam; former runtime-profile SPI terminology is historical only |
-| `execution.open-work.004` | prove production Observation semantic ingress, mapping, and cross-implementation conformance |
+| `execution.open-work.001` | `CLOSED_ITERATION_3`: protected/contributed Packages pass the published Workflow Contract checker/conformance and admitted projection corpus |
+| `execution.open-work.002` | `CLOSED_ITERATION_3`: M01 persists the immutable Manifest/DeliveryBinding and passes the published Delivery Admission projection corpus before Runner effect |
+| `execution.open-work.003` | `CLOSED_ITERATION_3`: package-root Core and current Core-to-Runner `execute` / `inspect` / `cancel` seam pass replacement-Intake and native-leak qualification; former runtime-profile SPI terminology remains historical only |
+| `execution.open-work.004` | `IMPLEMENTED_ITERATION_3`: production semantic ingress/mapping, producer-role, OTLP round-trip, outage and privacy evidence pass; frozen Contract claim remains `VALIDATOR_ONLY`, so formal cross-implementation conformance is not claimed |
 
 ### Non-owning local view of Concept-owned downstream obligations
 

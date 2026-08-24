@@ -542,7 +542,7 @@ Source Interface 接收一个 candidate request。Public GitHub Adapter 获取 R
 
 Store implementation 执行 lookup、private candidate staging、complete publication、exact conflict detection，并在新 exact Package `READY` 后更新 sticky alias。Initial failure 保持 `MISSING`；refresh failure 保持 prior `READY` Package 与 alias。Local filesystem implementation 可在 sibling temporary directory staging，再 rename 到 final exact path。这是避免 partial hit 的 implementation technique，不是 production transaction protocol。Caller 看不到 Store choreography。
 
-Runner 只接收由 persisted Manifest 和 exact local `READY` Package 派生的 fully admitted immutable activation。它在 child effect 前校验 exact correlation/binding，所选 DSH Provider 保持 private。既有 module tests 证明 bounded seam；完整 production conformance 仍需要 Wave 4 walking-skeleton/fault-corpus evidence。
+Runner 只接收由 persisted Manifest 和 exact local `READY` Package 派生的 fully admitted immutable activation。它在 child effect 前校验 exact correlation/binding，所选 DSH Provider 保持 private。Iteration 3 production walking-skeleton、protected/contributed Package projection、no-ambient negative 与 fault-corpus evidence 见[实施结果](implementation-results/iteration-3.zh-CN.md)。
 
 <a id="ee-execution-10"></a>
 ## 10. 故障、恢复与 System-wide 行为
@@ -602,23 +602,23 @@ Concurrency scalability、adversarial security、authentication/authorization、
 
 | 场景 | 机制 | 预期结果 | 验证状态 |
 | --- | --- | --- | --- |
-| generic intake（`execution.scenario.00`） | 一个绑定 immutable application config 的 generic Core operation | 无 host/DSH/source-native/config override field 跨 Core | planned implementation type scan |
-| exact local hit（`execution.scenario.01`） | Store lookup 先于 Source | exact resolved value；Source call 为零 | planned Interface fixture |
-| exact miss（`execution.scenario.02`） | 一个 configured GitHub Release asset | validated exact Package 成为 `READY` | planned Source/Store fixture |
-| sticky latest（`execution.scenario.03`） | alias 指向 `READY` exact Package | hit 时 Source call 为零；无 active drift | planned alias fixture |
-| explicit refresh（`execution.scenario.04`） | candidate staging 与 prior `READY` 并存；publish exact 后更新 alias | success 安装新 exact 再更新 alias；failure discard candidate 并保持 prior `READY`+alias | planned initial-fill vs refresh Store fixture |
-| contribution（`execution.scenario.05`） | shared composition/DSH validation | conforming third-party Package 走相同路径 | production conformance planned |
-| invalid/incompatible（`execution.scenario.06`） | M01 `NEW`，再 ordinary Package validation 与 typed error | 释放 ordinary holder；无 Manifest、Delivery、DSH/Runtime/worktree effect 或 Observation；non-`NEW` 无 M01/Source/Store work | planned admission/M01/Source/Store spy 与 negative matrix |
-| preparation/Manifest failure（`execution.scenario.07`） | Manifest persistence 前/时 early return | 无 Delivery outcome 或 Observation | planned Core/M01 negative fixture |
-| configured alternate Source（`execution.scenario.08`） | exact-key Source factory 的 alternate variant | 相同 validation/resolution path；request 不得选择；无 fallback | paired Adapter evidence exists；production fixture planned |
-| evolution（`execution.scenario.09`） | exact field 复制进 Manifest | 后续 alias/Release 只影响后续 Delivery | planned movement fixture |
-| no ambient（`execution.scenario.10`） | Adapter-first exact local validation | missing resource 在 native effect 前 reject | production no-default negative planned |
-| host portability（`execution.scenario.11`） | generic Core、private Adapter | 无 native type/public resume | planned type/contrast fixture |
-| GitHub outage/not-found（`execution.scenario.12`） | typed Source result | local hit 可工作；required remote call 无 Delivery/fallback 地返回 | planned dead-network/not-found fixture |
-| Delivery contention（`execution.scenario.13`） | M01 admission 先于 Package work | `CONTENDED`；无 wait、queue、Package work 或 Manifest | planned admission/M01/Source/Store spy fixture |
-| occupied recovery（`execution.scenario.14`） | M01 admission 先于 Package work；stored Manifest authority | 检查 existing Delivery；无新 selector Package work 或 replacement | existing recovery 加 M01/Source/Store spy fixture |
-| DSH success/result | exact persisted Manifest | 一个 native Session path 与 exact result validation | production end-to-end planned |
-| Observation loss | unchanged one-way M03 | Delivery outcome 与 slot handling 相同 | existing loss fixture planned |
+| generic intake（`execution.scenario.00`） | 一个绑定 immutable application config 的 generic Core operation | 无 host/DSH/source-native/config override field 跨 Core | package-root type/static/contrast fixture 通过 |
+| exact local hit（`execution.scenario.01`） | Store lookup 先于 Source | exact resolved value；Source call 为零 | Interface local-hit fixture 通过 |
+| exact miss（`execution.scenario.02`） | 一个 configured GitHub Release asset | validated exact Package 成为 `READY` | Source/Store miss fixture 通过 |
+| sticky latest（`execution.scenario.03`） | alias 指向 `READY` exact Package | hit 时 Source call 为零；无 active drift | alias hit/movement fixture 通过 |
+| explicit refresh（`execution.scenario.04`） | candidate staging 与 prior `READY` 并存；publish exact 后更新 alias | success 安装新 exact 再更新 alias；failure discard candidate 并保持 prior `READY`+alias | initial-fill/refresh Store corpus 通过 |
+| contribution（`execution.scenario.05`） | shared composition/DSH validation | conforming third-party Package 走相同路径 | contributed alternate-Source fixture 通过 common validation/READY path |
+| invalid/incompatible（`execution.scenario.06`） | M01 `NEW`，再 ordinary Package validation 与 typed error | 释放 ordinary holder；无 Manifest、Delivery、DSH/Runtime/worktree effect 或 Observation；non-`NEW` 无 M01/Source/Store work | admission/M01/Source/Store spy 与 negative matrix 通过 |
+| preparation/Manifest failure（`execution.scenario.07`） | Manifest persistence 前/时 early return | 无 Delivery outcome 或 Observation | Core/M01 negative fixture 通过 |
+| configured alternate Source（`execution.scenario.08`） | exact-key Source factory 的 alternate variant | 相同 validation/resolution path；request 不得选择；无 fallback | paired production Adapter corpus 证明 same path 与 zero fallback |
+| evolution（`execution.scenario.09`） | exact field 复制进 Manifest | 后续 alias/Release 只影响后续 Delivery | binding movement matrix 通过 |
+| no ambient（`execution.scenario.10`） | Adapter-first exact local validation | missing resource 在 native effect 前 reject | production no-default/native-leak negative 通过 |
+| host portability（`execution.scenario.11`） | generic Core、private Adapter | 无 native type/public resume | type/contrast 与 replacement-Intake fixture 通过 |
+| GitHub outage/not-found（`execution.scenario.12`） | typed Source result | local hit 可工作；required remote call 无 Delivery/fallback 地返回 | dead-network/not-found corpus 通过 |
+| Delivery contention（`execution.scenario.13`） | M01 admission 先于 Package work | `CONTENDED`；无 wait、queue、Package work 或 Manifest | admission/M01/Source/Store spy fixture 通过 |
+| occupied recovery（`execution.scenario.14`） | M01 admission 先于 Package work；stored Manifest authority | 检查 existing Delivery；无新 selector Package work 或 replacement | recovery 加 M01/Source/Store spy fixture 通过 |
+| DSH success/result | exact persisted Manifest | 一个 native Session path 与 exact result validation | production M01→M02/DSH-E walking skeleton 与 clean-install path 通过 |
+| Observation loss | unchanged one-way M03 | Delivery outcome 与 slot handling 相同 | disabled/reject/timeout/tail-loss/ambiguous corpus 通过 |
 
 ### Evidence fixture register
 
@@ -626,12 +626,12 @@ Concurrency scalability、adversarial security、authentication/authorization、
 
 | ID | Evidence 含义 | 当前状态 |
 | --- | --- | --- |
-| `execution.fixture.001` | protected first-party Package 通过 exact admitted Runner/DSH path 投影，且无 ambient completion | representative design evidence；production negative qualification 仍为 planned |
-| `execution.fixture.004` | protected 与 contributed Package 从 installation-selected GitHub/alternate Source 使用相同 Package Source/validation path | paired-Adapter feasibility evidence available；production contribution fixture 仍为 planned |
+| `execution.fixture.001` | protected first-party Package 通过 exact admitted Runner/DSH path 投影，且无 ambient completion | Iteration 3 production projection 与 negative qualification 通过 |
+| `execution.fixture.004` | protected 与 contributed Package 从 installation-selected GitHub/alternate Source 使用相同 Package Source/validation path | paired production Adapter 与 contribution fixture 通过 |
 
-### Implementation 验收计划
+### Implementation 验收 evidence
 
-Test 跨越 host-neutral Core、M01 Delivery、M02 Core-to-Runner、M03 owner-fact、configuration、factory、Bootstrap 与 Intake Adapter interface 并断言 observable result。Required coverage 是上方具名 local-hit/miss/configured-alternate/validation/cache/contention/Manifest/DSH/result/Observation/lifecycle branch。Test 不规定 private helper function、lock primitive 或 GitHub client library。本修订不增加 production security、concurrent Store schedule、distributed transaction、eviction 或 HA matrix。
+Iteration 3 test 跨越 host-neutral Core、M01 Delivery、M02 Core-to-Runner、M03 owner-fact、configuration、factory、Bootstrap 与 Intake Adapter interface 并断言 observable result。[实施结果](implementation-results/iteration-3.zh-CN.md)把具名 local-hit/miss/configured-alternate/validation/cache/contention/Manifest/DSH/result/Observation/lifecycle branch 绑定到 production code、test、clean-install 文档与 Release artifact。Test 不规定 private helper function、lock primitive 或 GitHub client library；evidence 不增加 production security、concurrent Store schedule、distributed transaction、eviction 或 HA matrix。
 
 ### 保留的既有 Execution 验收
 
@@ -682,14 +682,14 @@ Test 跨越 host-neutral Core、M01 Delivery、M02 Core-to-Runner、M03 owner-fa
 
 本 preview 拒绝：Host-owned Package import；M02/DSH 内 Package import；第四 Module；first-party Package allow-list；Manifest 中 mutable alias；request-selected Source；automatic GitHub-to-alternate fallback；source/version fallback；ambient completion；embedded initial Package content；parallel plugin composition；opaque Prepared Binding；proof/capability identity；Package hold/reference-count/liveness transfer；commit-resolution state machine；concurrent cache correctness；automated eviction；authentication/authorization/security platform；registry/marketplace；HA/failover；shared DSH Intake/Execution Context；public DSH resume；DSH-native Core type；任何超出已批准、由 RED 限定的 Action-finish interaction distinction 的 Runner change。
 
-### Execution open-work register
+### Execution implementation-evidence register
 
 | ID | 当前工作与 authority boundary |
 | --- | --- |
-| `execution.open-work.001` | 证明实现与 admitted-activation boundary 消费的已发布 Workflow Contract projection 兼容 |
-| `execution.open-work.002` | 在 M01 实现中证明已发布 Delivery Admission contract 与 immutable Manifest binding |
-| `execution.open-work.003` | 证明当前 Core-to-Runner `execute` / `inspect` / `cancel` seam；旧 runtime-profile SPI 术语仅属历史 |
-| `execution.open-work.004` | 证明 production Observation semantic ingress、mapping 与 cross-implementation conformance |
+| `execution.open-work.001` | `CLOSED_ITERATION_3`：protected/contributed Package 通过 published Workflow Contract checker/conformance 与 admitted projection corpus |
+| `execution.open-work.002` | `CLOSED_ITERATION_3`：M01 在 Runner effect 前持久化 immutable Manifest/DeliveryBinding，并通过 published Delivery Admission projection corpus |
+| `execution.open-work.003` | `CLOSED_ITERATION_3`：package-root Core 与当前 Core-to-Runner `execute` / `inspect` / `cancel` seam 通过 replacement-Intake/native-leak qualification；旧 runtime-profile SPI 术语继续只属历史 |
+| `execution.open-work.004` | `IMPLEMENTED_ITERATION_3`：production semantic ingress/mapping、producer-role、OTLP round-trip、outage 与 privacy evidence 通过；frozen Contract claim 保持 `VALIDATOR_ONLY`，不声明 formal cross-implementation conformance |
 
 ### Concept-owned 下游义务的非 owning 本地视图
 
