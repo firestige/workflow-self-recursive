@@ -72,8 +72,10 @@ jobs:
           npm --prefix system-contracts/observation test
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/system-design/definition
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/implementation/definition
+          node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/hello-world-workflow/definition
           node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/system-design/definition
           node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/implementation/definition
+          node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/hello-world-workflow/definition
           node system-contracts/workflow-dsl/tools/test-wave6-contract.cjs
           npm --prefix workflow-package/implementation/cli test
           npm --prefix workflow-package/implementation/cli run check
@@ -105,6 +107,8 @@ jobs:
             "$GITHUB_WORKSPACE"
 
       - name: Verify independent Workflow Package release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir "$RUNNER_TEMP/workflow-release"
           curl -fL -o "$RUNNER_TEMP/workflow-release/workflow-package-release-0.3.0.json" https://github.com/firestige/workflow-package/releases/download/0.3.0/workflow-package-release-0.3.0.json
@@ -114,10 +118,21 @@ jobs:
           test "$(sha256sum "$RUNNER_TEMP/workflow-release/workflow-package-implementation-workflow-0.3.0.tar.gz" | cut -d' ' -f1)" = f5b25f82771efe5472439eced0038207d66416f139cdd4b207a9645b100ed148
           test "$(sha256sum "$RUNNER_TEMP/workflow-release/workflow-package-system-design-workflow-0.3.0.tar.gz" | cut -d' ' -f1)" = abd818546d413f36f69693603b897eac25f138db079ea1af08336e7544d98231
 
+          mkdir "$RUNNER_TEMP/hello-world-release"
+          gh release download workflow-package/hello-world-workflow/v0.1.0 \
+            --repo firestige/workflow-package \
+            --dir "$RUNNER_TEMP/hello-world-release"
+          test "$(find "$RUNNER_TEMP/hello-world-release" -type f | wc -l | tr -d ' ')" = 3
+          test "$(sha256sum "$RUNNER_TEMP/hello-world-release/workflow-package-hello-world-workflow-0.1.0.tar.gz" | cut -d' ' -f1)" = 31348e57be3a8ce9bb078cbe26ba41203083a25157cba90637fde6ffb6af5f70
+          test "$(sha256sum "$RUNNER_TEMP/hello-world-release/workflow-package-hello-world-workflow-0.1.0.json" | cut -d' ' -f1)" = 113b981f8913d8384bc0ed11e8792fc58fbcfce934bf4154c0780c4d2bfb42c2
+          test "$(sha256sum "$RUNNER_TEMP/hello-world-release/workflow-package-hello-world-workflow-0.1.0.tar.gz.sha256" | cut -d' ' -f1)" = f6c4c33bcc2ee803844509712e458183027f883933ed00057e1198dc4ef4f16b
+
       - name: Enforce protected Iteration 2 and frozen-scope boundaries
         run: |
-          git -C workflow-package diff --exit-code ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb
-          git -C execution-system diff --exit-code 35cf1187688199af67be55b1b292fa3bf0a4f5a7 -- src/interpreter src/coordinator src/host src/invocation src/custody src/providers/dsh
+          test "$(git -C workflow-package rev-parse ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb^{tree}:implementation)" = "$(git -C workflow-package rev-parse HEAD^{tree}:implementation)"
+          test "$(git -C workflow-package rev-parse ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb^{tree}:system-design)" = "$(git -C workflow-package rev-parse HEAD^{tree}:system-design)"
+          test "$(git -C system-contracts rev-parse HEAD)" = c8e090f80073e3a4a37063d2d0165f190f2ec7f1
+          node --import tsx execution-system/scripts/static-boundary-check.ts
           if git grep -n -E '#87.*(complete|closed|done)|Workflow Contract evolution.*(complete|closed|done)|Delivery Admission Contract evolution.*(complete|closed|done)' -- docs; then
             exit 1
           fi

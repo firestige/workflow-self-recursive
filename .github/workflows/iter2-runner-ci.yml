@@ -1,7 +1,6 @@
 name: Iteration 2 Runner CI
 
 on:
-  pull_request:
   workflow_dispatch:
 
 permissions:
