@@ -1,0 +1,115 @@
+name: Iteration 3 Execution CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iter3-execution-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact candidate and submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Verify pinned component worktrees
+        run: |
+          git submodule status --recursive
+          test -z "$(git status --porcelain --untracked-files=no)"
+          test -z "$(git -C execution-system status --porcelain --untracked-files=no)"
+          test -z "$(git -C system-contracts status --porcelain --untracked-files=no)"
+          test -z "$(git -C workflow-package status --porcelain --untracked-files=no)"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: execution-system/.node-version
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.0
+
+      - name: Install exact dependencies
+        working-directory: execution-system
+        run: pnpm install --frozen-lockfile
+
+      - name: Install frozen contract checker dependencies
+        run: |
+          npm --prefix system-contracts/workflow-dsl ci
+          npm --prefix system-contracts/observation ci
+
+      - name: Run Execution full, coverage, static, and build gates
+        working-directory: execution-system
+        run: |
+          pnpm test:full
+          pnpm test:coverage
+          pnpm typecheck
+          pnpm build
+          pnpm check:generated
+          pnpm harness static
+          pnpm harness feasibility
+          pnpm verify:dsh-intake
+          pnpm verify:iteration3-docs
+
+      - name: Qualify frozen contracts and Package consumers
+        run: |
+          npm --prefix system-contracts/workflow-dsl test
+          npm --prefix system-contracts/delivery-admission test
+          npm --prefix system-contracts/observation test
+          node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/system-design/definition
+          node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/implementation/definition
+          node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/system-design/definition
+          node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/implementation/definition
+          node system-contracts/workflow-dsl/tools/test-wave6-contract.cjs
+          npm --prefix workflow-package/implementation/cli test
+          npm --prefix workflow-package/implementation/cli run check
+
+      - name: Build and verify public artifacts
+        working-directory: execution-system
+        run: |
+          pnpm release:artifacts "$RUNNER_TEMP/execution-release"
+          pnpm release:verify "$RUNNER_TEMP/execution-release"
+
+      - name: Clean npm consumer imports package-root public surface
+        run: |
+          mkdir "$RUNNER_TEMP/execution-consumer"
+          cd "$RUNNER_TEMP/execution-consumer"
+          npm init -y
+          npm install --ignore-scripts "$RUNNER_TEMP/execution-release/workflow-self-recursive-execution-system-0.1.0.tgz"
+          node --input-type=module -e 'import { DefaultExecutionApplicationFactory, loadExecutionInstallationConfig } from "@workflow-self-recursive/execution-system"; if (![DefaultExecutionApplicationFactory, loadExecutionInstallationConfig].every(Boolean)) process.exit(1)'
+
+      - name: Qualify DSH package lifecycle without install hooks
+        working-directory: execution-system
+        run: pnpm qualify:dsh-package-lifecycle "$RUNNER_TEMP/execution-release/workflow-self-recursive-dsh-intake-0.1.0.tgz" "$RUNNER_TEMP/execution-release/workflow-self-recursive-dsh-intake-0.1.0.tgz"
+
+      - name: Verify independent Workflow Package release assets
+        run: |
+          mkdir "$RUNNER_TEMP/workflow-release"
+          curl -fL -o "$RUNNER_TEMP/workflow-release/workflow-package-release-0.3.0.json" https://github.com/firestige/workflow-package/releases/download/0.3.0/workflow-package-release-0.3.0.json
+          curl -fL -o "$RUNNER_TEMP/workflow-release/workflow-package-implementation-workflow-0.3.0.tar.gz" https://github.com/firestige/workflow-package/releases/download/0.3.0/workflow-package-implementation-workflow-0.3.0.tar.gz
+          curl -fL -o "$RUNNER_TEMP/workflow-release/workflow-package-system-design-workflow-0.3.0.tar.gz" https://github.com/firestige/workflow-package/releases/download/0.3.0/workflow-package-system-design-workflow-0.3.0.tar.gz
+          test "$(sha256sum "$RUNNER_TEMP/workflow-release/workflow-package-release-0.3.0.json" | cut -d' ' -f1)" = c585123a882083e31b0e115e7edb31fc75151d9e111914e1e30dd56a1e5aca51
+          test "$(sha256sum "$RUNNER_TEMP/workflow-release/workflow-package-implementation-workflow-0.3.0.tar.gz" | cut -d' ' -f1)" = f5b25f82771efe5472439eced0038207d66416f139cdd4b207a9645b100ed148
+          test "$(sha256sum "$RUNNER_TEMP/workflow-release/workflow-package-system-design-workflow-0.3.0.tar.gz" | cut -d' ' -f1)" = abd818546d413f36f69693603b897eac25f138db079ea1af08336e7544d98231
+
+      - name: Enforce protected Iteration 2 and frozen-scope boundaries
+        run: |
+          git -C workflow-package diff --exit-code ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb
+          git -C execution-system diff --exit-code 35cf1187688199af67be55b1b292fa3bf0a4f5a7 -- src/interpreter src/coordinator src/host src/invocation src/custody src/providers/dsh
+          if git grep -n -E '#87.*(complete|closed|done)|Workflow Contract evolution.*(complete|closed|done)|Delivery Admission Contract evolution.*(complete|closed|done)' -- docs; then
+            exit 1
+          fi
