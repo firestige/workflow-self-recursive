@@ -1,6 +1,6 @@
 # Iteration 3 Execution implementation result
 
-Status: `RELEASE_CANDIDATE`  
+Status: `RELEASED`
 Scope: [#45](https://github.com/firestige/workflow-self-recursive/issues/45), [#46](https://github.com/firestige/workflow-self-recursive/issues/46), [#57](https://github.com/firestige/workflow-self-recursive/issues/57), [#86](https://github.com/firestige/workflow-self-recursive/issues/86), and Execution-level Configuration/Factory/Bootstrap support  
 Version: Execution Core and DSH Intake `0.1.0`; Workflow Package release `0.3.0`
 
@@ -47,4 +47,16 @@ The repository [quickstart](../../../guides/dsh-execution-quickstart.md) and [co
 | `workflow-package-implementation-workflow-0.3.0.tar.gz` | `f5b25f82771efe5472439eced0038207d66416f139cdd4b207a9645b100ed148` |
 | `workflow-package-system-design-workflow-0.3.0.tar.gz` | `abd818546d413f36f69693603b897eac25f138db079ea1af08336e7544d98231` |
 
-Final component/superproject commit identities, Execution artifact digests, Release URL, clean re-download evidence, and issue closure are recorded after component-first squash and final qualification.
+## Published identities and final qualification
+
+- system-contracts Iteration 3 commit: `c8e090f80073e3a4a37063d2d0165f190f2ec7f1`;
+- Execution System Iteration 3 commit: `b00dc40137259eee4dc488b1781fde7ed731e36e`;
+- Execution Release: [0.1.0](https://github.com/firestige/execution-system/releases/tag/0.1.0), targeted at the exact Execution commit above;
+- Workflow Package owner release: [0.3.0](https://github.com/firestige/workflow-package/releases/tag/0.3.0), revision `ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb`.
+
+| Execution Release asset | SHA-256 |
+| --- | --- |
+| `workflow-self-recursive-execution-system-0.1.0.tgz` | `6fef452ccf5349f7ecd90a1f1266a920a434504bd39c9d3bfddc7f364e7383c5` |
+| `workflow-self-recursive-dsh-intake-0.1.0.tgz` | `9151365d584e23e2098fdd368bac404c0e24ef296c9906f95577c5660e235bb8` |
+
+After component-first squash, the final pinned combination passed 53 test files / 479 tests, coverage (`90.08%` statements, `85.79%` branches, `94.08%` functions, `95.77%` lines), typecheck, build, generated/static/feasibility, frozen Contract/Package conformance, documentation parity, artifact verification, clean npm package-root import and real `execution-config init`, and locked-DSH remove/reinstall recovery. All nine Execution Release assets were re-downloaded; the publication verifier, clean installation, CLI, and DSH lifecycle qualification passed against those downloaded bytes.

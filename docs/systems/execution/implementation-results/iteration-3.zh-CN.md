@@ -1,6 +1,6 @@
 # Iteration 3 Execution 实施结果
 
-状态：`RELEASE_CANDIDATE`  
+状态：`RELEASED`
 范围：[#45](https://github.com/firestige/workflow-self-recursive/issues/45)、[#46](https://github.com/firestige/workflow-self-recursive/issues/46)、[#57](https://github.com/firestige/workflow-self-recursive/issues/57)、[#86](https://github.com/firestige/workflow-self-recursive/issues/86)，以及 Execution-level Configuration/Factory/Bootstrap support  
 版本：Execution Core 与 DSH Intake `0.1.0`；Workflow Package release `0.3.0`
 
@@ -42,4 +42,16 @@ Repository [quickstart](../../../guides/dsh-execution-quickstart.zh-CN.md)与[�
 | `workflow-package-implementation-workflow-0.3.0.tar.gz` | `f5b25f82771efe5472439eced0038207d66416f139cdd4b207a9645b100ed148` |
 | `workflow-package-system-design-workflow-0.3.0.tar.gz` | `abd818546d413f36f69693603b897eac25f138db079ea1af08336e7544d98231` |
 
-Component/superproject final commit identity、Execution artifact digest、Release URL、clean re-download evidence 与 issue closure 在 component-first squash 和最终 qualification 后补录。
+## 已发布 identity 与最终 qualification
+
+- system-contracts Iteration 3 commit：`c8e090f80073e3a4a37063d2d0165f190f2ec7f1`；
+- Execution System Iteration 3 commit：`b00dc40137259eee4dc488b1781fde7ed731e36e`；
+- Execution Release：[0.1.0](https://github.com/firestige/execution-system/releases/tag/0.1.0)，target 为上述 exact Execution commit；
+- Workflow Package owner release：[0.3.0](https://github.com/firestige/workflow-package/releases/tag/0.3.0)，revision 为 `ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb`。
+
+| Execution Release asset | SHA-256 |
+| --- | --- |
+| `workflow-self-recursive-execution-system-0.1.0.tgz` | `6fef452ccf5349f7ecd90a1f1266a920a434504bd39c9d3bfddc7f364e7383c5` |
+| `workflow-self-recursive-dsh-intake-0.1.0.tgz` | `9151365d584e23e2098fdd368bac404c0e24ef296c9906f95577c5660e235bb8` |
+
+component-first squash 后，最终 pinned 组合通过 53 个 test file / 479 个 test，coverage（statements `90.08%`、branches `85.79%`、functions `94.08%`、lines `95.77%`）、typecheck、build、generated/static/feasibility、frozen Contract/Package conformance、documentation parity、artifact verification、clean npm package-root import 与真实 `execution-config init`，以及 locked DSH remove/reinstall recovery。全部九个 Execution Release asset 均已重新下载；publication verifier、clean install、CLI 与 DSH lifecycle qualification 已针对下载后的 bytes 通过。
