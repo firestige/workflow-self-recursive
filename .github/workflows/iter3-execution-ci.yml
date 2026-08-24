@@ -47,6 +47,11 @@ jobs:
         working-directory: execution-system
         run: pnpm install --frozen-lockfile
 
+      - name: Install frozen contract checker dependencies
+        run: |
+          npm --prefix system-contracts/workflow-dsl ci
+          npm --prefix system-contracts/observation ci
+
       - name: Run Execution full, coverage, static, and build gates
         working-directory: execution-system
         run: |
@@ -62,10 +67,8 @@ jobs:
 
       - name: Qualify frozen contracts and Package consumers
         run: |
-          npm --prefix system-contracts/workflow-dsl ci
           npm --prefix system-contracts/workflow-dsl test
           npm --prefix system-contracts/delivery-admission test
-          npm --prefix system-contracts/observation ci
           npm --prefix system-contracts/observation test
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/system-design/definition
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/implementation/definition
