@@ -4,27 +4,33 @@
 
 ## 0. 检查宿主前置项
 
-使用 Node `>=24.12.0 <25` 与 DSH `0.1.1-rc.2`。DSH 的 `plugin` 子命令要求 `PATH` 中存在 `pnpm`，但 DSH 没有声明 pnpm 的准确版本。Release qualification 为了可重放而使用 pnpm `9.15.0`；这不是终端用户的版本限制。先检查，只安装缺失的命令：
+使用 Node `>=24.12.0 <25` 与 DSH `0.1.1-rc.2`。DSH 的 `plugin` 子命令要求 pnpm，但 DSH 没有声明 pnpm 的准确版本。Release qualification 为了可重放而使用 pnpm `9.15.0`；这不是终端用户的版本限制。
+
+先查看已经安装的版本：
 
 ```sh
-command -v node >/dev/null 2>&1 || { echo "需要 Node >=24.12.0 <25" >&2; exit 1; }
-command -v npm >/dev/null 2>&1 || { echo "需要 npm 才能安装缺失的宿主命令" >&2; exit 1; }
-if ! command -v pnpm >/dev/null 2>&1; then
-  npm install --global pnpm
-fi
-if ! command -v dsh >/dev/null 2>&1; then
-  npm install --global @deepseek-ai/dsh@0.1.1-rc.2
-fi
 node --version
 pnpm --version
-if [ "$(dsh --version)" != "0.1.1-rc.2" ]; then
-  echo "当前 candidate 要求 DSH 0.1.1-rc.2；实际为 $(dsh --version)" >&2
-  exit 1
-fi
-dsh --help
+dsh --version
 ```
 
-这段检查不会替换已经存在的 pnpm 或 DSH。现有 DSH 版本不同时会停止并报告，不会静默修改用户的全局环境。
+如果 `pnpm --version` 因为未安装 pnpm 而失败，安装后重新检查：
+
+```sh
+npm install --global pnpm
+```
+
+如果 `dsh --version` 因为未安装 DSH 而失败，或者输出的版本不是 `0.1.1-rc.2`，安装所需 preview 后重新检查：
+
+```sh
+npm install --global @deepseek-ai/dsh@0.1.1-rc.2
+```
+
+最后查看 launcher help：
+
+```sh
+dsh --help
+```
 
 ## 1. 从当前 checkout 构建两个 candidate artifact
 

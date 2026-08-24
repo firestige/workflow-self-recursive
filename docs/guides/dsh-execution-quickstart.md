@@ -4,27 +4,33 @@ This guide builds the current Iteration 3 candidate from this checkout and insta
 
 ## 0. Check the host prerequisites
 
-Use Node `>=24.12.0 <25` and DSH `0.1.1-rc.2`. DSH's `plugin` subcommand requires a `pnpm` command on `PATH`, but it does not declare an exact pnpm version. Release qualification uses pnpm `9.15.0` for reproducibility; that is not an end-user version constraint. Check first and install only a missing command:
+Use Node `>=24.12.0 <25` and DSH `0.1.1-rc.2`. DSH's `plugin` subcommand requires pnpm, but it does not declare an exact pnpm version. Release qualification uses pnpm `9.15.0` for reproducibility; that is not an end-user version constraint.
+
+First, inspect the installed versions:
 
 ```sh
-command -v node >/dev/null 2>&1 || { echo "Node >=24.12.0 <25 is required" >&2; exit 1; }
-command -v npm >/dev/null 2>&1 || { echo "npm is required to install a missing host command" >&2; exit 1; }
-if ! command -v pnpm >/dev/null 2>&1; then
-  npm install --global pnpm
-fi
-if ! command -v dsh >/dev/null 2>&1; then
-  npm install --global @deepseek-ai/dsh@0.1.1-rc.2
-fi
 node --version
 pnpm --version
-if [ "$(dsh --version)" != "0.1.1-rc.2" ]; then
-  echo "This candidate requires DSH 0.1.1-rc.2; found $(dsh --version)" >&2
-  exit 1
-fi
-dsh --help
+dsh --version
 ```
 
-The check never replaces an existing pnpm or DSH installation. If an existing DSH has another version, it stops instead of silently changing the user's global environment.
+If `pnpm --version` fails because pnpm is missing, install it and rerun the check:
+
+```sh
+npm install --global pnpm
+```
+
+If `dsh --version` fails because DSH is missing, or reports a version other than `0.1.1-rc.2`, install the required preview and rerun the check:
+
+```sh
+npm install --global @deepseek-ai/dsh@0.1.1-rc.2
+```
+
+Finally, inspect the launcher help:
+
+```sh
+dsh --help
+```
 
 ## 1. Build the two candidate artifacts from this checkout
 
