@@ -17,7 +17,7 @@ Small skill: triggers and dispatch only. Protocol details live in the repo's `.p
 3. **Ambiguous** → ask one question.
 
 ## Card operations
-Always use `pctl` (`pctl req new|queue|ready`, `pctl tmp-scan`). Never hand-roll gh commands for card operations. Repo is inferred from the cwd's git remote.
+Always use `pctl` for card state transitions (`pctl req new|ready|plan|close|retire|reopen|link|flag|scan`, `pctl tmp-scan`); queries, comments and manual labels go straight to `gh`. Never hand-roll gh commands for state transitions. Repo is inferred from the cwd's git remote.
 
 ## tmp hygiene
 - The agent executing a tmp task deletes its own `tmp/<date>/<topic>` when the task closes (delivered or abandoned).

@@ -35,7 +35,7 @@ The requirement lifecycle has five stages. Each stage names its mechanism and it
 
 ## Pending decisions (needs-decision)
 
-- Anything awaiting the human's ruling carries `needs-decision` (a removal suggestion, a doubtful stale card, a gate failure that needs judgment). `pctl req queue` is the queue; the GitHub app notification is only the (ephemeral) reminder.
+- Anything awaiting the human's ruling carries `needs-decision` (a removal suggestion, a doubtful stale card, a gate failure that needs judgment). The queue is `gh issue list --label needs-decision --state open` (`pctl req flag` sets/clears the label); the GitHub app notification is only the (ephemeral) reminder.
 
 ## tmp hygiene
 
