@@ -42,6 +42,8 @@
 
 Loader 从 `stateRoot` 派生 `packages`、`manifests`、`current-slots`、`staging` 与 `runner/{journal,checkpoints,sessions,custody}`。Manifest/current-slot 与 Runner roots 属于 durable truth；staging 是临时目录。DSH plugin 的独立 `bindingFile` 保存 adapter-private session↔Delivery binding，也必须位于 plugin installation directory 外。
 
+DSH Web 的配置不会改变 UI 职责边界：sidebar tabs 调用已有 list/status control-plane operation，chat timeline 承载 interactive command、Action conversation、普通答复与 terminal result。`/wsr list` 和 `/wsr status` alias 继续保留给 compatibility 与 automation。
+
 Credential document 独立保存：
 
 ```yaml
@@ -66,4 +68,3 @@ Application 状态为 `CREATED → STARTING → RECOVERING → READY → CLOSING
 关闭先拒绝新 Intake，再 quiesce、执行 bounded Observation flush，并 reverse-dispose Runner-owned `DSH-E` resource。Restart 只使用 persisted Manifest/binding 与 Runner facts；不会用 changed config、selector 或 Package alias 重绑旧 Delivery。最后一个 durable boundary 之后的 state 允许丢失。
 
 `0.1.0` 是 MVP developer preview。Configuration schema `1.0.0` 是 closed schema；unknown key 与 incompatible schema version fail closed。未来不兼容的 schema 或 public TypeScript surface 可能需要新 package version 与显式 migration。
-

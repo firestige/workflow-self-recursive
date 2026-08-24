@@ -94,7 +94,7 @@ Start DSH Web from the target worktree:
 dsh web
 ```
 
-Enter every `/wsr` command below in the browser conversation opened by DSH Web, not in the shell. The complete command reference is shown here for orientation; the manual acceptance run below tells you which commands to execute for this E2E, so you do not need to exercise every command in this list:
+The closed operation reference is shown here for orientation. `/wsr list` and `/wsr status` remain compatibility/automation aliases; the manual acceptance run uses sidebar tabs as their default user-facing entry:
 
 ```text
 /wsr list
@@ -123,22 +123,18 @@ The explicit-only skill calls the DSH-I-only `workflow_execution_intake` tool ex
 
 ### Manual #57 acceptance run
 
-In the browser opened by `dsh web`, create or select a conversation rooted at the target worktree, then run:
+Product surface boundary: use the sidebar tabs for Delivery list and current Delivery status. Use the chat timeline for create/recover/abandon/action-finish commands, command acknowledgement, Action output/input, ordinary user answers, errors, and terminal result.
 
-```text
-/wsr list
-```
-
-The conversation must render a WSR result. Next attach any files needed by the task and submit one composer message whose first line is the command and whose remaining chat text is the task prompt:
+In the browser opened by `dsh web`, create or select a conversation rooted at the target worktree, then click the sidebar Deliveries tab. It must show an explicit empty result when no Delivery exists without requiring a chat command. Next attach any files needed by the task and submit one composer message whose first line is the command and whose remaining chat text is the task prompt:
 
 ```text
 /wsr create implementation-workflow@0.3.0
 Perform the requested implementation using the text and attachments in this conversation.
 ```
 
-Success requires the same conversation to render the new Delivery/result; process logs or a helper-only response do not count. Record the returned Delivery ID, then verify it through `/wsr status`. If the Workflow enters a multi-turn Action such as grilling, answer normally in this conversation. When that interaction is complete, submit `/wsr action finish`; then use `/wsr status` again to observe the next state. A credential, Source, package-resolution, or Runner error is a failed acceptance run and must be fixed before #57 is closed.
+Success requires the same chat timeline to render acknowledgement, Action output/input and terminal result; process logs, sidebar projection, or a helper-only response do not count. Inspect the bound Delivery through the sidebar Current status tab. If the Workflow enters a multi-turn Action such as grilling, answer normally in this conversation. When that interaction is complete, submit `/wsr action finish`; then use Current status again to observe the next state. A credential, Source, package-resolution, or Runner error is a failed acceptance run and must be fixed before #57 is closed.
 
-Inspect privacy-safe state and output:
+The following compatibility/automation operations remain available even though the product UI uses sidebar tabs:
 
 ```text
 /wsr list
@@ -146,6 +142,8 @@ Inspect privacy-safe state and output:
 ```
 
 An ordinary reply while an Action is awaiting input remains inside that Action. Use `/wsr action finish` only to request closure of the current multi-turn interaction; the Action and validated `workflow_complete` remain the completion authority.
+
+For a repeatable source-candidate browser oracle, run `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`. It creates a fresh DSH Web profile and Chrome profile, clicks both sidebar tabs, drives hello-world and a two-answer system-design interaction, restarts the same version, and returns the URL, environment tuple, artifact SHA-256 values, and surface-separated DOM evidence. The source config points to an external credential file; the result never prints key material.
 
 ## 5. Recovery, shutdown, update, and removal
 

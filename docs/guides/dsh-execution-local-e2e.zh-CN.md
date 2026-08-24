@@ -94,7 +94,7 @@ dsh --help
 dsh web
 ```
 
-下面所有 `/wsr` 命令都要输入到 DSH Web 打开的浏览器 conversation 中，而不是 shell。这里先列出完整命令作为参考；随后“#57 人工验收流程”会明确本次 E2E 实际需要执行哪些命令，不要求在本次验收中逐一测试整个清单：
+下面列出 closed operation 作为参考。`/wsr list` 与 `/wsr status` 保留为 compatibility/automation alias；人工验收使用 sidebar tabs 作为它们面向用户的默认入口：
 
 ```text
 /wsr list
@@ -123,22 +123,18 @@ Direct command 示例——activation directive 后的正文与聊天附件共�
 
 ### #57 人工验收流程
 
-在 `dsh web` 打开的浏览器中，创建或选择以目标 worktree 为根目录的 conversation，然后执行：
+产品 surface 边界：Delivery list 与 current Delivery status 使用 sidebar tabs；create/recover/abandon/action-finish command、acknowledgement、Action output/input、普通用户答复、error 与 terminal result 使用 chat timeline。
 
-```text
-/wsr list
-```
-
-该 conversation 必须渲染 WSR result。接着附上任务需要的文件，并用一条 composer message 提交命令首行与后续聊天正文；正文与附件共同构成 TaskPrompt：
+在 `dsh web` 打开的浏览器中，创建或选择以目标 worktree 为根目录的 conversation，然后点击 sidebar 的 Deliveries tab。没有 Delivery 时必须明确显示 empty result，不要求输入 chat command。接着附上任务需要的文件，并用一条 composer message 提交命令首行与后续聊天正文；正文与附件共同构成 TaskPrompt：
 
 ```text
 /wsr create implementation-workflow@0.3.0
 根据本 conversation 的正文与附件完成所要求的实现。
 ```
 
-验收成功要求同一个 conversation 渲染新 Delivery/result；仅有 process log 或 helper response 不算通过。记录返回的 Delivery ID，再用 `/wsr status` 核对。如果 Workflow 进入 grilling 等多轮 Action，就在这个 conversation 中正常答复；交互结束时提交 `/wsr action finish`，再用 `/wsr status` 观察后续状态。Credential、Source、package resolution 或 Runner error 都表示本次验收失败，修复后才能关闭 #57。
+验收成功要求同一 chat timeline 渲染 acknowledgement、Action output/input 与 terminal result；只有 process log、sidebar projection 或 helper response 不算通过。通过 sidebar 的 Current status tab 查看已绑定 Delivery。如果 Workflow 进入 grilling 等多轮 Action，就在这个 conversation 中正常答复；交互结束时提交 `/wsr action finish`，再用 Current status 观察后续状态。Credential、Source、package resolution 或 Runner error 都表示本次验收失败，修复后才能关闭 #57。
 
-查看 privacy-safe 状态和结果：
+下面的 compatibility/automation operation 继续保留，但产品 UI 默认使用 sidebar tabs：
 
 ```text
 /wsr list
@@ -146,6 +142,8 @@ Direct command 示例——activation directive 后的正文与聊天附件共�
 ```
 
 Action 等待输入时，普通答复仍属于该 Action 内部交互。只有需要请求结束当前多轮阶段时才用 `/wsr action finish`；Action 与 validated `workflow_complete` 仍拥有完成权。
+
+可重放的 source-candidate browser oracle 使用 `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`。它会创建 fresh DSH Web profile 与 Chrome profile、点击两个 sidebar tab、驱动 hello-world 和需要两次答复的 system-design 交互、以同一版本重启，并返回 URL、environment tuple、artifact SHA-256 与按 surface 分开的 DOM evidence。Source config 指向外置 credential file；结果不会打印 key material。
 
 ## 5. 恢复、关闭、更新与移除
 

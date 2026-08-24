@@ -104,7 +104,7 @@ dsh --profile web --dump-config
 dsh --help
 ```
 
-Expected: the dump includes `webserver`, `ui-conversation`, `ui-commands`, row `workflow-execution`, the absolute `configFile`/`bindingFile`, `skill-filesystem`, and `tool-skill`; it does not contain the API key. In locked DSH `0.1.1-rc.2`, launcher-level `dsh --help` verifies syntax without booting the interactive profile. Neither help surface is the plugin command catalog. The exact product commands are:
+Expected: the dump includes `webserver`, `ui-conversation`, `ui-commands`, row `workflow-execution`, the absolute `configFile`/`bindingFile`, `skill-filesystem`, and `tool-skill`; it does not contain the API key. In locked DSH `0.1.1-rc.2`, launcher-level `dsh --help` verifies syntax without booting the interactive profile. Neither help surface is the plugin command catalog. The closed operations are listed below; `/wsr list` and `/wsr status` remain compatibility/automation aliases rather than the default product entry:
 
 ```text
 /wsr list
@@ -116,6 +116,8 @@ Expected: the dump includes `webserver`, `ui-conversation`, `ui-commands`, row `
 ```
 
 ## 4. Start and invoke
+
+Product surface boundary: use the sidebar tabs for Delivery list and current Delivery status. Use the chat timeline for create/recover/abandon/action-finish commands, command acknowledgement, Action output/input, ordinary user answers, errors, and terminal result.
 
 Start DSH Web from the target worktree:
 
@@ -141,22 +143,16 @@ The explicit-only skill calls the DSH-I-only `workflow_execution_intake` tool ex
 
 ### Manual #57 acceptance run
 
-In the browser opened by `dsh web`, create or select a conversation rooted at the target worktree, then run:
-
-```text
-/wsr list
-```
-
-The conversation must render a WSR result. Next attach any files needed by the task and submit one composer message whose first line is the command and whose remaining chat text is the task prompt:
+In the browser opened by `dsh web`, create or select a conversation rooted at the target worktree, then click the sidebar Deliveries tab. It must show an explicit empty result when no Delivery exists without requiring a chat command. Next attach any files needed by the task and submit one composer message whose first line is the command and whose remaining chat text is the task prompt:
 
 ```text
 /wsr create implementation-workflow@0.3.0
 Perform the requested implementation using the text and attachments in this conversation.
 ```
 
-Success requires the same conversation to render the new Delivery/result; process logs or a helper-only response do not count. Record the returned Delivery ID, then verify it through `/wsr status`. If the Workflow enters a multi-turn Action such as grilling, answer normally in this conversation. When that interaction is complete, submit `/wsr action finish`; then use `/wsr status` again to observe the next state. A credential, Source, package-resolution, or Runner error is a failed acceptance run and must be fixed before #57 is closed.
+Success requires the same chat timeline to render acknowledgement, Action output/input and terminal result; process logs, sidebar projection, or a helper-only response do not count. Inspect the bound Delivery through the sidebar Current status tab. If the Workflow enters a multi-turn Action such as grilling, answer normally in this conversation. When that interaction is complete, submit `/wsr action finish`; then use Current status again to observe the next state. A credential, Source, package-resolution, or Runner error is a failed acceptance run and must be fixed before #57 is closed.
 
-Inspect privacy-safe state and output:
+The following compatibility/automation operations remain available even though the product UI uses sidebar tabs:
 
 ```text
 /wsr list

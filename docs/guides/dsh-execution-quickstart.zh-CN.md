@@ -102,7 +102,7 @@ dsh --profile web --dump-config
 dsh --help
 ```
 
-预期：dump 包含 `webserver`、`ui-conversation`、`ui-commands`、`workflow-execution` row、absolute `configFile`/`bindingFile`、`skill-filesystem` 与 `tool-skill`，但不含 API key。锁定的 DSH `0.1.1-rc.2` 中，launcher-level `dsh --help` 不启动交互 profile，只验证语法。两个 help surface 都不充当 plugin command catalog。精确产品命令为：
+预期：dump 包含 `webserver`、`ui-conversation`、`ui-commands`、`workflow-execution` row、absolute `configFile`/`bindingFile`、`skill-filesystem` 与 `tool-skill`，但不含 API key。锁定的 DSH `0.1.1-rc.2` 中，launcher-level `dsh --help` 不启动交互 profile，只验证语法。两个 help surface 都不充当 plugin command catalog。下面列出 closed operation；`/wsr list` 与 `/wsr status` 保留为 compatibility/automation alias，不是默认产品入口：
 
 ```text
 /wsr list
@@ -114,6 +114,8 @@ dsh --help
 ```
 
 ## 4. 启动与调用
+
+产品 surface 边界：Delivery list 与 current Delivery status 使用 sidebar tabs；create/recover/abandon/action-finish command、acknowledgement、Action output/input、普通用户答复、error 与 terminal result 使用 chat timeline。
 
 从目标 worktree 启动 DSH Web：
 
@@ -139,22 +141,16 @@ Direct command 示例——activation directive 后的正文与聊天附件共�
 
 ### #57 人工验收流程
 
-在 `dsh web` 打开的浏览器中，创建或选择以目标 worktree 为根目录的 conversation，然后执行：
-
-```text
-/wsr list
-```
-
-该 conversation 必须渲染 WSR result。接着附上任务需要的文件，并用一条 composer message 提交命令首行与后续聊天正文；正文与附件共同构成 TaskPrompt：
+在 `dsh web` 打开的浏览器中，创建或选择以目标 worktree 为根目录的 conversation，然后点击 sidebar 的 Deliveries tab。没有 Delivery 时必须明确显示 empty result，不要求输入 chat command。接着附上任务需要的文件，并用一条 composer message 提交命令首行与后续聊天正文；正文与附件共同构成 TaskPrompt：
 
 ```text
 /wsr create implementation-workflow@0.3.0
 根据本 conversation 的正文与附件完成所要求的实现。
 ```
 
-验收成功要求同一个 conversation 渲染新 Delivery/result；仅有 process log 或 helper response 不算通过。记录返回的 Delivery ID，再用 `/wsr status` 核对。如果 Workflow 进入 grilling 等多轮 Action，就在这个 conversation 中正常答复；交互结束时提交 `/wsr action finish`，再用 `/wsr status` 观察后续状态。Credential、Source、package resolution 或 Runner error 都表示本次验收失败，修复后才能关闭 #57。
+验收成功要求同一 chat timeline 渲染 acknowledgement、Action output/input 与 terminal result；只有 process log、sidebar projection 或 helper response 不算通过。通过 sidebar 的 Current status tab 查看已绑定 Delivery。如果 Workflow 进入 grilling 等多轮 Action，就在这个 conversation 中正常答复；交互结束时提交 `/wsr action finish`，再用 Current status 观察后续状态。Credential、Source、package resolution 或 Runner error 都表示本次验收失败，修复后才能关闭 #57。
 
-查看 privacy-safe 状态和结果：
+下面的 compatibility/automation operation 继续保留，但产品 UI 默认使用 sidebar tabs：
 
 ```text
 /wsr list
