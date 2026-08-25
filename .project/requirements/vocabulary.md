@@ -12,11 +12,11 @@ GitHub default labels (`bug` reused as type; `documentation`, `enhancement`, `du
 |---|---|---|
 | `idea` | raw idea card, not yet refined/confirmed | capture fork sets; `pctl req ready` removes |
 | `ready` | refined, gate passed, eligible for scheduling | `pctl req ready` sets; milestone drafting reads |
+| `planned` | assigned to a milestone | milestone drafting sets |
 | `in-progress` | being worked on | human/agent sets when starting; audit checks |
 | `blocked` | waiting on something | human/agent sets |
 | `stale` | machine flag: no interaction for 90 days | weekly scan sets; retirement consumes |
 | `retired` | retired with reason, card closed | retirement sets alongside close |
-| `completed` | completed with reason, card closed (delivered) | `pctl req close` sets alongside close |
 | `needs-decision` | awaiting human ruling | weekly scan / removal suggestions set; cleared on ruling |
 
 ## Type — one per card
