@@ -118,7 +118,7 @@ Expected: the dump includes `webserver`, `ui-conversation`, `ui-commands`, row `
 
 ## 4. Start and invoke
 
-Product surface boundary: use the sidebar tabs for Delivery list and current Delivery status. Use the chat timeline for create/recover/abandon/action-finish commands, command acknowledgement, Action output/input, ordinary user answers, errors, and terminal result.
+Product surface boundary: use the sidebar tabs for Delivery list and current Delivery status. Use the chat timeline for create/recover/abandon/action-finish commands, command acknowledgement, Action output/input, ordinary user answers, errors, and terminal result. Interactive commands render once as native user bubbles; internal command lifecycle rows stay hidden. New Session starts an isolated blank timeline, while the prior Workflow conversation remains separately reopenable.
 
 Start DSH Web from the target worktree:
 

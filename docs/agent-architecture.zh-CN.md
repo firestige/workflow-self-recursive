@@ -292,7 +292,7 @@ Design acceptance 要求上表每行都有一个 semantic owner、evidence state
 
 ### Host-neutral presentation 与真实 UI
 
-Execution Core 拥有 closed、versioned、host-neutral 的 presentation event vocabulary。Intake 只拥有 transport 与 host rendering。首个 DSH adapter 通过官方 `wsr` command result 序列化 durable envelope，并同时贡献官方 keyed command view 与面向当前 session 的 additive 官方 sidebar-footer projection。Sidebar projection 不替换 workspace navigation；在当前 conversation 仍为 command-only blank/hero 时，它让 WSR result 保持可见。两种 view 都不伪造 assistant turn，也不使 Core 依赖 DSH type。封闭的 event kind 是 command accepted、Delivery running、Delivery list（包括真实 empty list）、Delivery status、Action output、Action input request、terminal result 与 bounded error。未知或 malformed envelope fail closed 为 bounded WSR error。
+Execution Core 拥有 closed、versioned、host-neutral 的 presentation event vocabulary。Intake 只拥有 transport 与 host rendering。对于 interactive command，DSH adapter 把准确 command 与 attachment 作为原生 user message 提交到 host-owned turn，并在发生任何 DSH-I model request 前于 pre-step 消费该 turn。Keyed command view 隐藏内部 command lifecycle；versioned Workflow presentation 以 assistant-style chat node 渲染，但不伪造 assistant/model message。由此形成的 non-blank conversation 与后续“新会话”隔离，旧 Workflow conversation 仍可单独重新打开。List/status 留在面向当前 session 的 additive sidebar-footer projection，且不替换 workspace navigation。封闭 event kind 是 command accepted、Delivery running、Delivery list（包括真实 empty list）、Delivery status、Action output、Action input request、terminal result 与 bounded error。未知或 malformed envelope fail closed 为 bounded WSR error，Core 继续不依赖 DSH type。
 
 通过 locked DSH web client 的 browser-visible rendering 是产品 oracle。RPC 与 session-history inspection 只是 transport/durability 辅助 evidence，不能替代 visible UI evidence。
 

@@ -57,6 +57,14 @@ export WSR_CREDENTIALS="$PWD/../wsr-local/credentials.yml"
 
 重复执行会重建临时 artifact 并对账 plugin package，但保留已有的 Execution 配置、credential material、durable state、binding state 与无关 DSH user override。命令完成后再重新启动 `dsh web`。
 
+如果 pnpm 因已有 profile 报出 `ERR_PNPM_PUBLIC_HOIST_PATTERN_DIFF` 或其他 modules layout 不一致，请停止 `dsh web`，然后显式要求重装 profile dependency：
+
+```sh
+pnpm --dir execution-system quickstart:prepare -- --reinstall-dsh-profile
+```
+
+这个 opt-in 开关只会在正常对账前删除 `$DSH_HOME/profiles/web/node_modules`。它不会删除 profile manifest、lockfile、pnpm workspace policy、Cordis 配置与 patch、Execution 配置、credential、binding 或 durable state；正常 package reconciliation 仍可能更新其中由 package manager 管理的 manifest 与 lockfile entry。没有这个开关时，preparation 不会删除 profile modules。
+
 对账期间可能出现下面的 package-manager warning；它们不会使对账失败：
 
 - `DEP0169` 表示 DSH 在 `PATH` 中找到了旧 pnpm CLI；可用上面的可选 Corepack 升级消除。
@@ -88,11 +96,13 @@ dsh --help
 
 ## 4. 启动与调用
 
-从目标 worktree 启动 DSH Web：
+从任意已有目录启动 DSH Web：
 
 ```sh
 dsh web
 ```
+
+进程启动目录不是 Workflow worktree。请在 DSH 中选择或注册目标 Git workspace。在 issue #93 的过渡实现中，Intake 会验证调用 Agent 是当前 live instance，并验证 workspace registry 将 session header `cwd` 解析为该精确 canonical workspace，且 workspace 将该 session 记录为成员；随后只为本次调用把这个精确 workspace 作为临时 worktree 传入。注册或成员关系不匹配会以 `DSH_INTAKE_WORKSPACE_UNAUTHORIZED` 失败；Intake 绝不替换为共同父目录、相邻目录或启动目录。Issue #94 会用 Delivery 选择的 worktree 替换这个临时 workspace-as-worktree 值。
 
 下面列出 closed operation 作为参考。`/wsr list` 与 `/wsr status` 保留为 compatibility/automation alias；人工验收使用 sidebar tabs 作为它们面向用户的默认入口：
 
@@ -108,31 +118,48 @@ dsh web
 Direct command 示例——activation directive 后的正文与聊天附件共同构成 `TaskPrompt`，不存在 `--intent` 参数：
 
 ```text
-/wsr create implementation-workflow@0.3.0
-实现这项改动，并保留用户已有修改。
+/wsr create hello-world-workflow@0.1.0
+向我问好，并提及本 conversation 描述的任务。
 ```
 
 显式 first-party skill 示例：
 
 ```text
 /workflow-execution
-使用 implementation-workflow@0.3.0 处理本次请求及其附件。
+使用 system-design-workflow@0.3.0，根据本次任务描述及其附件设计所要求的改动。
 ```
 
 该 explicit-only skill 恰好一次调用 DSH-I-only `workflow_execution_intake` tool。Command 与 skill 进入同一个 `WorkflowIntakeService`、M01 resolution/validation/READY 路径和 host-neutral Core operation。Workflow Action 在 Runner-owned `DSH-E` 执行，不在 Intake `DSH-I` 执行。
 
+`implementation-workflow@0.3.0` 要求已有设计输入。不要把它用于从零开始的 smoke 或交互验收；只有 conversation 正文或附件已经提供所需设计 artifact 时才能使用。
+
 ### #57 人工验收流程
 
-产品 surface 边界：Delivery list 与 current Delivery status 使用 sidebar tabs；create/recover/abandon/action-finish command、acknowledgement、Action output/input、普通用户答复、error 与 terminal result 使用 chat timeline。
+产品 surface 边界：Delivery list 与 current Delivery status 使用 sidebar tabs；create/recover/abandon/action-finish command、acknowledgement、Action output/input、普通用户答复、error 与 terminal result 使用 chat timeline。Interactive slash command 必须只作为原生用户气泡出现一次，不得显示内部 `/wsr` lifecycle row。提交该 command 后，“新会话”必须打开不同且空白的 conversation；重新打开旧 conversation 时，只恢复它自己的 Workflow history。
 
-在 `dsh web` 打开的浏览器中，创建或选择以目标 worktree 为根目录的 conversation，然后点击 sidebar 的 Deliveries tab。没有 Delivery 时必须明确显示 empty result，不要求输入 chat command。接着附上任务需要的文件，并用一条 composer message 提交命令首行与后续聊天正文；正文与附件共同构成 TaskPrompt：
+必须分别完成下面两个案例。它们证明不同的验收边界，不能互相替代。
+
+#### 1. 已发布 hello-world smoke
+
+在 `dsh web` 打开的浏览器中，创建一个以目标 worktree 为根目录的 conversation，然后点击 sidebar 的 Deliveries tab。没有 Delivery 时必须明确显示 empty result，不要求输入 chat command。可以附上一个小型测试文件，然后提交：
 
 ```text
-/wsr create implementation-workflow@0.3.0
-根据本 conversation 的正文与附件完成所要求的实现。
+/wsr create hello-world-workflow@0.1.0
+向我问好、概括本请求；如果存在附件，请确认已经看到它。
 ```
 
-验收成功要求同一 chat timeline 渲染 acknowledgement、Action output/input 与 terminal result；只有 process log、sidebar projection 或 helper response 不算通过。通过 sidebar 的 Current status tab 查看已绑定 Delivery。如果 Workflow 进入 grilling 等多轮 Action，就在这个 conversation 中正常答复；交互结束时提交 `/wsr action finish`，再用 Current status 观察后续状态。Credential、Source、package resolution 或 Runner error 都表示本次验收失败，修复后才能关闭 #57。
+本案例必须通过 configured Source 解析独立发布的准确 Package `hello-world-workflow@0.1.0`，并在同一 chat timeline 渲染 command acknowledgement、model-backed Action output 和 terminal result。只有 process log、sidebar projection 或 helper response 不算通过。通过 sidebar 的 Current status tab 查看已绑定 Delivery。Credential、Source、package resolution 或 Runner error 都表示本案例失败。
+
+#### 2. 从零开始的多轮交互
+
+创建另一个以同一目标 worktree 为根目录的新 conversation。不要复用 `implementation-workflow@0.3.0`：它要求预先存在的设计 artifact，不能证明 from-zero flow。改为提交普通设计任务：
+
+```text
+/wsr create system-design-workflow@0.3.0
+根据本 conversation 的任务描述与附件，为这个 repository 设计一项边界明确的改动。
+```
+
+本案例必须从这段普通任务描述开始，在用户不介入的情况下先产生初始 Action output，然后在同一 chat timeline 中完成至少两轮提问/普通回答 ping-pong。Agent 必须询问是否已经达成一致；用普通聊天答复该确认。交互准备结束时提交 `/wsr action finish`。同一 chat timeline 必须渲染每个 Action output/input request、acknowledgement 和 terminal result。各步骤之间使用 Current status 查看同一个 bound Delivery，不在 chat 输入 `/wsr status`。答复脱离当前 Action、缺少第二轮、缺少 agreement confirmation 或没有 terminal result，都表示本案例失败。
 
 下面的 compatibility/automation operation 继续保留，但产品 UI 默认使用 sidebar tabs：
 
@@ -143,7 +170,7 @@ Direct command 示例——activation directive 后的正文与聊天附件共�
 
 Action 等待输入时，普通答复仍属于该 Action 内部交互。只有需要请求结束当前多轮阶段时才用 `/wsr action finish`；Action 与 validated `workflow_complete` 仍拥有完成权。
 
-可重放的 source-candidate browser oracle 使用 `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`。它会创建 fresh DSH Web profile 与 Chrome profile、点击两个 sidebar tab、驱动 hello-world 和需要两次答复的 system-design 交互、以同一版本重启，并返回 URL、environment tuple、artifact SHA-256 与按 surface 分开的 DOM evidence。Source config 指向外置 credential file；结果不会打印 key material。
+可重放的 source-candidate browser oracle 使用 `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`。它会创建 fresh DSH Web profile 与 Chrome profile，验证 public configured roots 外的精确 registered workspace 会进入 Source handling 而不是返回 `WORKTREE_OUT_OF_SCOPE`，点击两个 sidebar tab、驱动同样的已发布 hello-world smoke 和需要两次答复的 system-design 交互、以同一版本重启，并返回 URL、environment tuple、artifact SHA-256 与按 surface 分开的 DOM evidence。Source config 指向外置 credential file；结果不会打印 key material。
 
 ## 5. 恢复、关闭、更新与移除
 
