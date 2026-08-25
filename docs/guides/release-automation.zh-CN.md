@@ -1,0 +1,73 @@
+# 发布自动化
+
+Iter4 把发布设施做到 implementation-ready；本 wave 不创建真实 RC、stable tag、GitHub Release、npm/Python 发布或 OCI stable tag。真实端到端证明留到 Wave11。
+
+## 通用生命周期
+
+每个活跃组件都声明 `wsr.release-component@1.0.0`：仓库、`main` 发布分支、`release/next` 触发分支、资产模式、acceptance、publisher adapter、远程 qualification 模式与 `qualified-candidate-exact-assets` stable policy。
+
+唯一支持的状态转换是：
+
+`SOURCE → ACCEPTED → BUILT → MANIFESTED → RC → QUALIFIED → COMPONENT_MERGED → SUPERPROJECT_REPINNED → STABLE`
+
+先把组件 candidate 合入 `release/next`，从该 ref dispatch candidate workflow，并验证重新下载的 RC 字节。qualification 后，将组件 squash merge 到 `main`，再把 superproject repin 到组件 main commit。stable 仍指向已经验证的 RC commit 并逐字节复用 RC assets；不得从 squash commit 重建。
+
+| 组件 | 资产与 publisher adapter | 本轮状态 |
+|---|---|---|
+| Execution | npm 双包 + DSH install + GitHub Release | active |
+| Evidence | Python wheel/sdist + GHCR OCI + GitHub Release | active |
+| system-contracts | publication records + GitHub Release | active |
+| workflow-package | deterministic workflow assets + GitHub Release | active |
+| Evolution | parameter-only | Iter4 不发布 |
+| BI | excluded | Iter4 不做自动化 |
+
+Python 兼容性按 minor 表达，并在 Python 3.13/3.14 上测试，不锁 Python patch 版本。npm/DSH 规则只属于 Execution adapter。
+
+## Dispatch 与恢复
+
+candidate workflow 会拒绝 `release/next` 之外的 ref：
+
+```sh
+gh workflow run release-candidate.yml --repo firestige/evidence-system \
+  --ref release/next -f candidate_tag=0.1.0-rc.1
+
+gh workflow run release-candidate.yml --repo firestige/system-contracts \
+  --ref release/next -f candidate_tag=evidence-query-1.0.0-rc.1
+
+gh workflow run release-candidate.yml --repo firestige/workflow-package \
+  --ref release/next -f candidate_tag=iter4-rc.1 -f contract_ref=<40位contract SHA>
+```
+
+Execution 还要求一个准确的 superproject `authority_ref`（其 Execution submodule 必须指向 candidate），以及带真实 credential 的本地 DSH evidence GitHub issue/comment URL。
+
+| 失败点 | 可进入 stable？ | 恢复方式 |
+|---|---:|---|
+| acceptance/build 失败 | 否 | 修复源码；RC 创建前重跑 |
+| RC tag 冲突 | 否 | 核查已有不可变 tag；字节变化时递增 RC 编号 |
+| 下载 digest 不一致 | 否 | 保留 URL/digest 调查；不得替换 RC assets |
+| 权限拒绝 | 否 | 修复 App/registry 配置；对同一不可变 candidate 重跑 |
+| squash 后 candidate 与组件 `main` 不同 | repin 后可以 | 这是预期状态；stable 仍指向 qualified candidate commit |
+| Execution core 已发布、intake 失败 | 暂不可 stable | 对同一 manifest 恢复；仅当 registry 字节一致时跳过 core，再发 intake |
+| stable 操作失败 | 不得重建 | 从 qualified manifest 与 candidate commit 重试；不得转移 tag |
+
+## GitHub App 身份
+
+批准的 App owner 是 `firestige`，slug 为 `wsr-release`。安装 allowlist 精确包含 `workflow-self-recursive`、`execution-system`、`evidence-system`、`evolution-system`、`system-contracts`、`workflow-package`。注册权限为 Contents 读写、Workflows 读写、Metadata 只读；每个 promotion workflow 进一步把本次 token 限到自身仓库和 `contents: write`。
+
+App ID 存为 Actions variable `WSR_RELEASE_APP_ID`，PEM private key 存为 Actions secret `WSR_RELEASE_APP_PRIVATE_KEY`。candidate、build、qualification、npm、OCI 步骤都拿不到 private key 或 installation token；仅在 final stable GitHub Release 前由 `actions/create-github-app-token` 生成短期 token。GitHub 说明 installation token 一小时过期，并可进一步限制仓库和权限（[workflow 认证](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow)、[installation token 范围](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app)）。
+
+Bootstrap 顺序：注册/安装 App；在四个 active 发布仓库分别配置 variable/secret；确认 PAT/private key 未进入仓库、日志、artifact 或 report；Wave4 只跑无副作用 oracle，真实发布留到 Wave11。
+
+轮换时先生成第二把 App key，替换 Actions secret、运行静态 attestation，再删除旧 key。事故撤销时禁用/卸载 App 或删除 key，取消发布 run，并保留 run URL 与不可变 digest。break-glass 的含义是暂停发布并由 owner 明确批准恢复 App 路径；host `gh` credential 或个人 PAT 不是发布 fallback。
+
+## npm trusted publishing
+
+Execution 选择 GitHub Actions OIDC trusted publishing，不使用长期 npm automation token。在 npmjs.com 为 `wsr-execution` 与 `wsr-dsh-intake` 分别配置：owner `firestige`、repository `execution-system`、workflow `release-promote.yml`，除非未来 workflow 使用 environment，否则 environment 留空。workflow 具有 `id-token: write`，会验证 npm 至少为 11.5，在 GitHub-hosted runner 上只按 core→intake 发布两个 qualified tgz，并且没有 `NODE_AUTH_TOKEN`。
+
+npm 要求 npm CLI ≥11.5.1、Node ≥22.14、仓库/workflow 精确匹配以及 `id-token: write`；trusted publishing 使用短期凭据并生成 provenance（[npm trusted publishers](https://docs.npmjs.com/trusted-publishers/)）。若以后用 reusable workflow 包住 npm publish job，必须按 caller workflow 身份重新配置 npm，并让 caller/called 两侧都有 OIDC 权限。
+
+发布后 adapter 会核对两包 tgz 精确 digest、非空 description、versions 与 `latest`。直接对源码运行 `npm pack`/`npm publish` 会 fail closed；只有 verified artifact builder 可打包，promotion 也只接受其 immutable manifest。
+
+## 发布节奏与版本
+
+不做日历强制发布；review 后的变更及其生态 qualification 就绪时再发。遵循 SemVer：向后兼容修复、元数据或自动化修正用 PATCH；向后兼容能力用 MINOR；不兼容的公开契约或安装变化才用 MAJOR。Execution 两包保持 lockstep；其他组件按实际产物独立版本化。

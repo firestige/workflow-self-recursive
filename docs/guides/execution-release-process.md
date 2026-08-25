@@ -1,48 +1,61 @@
 # Execution and DSH Intake release process
 
-This process applies to every new Execution System and DSH Intake plugin version. A stable release tag is an output of qualification, never its trigger.
+This adapter releases `wsr-execution` and `wsr-dsh-intake` in lockstep. A stable tag is an output of qualification and component-first repinning, never a qualification trigger. The common identity and recovery rules are in the [release automation guide](release-automation.md).
 
 ## Required order
 
 ```mermaid
 flowchart LR
-  A[Versioned source candidate] --> B[Full tests, coverage, static and build gates]
-  B --> C[Build tgz files from the current checkout]
-  C --> D[Local clean-install DSH Web E2E]
-  D --> E[Credentialed manual E2E evidence]
-  E --> F[Create x.y.z-rc.N GitHub prerelease]
-  F --> G[Redownload exact prerelease assets]
-  G --> H[Remote clean-install DSH Web E2E]
-  H --> I[Publish qualification evidence]
-  I --> J[Reverify evidence, commit and artifact digest]
-  J --> K[Create stable x.y.z tag and final Release]
+  A[Candidate on release/next] --> B[Acceptance and coordinate gates]
+  B --> C[Build manifest-bound tgz pair and release notes]
+  C --> D[Local clean-install DSH E2E plus manual evidence]
+  D --> E[Create x.y.z-rc.N prerelease]
+  E --> F[Redownload and verify exact assets]
+  F --> G[Remote clean-install DSH E2E]
+  G --> H[Attach qualification evidence]
+  H --> I[Squash component to main and repin superproject]
+  I --> J[Publish exact tgz: core then intake]
+  J --> K[Registry digest, description, versions and latest smoke]
+  K --> L[Create stable tag and Release last]
 ```
 
-The RC tag exists only to make the candidate remotely installable. It is marked as a GitHub prerelease and is not a stable release tag. If a gate after RC publication fails, do not promote it; fix the source and use the next `-rc.N` candidate.
+Changed bytes require a new `-rc.N`; an RC is never overwritten. Stable promotion targets the qualified RC commit and reuses its assets even though the component main branch has a squash commit.
 
-## 1. Local qualification
+## 1. Prepare and qualify locally
 
-Use the [DSH Execution local pre-release E2E guide](dsh-execution-local-e2e.md). Its single preparation command builds both tgz files and initializes local configuration from the current checkout. In addition to automated `/wsr list` transport qualification, perform the credentialed #57 path in DSH Web: create a Workflow from chat text and attachments, observe the result in the same conversation, exercise multi-turn input when offered, and finish that phase with `/wsr action finish`. Record the replayable result in the tracking issue.
+Keep all five coordinates equal: root version, intake version, intake dependency on `wsr-execution`, intake DSH compatibility coordinate, and dynamically derived workflow tgz names.
 
-No GitHub release or tag is created during this stage.
+```sh
+pnpm release:check-coordinates
+pnpm release:artifacts <release-directory>
+pnpm release:verify <release-directory>
+pnpm release:publish-npm <release-directory> # dry recovery plan; does not publish
+```
 
-## 2. Publish and verify an RC
+The builder alone may invoke `npm pack`; direct source packing or publishing fails closed. It generates two tgz files, publication records, `release-notes.md`, and `release-metadata.json`. Release notes take What's new from generated CHANGELOG content, copy compatibility from the manifest, include an upgrade guide, and are digest-bound by the manifest.
 
-After the candidate commit is on the releasable branch, run the execution-system **Release candidate** workflow with an exact tag such as `0.1.1-rc.1` and the GitHub URL of the local manual E2E evidence. The workflow:
+Follow the [local pre-release E2E guide](dsh-execution-local-e2e.md). Also run the credentialed DSH Web path: create a Workflow from chat text and attachments, observe it in the same conversation, exercise multi-turn input when offered, finish with `/wsr action finish`, and record the replayable evidence in a GitHub issue/comment. No tag or Release is created locally.
 
-1. requires the source package version to be the matching stable base (`0.1.1`);
-2. reruns component gates;
-3. builds and verifies artifacts from that checkout;
-4. runs local artifact-install DSH Web E2E;
-5. only then creates the GitHub prerelease;
-6. downloads the assets back from that prerelease into a clean directory;
-7. verifies metadata/digests and runs the same install E2E against the downloaded bytes; and
-8. attaches `release-qualification.json` to the prerelease.
+## 2. Publish and qualify an RC
 
-Publishing an RC is not completion and does not authorize a stable tag.
+Merge the exact component candidate to `release/next`, then dispatch from that ref:
 
-## 3. Promote only qualified bytes
+```sh
+gh workflow run ci.yml --repo firestige/execution-system --ref release/next \
+  -f release_candidate=true \
+  -f candidate_tag=0.1.3-rc.1 \
+  -f authority_ref=<superproject-ref-pinning-this-candidate> \
+  -f local_manual_e2e_evidence=<github-issue-or-comment-url>
+```
 
-Run **Promote qualified release candidate** with the RC tag and its stable version. It checks that the RC is a prerelease, checks out its exact commit, verifies the downloaded artifacts and `release-qualification.json`, and reruns remote artifact-install E2E. The final workflow step creates the stable tag and final GitHub Release together. There is no supported path that creates a stable release tag before these gates.
+The workflow verifies the superproject Execution pin equals the workflow commit, reruns all gates, builds and locally qualifies the tgz pair, creates the prerelease, redownloads the assets into a clean directory, verifies their digests and manifest, reruns remote-install DSH E2E, and attaches `release-qualification.json`. Candidate publication uses only the repository `GITHUB_TOKEN`; it never receives the release App key.
 
-If the source commit, stable package version, metadata digest, local E2E, or remote prerelease E2E differs from the evidence, promotion fails closed.
+## 3. Merge and repin before promotion
+
+After qualification, squash-merge the component candidate to `main`, update the superproject submodule to that component main commit, and merge the repin. Preserve the RC URL, candidate SHA, squash SHA, superproject repin SHA, and manifest digest. Do not move or rebuild the RC.
+
+## 4. Promote exact qualified bytes
+
+Configure npm trusted publishers for both packages to `firestige/execution-system` and `release-promote.yml`. Then dispatch promotion with the qualified RC and stable tag. The workflow revalidates the candidate commit, qualification evidence, manifest, release notes, and remote DSH install. With npm OIDC it publishes `wsr-execution` first and `wsr-dsh-intake` second, then verifies exact registry tarball digests, descriptions, version listings, and `latest`. Only after those checks does it mint the scoped GitHub App token and create the stable tag/Release as the final operation.
+
+If core succeeds and intake fails, keep stable absent and rerun the same candidate. The publisher downloads the existing coordinate: it skips core only when its digest equals the immutable manifest, then publishes intake. A different digest is a permanent version collision and requires investigation, not overwrite or rebuild.

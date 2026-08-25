@@ -1,48 +1,61 @@
 # Execution 与 DSH Intake 发布流程
 
-本流程适用于每个新的 Execution System 与 DSH Intake plugin 版本。stable release tag 是 qualification 的输出，不能作为启动 qualification 的输入。
+本 adapter 以 lockstep 方式发布 `wsr-execution` 与 `wsr-dsh-intake`。stable tag 是 qualification 与 component-first repin 的输出，不能作为 qualification 的触发器。通用身份与恢复规则见[发布自动化指南](release-automation.zh-CN.md)。
 
 ## 强制顺序
 
 ```mermaid
 flowchart LR
-  A[带版本的 source candidate] --> B[完整 test、coverage、static 与 build gates]
-  B --> C[从当前 checkout 构建 tgz]
-  C --> D[本地 clean-install DSH Web E2E]
-  D --> E[带真实 credential 的人工 E2E evidence]
-  E --> F[创建 x.y.z-rc.N GitHub prerelease]
-  F --> G[重新下载准确的 prerelease assets]
-  G --> H[远程 clean-install DSH Web E2E]
-  H --> I[发布 qualification evidence]
-  I --> J[复核 evidence、commit 与 artifact digest]
-  J --> K[创建 stable x.y.z tag 与 final Release]
+  A[release/next 上的 candidate] --> B[acceptance 与坐标门禁]
+  B --> C[构建 manifest 绑定的双 tgz 与 release notes]
+  C --> D[本地 clean-install DSH E2E 与人工 evidence]
+  D --> E[创建 x.y.z-rc.N prerelease]
+  E --> F[重新下载并验证精确 assets]
+  F --> G[远程 clean-install DSH E2E]
+  G --> H[附加 qualification evidence]
+  H --> I[组件 squash 到 main 并 repin superproject]
+  I --> J[按 core→intake 发布精确 tgz]
+  J --> K[registry digest/description/versions/latest smoke]
+  K --> L[最后创建 stable tag 与 Release]
 ```
 
-RC tag 只用于让 candidate 可以被远程安装。它必须标记为 GitHub prerelease，不是 stable release tag。RC 发布后的门禁失败时不得晋级；修复 source 后使用下一个 `-rc.N` candidate。
+字节变化必须使用新的 `-rc.N`，不得覆盖 RC。即使组件 main 是 squash commit，stable 仍指向 qualified RC commit 并复用其 assets。
 
-## 1. 本地 qualification
+## 1. 本地准备与 qualification
 
-按照 [DSH Execution 本地发布前 E2E 指南](dsh-execution-local-e2e.zh-CN.md)，用一条 preparation 命令从当前 checkout 构建两个 tgz 并初始化本地配置。除了自动化 `/wsr list` transport qualification，还要在 DSH Web 中执行带真实 credential 的 #57 路径：用聊天正文和附件创建 Workflow，在同一 conversation 中看到结果；Workflow 提供多轮交互时完成输入，并用 `/wsr action finish` 结束该阶段。把可重放结果记录到 tracking issue。
+五个坐标必须一致：根 version、intake version、intake 对 `wsr-execution` 的依赖、intake DSH compatibility 坐标，以及 workflow 动态推导的 tgz 文件名。
 
-本阶段不创建任何 GitHub Release 或 tag。
+```sh
+pnpm release:check-coordinates
+pnpm release:artifacts <release目录>
+pnpm release:verify <release目录>
+pnpm release:publish-npm <release目录> # 仅生成恢复计划，不发布
+```
+
+只有 builder 可以调用 `npm pack`；直接从源码打包或发布会 fail closed。builder 生成两个 tgz、publication records、`release-notes.md` 和 `release-metadata.json`。release notes 的 What's new 来自自动生成的 CHANGELOG，compatibility 来自 manifest，并含 upgrade guide；manifest 会绑定 notes 与 changelog 段摘要。
+
+按[本地发布前 E2E 指南](dsh-execution-local-e2e.zh-CN.md)验证，并执行带真实 credential 的 DSH Web 路径：从聊天正文与附件创建 Workflow，在同一 conversation 查看结果；有多轮输入时完成交互，最后 `/wsr action finish`，并把可重放 evidence 记到 GitHub issue/comment。本地阶段不创建 tag/Release。
 
 ## 2. 发布并验证 RC
 
-candidate commit 进入可发布分支后，运行 execution-system 的 **Release candidate** workflow，输入 `0.1.1-rc.1` 这样的准确 tag 和本地人工 E2E evidence 的 GitHub URL。workflow 会：
+把精确组件 candidate 合入 `release/next`，从该 ref dispatch：
 
-1. 要求 source package version 是匹配的 stable base（例如 `0.1.1`）；
-2. 重跑 component gates；
-3. 从该 checkout 构建并验证 artifacts；
-4. 运行本地 artifact-install DSH Web E2E；
-5. 通过后才创建 GitHub prerelease；
-6. 把 assets 从 prerelease 重新下载到 clean directory；
-7. 验证 metadata/digest，并对下载得到的 bytes 运行相同 install E2E；
-8. 把 `release-qualification.json` 附加到 prerelease。
+```sh
+gh workflow run ci.yml --repo firestige/execution-system --ref release/next \
+  -f release_candidate=true \
+  -f candidate_tag=0.1.3-rc.1 \
+  -f authority_ref=<准确pin该candidate的superproject-ref> \
+  -f local_manual_e2e_evidence=<github-issue或comment-url>
+```
 
-RC 发布不代表完成，也不授权创建 stable tag。
+workflow 会确认 superproject 的 Execution pin 等于 workflow commit，重跑全部门禁，构建并本地验证双 tgz，创建 prerelease，把 assets 重新下载到 clean directory，核对 digest/manifest，重跑 remote-install DSH E2E，并附加 `release-qualification.json`。candidate 阶段只用仓库 `GITHUB_TOKEN`，拿不到 release App key。
 
-## 3. 只晋级已经验证的 bytes
+## 3. promotion 前先 merge 与 repin
 
-运行 **Promote qualified release candidate**，输入 RC tag 和对应 stable version。它会确认 RC 是 prerelease，checkout 它的准确 commit，验证下载的 artifacts 与 `release-qualification.json`，并重跑 remote artifact-install E2E。workflow 的最后一步才同时创建 stable tag 与 final GitHub Release。不存在提前创建 stable release tag 的受支持路径。
+qualification 后，把组件 candidate squash merge 到 `main`，再更新并合入 superproject 的组件 submodule pin。保留 RC URL、candidate SHA、squash SHA、superproject repin SHA 与 manifest digest；不得移动或重建 RC。
 
-source commit、stable package version、metadata digest、本地 E2E 或 remote prerelease E2E 任一项与 evidence 不一致时，promotion 都会 fail closed。
+## 4. 只晋级 qualified 字节
+
+先在 npm 为两个包配置 trusted publisher：`firestige/execution-system` + `release-promote.yml`。随后用 qualified RC 与 stable tag dispatch promotion。workflow 会重新验证 candidate commit、qualification evidence、manifest、release notes 与 remote DSH install；用 npm OIDC 先发 `wsr-execution`、再发 `wsr-dsh-intake`，然后核对 registry 的精确 tarball digest、description、versions 与 `latest`。全部通过后才生成 scoped GitHub App token，并把 stable tag/Release 作为最后一步创建。
+
+若 core 成功而 intake 失败，保持 stable 不存在，并对同一 candidate 重跑。publisher 会下载已有坐标；只有其 digest 与 immutable manifest 一致时才跳过 core，再发布 intake。digest 不同是永久版本冲突，必须调查，不能覆盖或重建。
