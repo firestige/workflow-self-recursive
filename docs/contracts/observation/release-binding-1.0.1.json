@@ -1,0 +1,49 @@
+{
+  "binding_version": "1.0.1",
+  "coordinate": "observation-contract@1.0.1",
+  "status": "PUBLISHED",
+  "superproject": {
+    "repository": "firestige/workflow-self-recursive",
+    "content_revision": "sha256:574c468472e455da0ea6f1f00117ec79dddeb994ecfc33f24953d23d389938ee",
+    "semantic": [
+      {
+        "path": "docs/agent-architecture.md",
+        "sha256": "2737d13e624f72be369b6ccb658a8e14664e4a59021567494678a44e4986b473"
+      },
+      {
+        "path": "docs/systems/execution/project-execution-system.md",
+        "sha256": "152f243bc25345596fd0f02801cd191d69cd3d711e26b321b703635e34ae4c92"
+      },
+      {
+        "path": "docs/systems/evidence/evidence-system.md",
+        "sha256": "ac2cfab25ec397fd0defb0e5388f5f5ff11506d057e8093ed131daf32d5a8dcb"
+      },
+      {
+        "path": "docs/contracts/observation/observation-catalog.md",
+        "sha256": "8a823a7289152330ffc02bd8bf480dbc6221d681b31c4b0fb0013a155a399928"
+      },
+      {
+        "path": "docs/contracts/observation/otel-observation-profile.md",
+        "sha256": "f8c14660023605bd52f84f878174f4607ccf477f96b6b0f7e3ae2903424376a4"
+      },
+      {
+        "path": "docs/contracts/execution-evidence/interaction-contract.md",
+        "sha256": "eb03b77788697091b5650d1b947bdc87a2318df2a06d5984456d146f75f5e918"
+      }
+    ]
+  },
+  "machine_package": {
+    "repository": "firestige/system-contracts",
+    "gitlink_path": "system-contracts",
+    "gitlink_commit": "0468996bdf5f5a2d0a0e95d6dde00911e051522c",
+    "content_revision": "sha256:1e350bbc24f0452af646064948cba5dd14477dd1c2884d4805a19bef1e654ae4",
+    "publication_record": {
+      "path": "observation/publication/publication-record-1.0.1.json",
+      "sha256": "971b60b7a5c436342a17474b0c70a610afcfe0d80077f0e5ce84b026dd4d207a"
+    },
+    "compatibility_matrix": {
+      "path": "observation/registries/compatibility-matrix-1.0.1.json",
+      "sha256": "79acc6fc1654ec937b442bac9af23e05762b7dcde7de3ac021ce2e2ba039e5b4"
+    }
+  }
+}

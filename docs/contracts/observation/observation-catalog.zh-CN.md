@@ -10,6 +10,8 @@
 | --- | --- |
 | 文档身份 | `observation.identity.001` |
 | 状态 | `FROZEN` |
+| Contract release | 当前 `observation-contract@1.0.1`；immutable `1.0.0` 上的 PATCH validator correction；wire Profile 仍为 `1.0.0` |
+| Publication binding | [`release-binding-1.0.1.json`](release-binding-1.0.1.json)；历史 `1.0.0` 保持 resolving 且 byte-identical |
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split；C55–C57 meaning 与 ownership 解析到 [Concept §3](../../agent-architecture.md#ee-concept-3)、[Execution §14](../../systems/execution/project-execution-system.md#ee-execution-14) 和 [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8)；历史 amendment 仅保留 provenance |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md) |

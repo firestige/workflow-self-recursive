@@ -10,6 +10,8 @@
 | --- | --- |
 | Document identity | `observation.identity.002` |
 | Status | `FROZEN` |
+| Contract release | current `observation-contract@1.0.1`; PATCH validator correction over immutable `1.0.0` |
+| Publication binding | [`release-binding-1.0.1.json`](release-binding-1.0.1.json); wire Profile remains `1.0.0` |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus the post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment for C55–C57 and proposed profile `1.0.0`; provenance remains in Git history |
 | Profile version | published `1.0.0` |
