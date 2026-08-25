@@ -1,0 +1,47 @@
+{
+  "manifest_version": "1.0.0",
+  "wave": "wave6",
+  "generated_at": "2026-08-26T07:36:56+08:00",
+  "owner_approval": {
+    "owner": "firestige",
+    "date": "2026-08-26",
+    "decision": "APPROVED"
+  },
+  "contract": {
+    "name": "evidence.query",
+    "revision": "0.1.0",
+    "lifecycle_status": "REVIEW_CANDIDATE",
+    "semantic_path": "docs/contracts/evidence-query/evidence-query.md",
+    "translation_path": "docs/contracts/evidence-query/evidence-query.zh-CN.md",
+    "approved_superproject_commit": "1894a5cd62b2f12c2501b2952c01ea2928c53f95",
+    "semantic_sha256": "2959c44a9175e60303866e64116fc09086974fc26cf7cac1cb2e0a49a1ee8ba5",
+    "translation_sha256": "2b1bb1263c826104cc8e108f183f2f9a8f3b0c5191caaff1974319570e08e07d"
+  },
+  "shared_interface": {
+    "component": "evidence-system",
+    "component_commit": "bf631ac542b6efda26dd94ba477d76fe366f183c",
+    "read_model_revision": "1.0.0",
+    "policy_revision": "1.0.0",
+    "path": "src/wsr_evidence/storage/read_model.py",
+    "sha256": "7afdaaa620b9c258c246ce3772001c95271eb0d444cb1121c37dff6b3918a923",
+    "test_path": "tests/unit/test_query_expiry_contract.py",
+    "test_sha256": "08f1dbb2005a0ae12866d992eebdffb02413a88b59c0bc8cf27ed8d3d2c24b67"
+  },
+  "semantic_sections": {
+    "truth_table": {
+      "start_anchor": "evidence-query-6",
+      "end_before_anchor": "evidence-query-7",
+      "sha256": "fdfcead8d8e7f7362153bba98c205cb70148ec371eefe384a6cde3b4bb852d67"
+    },
+    "lifecycle_defaults": {
+      "start_anchor": "evidence-query-10",
+      "end_before_anchor": "evidence-query-11",
+      "sha256": "22060a33f8975d0e6184d932587f65c7f80235f2f4beb2aa1aaf4bdac7a96a1f"
+    }
+  },
+  "downstream_binding": {
+    "required_by": ["wave7", "wave8", "wave9"],
+    "rule": "Every downstream report and candidate must bind this exact manifest digest, contract revision, approved commit, component commit, interface SHA-256, truth-table SHA-256, and defaults SHA-256. Any mismatch stops integration and returns to Wave6 owner review.",
+    "conformance_claim_allowed": false
+  }
+}
