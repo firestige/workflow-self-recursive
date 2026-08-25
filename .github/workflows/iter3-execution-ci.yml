@@ -51,6 +51,7 @@ jobs:
         run: |
           npm --prefix system-contracts/workflow-dsl ci
           npm --prefix system-contracts/observation ci
+          npm --prefix system-contracts/evaluation ci
 
       - name: Run Execution full, coverage, static, and build gates
         working-directory: execution-system
@@ -70,6 +71,8 @@ jobs:
           npm --prefix system-contracts/workflow-dsl test
           npm --prefix system-contracts/delivery-admission test
           npm --prefix system-contracts/observation test
+          npm --prefix system-contracts/evaluation test
+          npm --prefix system-contracts/evaluation run check:example
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/system-design/definition
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/implementation/definition
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/hello-world-workflow/definition
@@ -131,7 +134,7 @@ jobs:
         run: |
           test "$(git -C workflow-package rev-parse ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb^{tree}:implementation)" = "$(git -C workflow-package rev-parse HEAD^{tree}:implementation)"
           test "$(git -C workflow-package rev-parse ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb^{tree}:system-design)" = "$(git -C workflow-package rev-parse HEAD^{tree}:system-design)"
-          test "$(git -C system-contracts rev-parse HEAD)" = c8e090f80073e3a4a37063d2d0165f190f2ec7f1
+          test "$(git -C system-contracts rev-parse HEAD)" = 0468996bdf5f5a2d0a0e95d6dde00911e051522c
           pnpm --dir execution-system exec tsx scripts/static-boundary-check.ts
           if git grep -n -E '#87.*(complete|closed|done)|Workflow Contract evolution.*(complete|closed|done)|Delivery Admission Contract evolution.*(complete|closed|done)' -- docs; then
             exit 1

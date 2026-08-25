@@ -10,6 +10,8 @@
 | --- | --- |
 | 文档身份 | `interaction.identity.001` |
 | 状态 | `FROZEN` |
+| Contract release | 当前 `observation-contract@1.0.1`；immutable `1.0.0` 上的 PATCH validator correction |
+| Publication binding | [`../observation/release-binding-1.0.1.json`](../observation/release-binding-1.0.1.json)；wire Profile 仍为 `1.0.0` |
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，外加一个 post-split meaning amendment，记录为 `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17`（标准 OTLP aggregate ingest response；per-record disposition 仍为 Admission-internal）；出处保留在 Git 历史中 |
 | 语义权威 | [Concept](../../agent-architecture.md)、[Execution Design](../../systems/execution/project-execution-system.md)、[Evidence Design](../../systems/evidence/evidence-system.md) |

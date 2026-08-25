@@ -10,6 +10,8 @@
 | --- | --- |
 | Document identity | `interaction.identity.001` |
 | Status | `FROZEN` |
+| Contract release | current `observation-contract@1.0.1`; PATCH validator correction over immutable `1.0.0` |
+| Publication binding | [`../observation/release-binding-1.0.1.json`](../observation/release-binding-1.0.1.json); wire Profile remains `1.0.0` |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`, plus one post-split meaning amendment recorded as `EE-CRITICAL-OTLP-AGGREGATE-ADMISSION-PARITY-2026-08-17` (standard OTLP aggregate ingest response; per-record disposition remains Admission-internal); provenance remains in Git history |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md) |
