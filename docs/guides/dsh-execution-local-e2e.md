@@ -57,6 +57,14 @@ Before any package operation, reconciliation merges `better-sqlite3: true` into 
 
 Repeated preparation rebuilds temporary artifacts and reconciles the plugin packages, but preserves existing Execution configuration, credential material, durable state, binding state, and unrelated DSH user overrides. Restart `dsh web` after the command completes.
 
+If pnpm rejects an existing profile with `ERR_PNPM_PUBLIC_HOIST_PATTERN_DIFF` or another modules-layout mismatch, stop `dsh web` and explicitly request a profile dependency reinstall:
+
+```sh
+pnpm --dir execution-system quickstart:prepare -- --reinstall-dsh-profile
+```
+
+This opt-in switch removes only `$DSH_HOME/profiles/web/node_modules` before the normal reconciliation. It does not delete the profile manifest, lockfile, pnpm workspace policy, Cordis configuration and patches, Execution configuration, credentials, bindings, or durable state; the normal package reconciliation may update its package-managed manifest and lockfile entries. Preparation does not remove profile modules unless this switch is present.
+
 The following package-manager warnings can appear during reconciliation without invalidating it:
 
 - `DEP0169` means DSH found an old pnpm CLI on `PATH`; use the optional Corepack upgrade above to remove it.
@@ -108,31 +116,48 @@ The closed operation reference is shown here for orientation. `/wsr list` and `/
 Direct command example—everything after the activation directive, plus chat attachments, becomes the `TaskPrompt`; there is no `--intent` argument:
 
 ```text
-/wsr create implementation-workflow@0.3.0
-Implement the requested change and preserve existing user edits.
+/wsr create hello-world-workflow@0.1.0
+Greet me and mention the task described in this conversation.
 ```
 
 Explicit first-party skill example:
 
 ```text
 /workflow-execution
-Create implementation-workflow@0.3.0 for this request and its attachments.
+Create system-design-workflow@0.3.0 to design the requested change from this task description and its attachments.
 ```
 
 The explicit-only skill calls the DSH-I-only `workflow_execution_intake` tool exactly once. Command and skill use the same `WorkflowIntakeService`, M01 resolution/validation/READY path, and host-neutral Core operation. Workflow Actions execute in Runner-owned `DSH-E`, never in Intake `DSH-I`.
+
+`implementation-workflow@0.3.0` requires an existing design input. Do not use it as a from-zero smoke or interaction test; use it only when the conversation or attachments supply the required design artifact.
 
 ### Manual #57 acceptance run
 
 Product surface boundary: use the sidebar tabs for Delivery list and current Delivery status. Use the chat timeline for create/recover/abandon/action-finish commands, command acknowledgement, Action output/input, ordinary user answers, errors, and terminal result.
 
-In the browser opened by `dsh web`, create or select a conversation rooted at the target worktree, then click the sidebar Deliveries tab. It must show an explicit empty result when no Delivery exists without requiring a chat command. Next attach any files needed by the task and submit one composer message whose first line is the command and whose remaining chat text is the task prompt:
+Run both cases below. They prove different acceptance boundaries and must not substitute for each other.
+
+#### 1. Published hello-world smoke
+
+In the browser opened by `dsh web`, create a conversation rooted at the target worktree, then click the sidebar Deliveries tab. It must show an explicit empty result when no Delivery exists without requiring a chat command. Optionally attach a small test file, then submit:
 
 ```text
-/wsr create implementation-workflow@0.3.0
-Perform the requested implementation using the text and attachments in this conversation.
+/wsr create hello-world-workflow@0.1.0
+Greet me, summarize this request, and acknowledge the attachment if one is present.
 ```
 
-Success requires the same chat timeline to render acknowledgement, Action output/input and terminal result; process logs, sidebar projection, or a helper-only response do not count. Inspect the bound Delivery through the sidebar Current status tab. If the Workflow enters a multi-turn Action such as grilling, answer normally in this conversation. When that interaction is complete, submit `/wsr action finish`; then use Current status again to observe the next state. A credential, Source, package-resolution, or Runner error is a failed acceptance run and must be fixed before #57 is closed.
+This case must resolve the independently published exact Package `hello-world-workflow@0.1.0` through the configured Source and render command acknowledgement, model-backed Action output, and the terminal result in the same chat timeline. Process logs, sidebar projection, or a helper-only response do not count. Inspect the bound Delivery through the sidebar Current status tab. A credential, Source, package-resolution, or Runner error fails this case.
+
+#### 2. From-zero multi-turn interaction
+
+Create a new conversation rooted at the same target worktree. Do not reuse `implementation-workflow@0.3.0`: it requires a pre-existing design artifact and therefore cannot prove a from-zero flow. Submit an ordinary design task instead:
+
+```text
+/wsr create system-design-workflow@0.3.0
+Design a bounded change for this repository from the task description and attachments in this conversation.
+```
+
+This case must start from that ordinary task description, produce its initial Action output without user intervention, and then complete at least two question/ordinary-answer ping-pong rounds in the same chat timeline. The Agent must ask whether agreement has been reached; answer that confirmation normally. When the interaction is ready to close, submit `/wsr action finish`. The same chat timeline must render every Action output/input request, the acknowledgement, and the terminal result. Use Current status between steps to inspect the same bound Delivery without entering `/wsr status` in chat. A detached answer, missing second round, missing agreement confirmation, or missing terminal result fails this case.
 
 The following compatibility/automation operations remain available even though the product UI uses sidebar tabs:
 
@@ -143,7 +168,7 @@ The following compatibility/automation operations remain available even though t
 
 An ordinary reply while an Action is awaiting input remains inside that Action. Use `/wsr action finish` only to request closure of the current multi-turn interaction; the Action and validated `workflow_complete` remain the completion authority.
 
-For a repeatable source-candidate browser oracle, run `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`. It creates a fresh DSH Web profile and Chrome profile, clicks both sidebar tabs, drives hello-world and a two-answer system-design interaction, restarts the same version, and returns the URL, environment tuple, artifact SHA-256 values, and surface-separated DOM evidence. The source config points to an external credential file; the result never prints key material.
+For a repeatable source-candidate browser oracle, run `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`. It creates a fresh DSH Web profile and Chrome profile, clicks both sidebar tabs, drives the same published hello-world smoke and a two-answer system-design interaction, restarts the same version, and returns the URL, environment tuple, artifact SHA-256 values, and surface-separated DOM evidence. The source config points to an external credential file; the result never prints key material.
 
 ## 5. Recovery, shutdown, update, and removal
 
