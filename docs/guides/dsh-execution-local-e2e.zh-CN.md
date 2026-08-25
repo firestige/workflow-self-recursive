@@ -96,11 +96,13 @@ dsh --help
 
 ## 4. 启动与调用
 
-从目标 worktree 启动 DSH Web：
+从任意已有目录启动 DSH Web：
 
 ```sh
 dsh web
 ```
+
+进程启动目录不是 Workflow worktree。请在 DSH 中选择或注册目标 Git workspace。在 issue #93 的过渡实现中，Intake 会验证调用 Agent 是当前 live instance，并验证 workspace registry 将 session header `cwd` 解析为该精确 canonical workspace，且 workspace 将该 session 记录为成员；随后只为本次调用把这个精确 workspace 作为临时 worktree 传入。注册或成员关系不匹配会以 `DSH_INTAKE_WORKSPACE_UNAUTHORIZED` 失败；Intake 绝不替换为共同父目录、相邻目录或启动目录。Issue #94 会用 Delivery 选择的 worktree 替换这个临时 workspace-as-worktree 值。
 
 下面列出 closed operation 作为参考。`/wsr list` 与 `/wsr status` 保留为 compatibility/automation alias；人工验收使用 sidebar tabs 作为它们面向用户的默认入口：
 
@@ -133,7 +135,7 @@ Direct command 示例——activation directive 后的正文与聊天附件共�
 
 ### #57 人工验收流程
 
-产品 surface 边界：Delivery list 与 current Delivery status 使用 sidebar tabs；create/recover/abandon/action-finish command、acknowledgement、Action output/input、普通用户答复、error 与 terminal result 使用 chat timeline。
+产品 surface 边界：Delivery list 与 current Delivery status 使用 sidebar tabs；create/recover/abandon/action-finish command、acknowledgement、Action output/input、普通用户答复、error 与 terminal result 使用 chat timeline。Interactive slash command 必须只作为原生用户气泡出现一次，不得显示内部 `/wsr` lifecycle row。提交该 command 后，“新会话”必须打开不同且空白的 conversation；重新打开旧 conversation 时，只恢复它自己的 Workflow history。
 
 必须分别完成下面两个案例。它们证明不同的验收边界，不能互相替代。
 
@@ -168,7 +170,7 @@ Direct command 示例——activation directive 后的正文与聊天附件共�
 
 Action 等待输入时，普通答复仍属于该 Action 内部交互。只有需要请求结束当前多轮阶段时才用 `/wsr action finish`；Action 与 validated `workflow_complete` 仍拥有完成权。
 
-可重放的 source-candidate browser oracle 使用 `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`。它会创建 fresh DSH Web profile 与 Chrome profile、点击两个 sidebar tab、驱动同样的已发布 hello-world smoke 和需要两次答复的 system-design 交互、以同一版本重启，并返回 URL、environment tuple、artifact SHA-256 与按 surface 分开的 DOM evidence。Source config 指向外置 credential file；结果不会打印 key material。
+可重放的 source-candidate browser oracle 使用 `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`。它会创建 fresh DSH Web profile 与 Chrome profile，验证 public configured roots 外的精确 registered workspace 会进入 Source handling 而不是返回 `WORKTREE_OUT_OF_SCOPE`，点击两个 sidebar tab、驱动同样的已发布 hello-world smoke 和需要两次答复的 system-design 交互、以同一版本重启，并返回 URL、environment tuple、artifact SHA-256 与按 surface 分开的 DOM evidence。Source config 指向外置 credential file；结果不会打印 key material。
 
 ## 5. 恢复、关闭、更新与移除
 

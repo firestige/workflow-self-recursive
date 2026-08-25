@@ -96,11 +96,13 @@ Expected: the dump includes `webserver`, `ui-conversation`, `ui-commands`, row `
 
 ## 4. Start and invoke
 
-Start DSH Web from the target worktree:
+Start DSH Web from any existing directory:
 
 ```sh
 dsh web
 ```
+
+The process launch directory is not a Workflow worktree. Select or register the target Git workspace in DSH. For the issue #93 transition, Intake verifies that the invoking Agent is the current live instance and that the workspace registry both resolves the session header `cwd` to that exact canonical workspace and lists the session as a member. It then passes that exact workspace as the provisional worktree for this invocation. Registration or membership mismatches fail with `DSH_INTAKE_WORKSPACE_UNAUTHORIZED`; Intake never substitutes a common parent, sibling, or launch directory. Issue #94 will replace this provisional workspace-as-worktree value with the Delivery-selected worktree.
 
 The closed operation reference is shown here for orientation. `/wsr list` and `/wsr status` remain compatibility/automation aliases; the manual acceptance run uses sidebar tabs as their default user-facing entry:
 
@@ -133,7 +135,7 @@ The explicit-only skill calls the DSH-I-only `workflow_execution_intake` tool ex
 
 ### Manual #57 acceptance run
 
-Product surface boundary: use the sidebar tabs for Delivery list and current Delivery status. Use the chat timeline for create/recover/abandon/action-finish commands, command acknowledgement, Action output/input, ordinary user answers, errors, and terminal result.
+Product surface boundary: use the sidebar tabs for Delivery list and current Delivery status. Use the chat timeline for create/recover/abandon/action-finish commands, command acknowledgement, Action output/input, ordinary user answers, errors, and terminal result. An interactive slash command must appear once as a native user bubble; internal `/wsr` lifecycle rows must not appear. After that command, New Session must open an empty, distinct conversation; reopening the earlier conversation must restore only its own Workflow history.
 
 Run both cases below. They prove different acceptance boundaries and must not substitute for each other.
 
@@ -168,7 +170,7 @@ The following compatibility/automation operations remain available even though t
 
 An ordinary reply while an Action is awaiting input remains inside that Action. Use `/wsr action finish` only to request closure of the current multi-turn interaction; the Action and validated `workflow_complete` remain the completion authority.
 
-For a repeatable source-candidate browser oracle, run `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`. It creates a fresh DSH Web profile and Chrome profile, clicks both sidebar tabs, drives the same published hello-world smoke and a two-answer system-design interaction, restarts the same version, and returns the URL, environment tuple, artifact SHA-256 values, and surface-separated DOM evidence. The source config points to an external credential file; the result never prints key material.
+For a repeatable source-candidate browser oracle, run `pnpm --dir execution-system qualify:dsh-product -- <absolute-core-archive> <absolute-intake-archive> <absolute-source-config>`. It creates a fresh DSH Web profile and Chrome profile, verifies that an exact registered workspace outside the public configured roots reaches Source handling instead of `WORKTREE_OUT_OF_SCOPE`, clicks both sidebar tabs, drives the same published hello-world smoke and a two-answer system-design interaction, restarts the same version, and returns the URL, environment tuple, artifact SHA-256 values, and surface-separated DOM evidence. The source config points to an external credential file; the result never prints key material.
 
 ## 5. Recovery, shutdown, update, and removal
 

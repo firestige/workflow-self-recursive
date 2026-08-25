@@ -40,6 +40,8 @@ Use `execution-config init|copy <absolute-path> [yaml|json]`, fill the required 
 | `intake.maxCorrelationBytes` | default | bounded presentation correlation `16..1024` bytes |
 | `intake.maxOutputBytes` | default | bounded renderer output `256..65536` bytes |
 
+`paths.allowedWorktreeRoots` remains the authority for the public application surface. The DSH Intake adapter additionally has a private, invocation-scoped admission path: after DSH registry and session-membership validation, it may authorize only the exact canonical conversation workspace supplied for that invocation. This does not widen the configured roots or admit a parent or sibling. Issue #94 will replace the issue #93 workspace-as-worktree transition with Delivery-selected worktrees.
+
 The loader derives `<stateRoot>/packages`, `manifests`, `current-slots`, `staging`, and `runner/{journal,checkpoints,sessions,custody}`. Manifest/current-slot and Runner roots are durable truth; staging is temporary. The DSH plugin's separate `bindingFile` stores adapter-private session↔Delivery bindings and must also remain outside the plugin installation directory.
 
 In the DSH Web product, configuration does not change the UI responsibility boundary: sidebar tabs invoke the existing list/status control-plane operations, while the chat timeline carries interactive commands, Action conversation, ordinary answers, and terminal results. The `/wsr list` and `/wsr status` aliases remain available for compatibility and automation.

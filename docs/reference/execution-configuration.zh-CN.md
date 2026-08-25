@@ -40,6 +40,8 @@
 | `intake.maxCorrelationBytes` | 默认 | bounded presentation correlation `16..1024` bytes |
 | `intake.maxOutputBytes` | 默认 | bounded renderer output `256..65536` bytes |
 
+`paths.allowedWorktreeRoots` 仍是 public application surface 的 authority。DSH Intake adapter 另外拥有一条 private、invocation-scoped 的 admission path：通过 DSH registry 与 session membership 校验后，它只能授权本次调用传入的精确 canonical conversation workspace。该路径不会扩大 configured roots，也不会接纳父目录或相邻目录。Issue #94 会用 Delivery 选择的 worktree 替换 issue #93 的 workspace-as-worktree 过渡实现。
+
 Loader 从 `stateRoot` 派生 `packages`、`manifests`、`current-slots`、`staging` 与 `runner/{journal,checkpoints,sessions,custody}`。Manifest/current-slot 与 Runner roots 属于 durable truth；staging 是临时目录。DSH plugin 的独立 `bindingFile` 保存 adapter-private session↔Delivery binding，也必须位于 plugin installation directory 外。
 
 DSH Web 的配置不会改变 UI 职责边界：sidebar tabs 调用已有 list/status control-plane operation，chat timeline 承载 interactive command、Action conversation、普通答复与 terminal result。`/wsr list` 和 `/wsr status` alias 继续保留给 compatibility 与 automation。
