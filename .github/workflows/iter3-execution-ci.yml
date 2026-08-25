@@ -61,6 +61,7 @@ jobs:
           pnpm typecheck
           pnpm build
           pnpm check:generated
+          git fetch --tags --force
           pnpm changelog:check
           pnpm harness static
           pnpm harness feasibility
