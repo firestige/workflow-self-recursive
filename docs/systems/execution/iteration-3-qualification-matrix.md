@@ -127,8 +127,8 @@ The Action-finish requirement is an approved bounded reopen. A RED fixture must 
 
 | Artifact | Exact coordinate / convention | Owner |
 | --- | --- | --- |
-| Host-neutral Execution package | `@workflow-self-recursive/execution-system@0.1.0` | Execution Release |
-| DSH Intake package | `@workflow-self-recursive/dsh-intake@0.1.0` | Execution Release |
+| Host-neutral Execution package | `wsr-execution@0.1.0` | Execution Release |
+| DSH Intake package | `wsr-dsh-intake@0.1.0` | Execution Release |
 | DSH profile | built-in `web` (`dsh-base` + `dsh-web-app`) | user installation |
 | Cordis row ID | `workflow-execution` | DSH Intake package |
 | Execution config schema/defaults | `execution.config@1.0.0`; `config/defaults/execution.default.yaml` and `.json` | Execution Release |

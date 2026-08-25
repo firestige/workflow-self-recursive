@@ -1,6 +1,6 @@
 # DSH Execution quickstart
 
-This guide installs a qualified final Execution Release in a trusted local environment. Do not use it for an unpublished candidate; use the [local pre-release E2E guide](dsh-execution-local-e2e.md) instead. The DSH plugin is the first Intake Adapter distribution; `@workflow-self-recursive/execution-system` remains a host-neutral package that can be embedded without DSH.
+This guide installs a qualified final Execution Release in a trusted local environment. Do not use it for an unpublished candidate; use the [local pre-release E2E guide](dsh-execution-local-e2e.md) instead. The DSH plugin is the first Intake Adapter distribution; `wsr-execution` remains a host-neutral package that can be embedded without DSH.
 
 ## 0. Check the host prerequisites
 
@@ -53,7 +53,7 @@ export WSR_CONFIG="$PWD/../wsr-local/execution.yaml"
 export WSR_STATE="$PWD/../wsr-local/state"
 export WSR_CREDENTIALS="$PWD/../wsr-local/credentials.yml"
 mkdir -p "$(dirname "$WSR_CONFIG")" "$WSR_STATE"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
+npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
   execution-config init "$WSR_CONFIG" yaml
 ```
 
@@ -71,9 +71,9 @@ Set the credential file to owner-only access, then validate and inspect the reda
 
 ```sh
 chmod 600 "$WSR_CREDENTIALS"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
+npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
   execution-config validate "$WSR_CONFIG"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
+npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
   execution-config dump-effective "$WSR_CONFIG"
 ```
 
@@ -85,8 +85,8 @@ Use locked DSH's built-in `web` profile. It is the supported interactive assembl
 
 ```sh
 dsh plugin --profile web config set --location=project --json allowBuilds '{"better-sqlite3":true}'
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-dsh-intake-0.1.1.tgz"
 ```
 
 Edit `$DSH_HOME/profiles/web/cordis.patch.yml` so the stable WSR row contains only absolute presentation paths. `web` is the DSH profile name; `workflow-execution` remains the plugin's stable Cordis row ID:
@@ -169,12 +169,12 @@ Stopping DSH closes the Intake gate, performs bounded Observation flush, and cas
 For a later compatible exact version, update Core first and Intake second. To remove the installation, remove Intake first and Core second:
 
 ```sh
-dsh plugin --profile web update --workspace-root @workflow-self-recursive/execution-system@<new-exact-version>
-dsh plugin --profile web update --workspace-root @workflow-self-recursive/dsh-intake@<new-exact-version>
-dsh plugin --profile web remove --workspace-root @workflow-self-recursive/dsh-intake
-dsh plugin --profile web remove --workspace-root @workflow-self-recursive/execution-system
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web update --workspace-root wsr-execution@<new-exact-version>
+dsh plugin --profile web update --workspace-root wsr-dsh-intake@<new-exact-version>
+dsh plugin --profile web remove --workspace-root wsr-dsh-intake
+dsh plugin --profile web remove --workspace-root wsr-execution
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-dsh-intake-0.1.1.tgz"
 ```
 
 DSH owns these package-lifecycle operations. WSR does not add install/remove hooks. Removal leaves external durable state untouched; a compatible reinstall resumes the same persisted Delivery binding. Interaction state written after the last durable boundary may be lost.

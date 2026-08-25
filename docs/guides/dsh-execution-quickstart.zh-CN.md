@@ -1,6 +1,6 @@
 # DSH Execution 快速开始
 
-本指南在可信本地环境安装已经完成 qualification 的 final Execution Release。未发布 candidate 不使用本指南，应使用[本地发布前 E2E 指南](dsh-execution-local-e2e.zh-CN.md)。DSH plugin 是首个 Intake Adapter distribution；`@workflow-self-recursive/execution-system` 仍是可脱离 DSH 嵌入的 host-neutral package。
+本指南在可信本地环境安装已经完成 qualification 的 final Execution Release。未发布 candidate 不使用本指南，应使用[本地发布前 E2E 指南](dsh-execution-local-e2e.zh-CN.md)。DSH plugin 是首个 Intake Adapter distribution；`wsr-execution` 仍是可脱离 DSH 嵌入的 host-neutral package。
 
 ## 0. 检查宿主前置项
 
@@ -53,7 +53,7 @@ export WSR_CONFIG="$PWD/../wsr-local/execution.yaml"
 export WSR_STATE="$PWD/../wsr-local/state"
 export WSR_CREDENTIALS="$PWD/../wsr-local/credentials.yml"
 mkdir -p "$(dirname "$WSR_CONFIG")" "$WSR_STATE"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
+npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
   execution-config init "$WSR_CONFIG" yaml
 ```
 
@@ -69,9 +69,9 @@ refs:
 
 ```sh
 chmod 600 "$WSR_CREDENTIALS"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
+npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
   execution-config validate "$WSR_CONFIG"
-npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz" -- \
+npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
   execution-config dump-effective "$WSR_CONFIG"
 ```
 
@@ -83,8 +83,8 @@ npm exec --yes --package="$PWD/.wsr-release/workflow-self-recursive-execution-sy
 
 ```sh
 dsh plugin --profile web config set --location=project --json allowBuilds '{"better-sqlite3":true}'
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-dsh-intake-0.1.1.tgz"
 ```
 
 编辑 `$DSH_HOME/profiles/web/cordis.patch.yml`，stable WSR row 只保留 absolute presentation path。`web` 是 DSH profile name；`workflow-execution` 仍是 plugin 的 stable Cordis row ID：
@@ -167,12 +167,12 @@ Action 等待输入时，普通答复仍属于该 Action 内部交互。只有�
 以后升级到 compatible exact version 时，先 update Core，再 update Intake。移除 installation 时先 remove Intake，再 remove Core：
 
 ```sh
-dsh plugin --profile web update --workspace-root @workflow-self-recursive/execution-system@<new-exact-version>
-dsh plugin --profile web update --workspace-root @workflow-self-recursive/dsh-intake@<new-exact-version>
-dsh plugin --profile web remove --workspace-root @workflow-self-recursive/dsh-intake
-dsh plugin --profile web remove --workspace-root @workflow-self-recursive/execution-system
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web update --workspace-root wsr-execution@<new-exact-version>
+dsh plugin --profile web update --workspace-root wsr-dsh-intake@<new-exact-version>
+dsh plugin --profile web remove --workspace-root wsr-dsh-intake
+dsh plugin --profile web remove --workspace-root wsr-execution
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-dsh-intake-0.1.1.tgz"
 ```
 
 这些 package lifecycle operation 归 DSH。WSR 不增加 install/remove hook。Remove 保留外置 durable state；兼容版本 reinstall 后恢复相同 persisted Delivery binding。最后一个 durable boundary 之后的 interaction state 允许丢失。

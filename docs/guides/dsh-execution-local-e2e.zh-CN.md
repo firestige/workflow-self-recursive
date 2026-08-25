@@ -1,6 +1,6 @@
 # DSH Execution 本地发布前 E2E
 
-本指南从当前 checkout 构建 Iteration 3 candidate，并在可信本地环境进行发布前 E2E 安装。它明确不下载 Execution GitHub Release。DSH plugin 是首个 Intake Adapter distribution；`@workflow-self-recursive/execution-system` 仍是可脱离 DSH 嵌入的 host-neutral package。
+本指南从当前 checkout 构建 Iteration 3 candidate，并在可信本地环境进行发布前 E2E 安装。它明确不下载 Execution GitHub Release。DSH plugin 是首个 Intake Adapter distribution；`wsr-execution` 仍是可脱离 DSH 嵌入的 host-neutral package。
 
 ## 0. 检查宿主前置项
 
@@ -69,7 +69,7 @@ pnpm --dir execution-system quickstart:prepare -- --reinstall-dsh-profile
 
 - `DEP0169` 表示 DSH 在 `PATH` 中找到了旧 pnpm CLI；可用上面的可选 Corepack 升级消除。
 - `prebuild-install@7.1.3` 是 `better-sqlite3` 下的 deprecated installer，由 `@langchain/langgraph-checkpoint-sqlite` 间接引入；它不是安装得到的 Execution runtime version。
-- Core `declares no dsh.bundle` 是预期输出。`@workflow-self-recursive/execution-system` 按设计作为 host-neutral plain dependency 安装，`@workflow-self-recursive/dsh-intake` 才提供 DSH profile layer。
+- Core `declares no dsh.bundle` 是预期输出。`wsr-execution` 按设计作为 host-neutral plain dependency 安装，`wsr-dsh-intake` 才提供 DSH profile layer。
 
 ## 2. 填写 credential
 
@@ -179,12 +179,12 @@ Action 等待输入时，普通答复仍属于该 Action 内部交互。只有�
 以后升级到 compatible exact version 时，先 update Core，再 update Intake。移除 installation 时先 remove Intake，再 remove Core：
 
 ```sh
-dsh plugin --profile web update --workspace-root @workflow-self-recursive/execution-system@<new-exact-version>
-dsh plugin --profile web update --workspace-root @workflow-self-recursive/dsh-intake@<new-exact-version>
-dsh plugin --profile web remove --workspace-root @workflow-self-recursive/dsh-intake
-dsh plugin --profile web remove --workspace-root @workflow-self-recursive/execution-system
-dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-execution-system-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web update --workspace-root wsr-execution@<new-exact-version>
+dsh plugin --profile web update --workspace-root wsr-dsh-intake@<new-exact-version>
+dsh plugin --profile web remove --workspace-root wsr-dsh-intake
+dsh plugin --profile web remove --workspace-root wsr-execution
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/wsr-execution-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/wsr-dsh-intake-0.1.1.tgz"
 ```
 
 这些 package lifecycle operation 归 DSH。WSR 不增加 install/remove hook。Remove 保留外置 durable state；兼容版本 reinstall 后恢复相同 persisted Delivery binding。最后一个 durable boundary 之后的 interaction state 允许丢失。

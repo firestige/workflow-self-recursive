@@ -31,7 +31,7 @@ The frozen `agentops.observation@1.0.0` publication record remains `VALIDATOR_ON
 
 The package root exports the host-neutral `ExecutionApplication`, `ExecutionApplicationFactory`/`DefaultExecutionApplicationFactory`, `ExecutionRequest`, `TaskPrompt`, lifecycle/control types, configuration schema/types, and one production bootstrap path. Replacement-Intake contract tests consume the same request/result corpus without installing the DSH plugin.
 
-`@workflow-self-recursive/dsh-intake@0.1.1` is the completed Iteration 3 Adapter compatibility line. It owns `/wsr`, explicit `/workflow-execution`, DSH-I-only `workflow_execution_intake`, bounded rendering, and external adapter-private session↔Delivery bindings. DSH-I and Runner-owned DSH-E use distinct Context/service/session/persistence identities; Intake lifecycle cascades shutdown to Execution/DSH-E and preserves durable truth for restart. Command and skill-mediated create preserve the current turn and attachments and converge on one `WorkflowIntakeService` and M01 path.
+`wsr-dsh-intake@0.1.1` is the completed Iteration 3 Adapter compatibility line. It owns `/wsr`, explicit `/workflow-execution`, DSH-I-only `workflow_execution_intake`, bounded rendering, and external adapter-private session↔Delivery bindings. DSH-I and Runner-owned DSH-E use distinct Context/service/session/persistence identities; Intake lifecycle cascades shutdown to Execution/DSH-E and preserves durable truth for restart. Command and skill-mediated create preserve the current turn and attachments and converge on one `WorkflowIntakeService` and M01 path.
 
 The supported interactive host assembly is DSH's built-in `web` profile, not the base-only custom `workflow-execution` profile described in the original quickstart. `workflow-execution` remains the stable Cordis row and skill name. `test/tooling/dsh-interactive-intake-qualification.test.ts` exercises the same `commands/list`/`commands/execute` Web transport used by the browser and verifies the user-visible `command/run`/`command/done` result in session history.
 
@@ -62,8 +62,8 @@ The repository [local pre-release E2E guide](../../../guides/dsh-execution-local
 
 | Execution Release asset | SHA-256 |
 | --- | --- |
-| `workflow-self-recursive-execution-system-0.1.0.tgz` | `6fef452ccf5349f7ecd90a1f1266a920a434504bd39c9d3bfddc7f364e7383c5` |
-| `workflow-self-recursive-dsh-intake-0.1.0.tgz` | `9151365d584e23e2098fdd368bac404c0e24ef296c9906f95577c5660e235bb8` |
+| `wsr-execution-0.1.0.tgz` | `6fef452ccf5349f7ecd90a1f1266a920a434504bd39c9d3bfddc7f364e7383c5` |
+| `wsr-dsh-intake-0.1.0.tgz` | `9151365d584e23e2098fdd368bac404c0e24ef296c9906f95577c5660e235bb8` |
 
 After component-first squash, the final pinned combination passed 53 test files / 479 tests, coverage (`90.08%` statements, `85.79%` branches, `94.08%` functions, `95.77%` lines), typecheck, build, generated/static/feasibility, frozen Contract/Package conformance, documentation parity, artifact verification, clean npm package-root import and real `execution-config init`, and locked-DSH remove/reinstall recovery. All nine Execution Release assets were re-downloaded; the publication verifier, clean installation, CLI, and DSH lifecycle qualification passed against those downloaded bytes.
 

@@ -26,7 +26,7 @@ Frozen `agentops.observation@1.0.0` publication record 保持 `VALIDATOR_ONLY`�
 
 Package root 导出 host-neutral `ExecutionApplication`、`ExecutionApplicationFactory`/`DefaultExecutionApplicationFactory`、`ExecutionRequest`、`TaskPrompt`、lifecycle/control type、configuration schema/type 与唯一 production bootstrap path。Replacement-Intake contract test 不安装 DSH plugin，也能消费同一 request/result corpus。
 
-`@workflow-self-recursive/dsh-intake@0.1.1` 是完成 Iteration 3 的 Adapter compatibility line。它拥有 `/wsr`、显式 `/workflow-execution`、DSH-I-only `workflow_execution_intake`、bounded rendering 与外置 adapter-private session↔Delivery binding。DSH-I 与 Runner-owned DSH-E 的 Context/service/session/persistence identity 均不同；Intake lifecycle 级联关闭 Execution/DSH-E，并保留 restart 所需 durable truth。Command 与 skill-mediated create 原样保留 current turn/attachments，并收敛到一个 `WorkflowIntakeService` 与 M01 path。
+`wsr-dsh-intake@0.1.1` 是完成 Iteration 3 的 Adapter compatibility line。它拥有 `/wsr`、显式 `/workflow-execution`、DSH-I-only `workflow_execution_intake`、bounded rendering 与外置 adapter-private session↔Delivery binding。DSH-I 与 Runner-owned DSH-E 的 Context/service/session/persistence identity 均不同；Intake lifecycle 级联关闭 Execution/DSH-E，并保留 restart 所需 durable truth。Command 与 skill-mediated create 原样保留 current turn/attachments，并收敛到一个 `WorkflowIntakeService` 与 M01 path。
 
 受支持的 interactive host assembly 是 DSH 内置 `web` profile，而不是原 quickstart 所写的 base-only custom `workflow-execution` profile。`workflow-execution` 仍是 stable Cordis row 与 skill name。`test/tooling/dsh-interactive-intake-qualification.test.ts` 走 browser 使用的同一 `commands/list`/`commands/execute` Web transport，并从 session history 验证 user-visible `command/run`/`command/done` result。
 
@@ -57,8 +57,8 @@ Repository [本地发布前 E2E 指南](../../../guides/dsh-execution-local-e2e.
 
 | Execution Release asset | SHA-256 |
 | --- | --- |
-| `workflow-self-recursive-execution-system-0.1.0.tgz` | `6fef452ccf5349f7ecd90a1f1266a920a434504bd39c9d3bfddc7f364e7383c5` |
-| `workflow-self-recursive-dsh-intake-0.1.0.tgz` | `9151365d584e23e2098fdd368bac404c0e24ef296c9906f95577c5660e235bb8` |
+| `wsr-execution-0.1.0.tgz` | `6fef452ccf5349f7ecd90a1f1266a920a434504bd39c9d3bfddc7f364e7383c5` |
+| `wsr-dsh-intake-0.1.0.tgz` | `9151365d584e23e2098fdd368bac404c0e24ef296c9906f95577c5660e235bb8` |
 
 component-first squash 后，最终 pinned 组合通过 53 个 test file / 479 个 test，coverage（statements `90.08%`、branches `85.79%`、functions `94.08%`、lines `95.77%`）、typecheck、build、generated/static/feasibility、frozen Contract/Package conformance、documentation parity、artifact verification、clean npm package-root import 与真实 `execution-config init`，以及 locked DSH remove/reinstall recovery。全部九个 Execution Release asset 均已重新下载；publication verifier、clean install、CLI 与 DSH lifecycle qualification 已针对下载后的 bytes 通过。
 

@@ -94,19 +94,19 @@ jobs:
           mkdir "$RUNNER_TEMP/execution-consumer"
           cd "$RUNNER_TEMP/execution-consumer"
           npm init -y
-          npm install --ignore-scripts "$RUNNER_TEMP/execution-release/workflow-self-recursive-execution-system-0.1.1.tgz"
-          node --input-type=module -e 'import { DefaultExecutionApplicationFactory, loadExecutionInstallationConfig } from "@workflow-self-recursive/execution-system"; if (![DefaultExecutionApplicationFactory, loadExecutionInstallationConfig].every(Boolean)) process.exit(1)'
+          npm install --ignore-scripts "$RUNNER_TEMP/execution-release/wsr-execution-0.1.1.tgz"
+          node --input-type=module -e 'import { DefaultExecutionApplicationFactory, loadExecutionInstallationConfig } from "wsr-execution"; if (![DefaultExecutionApplicationFactory, loadExecutionInstallationConfig].every(Boolean)) process.exit(1)'
 
       - name: Qualify DSH package lifecycle without install hooks
         working-directory: execution-system
-        run: pnpm qualify:dsh-package-lifecycle "$RUNNER_TEMP/execution-release/workflow-self-recursive-dsh-intake-0.1.1.tgz" "$RUNNER_TEMP/execution-release/workflow-self-recursive-dsh-intake-0.1.1.tgz"
+        run: pnpm qualify:dsh-package-lifecycle "$RUNNER_TEMP/execution-release/wsr-dsh-intake-0.1.1.tgz" "$RUNNER_TEMP/execution-release/wsr-dsh-intake-0.1.1.tgz"
 
       - name: Qualify local artifact install through real DSH Web Intake
         working-directory: execution-system
         run: |
           pnpm qualify:dsh-interactive \
-            "$RUNNER_TEMP/execution-release/workflow-self-recursive-execution-system-0.1.1.tgz" \
-            "$RUNNER_TEMP/execution-release/workflow-self-recursive-dsh-intake-0.1.1.tgz" \
+            "$RUNNER_TEMP/execution-release/wsr-execution-0.1.1.tgz" \
+            "$RUNNER_TEMP/execution-release/wsr-dsh-intake-0.1.1.tgz" \
             "$GITHUB_WORKSPACE"
 
       - name: Verify independent Workflow Package release assets
