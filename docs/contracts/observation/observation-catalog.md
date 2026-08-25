@@ -10,8 +10,8 @@
 | --- | --- |
 | Document identity | `observation.identity.001` |
 | Status | `FROZEN` |
-| Contract release | current `observation-contract@1.0.1`; PATCH validator correction over immutable `1.0.0`; wire Profile remains `1.0.0` |
-| Publication binding | [`release-binding-1.0.1.json`](release-binding-1.0.1.json); historical `1.0.0` remains resolving and byte-identical |
+| Contract release | current `observation-contract@1.0.2`; non-semantic exact-binding PATCH over immutable `1.0.1`; wire Profile remains `1.0.0` |
+| Publication binding | [`release-binding-1.0.2.json`](release-binding-1.0.2.json); historical `1.0.0` and `1.0.1` remain resolving and byte-identical |
 | Normative language | English |
 | Origin | Meaning-preserving authority split from superseded `EE-CONTRACT-DRAFT-001`; C55–C57 meaning and ownership resolve to [Concept §3](../../agent-architecture.md#ee-concept-3), [Execution §14](../../systems/execution/project-execution-system.md#ee-execution-14), and [Evidence §8](../../systems/evidence/evidence-system.md#ee-evidence-8); the historical amendment remains provenance only |
 | Semantic authorities | [Concept](../../agent-architecture.md), [Execution Design](../../systems/execution/project-execution-system.md), [Evidence Design](../../systems/evidence/evidence-system.md) |

@@ -136,7 +136,7 @@ jobs:
         run: |
           test "$(git -C workflow-package rev-parse ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb^{tree}:implementation)" = "$(git -C workflow-package rev-parse HEAD^{tree}:implementation)"
           test "$(git -C workflow-package rev-parse ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb^{tree}:system-design)" = "$(git -C workflow-package rev-parse HEAD^{tree}:system-design)"
-          test "$(git -C system-contracts rev-parse HEAD)" = 0468996bdf5f5a2d0a0e95d6dde00911e051522c
+          test "$(git -C system-contracts rev-parse HEAD)" = 9e6ba782b742f49f3d2392c9af37ebd4ff328bc8
           pnpm --dir execution-system exec tsx scripts/static-boundary-check.ts
           if git grep -n -E '#87.*(complete|closed|done)|Workflow Contract evolution.*(complete|closed|done)|Delivery Admission Contract evolution.*(complete|closed|done)' -- docs; then
             exit 1

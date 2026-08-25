@@ -16,7 +16,7 @@ English | [中文](README.zh-CN.md)
 
 | Contract | Semantic document | Lifecycle status | Revision |
 | --- | --- | --- | --- |
-| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `FROZEN` | published `observation-contract@1.0.1`; immutable `1.0.0` resolving; `VALIDATOR_ONLY` |
+| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `FROZEN` | published `observation-contract@1.0.2`; immutable `1.0.0`/`1.0.1` resolving; wire Profile `1.0.0`; `VALIDATOR_ONLY` |
 | OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `FROZEN` | Contract `1.0.1`, wire profile `1.0.0`; `VALIDATOR_ONLY` |
 | Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `FROZEN` | Contract `1.0.1`, interaction schema `1.0.0`; `VALIDATOR_ONLY` |
 | Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `FROZEN` | published `agentops.evaluation.metric-catalog@1.0.0`; `VALIDATOR_ONLY` |

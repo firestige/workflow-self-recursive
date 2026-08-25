@@ -10,8 +10,8 @@
 | --- | --- |
 | 文档身份 | `observation.identity.002` |
 | 状态 | `FROZEN` |
-| Contract release | 当前 `observation-contract@1.0.1`；immutable `1.0.0` 上的 PATCH validator correction |
-| Publication binding | [`release-binding-1.0.1.json`](release-binding-1.0.1.json)；wire Profile 仍为 `1.0.0` |
+| Contract release | 当前 `observation-contract@1.0.2`；immutable `1.0.1` 上的 non-semantic exact-binding PATCH；wire Profile 仍为 `1.0.0` |
+| Publication binding | [`release-binding-1.0.2.json`](release-binding-1.0.2.json)；wire Profile 仍为 `1.0.0` |
 | 规范语言 | 英文 |
 | 来源 | 已被取代的 `EE-CONTRACT-DRAFT-001` 的 meaning-preserving authority split，加 C55–C57 与 proposed profile `1.0.0` 的 post-split `EE-OBSERVATION-A-CLASS-INPUTS-2026-08-20` amendment；出处保留在 Git 历史中 |
 | Profile version | published `1.0.0` |

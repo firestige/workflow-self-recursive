@@ -18,7 +18,7 @@
 
 | Contract | 语义文档 | Lifecycle status | Revision |
 | --- | --- | --- | --- |
-| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `FROZEN` | 已发布 `observation-contract@1.0.1`；不可变的 `1.0.0` 仍可解析；`VALIDATOR_ONLY` |
+| Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `FROZEN` | 已发布 `observation-contract@1.0.2`；不可变的 `1.0.0`/`1.0.1` 仍可解析；wire Profile `1.0.0`；`VALIDATOR_ONLY` |
 | OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `FROZEN` | Contract `1.0.1`，wire profile `1.0.0`；`VALIDATOR_ONLY` |
 | Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `FROZEN` | Contract `1.0.1`，interaction schema `1.0.0`；`VALIDATOR_ONLY` |
 | Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `FROZEN` | 已发布 `agentops.evaluation.metric-catalog@1.0.0`；`VALIDATOR_ONLY` |
