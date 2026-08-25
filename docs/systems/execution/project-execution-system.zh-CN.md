@@ -7,7 +7,7 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `execution.identity.001` |
-| 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。2026-08-23 用户审核已批准 Intake/TaskPrompt/Action-finish calibration。2026-08-24 Iteration 3 corrective addendum 是等待 Wave 0 审核的 bounded reopen；精确发布前仍需 fresh deterministic parity/publication binding。 |
+| 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。2026-08-23 用户审核已批准 Intake/TaskPrompt/Action-finish calibration。2026-08-24 corrective addendum 与 2026-08-25 #93 closure 已通过 deterministic Iteration 3 qualification；提升前仍需独立完成 exact publication binding。 |
 | 精确发布绑定 | 外部 publication set/application record 必须用 SHA-256 绑定本字节流及配套 canonical Concept 字节流，记录适用的 review、SD-12、fresh-reader 与 deterministic-verification 证据，并证明精确安装。本文件有意不声明自身 digest 或配套文件 digest。 |
 | 提升后的权威 | 唯一的无版本英文 Project Execution System Design authority |
 | 当前结构权威 | GitHub issue [#45 execution.delivery](https://github.com/firestige/workflow-self-recursive/issues/45)、[#46 execution.observation](https://github.com/firestige/workflow-self-recursive/issues/46) 与 [#47 execution.runner](https://github.com/firestige/workflow-self-recursive/issues/47)；本 candidate 按这些决定校准文档 |

@@ -1,10 +1,10 @@
 # Iteration 3 qualification matrix（中文跟踪译本）
 
-状态：**Wave 0 design oracle**  
+状态：**COMPLETED EVIDENCE INDEX — 2026-08-25**
 权威来源：[Project Execution System Design](./project-execution-system.zh-CN.md)  
 英文规范：[Iteration 3 qualification matrix](./iteration-3-qualification-matrix.md)
 
-本文件是长期 evidence index，不是执行 checklist；完成状态只由 Iteration 3 implementation plan 维护。英文规范冻结 #45、#46、#57、#86 与 Configuration/Factory/Bootstrap 的逐项 owner、RED fixture、executable oracle、target artifact，并进一步冻结：
+本文件是长期 evidence index，不是执行 checklist；完成 evidence 记录在 [Iteration 3 实施结果](./implementation-results/iteration-3.zh-CN.md)。#93 的 post-qualification 修正记录在该实施结果中，不重写本矩阵的 owner-level obligation。英文规范冻结 #45、#46、#57、#86 与 Configuration/Factory/Bootstrap 的逐项 owner、RED fixture、executable oracle、target artifact，并进一步冻结：
 
 - installation-scoped resource 与 Delivery-scoped instance 的 composition/effect boundary；
 - persisted `DeliveryBinding` 先于 binding-dependent M02/M03 composition，且 owner-fact port 在 M02 effect 前完成 one-way wiring；

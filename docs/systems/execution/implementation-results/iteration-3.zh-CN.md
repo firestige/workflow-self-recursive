@@ -1,12 +1,12 @@
 # Iteration 3 Execution 实施结果
 
-状态：`REOPENED_#57`
-范围：[#45](https://github.com/firestige/workflow-self-recursive/issues/45)、[#46](https://github.com/firestige/workflow-self-recursive/issues/46)、[#57](https://github.com/firestige/workflow-self-recursive/issues/57)、[#86](https://github.com/firestige/workflow-self-recursive/issues/86)，以及 Execution-level Configuration/Factory/Bootstrap support  
-版本：Execution Core 与 DSH Intake `0.1.0`；Workflow Package release `0.3.0`
+状态：`COMPLETED_2026-08-25`
+范围：[#45](https://github.com/firestige/workflow-self-recursive/issues/45)、[#46](https://github.com/firestige/workflow-self-recursive/issues/46)、[#57](https://github.com/firestige/workflow-self-recursive/issues/57)、[#86](https://github.com/firestige/workflow-self-recursive/issues/86)、[#93](https://github.com/firestige/workflow-self-recursive/issues/93)，以及 Execution-level Configuration/Factory/Bootstrap support
+版本：Execution Core 与 DSH Intake `0.1.1` compatibility line 加 `main` 上的 #93 修正；Workflow Package release `0.3.0`
 
-本文记录 implementation evidence，不重新定义 frozen Workflow/Delivery Admission Contract、Iteration 2 Runner 五组件语义或两个 initial Workflow Package。#87 保持独立，不在本轮声明完成。
+本文记录 implementation evidence，不重新定义 frozen Workflow/Delivery Admission Contract、Iteration 2 Runner 五组件语义或两个 initial Workflow Package。#87 保持独立，在 Iteration 3 关闭时退回未排期 ready backlog，不在本轮声明完成。
 
-修正说明（2026-08-24）：原 qualification 把 WSR 安装到 custom base-only DSH profile，只证明 package loading，没有提供 interactive conversation surface，因此不满足 #57 的用户 E2E 门禁。#57 与 Iteration 3 已重新打开。修正后的 assembly 把同一个 Adapter 安装到 locked DSH 内置 `web` profile。Automated clean-profile evidence 已启动真实 browser surface、创建真实 DSH session、经 Web command transport 发现 `/wsr`、执行 `/wsr list`，并读取 durable rendered result。在同一 Intake session 中完成 credentialed `/wsr create ...` 人工 E2E、实际执行 Workflow 并观察结果前，Iteration 3 保持未完成。
+修正闭环（2026-08-25）：原 qualification 把 WSR 安装到 custom base-only DSH profile，只证明 package loading，没有提供 interactive conversation surface，因此 #57 与 Iteration 3 曾重新打开。修正后的 assembly 把 Adapter 安装到 locked DSH 内置 `web` profile。Automated clean-profile evidence 已启动真实 browser surface、创建真实 DSH session、经 Web command transport 发现 `/wsr`、执行 `/wsr list`，并读取 durable rendered result。随后 credentialed 人工 E2E 从 `project-ops` conversation workspace 提交 `/wsr create hello-world-workflow@0.1.0`，并在同一 Intake session 中观察到 Workflow 回答。该轮暴露的 session isolation、精确 conversation-workspace admission、内部 tool protocol 泄露、最终回答选择与 answer-tail actions 问题均由 #93 修复，并在 execution-system PR #4 与 superproject PR #96 中通过 qualification。#94 独立承接后续 Session/Delivery/Worktree 生命周期设计，#95 独立承接进一步的原生 DSH UI 对齐；二者均不重新打开 Iteration 3 完成边界。
 
 ## #45 — M01 Delivery
 
@@ -26,7 +26,7 @@ Frozen `agentops.observation@1.0.0` publication record 保持 `VALIDATOR_ONLY`�
 
 Package root 导出 host-neutral `ExecutionApplication`、`ExecutionApplicationFactory`/`DefaultExecutionApplicationFactory`、`ExecutionRequest`、`TaskPrompt`、lifecycle/control type、configuration schema/type 与唯一 production bootstrap path。Replacement-Intake contract test 不安装 DSH plugin，也能消费同一 request/result corpus。
 
-`@workflow-self-recursive/dsh-intake@0.1.0` 是首个 Adapter distribution。它拥有 `/wsr`、显式 `/workflow-execution`、DSH-I-only `workflow_execution_intake`、bounded rendering 与外置 adapter-private session↔Delivery binding。DSH-I 与 Runner-owned DSH-E 的 Context/service/session/persistence identity 均不同；Intake lifecycle 级联关闭 Execution/DSH-E，并保留 restart 所需 durable truth。Command 与 skill-mediated create 原样保留 current turn/attachments，并收敛到一个 `WorkflowIntakeService` 与 M01 path。
+`@workflow-self-recursive/dsh-intake@0.1.1` 是完成 Iteration 3 的 Adapter compatibility line。它拥有 `/wsr`、显式 `/workflow-execution`、DSH-I-only `workflow_execution_intake`、bounded rendering 与外置 adapter-private session↔Delivery binding。DSH-I 与 Runner-owned DSH-E 的 Context/service/session/persistence identity 均不同；Intake lifecycle 级联关闭 Execution/DSH-E，并保留 restart 所需 durable truth。Command 与 skill-mediated create 原样保留 current turn/attachments，并收敛到一个 `WorkflowIntakeService` 与 M01 path。
 
 受支持的 interactive host assembly 是 DSH 内置 `web` profile，而不是原 quickstart 所写的 base-only custom `workflow-execution` profile。`workflow-execution` 仍是 stable Cordis row 与 skill name。`test/tooling/dsh-interactive-intake-qualification.test.ts` 走 browser 使用的同一 `commands/list`/`commands/execute` Web transport，并从 session history 验证 user-visible `command/run`/`command/done` result。
 
@@ -51,6 +51,8 @@ Repository [本地发布前 E2E 指南](../../../guides/dsh-execution-local-e2e.
 - system-contracts Iteration 3 commit：`c8e090f80073e3a4a37063d2d0165f190f2ec7f1`；
 - Execution System Iteration 3 commit：`b00dc40137259eee4dc488b1781fde7ed731e36e`；
 - Execution Release：[0.1.0](https://github.com/firestige/execution-system/releases/tag/0.1.0)，target 为上述 exact Execution commit；
+- 修正后的 interactive Release：[0.1.1](https://github.com/firestige/execution-system/releases/tag/0.1.1)，target 为 `59d86845267ac25cee4ddcf577b4784db3860260`；
+- #93 Execution main merge：`4179d7b4c6f20ddf69e5a1f3b50c86b2143b2287`；superproject main merge：`6db3950c67fbbe51f386f46e6e2afb5085091ef8`；
 - Workflow Package owner release：[0.3.0](https://github.com/firestige/workflow-package/releases/tag/0.3.0)，revision 为 `ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb`。
 
 | Execution Release asset | SHA-256 |
@@ -59,3 +61,5 @@ Repository [本地发布前 E2E 指南](../../../guides/dsh-execution-local-e2e.
 | `workflow-self-recursive-dsh-intake-0.1.0.tgz` | `9151365d584e23e2098fdd368bac404c0e24ef296c9906f95577c5660e235bb8` |
 
 component-first squash 后，最终 pinned 组合通过 53 个 test file / 479 个 test，coverage（statements `90.08%`、branches `85.79%`、functions `94.08%`、lines `95.77%`）、typecheck、build、generated/static/feasibility、frozen Contract/Package conformance、documentation parity、artifact verification、clean npm package-root import 与真实 `execution-config init`，以及 locked DSH remove/reinstall recovery。全部九个 Execution Release asset 均已重新下载；publication verifier、clean install、CLI 与 DSH lifecycle qualification 已针对下载后的 bytes 通过。
+
+#93 closure candidate 随后通过 67 个 test file / 554 个 test、coverage（statements `90.01%`、branches `85.75%`、functions `94.18%`、lines `95.4%`）、typecheck、build、generated-contract 与 DSH Intake distribution checks。Superproject qualification 又在最终 main merge 前重放了完整 Execution、Contract、Package、public artifact、clean consumer、DSH lifecycle、真实 Web Intake、release asset 与 protected-boundary gates。

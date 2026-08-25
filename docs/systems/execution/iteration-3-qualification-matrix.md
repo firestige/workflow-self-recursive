@@ -1,10 +1,10 @@
 # Iteration 3 qualification matrix
 
-Status: **Wave 0 design oracle**  
+Status: **COMPLETED EVIDENCE INDEX — 2026-08-25**
 Authority: [Project Execution System Design](./project-execution-system.md)  
 Scope: issues #45, #46, #57, #86 and the Execution-level configuration/factory/Bootstrap release support
 
-This document is a durable evidence index, not an execution checklist. Completion state remains in the Iteration 3 implementation plan. A row is satisfied only by the named observable oracle and replayable artifact; a later end-to-end test cannot erase a missing owner-level negative.
+This document is a durable evidence index, not an execution checklist. Completion evidence is recorded in the [Iteration 3 implementation result](./implementation-results/iteration-3.md). A row is satisfied only by the named observable oracle and replayable artifact; a later end-to-end test cannot erase a missing owner-level negative. The post-qualification #93 correction is recorded in that result and does not rewrite this matrix's owner-level obligations.
 
 ## Obligation matrix
 

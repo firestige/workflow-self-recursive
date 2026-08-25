@@ -7,7 +7,7 @@
 | Field | Value |
 | --- | --- |
 | Document identity | `execution.identity.001` |
-| Publication status | `WORKING_REVIEW_CANDIDATE`; prior bounded review, translation, and fresh-reader closure apply to earlier bytes only. The 2026-08-23 user review approved the Intake/TaskPrompt/Action-finish calibration. The 2026-08-24 Iteration 3 corrective addendum is a bounded reopen awaiting Wave 0 review; fresh deterministic parity/publication binding remains required before exact publication. |
+| Publication status | `WORKING_REVIEW_CANDIDATE`; prior bounded review, translation, and fresh-reader closure apply to earlier bytes only. The 2026-08-23 user review approved the Intake/TaskPrompt/Action-finish calibration. The 2026-08-24 corrective addendum and 2026-08-25 #93 closure passed deterministic Iteration 3 qualification; exact publication binding remains a separate requirement before promotion. |
 | Exact publication binding | The external publication set/application record must bind this byte stream and the companion canonical Concept byte stream by SHA-256, record the applicable review, SD-12, fresh-reader, and deterministic-verification evidence, and prove exact installation. This document intentionally declares no self-digest or companion digest. |
 | Authority after promotion | Sole versionless English Project Execution System Design authority |
 | Current structure authority | GitHub issues [#45 execution.delivery](https://github.com/firestige/workflow-self-recursive/issues/45), [#46 execution.observation](https://github.com/firestige/workflow-self-recursive/issues/46), and [#47 execution.runner](https://github.com/firestige/workflow-self-recursive/issues/47); this candidate calibrates the document to those decisions |

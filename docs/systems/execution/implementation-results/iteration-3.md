@@ -1,12 +1,12 @@
 # Iteration 3 Execution implementation result
 
-Status: `REOPENED_#57`
-Scope: [#45](https://github.com/firestige/workflow-self-recursive/issues/45), [#46](https://github.com/firestige/workflow-self-recursive/issues/46), [#57](https://github.com/firestige/workflow-self-recursive/issues/57), [#86](https://github.com/firestige/workflow-self-recursive/issues/86), and Execution-level Configuration/Factory/Bootstrap support  
-Version: Execution Core and DSH Intake `0.1.0`; Workflow Package release `0.3.0`
+Status: `COMPLETED_2026-08-25`
+Scope: [#45](https://github.com/firestige/workflow-self-recursive/issues/45), [#46](https://github.com/firestige/workflow-self-recursive/issues/46), [#57](https://github.com/firestige/workflow-self-recursive/issues/57), [#86](https://github.com/firestige/workflow-self-recursive/issues/86), [#93](https://github.com/firestige/workflow-self-recursive/issues/93), and Execution-level Configuration/Factory/Bootstrap support
+Version: Execution Core and DSH Intake `0.1.1` compatibility line plus the #93 correction on `main`; Workflow Package release `0.3.0`
 
-This result records implementation evidence; it does not redefine the frozen Workflow or Delivery Admission Contracts, the Iteration 2 Runner five-component meaning, or either initial Workflow Package. #87 remains separate and is not claimed here.
+This result records implementation evidence; it does not redefine the frozen Workflow or Delivery Admission Contracts, the Iteration 2 Runner five-component meaning, or either initial Workflow Package. #87 remains separate, was returned to the unscheduled ready backlog when Iteration 3 closed, and is not claimed here.
 
-Correction note (2026-08-24): the original qualification installed WSR into a custom base-only DSH profile. That proved package loading but supplied no interactive conversation surface, so it did not satisfy #57's user E2E gate. #57 and Iteration 3 were reopened. The corrected assembly installs the same Adapter into locked DSH's built-in `web` profile. Automated clean-profile evidence now boots the real browser surface, creates a real DSH session, discovers `/wsr` through the Web command transport, executes `/wsr list`, and reads the durable rendered result. Iteration 3 remains open until a credentialed `/wsr create ...` manual E2E executes a Workflow and its result is observed from that same Intake session.
+Correction closure (2026-08-25): the original qualification installed WSR into a custom base-only DSH profile. That proved package loading but supplied no interactive conversation surface, so #57 and Iteration 3 were reopened. The corrected assembly installs the Adapter into locked DSH's built-in `web` profile. Automated clean-profile evidence boots the real browser surface, creates a real DSH session, discovers `/wsr` through the Web command transport, executes `/wsr list`, and reads the durable rendered result. A credentialed manual E2E then submitted `/wsr create hello-world-workflow@0.1.0` from the `project-ops` conversation workspace and observed the Workflow answer in that same Intake session. The defects exposed by that run—session isolation, exact conversation-workspace admission, internal tool-protocol leakage, final-answer selection, and answer-tail actions—were resolved by #93 and qualified in execution-system PR #4 and superproject PR #96. #94 owns the later independent Session/Delivery/Worktree lifecycle design, and #95 owns additional native-DSH UI alignment; neither reopens the Iteration 3 completion boundary.
 
 ## #45 — M01 Delivery
 
@@ -31,7 +31,7 @@ The frozen `agentops.observation@1.0.0` publication record remains `VALIDATOR_ON
 
 The package root exports the host-neutral `ExecutionApplication`, `ExecutionApplicationFactory`/`DefaultExecutionApplicationFactory`, `ExecutionRequest`, `TaskPrompt`, lifecycle/control types, configuration schema/types, and one production bootstrap path. Replacement-Intake contract tests consume the same request/result corpus without installing the DSH plugin.
 
-`@workflow-self-recursive/dsh-intake@0.1.0` is the first Adapter distribution. It owns `/wsr`, explicit `/workflow-execution`, DSH-I-only `workflow_execution_intake`, bounded rendering, and external adapter-private session↔Delivery bindings. DSH-I and Runner-owned DSH-E use distinct Context/service/session/persistence identities; Intake lifecycle cascades shutdown to Execution/DSH-E and preserves durable truth for restart. Command and skill-mediated create preserve the current turn and attachments and converge on one `WorkflowIntakeService` and M01 path.
+`@workflow-self-recursive/dsh-intake@0.1.1` is the completed Iteration 3 Adapter compatibility line. It owns `/wsr`, explicit `/workflow-execution`, DSH-I-only `workflow_execution_intake`, bounded rendering, and external adapter-private session↔Delivery bindings. DSH-I and Runner-owned DSH-E use distinct Context/service/session/persistence identities; Intake lifecycle cascades shutdown to Execution/DSH-E and preserves durable truth for restart. Command and skill-mediated create preserve the current turn and attachments and converge on one `WorkflowIntakeService` and M01 path.
 
 The supported interactive host assembly is DSH's built-in `web` profile, not the base-only custom `workflow-execution` profile described in the original quickstart. `workflow-execution` remains the stable Cordis row and skill name. `test/tooling/dsh-interactive-intake-qualification.test.ts` exercises the same `commands/list`/`commands/execute` Web transport used by the browser and verifies the user-visible `command/run`/`command/done` result in session history.
 
@@ -56,6 +56,8 @@ The repository [local pre-release E2E guide](../../../guides/dsh-execution-local
 - system-contracts Iteration 3 commit: `c8e090f80073e3a4a37063d2d0165f190f2ec7f1`;
 - Execution System Iteration 3 commit: `b00dc40137259eee4dc488b1781fde7ed731e36e`;
 - Execution Release: [0.1.0](https://github.com/firestige/execution-system/releases/tag/0.1.0), targeted at the exact Execution commit above;
+- corrected interactive Release: [0.1.1](https://github.com/firestige/execution-system/releases/tag/0.1.1), target `59d86845267ac25cee4ddcf577b4784db3860260`;
+- #93 Execution main merge: `4179d7b4c6f20ddf69e5a1f3b50c86b2143b2287`; superproject main merge: `6db3950c67fbbe51f386f46e6e2afb5085091ef8`;
 - Workflow Package owner release: [0.3.0](https://github.com/firestige/workflow-package/releases/tag/0.3.0), revision `ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb`.
 
 | Execution Release asset | SHA-256 |
@@ -64,3 +66,5 @@ The repository [local pre-release E2E guide](../../../guides/dsh-execution-local
 | `workflow-self-recursive-dsh-intake-0.1.0.tgz` | `9151365d584e23e2098fdd368bac404c0e24ef296c9906f95577c5660e235bb8` |
 
 After component-first squash, the final pinned combination passed 53 test files / 479 tests, coverage (`90.08%` statements, `85.79%` branches, `94.08%` functions, `95.77%` lines), typecheck, build, generated/static/feasibility, frozen Contract/Package conformance, documentation parity, artifact verification, clean npm package-root import and real `execution-config init`, and locked-DSH remove/reinstall recovery. All nine Execution Release assets were re-downloaded; the publication verifier, clean installation, CLI, and DSH lifecycle qualification passed against those downloaded bytes.
+
+The #93 closure candidate subsequently passed 67 test files / 554 tests, coverage (`90.01%` statements, `85.75%` branches, `94.18%` functions, `95.4%` lines), typecheck, build, generated-contract and DSH Intake distribution checks. The superproject qualification then replayed the complete Execution, Contract, Package, public-artifact, clean-consumer, DSH lifecycle, real Web Intake, release-asset, and protected-boundary gates before the final main merge.

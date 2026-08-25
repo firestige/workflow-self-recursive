@@ -7,7 +7,7 @@
 | 字段 | 值 |
 | --- | --- |
 | 文档身份 | `concept.identity.001` |
-| 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。2026-08-23 用户审核已批准 Intake/TaskPrompt/Action-finish calibration。2026-08-24 Iteration 3 corrective addendum 是等待 Wave 0 审核的 bounded reopen；精确发布前仍需 fresh deterministic parity/publication binding |
+| 发布状态 | `WORKING_REVIEW_CANDIDATE`；先前的受限审查、翻译与 fresh-reader closure 只适用于更早字节。2026-08-23 用户审核已批准 Intake/TaskPrompt/Action-finish calibration。2026-08-24 corrective addendum 与 2026-08-25 #93 closure 已通过 deterministic Iteration 3 qualification；提升前仍需独立完成 exact publication binding。 |
 | 提升后的权威 | workflow-self-recursive 唯一的无版本概念权威 |
 | 当前结构权威 | GitHub issue [#45 execution.delivery](https://github.com/firestige/workflow-self-recursive/issues/45)、[#46 execution.observation](https://github.com/firestige/workflow-self-recursive/issues/46) 与 [#47 execution.runner](https://github.com/firestige/workflow-self-recursive/issues/47)；本 candidate 按这些决定校准 conceptual structure |
 | 规范语言 | 英文 |
