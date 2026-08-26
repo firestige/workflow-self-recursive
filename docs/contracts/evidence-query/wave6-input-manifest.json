@@ -1,11 +1,11 @@
 {
   "manifest_version": "1.0.0",
   "wave": "wave6",
-  "generated_at": "2026-08-26T07:36:56+08:00",
+  "generated_at": "2026-08-26T16:12:34+08:00",
   "owner_approval": {
     "owner": "firestige",
     "date": "2026-08-26",
-    "decision": "APPROVED"
+    "decision": "APPROVED_REOPEN_EXPIRY_OWNER_IDENTITY"
   },
   "contract": {
     "name": "evidence.query",
@@ -13,19 +13,19 @@
     "lifecycle_status": "REVIEW_CANDIDATE",
     "semantic_path": "docs/contracts/evidence-query/evidence-query.md",
     "translation_path": "docs/contracts/evidence-query/evidence-query.zh-CN.md",
-    "approved_superproject_commit": "1894a5cd62b2f12c2501b2952c01ea2928c53f95",
-    "semantic_sha256": "2959c44a9175e60303866e64116fc09086974fc26cf7cac1cb2e0a49a1ee8ba5",
-    "translation_sha256": "2b1bb1263c826104cc8e108f183f2f9a8f3b0c5191caaff1974319570e08e07d"
+    "approved_superproject_commit": "e228144703800b27e7c66aa738bd7e20de46d031",
+    "semantic_sha256": "9fc366c6e70ff250dcc8bd1267fecb999e4ad4c0389097487159a129395cdd3b",
+    "translation_sha256": "2966dd2028d71c131a21e06b67f9d75bd86b2e159e6ecb8ea1d78822f239ae2a"
   },
   "shared_interface": {
     "component": "evidence-system",
-    "component_commit": "bf631ac542b6efda26dd94ba477d76fe366f183c",
+    "component_commit": "291aed453b49f34b66970581e0bdc7d303229e5c",
     "read_model_revision": "1.0.0",
     "policy_revision": "1.0.0",
     "path": "src/wsr_evidence/storage/read_model.py",
-    "sha256": "7afdaaa620b9c258c246ce3772001c95271eb0d444cb1121c37dff6b3918a923",
+    "sha256": "341f2b9fb9b111180b78452ef8d63b5284e2597a905c9625324c0662515f8814",
     "test_path": "tests/unit/test_query_expiry_contract.py",
-    "test_sha256": "08f1dbb2005a0ae12866d992eebdffb02413a88b59c0bc8cf27ed8d3d2c24b67"
+    "test_sha256": "d88d7c07d3495fb818f15d3ae70c6995b057f1cd8a13e608ee281694e287212c"
   },
   "semantic_sections": {
     "truth_table": {
