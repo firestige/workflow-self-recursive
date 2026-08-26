@@ -22,10 +22,12 @@
       "feature_input": "8bf7e3f85f6829cbe686f6ff454eb2fe0ef02456",
       "qualified_product": "3c6259ca07276b1de8520fa6fc0d26c86fd93a41",
       "input_tree": "53cc293dd4247160b1c6bd330c48aec68f496e76",
-      "main_commit": "f23da5ab02d91589e50b2d1fb01df4f411aa8f9a",
+      "squash_main_commit": "f23da5ab02d91589e50b2d1fb01df4f411aa8f9a",
+      "main_commit": "011822ebd8db130cd78d72d96857082957890427",
+      "post_squash_generated_fix": "CHANGELOG_ONLY_NO_CANDIDATE_ASSET_CHANGE",
       "transition_ci": "https://github.com/firestige/execution-system/actions/runs/33022584119",
       "transition_ci_status": "EXPECTED_SUPERPROJECT_PIN_MISMATCH_569_OF_570_PASS",
-      "final_ci_status": "PENDING_SUPERPROJECT_REPIN"
+      "final_ci_status": "PENDING_CORRECTED_SUPERPROJECT_REPIN"
     },
     "evidence_system": {
       "feature_input": "183c055c5c29742ded4102d9b3e9466eb197cfcd",
@@ -38,9 +40,9 @@
   },
   "superproject": {
     "main_base": "e229313dccb4fdb54444f3eb0408bf5dc5558a00",
-    "feature_repin": "PENDING_THIS_RECORD_COMMIT",
-    "main_commit": null,
-    "status": "PENDING_REPIN_AND_SQUASH"
+    "feature_repin": "50346ce3cc2eb941b3e8ebaa0b01b8f290c4cbdf",
+    "initial_squash_main_commit": "396960fd3ffaad62475282ee48f374b6593d218d",
+    "status": "PENDING_EXECUTION_CHANGELOG_REPIN"
   },
   "stable_promotion": "NOT_STARTED"
 }
