@@ -20,24 +20,28 @@
       "promotion_repository_scope_commit": "b50525f5b1db2c017d71ed307ed25bb1c3a7c783",
       "promotion_pre_checkout_failure": "https://github.com/firestige/system-contracts/actions/runs/33024460779",
       "promotion_pre_checkout_failure_status": "NO_STABLE_SIDE_EFFECT_UNSCOPED_GH_RELEASE_VIEW",
-      "main_ci": "https://github.com/firestige/system-contracts/actions/runs/33024269433",
-      "status": "PROMOTION_REPOSITORY_SCOPE_TEST_PASS_PENDING_MAIN_CI"
+      "main_ci": "https://github.com/firestige/system-contracts/actions/runs/33024524430",
+      "stable_promotion": "https://github.com/firestige/system-contracts/actions/runs/33024960580",
+      "stable_release": "https://github.com/firestige/system-contracts/releases/tag/evidence-query-0.1.0",
+      "stable_target": "dc8a50e92eebfc35bd706579ff2bf5e9beb57782",
+      "status": "STABLE"
     },
     "execution_system": {
       "feature_input": "8bf7e3f85f6829cbe686f6ff454eb2fe0ef02456",
       "qualified_product": "3c6259ca07276b1de8520fa6fc0d26c86fd93a41",
       "input_tree": "53cc293dd4247160b1c6bd330c48aec68f496e76",
       "squash_main_commit": "f23da5ab02d91589e50b2d1fb01df4f411aa8f9a",
-      "main_commit": "437d2e562be1904fd8575730d35a2297f7ecc6bf",
+      "main_commit": "7f25bef8d9362f3e336a3a5a61daef573296d893",
       "integration_contract_test_commit": "0071622192b3edb2446e43647c0ff2bd36f89bfa",
       "protected_scope_test_commit": "c308c5570464bf7fc4a8d6d3f631d8ed1cdfb29b",
-      "changelog_sync_commit": "437d2e562be1904fd8575730d35a2297f7ecc6bf",
+      "promotion_permission_commit": "9be3d30034beb1897a571249f82a9c749849398c",
+      "changelog_sync_commit": "7f25bef8d9362f3e336a3a5a61daef573296d893",
       "post_squash_generated_fix": "CHANGELOG_ONLY_NO_CANDIDATE_ASSET_CHANGE",
       "integration_contract_test": "ROOT_LIFECYCLE_QUALIFIER_REQUIRES_PLUGIN_OLD_PLUGIN_NEW_AND_CORE_ARCHIVES",
       "transition_ci": "https://github.com/firestige/execution-system/actions/runs/33022584119",
       "transition_ci_status": "EXPECTED_SUPERPROJECT_PIN_MISMATCH_569_OF_570_PASS",
       "main_ci": "https://github.com/firestige/execution-system/actions/runs/33023423618",
-      "main_ci_status": "PASS",
+      "main_ci_status": "PASS_BEFORE_PROMOTION_PERMISSION_ONLY_CHANGE",
       "root_changelog_drift_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33023413274",
       "root_changelog_drift_ci_status": "EXPECTED_GENERATED_CHANGELOG_DRIFT_AFTER_TEST_COMMIT",
       "root_legacy_contract_boundary_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33023674456",
@@ -56,8 +60,8 @@
     "main_base": "e229313dccb4fdb54444f3eb0408bf5dc5558a00",
     "feature_repin": "50346ce3cc2eb941b3e8ebaa0b01b8f290c4cbdf",
     "initial_squash_main_commit": "396960fd3ffaad62475282ee48f374b6593d218d",
-    "last_passed_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33024024623",
-    "status": "CONTRACT_PROMOTION_COMMAND_SCOPE_FIXED_PENDING_REPIN_AND_CI"
+    "last_passed_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33024558191",
+    "status": "EXECUTION_PROMOTION_PERMISSION_FIXED_PENDING_REPIN_AND_CI"
   },
-  "stable_promotion": "NOT_STARTED"
+  "stable_promotion": "CONTRACT_STABLE_EXECUTION_PENDING"
 }
