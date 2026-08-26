@@ -38,17 +38,18 @@ Follow the [local pre-release E2E guide](dsh-execution-local-e2e.md). Also run t
 
 ## 2. Publish and qualify an RC
 
-Merge the exact component candidate to `release/next`, then dispatch from that ref:
+Create `release/next` from the exact component candidate, add the immutable request below as `release/request.json`, and push that commit. The push is the first-publication trigger because `workflow_dispatch` is unavailable until the workflow exists on the default branch.
 
-```sh
-gh workflow run ci.yml --repo firestige/execution-system --ref release/next \
-  -f release_candidate=true \
-  -f candidate_tag=0.1.3-rc.1 \
-  -f authority_ref=<superproject-ref-pinning-this-candidate> \
-  -f local_manual_e2e_evidence=<github-issue-or-comment-url>
+```json
+{
+  "candidate_tag": "0.1.3-rc.1",
+  "authority_ref": "<superproject-ref-pinning-this-candidate>",
+  "authority_manifest": "release/candidates/iter4-wave11.json",
+  "local_manual_e2e_evidence": "<github-issue-or-comment-url>"
+}
 ```
 
-The workflow verifies the superproject Execution pin equals the workflow commit, reruns all gates, builds and locally qualifies the tgz pair, creates the prerelease, redownloads the assets into a clean directory, verifies their digests and manifest, reruns remote-install DSH E2E, and attaches `release-qualification.json`. Candidate publication uses only the repository `GITHUB_TOKEN`; it never receives the release App key.
+After this workflow reaches the default branch, an equivalent manual recovery dispatch from `release/next` may supply the same four fields. The workflow verifies the superproject Execution pin equals the workflow commit, reruns all gates, and materializes the already-tracked tgz pair named by the immutable unified manifest. It verifies every bound digest, locally qualifies those exact bytes, creates or exactly resumes the prerelease, redownloads the assets into a clean directory, verifies their digests and manifest, reruns remote-install DSH E2E, and attaches or verifies `release-qualification.json`. It never repacks source after Wave11 qualification. Candidate publication uses only the repository `GITHUB_TOKEN`; it never receives the release App key.
 
 ## 3. Merge and repin before promotion
 

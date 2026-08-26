@@ -1,6 +1,6 @@
 # 发布自动化
 
-Iter4 把发布设施做到 implementation-ready；本 wave 不创建真实 RC、stable tag、GitHub Release、npm/Python 发布或 OCI stable tag。真实端到端证明留到 Wave11。
+Iter4 把发布设施做到 implementation-ready。Wave12 会在所需批准门通过后，用它完成 Contract、Execution 与 Evidence 的真实发布序列。
 
 ## 通用生命周期
 
@@ -10,7 +10,7 @@ Iter4 把发布设施做到 implementation-ready；本 wave 不创建真实 RC�
 
 `SOURCE → ACCEPTED → BUILT → MANIFESTED → RC → QUALIFIED → COMPONENT_MERGED → SUPERPROJECT_REPINNED → STABLE`
 
-先把组件 candidate 合入 `release/next`，从该 ref dispatch candidate workflow，并验证重新下载的 RC 字节。qualification 后，将组件 squash merge 到 `main`，再把 superproject repin 到组件 main commit。stable 仍指向已经验证的 RC commit 并逐字节复用 RC assets；不得从 squash commit 重建。
+从精确组件 candidate 创建 `release/next`，并在推送的 commit 中包含不可变 `release/request.json`。该 push 会从同一 ref 运行 candidate workflow，因此首次发布不依赖 workflow 已经存在于默认分支。qualification 后，将组件 squash merge 到 `main`，再把 superproject repin 到组件 main commit。stable 仍指向已经验证的 RC commit 并逐字节复用 RC assets；不得从 squash commit 重建。
 
 | 组件 | 资产与 publisher adapter | 本轮状态 |
 |---|---|---|
@@ -23,22 +23,17 @@ Iter4 把发布设施做到 implementation-ready；本 wave 不创建真实 RC�
 
 Python 兼容性按 minor 表达，并在 Python 3.13/3.14 上测试，不锁 Python patch 版本。npm/DSH 规则只属于 Execution adapter。
 
-## Dispatch 与恢复
+## 触发与恢复
 
-candidate workflow 会拒绝 `release/next` 之外的 ref：
+candidate workflow 会拒绝 `release/next` 之外的 ref。首次 RC 由 push 触发，commit 中的 `release/request.json` 保存固定请求。Contract 与 Evidence 请求只包含 `candidate_tag`；Execution 还包含 `local_manual_e2e_evidence`、`authority_ref` 和 `authority_manifest`。例如：
 
-```sh
-gh workflow run release-candidate.yml --repo firestige/evidence-system \
-  --ref release/next -f candidate_tag=0.1.0-rc.1
-
-gh workflow run release-candidate.yml --repo firestige/system-contracts \
-  --ref release/next -f candidate_tag=evidence-query-1.0.0-rc.1
-
-gh workflow run release-candidate.yml --repo firestige/workflow-package \
-  --ref release/next -f candidate_tag=iter4-rc.1 -f contract_ref=<40位contract SHA>
+```json
+{
+  "candidate_tag": "evidence-query-1.0.0-rc.1"
+}
 ```
 
-Execution 还要求一个准确的 superproject `authority_ref`（其 Execution submodule 必须指向 candidate），以及带真实 credential 的本地 DSH evidence GitHub issue/comment URL。
+workflow 进入默认分支后，仍可从 `release/next` 使用 `workflow_dispatch` 作为等价恢复入口，并提供相同字段。Execution 要求一个准确的 superproject `authority_ref`（其 Execution submodule 必须指向 candidate）、指向已跟踪 unified candidate 的 `authority_manifest` 路径，以及带真实 credential 的本地 DSH evidence GitHub issue/comment URL。workflow 会物化这些已绑定资产，而不是重新构建。
 
 | 失败点 | 可进入 stable？ | 恢复方式 |
 |---|---:|---|
@@ -56,7 +51,7 @@ Execution 还要求一个准确的 superproject `authority_ref`（其 Execution 
 
 App ID 存为 Actions variable `WSR_RELEASE_APP_ID`，PEM private key 存为 Actions secret `WSR_RELEASE_APP_PRIVATE_KEY`。candidate、build、qualification、npm、OCI 步骤都拿不到 private key 或 installation token；仅在 final stable GitHub Release 前由 `actions/create-github-app-token` 生成短期 token。GitHub 说明 installation token 一小时过期，并可进一步限制仓库和权限（[workflow 认证](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow)、[installation token 范围](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app)）。
 
-Bootstrap 顺序：注册/安装 App；在四个 active 发布仓库分别配置 variable/secret；确认 PAT/private key 未进入仓库、日志、artifact 或 report；Wave4 只跑无副作用 oracle，真实发布留到 Wave11。
+Bootstrap 顺序：注册/安装 App；在四个 active 发布仓库分别配置 variable/secret；确认 PAT/private key 未进入仓库、日志、artifact 或 report；发布批准前只跑无副作用 oracle，真实发布序列只在 Wave12 执行。
 
 轮换时先生成第二把 App key，替换 Actions secret、运行静态 attestation，再删除旧 key。事故撤销时禁用/卸载 App 或删除 key，取消发布 run，并保留 run URL 与不可变 digest。break-glass 的含义是暂停发布并由 owner 明确批准恢复 App 路径；host `gh` credential 或个人 PAT 不是发布 fallback。
 

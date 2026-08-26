@@ -1,7 +1,7 @@
 # Iteration 4 实施计划 — 执行计划 (Execution Plan)
 
 > **来源**: iter4 范围卡 #48/#49/#50/#51/#52/#92/#94/#97/#102 · 范围裁决: tmp/20260825/iter4-issues/issues.md · 冲突分析: tmp/20260825/iter4-issues/evidence-conflicts.md · 计划评审: 2026-08-25 DAG/退出条件/并行边界评审 · 2026-08-26 #102 范围/发布窗口重校准
-> **当前 wave**: wave12 · **上次执行**: Wave11 #102 implementation/product qualification PASS；Execution archive commit `3c6259ca07276b1de8520fa6fc0d26c86fd93a41`，super payload/repin `d0cb418c2d97b40d0c77692781bc5b3f39df64c7`；exact assets `wsr-execution@0.1.3` `sha256:7c5ab0...d3ca0` / `wsr-dsh-intake@0.1.3` `sha256:d518a6...618b8` 已固化，无 tag/release/publication，Contract 仍为 `REVIEW_CANDIDATE`，#102 保持 OPEN · **下一步**: 先完成 partial-failure matrix 与 Contract gate.1–4，再按统一 immutable manifest 进入 Wave12 发布流程
+> **当前 wave**: wave12 · **上次执行**: Wave12 发布前工具/恢复路径与 Contract gate.1–4 已校验；Execution exact assets 保持不变，无 tag/release/publication · **当前阻塞**: 已批准路径要求把 `evidence.query@0.1.0` 转为 `FROZEN`，但 adopted Contract lifecycle §6 规定 `0.x` 仅为 pre-release、首个 frozen revision 必须是 `1.0.0`；A1 前需 Contract owner 决定 revision 并据此重新校准 Evidence candidate，Execution 双包无需重建
 > 执行模式：Iter4 全程使用同一 `iter4/implementation` feature branch，按 wave 提交并推送检查点；全部产品实施与 RC 资格验证完成后，在 Wave12 执行唯一一次 component-first squash merge/repin，再作 stable promotion，Wave13 只负责最终复验与关闭。Wave5/Wave10/Wave11 前置均已 PASS；当前剩余路径为 wave12→wave13。原发布 Wave11 因插入 #102 顺延为 Wave12。
 
 <!-- 「当前 wave」指针指向编号最小的、尚未集成且可执行的 wave；其他并行 wave 的状态由 checkbox 与独立 wave report 表达。plan.md/指针/checkbox 只由主协调者更新。 -->

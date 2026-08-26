@@ -38,17 +38,18 @@ pnpm release:publish-npm <release目录> # 仅生成恢复计划，不发布
 
 ## 2. 发布并验证 RC
 
-把精确组件 candidate 合入 `release/next`，从该 ref dispatch：
+从精确组件 candidate 创建 `release/next`，把下面的不可变请求保存为 `release/request.json` 后推送该 commit。push 是首次发布触发器，因为 workflow 进入默认分支前不能使用 `workflow_dispatch`。
 
-```sh
-gh workflow run ci.yml --repo firestige/execution-system --ref release/next \
-  -f release_candidate=true \
-  -f candidate_tag=0.1.3-rc.1 \
-  -f authority_ref=<准确pin该candidate的superproject-ref> \
-  -f local_manual_e2e_evidence=<github-issue或comment-url>
+```json
+{
+  "candidate_tag": "0.1.3-rc.1",
+  "authority_ref": "<准确pin该candidate的superproject-ref>",
+  "authority_manifest": "release/candidates/iter4-wave11.json",
+  "local_manual_e2e_evidence": "<github-issue或comment-url>"
+}
 ```
 
-workflow 会确认 superproject 的 Execution pin 等于 workflow commit，重跑全部门禁，构建并本地验证双 tgz，创建 prerelease，把 assets 重新下载到 clean directory，核对 digest/manifest，重跑 remote-install DSH E2E，并附加 `release-qualification.json`。candidate 阶段只用仓库 `GITHUB_TOKEN`，拿不到 release App key。
+该 workflow 进入默认分支后，可以从 `release/next` 手动 recovery dispatch，并提供相同四个字段。workflow 会确认 superproject 的 Execution pin 等于 workflow commit，重跑全部门禁，并从 immutable unified manifest 物化已经受 Git 跟踪的双 tgz。它逐项核对绑定 digest、本地验证这些 exact bytes、创建或精确恢复 prerelease、把 assets 重新下载到 clean directory、再次核对 digest/manifest、重跑 remote-install DSH E2E，并附加或验证 `release-qualification.json`。Wave11 qualification 后绝不重新 pack source。candidate 阶段只用仓库 `GITHUB_TOKEN`，拿不到 release App key。
 
 ## 3. promotion 前先 merge 与 repin
 

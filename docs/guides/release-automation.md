@@ -1,6 +1,6 @@
 # Release automation
 
-Iteration 4 makes the release machinery implementation-ready. It does not itself create a real RC, stable tag, GitHub Release, npm publication, Python publication, or OCI stable tag; those end-to-end proofs remain Wave 11 work.
+Iteration 4 makes the release machinery implementation-ready. Wave 12 uses it for the real Contract, Execution, and Evidence publication sequence after the required approval gates.
 
 ## Shared lifecycle
 
@@ -10,7 +10,7 @@ The only supported transition is:
 
 `SOURCE → ACCEPTED → BUILT → MANIFESTED → RC → QUALIFIED → COMPONENT_MERGED → SUPERPROJECT_REPINNED → STABLE`
 
-Merge the component candidate to `release/next`, dispatch the candidate workflow from that ref, and qualify the downloaded RC bytes. After qualification, squash-merge the component to `main` and repin the superproject to that component main commit. Stable promotion still targets the qualified RC commit and reuses its exact assets; it does not rebuild from the squash commit.
+Create `release/next` from the exact component candidate and include an immutable `release/request.json` in the pushed commit. That push runs the candidate workflow from the same ref, so first publication does not depend on the workflow already existing on the default branch. After qualification, squash-merge the component to `main` and repin the superproject to that component main commit. Stable promotion still targets the qualified RC commit and reuses its exact assets; it does not rebuild from the squash commit.
 
 | Component | Asset and publisher adapter | Release status |
 |---|---|---|
@@ -23,22 +23,17 @@ Merge the component candidate to `release/next`, dispatch the candidate workflow
 
 Python support is expressed as minor-version compatibility and tested on Python 3.13 and 3.14; it is not pinned to a Python patch release. npm/DSH rules belong only to the Execution adapter.
 
-## Dispatch and recovery
+## Trigger and recovery
 
-Candidate workflows reject any ref other than `release/next`. Examples:
+Candidate workflows reject any ref other than `release/next`. The first RC is triggered by pushing a commit whose `release/request.json` contains the fixed request. Contract and Evidence requests contain only `candidate_tag`; Execution additionally contains `local_manual_e2e_evidence`, `authority_ref`, and `authority_manifest`. For example:
 
-```sh
-gh workflow run release-candidate.yml --repo firestige/evidence-system \
-  --ref release/next -f candidate_tag=0.1.0-rc.1
-
-gh workflow run release-candidate.yml --repo firestige/system-contracts \
-  --ref release/next -f candidate_tag=evidence-query-1.0.0-rc.1
-
-gh workflow run release-candidate.yml --repo firestige/workflow-package \
-  --ref release/next -f candidate_tag=iter4-rc.1 -f contract_ref=<40-hex-contract-sha>
+```json
+{
+  "candidate_tag": "evidence-query-1.0.0-rc.1"
+}
 ```
 
-Execution additionally requires an exact superproject `authority_ref` whose Execution submodule points to the candidate and a GitHub issue/comment URL for credentialed local DSH evidence. See the component-specific guide.
+After the workflow has reached the default branch, `workflow_dispatch` from `release/next` remains an equivalent recovery entry point with the same fields. Execution requires an exact superproject `authority_ref` whose Execution submodule points to the candidate, an `authority_manifest` path to the tracked unified candidate, and a GitHub issue/comment URL for credentialed local DSH evidence. The workflow materializes those bound assets instead of rebuilding them. See the component-specific guide.
 
 | Failure | Stable allowed? | Recovery |
 |---|---:|---|
@@ -61,7 +56,7 @@ Bootstrap:
 1. Register/install the App with the approved allowlist and permissions.
 2. Add the variable and secret independently to each active publishing repository.
 3. Confirm that no PAT or App key appears in repository files, logs, artifacts, or reports.
-4. Run only the no-side-effect configuration/oracle checks in Wave 4; use a real release only in Wave 11.
+4. Run only the no-side-effect configuration/oracle checks before publication approval; use the real release sequence only in Wave 12.
 
 Rotate by generating a second App private key, replacing the Actions secret, running the static attestation, and then deleting the old key. Revoke during an incident by disabling/uninstalling the App or deleting the key; cancel release runs and preserve run URLs and immutable digests. Break-glass means pausing publication and obtaining explicit owner approval to restore the App path. A host `gh` credential or personal PAT is not an accepted publication fallback.
 
