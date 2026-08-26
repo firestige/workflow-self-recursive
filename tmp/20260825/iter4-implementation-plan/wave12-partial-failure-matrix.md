@@ -1,6 +1,6 @@
 # Wave12 partial-failure state matrix
 
-Status: `PRE-PUBLICATION REVIEW CANDIDATE` (2026-08-26)
+Status: `APPROVED — W12.3 CONTRACT_BINDING_VERIFIED; A2 PENDING` (2026-08-27)
 
 This matrix is the required stop/recovery authority for Iter4 publication. It does not itself authorize a tag, Release, registry write, branch merge, or Contract transition. Every immutable object that has been created remains preserved; recovery always resumes from the recorded candidate and never overwrites, retargets, or rebuilds it.
 

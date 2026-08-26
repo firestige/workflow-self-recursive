@@ -15,7 +15,7 @@ This report closes only contract.gate.1–4. It does not claim machine publicati
 - Wave6 input manifest SHA-256: `e605720c5b225fa9228e2a4b1a8001f3235482ed83dc214e4c766e5caa6e1706`.
 - Machine candidate commit/content revision: `6f77510234961149922165666ed0be2d2f82b84b` / `sha256:6d37245fbac11dde2967a7775efb541e00fb4c8b00c80011b91aef007346cfa1`.
 - Publication-candidate SHA-256: `97c3e158c18cd7e92da949d82a17b71c5e4bf08d081fef6e5f4b6dcb9c00c6a7`.
-- Current release-request commit: `750f0d41e3ba5654000a2543065724247486ca6b`; `evidence-query/**` is byte-identical to the machine candidate commit.
+- Qualified RC target: `dc8a50e92eebfc35bd706579ff2bf5e9beb57782`; `evidence-query/**` is byte-identical to the machine candidate commit.
 
 ## contract.gate.1 — semantic review: PASS
 

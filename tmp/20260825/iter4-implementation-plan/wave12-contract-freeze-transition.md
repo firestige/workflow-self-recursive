@@ -63,19 +63,19 @@ The final machine record is `system-contracts/evidence-query/publication/publica
   "candidate_publication": {
     "repository": "firestige/system-contracts",
     "tag": "evidence-query-0.1.0-rc.1",
-    "url": "<VERIFIED_RC_URL>",
-    "target_commit": "<VERIFIED_40_HEX_RC_TARGET>",
-    "release_metadata_sha256": "<VERIFIED_SHA256>",
-    "publication_candidate_sha256": "<VERIFIED_SHA256>",
-    "qualification_sha256": "<VERIFIED_SHA256>"
+    "url": "https://github.com/firestige/system-contracts/releases/tag/evidence-query-0.1.0-rc.1",
+    "target_commit": "dc8a50e92eebfc35bd706579ff2bf5e9beb57782",
+    "release_metadata_sha256": "f869e51c3974f038c1f51c4c98e2110cfa90c97ed74e89fc837f052bc7ac41eb",
+    "publication_candidate_sha256": "97c3e158c18cd7e92da949d82a17b71c5e4bf08d081fef6e5f4b6dcb9c00c6a7",
+    "qualification_sha256": "bda43993fdc5197a3911e159a4ea47ac5020c1cb1ede095838519559a266cadc"
   },
   "gates": {
     "contract.gate.1": "PASS",
     "contract.gate.2": "PASS",
     "contract.gate.3": "PASS",
     "contract.gate.4": "PASS",
-    "contract.gate.5": "<VERIFIED_MACHINE_RELEASE_RESULT>",
-    "contract.gate.6": "<VERIFIED_EXACT_BINDING_RESULT>",
+    "contract.gate.5": "PASS_RC_TAG_AND_8_ASSET_MANIFEST",
+    "contract.gate.6": "PASS_2_FINAL_SEMANTIC_35_MACHINE_ARTIFACT_BINDING",
     "owner_approval": "<OWNER_APPROVAL_URL>"
   }
 }
