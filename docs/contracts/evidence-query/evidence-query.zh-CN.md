@@ -4,7 +4,7 @@
 | 字段 | 值 |
 | --- | --- |
 | Contract revision | `evidence.query@0.1.0` |
-| Lifecycle status | `REVIEW_CANDIDATE` |
+| Lifecycle status | `FROZEN` |
 | Owner | Evidence Query & API（M03） |
 | Semantic closure approved | `firestige`，2026-08-26 |
 | Wave9 clarification reopen approved | `firestige`，2026-08-26；首次发布前不 bump revision |
@@ -12,12 +12,12 @@
 | Translation | 本文件是 [`evidence-query.md`](evidence-query.md) 的 non-normative tracking translation；要求整篇 parity |
 | Semantic authority | [Evidence System Design](../../systems/evidence/evidence-system.md)，尤其是 Query & API、lifecycle、ownership 与 access 各节 |
 | Upstream fact authority | FROZEN [Observation Catalog](../observation/observation-catalog.md) 与 [OTel Observation Profile](../observation/otel-observation-profile.md)，wire Profile `1.0.0` |
-| Machine representation | 计划为 `system-contracts/evidence-query/` revision `0.1.0`；Wave9 前不存在 |
+| Machine representation | [`system-contracts/evidence-query/`](../../../system-contracts/evidence-query/) revision `0.1.0`；由 `evidence-query-0.1.0-rc.1` 发布 |
 | Shared interface candidate | `evidence-system/src/wsr_evidence/storage/read_model.py` at `0a1eef8bc77d65aae4a923df6b2fd17e81aba28d` |
-| Publication binding | 无；candidate material 不是 conformance target |
+| Publication binding | [`publication-record-0.1.0.json`](../../../system-contracts/evidence-query/publication/publication-record-0.1.0.json) |
 | Reopen condition | 需要 write endpoint、remote listener、application authentication、consumer database access、inferred causality、Metric formula、第五种 lifecycle class、改变 truth/expiry 含义，或产生 incompatible field/enum/authority change |
 
-该 revision 已为 owner review 达到语义闭合。它可以支持 fast-path implementation 与 machine-representation candidate，但在 contract.gate.1–6 全部通过、相同 revision 的语义与机器表示一起达到 `FROZEN` 前，任何实现都不得声称 conformance。
+该精确 revision 已在 contract.gate.1–6 与 Contract-owner approval 后达到 `FROZEN`。实现只能针对这一精确的语义与机器 revision，并且只能在 publication binding 所记录的 claim level 上声明 physical conformance。
 
 <a id="evidence-query-1"></a>
 ## 1. 目的、权威与排除项

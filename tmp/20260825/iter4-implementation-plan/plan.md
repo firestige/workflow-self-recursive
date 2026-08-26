@@ -1,7 +1,7 @@
 # Iteration 4 实施计划 — 执行计划 (Execution Plan)
 
 > **来源**: iter4 范围卡 #48/#49/#50/#51/#52/#92/#94/#97/#102 · 范围裁决: tmp/20260825/iter4-issues/issues.md · 冲突分析: tmp/20260825/iter4-issues/evidence-conflicts.md · 计划评审: 2026-08-25 DAG/退出条件/并行边界评审 · 2026-08-26 #102 范围/发布窗口重校准
-> **当前 wave**: wave12 · **上次执行**: Contract RC `evidence-query-0.1.0-rc.1` 已由 Actions run `32986502152` 发布并独立下载验证，tag target `dc8a50e92eebfc35bd706579ff2bf5e9beb57782`，gate.1–6 PASS；Execution/Evidence exact candidates 均不失效 · **下一步**: 等待 A2 owner approval 后原子应用预生成 FROZEN/register/publication-record transition；尚未 merge、stable、npm 或 GHCR stable
+> **当前 wave**: wave12 · **上次执行**: `evidence.query@0.1.0` gate.1–6 与 A2 owner approval PASS；FROZEN 双语语义、register、machine registry 与 final publication record 已在 feature lines 原子 checkpoint，system-contracts commit `a3f6d7ca8a3e08e89af4bc3ecea34524f5094bd5`；尚未 merge、stable、npm 或 GHCR stable · **下一步**: 创建并验证 Execution `0.1.3-rc.1` exact Wave11 双包 RC
 > 执行模式：Iter4 全程使用同一 `iter4/implementation` feature branch，按 wave 提交并推送检查点；全部产品实施与 RC 资格验证完成后，在 Wave12 执行唯一一次 component-first squash merge/repin，再作 stable promotion，Wave13 只负责最终复验与关闭。Wave5/Wave10/Wave11 前置均已 PASS；当前剩余路径为 wave12→wave13。原发布 Wave11 因插入 #102 顺延为 Wave12。
 
 <!-- 「当前 wave」指针指向编号最小的、尚未集成且可执行的 wave；其他并行 wave 的状态由 checkbox 与独立 wave report 表达。plan.md/指针/checkbox 只由主协调者更新。 -->
@@ -338,7 +338,7 @@ flowchart LR
 - [x] 在产生任何 tag/release/外部发布状态前完成并批准 partial-failure state matrix，覆盖 `contract candidate/RC publication → binding/FROZEN → Execution pair RC/prepublish qualification → Evidence RC/qualification → 唯一 component-first squash/repin → system-contracts stable → core stable publish/smoke → intake stable publish/smoke → DSH listing/postpublish smoke → Evidence stable`；逐阶段定义必须保留的 URL/tag/digest、不可变对象、恢复入口 SHA/manifest、npm 双包部分失败恢复、允许重试动作、oracle 与人工批准点。
 - [x] contract.gate.1 semantic review、gate.2 fresh reader、gate.3 deterministic candidate verification、gate.4 translation parity 与全部发布前检查先通过；预生成最终 FROZEN 语义字节、register patch 和 publication-binding candidate，但不提前作 FROZEN 声明；gate.5/6 此时保持 pending。
 - [x] 协调者把 wave4 的 system-contracts release automation commit、wave9 机器表示与 publication-binding candidate 合并到批准基线；使用自动化流程按 immutable manifest 创建指定 system-contracts revision 的 candidate/RC machine publication，不做 main repin 或 stable promotion，不得使用 host `gh`/个人凭证。
-- [ ] 真实 machine release 后验证 gate.5，并在干净 checkout 复验已发布 publication record 对最终语义字节/机器表示的 exact revision+SHA-256 binding 以通过 gate.6；取得 Contract owner approval后原子合并预生成的状态元数据/register patch，将 `evidence.query` 转为 `FROZEN`，不得改变语义。
+- [x] 真实 machine release 后验证 gate.5，并在干净 checkout 复验已发布 publication record 对最终语义字节/机器表示的 exact revision+SHA-256 binding 以通过 gate.6；取得 Contract owner approval后原子合并预生成的状态元数据/register patch，将 `evidence.query` 转为 `FROZEN`，不得改变语义。
 - [ ] 只有 contract.gate.1–6 全部 PASS 且 `FROZEN` 后，Evidence 才可作 conformance claim并进入产品发布。
 - [ ] 以 Wave11 的统一 immutable candidate manifest 为唯一 bits 输入且永不改写：创建 Execution 双包 RC 并完成 download/digest/restart/product/prepublish qualification；本步骤不执行 npm publish、DSH listing、main repin 或 stable promotion。
 - [ ] 协调者把 wave4 的 Evidence release automation commit 合并到 wave10 candidate；合并树重新通过 release workflow oracle。Wave12 另建 append-only publication-state/binding record，引用 Wave11 candidate manifest digest、最终 contract publication binding 与所有外部 URL/digest，不回写或替换 Wave10/Wave11 immutable manifests。

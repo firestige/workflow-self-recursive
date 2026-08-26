@@ -1,8 +1,8 @@
 # evidence.query contract.gate.5–6 report
 
-Status: `PASS — A2 OWNER TRANSITION APPROVAL PENDING` (2026-08-27)
+Status: `PASS — A2 OWNER TRANSITION APPLIED` (2026-08-27)
 
-Contract: `evidence.query@0.1.0`; authoritative lifecycle remains `REVIEW_CANDIDATE` until A2.
+Contract: `evidence.query@0.1.0`; authoritative lifecycle is now `FROZEN`.
 
 ## RC identity
 
@@ -40,10 +40,10 @@ The clean checkout reproduced the current candidate bindings:
 
 Applying only the pre-generated lifecycle-cell transition produces final authoritative bytes:
 
-- FROZEN English SHA-256 `bf39447392fe80fe3531ac823a3ae403591c39c47c20c65b9bd62d3ff333f4cc`;
-- FROZEN Chinese SHA-256 `7ab642b9e9597cdf6eacfa70e062b54d7d1ba27de464a8d84ca8a8c1c3cebe15`.
+- FROZEN English SHA-256 `ce13b76cb3c2737e8243c97de880574060a61c05a6a7a67182a2804c04a2a8ef`;
+- FROZEN Chinese SHA-256 `d68b9f250bd608f0c6d46ace53bfa9f99241fe957f0184d320ecbceadd44ed3b`.
 
-The tracked freeze-transition candidate records those two final semantic digests together with the exact RC URL, tag target, release metadata, qualification, machine content revision, 35-artifact inventory identity and gate results. No prior resolving revision exists, so the lifecycle's legacy-isolation marker is not applicable.
+The final publication record records those two final semantic digests together with the exact RC URL, tag target, release metadata, qualification, candidate machine content revision, 35-artifact candidate identity, 38-artifact final inventory and gate results. Its final content revision is `sha256:4e904c982504c8c23302c30b1d4f8fcdb9f42693b9bcbafb3c865865eba159d0`; record SHA-256 is `feb0186da48661d2663b03d20e536f470b591ea22f21a34a4ca99bfcc33204e9`. No prior resolving revision exists, so the lifecycle's legacy-isolation marker is not applicable.
 
 ## Failed attempts retained
 
@@ -59,4 +59,4 @@ Each correction was release-only, test-first, fast-forwarded the same immutable 
 
 ## Decision boundary
 
-Contract gates 1–6 now pass. A2 remains the only missing authority. Until `firestige` approves A2, the semantic documents, register and machine registry remain `REVIEW_CANDIDATE`, the final publication record is not installed, and Evidence must not claim conformance.
+Contract gates 1–6 and A2 owner approval now pass. The semantic companions, bilingual register, machine registry and final publication record transitioned together on the Iter4 feature lines. Evidence may now make a claim only against this exact revision and no stronger than `VALIDATOR_ONLY`; product RC, merge/repin and stable publication remain later Wave12 gates.

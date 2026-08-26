@@ -4,7 +4,7 @@
 | Field | Value |
 | --- | --- |
 | Contract revision | `evidence.query@0.1.0` |
-| Lifecycle status | `REVIEW_CANDIDATE` |
+| Lifecycle status | `FROZEN` |
 | Owner | Evidence Query & API (M03) |
 | Semantic closure approved | `firestige`, 2026-08-26 |
 | Wave 9 clarification reopen approved | `firestige`, 2026-08-26; no revision bump before first publication |
@@ -12,12 +12,12 @@
 | Translation | [`evidence-query.zh-CN.md`](evidence-query.zh-CN.md) — non-normative tracking translation; whole-document parity required |
 | Semantic authority | [Evidence System Design](../../systems/evidence/evidence-system.md), especially Query & API, lifecycle, ownership, and access sections |
 | Upstream fact authority | FROZEN [Observation Catalog](../observation/observation-catalog.md) and [OTel Observation Profile](../observation/otel-observation-profile.md), wire Profile `1.0.0` |
-| Machine representation | planned `system-contracts/evidence-query/` revision `0.1.0`; absent until Wave 9 |
+| Machine representation | [`system-contracts/evidence-query/`](../../../system-contracts/evidence-query/) revision `0.1.0`; released by `evidence-query-0.1.0-rc.1` |
 | Shared interface candidate | `evidence-system/src/wsr_evidence/storage/read_model.py` at `0a1eef8bc77d65aae4a923df6b2fd17e81aba28d` |
-| Publication binding | none; candidate material is not a conformance target |
+| Publication binding | [`publication-record-0.1.0.json`](../../../system-contracts/evidence-query/publication/publication-record-0.1.0.json) |
 | Reopen condition | any need for a write endpoint, remote listener, application authentication, consumer database access, inferred causality, a Metric formula, a fifth lifecycle class, changed truth/expiry meaning, or an incompatible field/enum/authority change |
 
-This revision is semantically closed for owner review. It may support fast-path implementation and machine-representation candidates, but no implementation may claim conformance until contract.gate.1–6 pass and the exact semantic and machine revisions reach `FROZEN` together.
+This exact revision is `FROZEN` after contract.gate.1–6 and Contract-owner approval. Implementations may claim physical conformance only against this exact semantic and machine revision and only at the claim level recorded by the publication binding.
 
 <a id="evidence-query-1"></a>
 ## 1. Purpose, authority, and exclusions

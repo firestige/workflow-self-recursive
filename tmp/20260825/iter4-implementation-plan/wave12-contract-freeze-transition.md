@@ -1,8 +1,8 @@
 # Wave12 evidence.query freeze-transition candidate
 
-Status: `PRE-GENERATED — DO NOT APPLY BEFORE CONTRACT.GATE.5/6 AND OWNER APPROVAL` (2026-08-26)
+Status: `APPLIED — CONTRACT.GATE.1–6 AND A2 OWNER APPROVAL PASS` (2026-08-27)
 
-This is the exact transition authority prepared before any RC exists. It does not declare `FROZEN` and does not authorize publication. Unknown external identities remain typed placeholders and must be filled only from the downloaded, independently verified Contract RC.
+This transition authority was prepared before the RC and completed only after the downloaded RC passed exact verification and the owner approved A2. Application inspection found that changing only the lifecycle cell would leave three stale status statements (`planned` machine representation, `none` publication binding, and the pre-FROZEN conformance paragraph). Those publication-status fields were closed together; no numbered normative section, API shape, vocabulary, default, identity, or behavior changed.
 
 ## Fixed coordinate and candidate
 
@@ -15,21 +15,21 @@ This is the exact transition authority prepared before any RC exists. It does no
 
 ## Pre-generated semantic bytes
 
-The only permitted semantic-document mutation is the single lifecycle cell below in each companion. No prose, anchor, link, revision, API literal, or whitespace may change in the owner transition.
+The final semantic-document mutation set is limited to the lifecycle cell plus the machine-representation row, publication-binding row, and adjacent lifecycle/conformance status paragraph in each companion. No numbered normative section, anchor, revision, API literal, vocabulary, default, or behavior changed.
 
 ```diff
 -| Lifecycle status | `REVIEW_CANDIDATE` |
 +| Lifecycle status | `FROZEN` |
 ```
 
-Applying exactly that substitution to the current tracked documents produces:
+Applying the complete status-metadata mutation set described above produces:
 
 | Final document | Required SHA-256 |
 | --- | --- |
-| `docs/contracts/evidence-query/evidence-query.md` | `bf39447392fe80fe3531ac823a3ae403591c39c47c20c65b9bd62d3ff333f4cc` |
-| `docs/contracts/evidence-query/evidence-query.zh-CN.md` | `7ab642b9e9597cdf6eacfa70e062b54d7d1ba27de464a8d84ca8a8c1c3cebe15` |
+| `docs/contracts/evidence-query/evidence-query.md` | `ce13b76cb3c2737e8243c97de880574060a61c05a6a7a67182a2804c04a2a8ef` |
+| `docs/contracts/evidence-query/evidence-query.zh-CN.md` | `d68b9f250bd608f0c6d46ace53bfa9f99241fe957f0184d320ecbceadd44ed3b` |
 
-Before commit, the operator must reproduce both digests from the clean approved base and reject any additional semantic diff.
+Before commit, the operator reproduced both digests from the clean approved base and rejected any additional normative semantic diff.
 
 ## Pre-generated Contract register rows
 
@@ -54,11 +54,11 @@ The final machine record is `system-contracts/evidence-query/publication/publica
   "conformance_claim": "VALIDATOR_ONLY",
   "semantic": {
     "path": "docs/contracts/evidence-query/evidence-query.md",
-    "sha256": "bf39447392fe80fe3531ac823a3ae403591c39c47c20c65b9bd62d3ff333f4cc"
+    "sha256": "ce13b76cb3c2737e8243c97de880574060a61c05a6a7a67182a2804c04a2a8ef"
   },
   "translation": {
     "path": "docs/contracts/evidence-query/evidence-query.zh-CN.md",
-    "sha256": "7ab642b9e9597cdf6eacfa70e062b54d7d1ba27de464a8d84ca8a8c1c3cebe15"
+    "sha256": "d68b9f250bd608f0c6d46ace53bfa9f99241fe957f0184d320ecbceadd44ed3b"
   },
   "candidate_publication": {
     "repository": "firestige/system-contracts",
@@ -76,13 +76,13 @@ The final machine record is `system-contracts/evidence-query/publication/publica
     "contract.gate.4": "PASS",
     "contract.gate.5": "PASS_RC_TAG_AND_8_ASSET_MANIFEST",
     "contract.gate.6": "PASS_2_FINAL_SEMANTIC_35_MACHINE_ARTIFACT_BINDING",
-    "owner_approval": "<OWNER_APPROVAL_URL>"
+    "owner_approval": "https://github.com/firestige/workflow-self-recursive/issues/50#issuecomment-5427870271"
   }
 }
 ```
 
-The actual record also inventories every final machine artifact and derives its content revision deterministically. The registry changes from `REVIEW_CANDIDATE` to `FROZEN`, replaces its candidate semantic/translation digests with the two final digests above, and points to this publication record. The candidate record remains immutable history and is not overwritten.
+The actual record inventories 38 final machine artifacts and derives content revision `sha256:4e904c982504c8c23302c30b1d4f8fcdb9f42693b9bcbafb3c865865eba159d0`; its own SHA-256 is `feb0186da48661d2663b03d20e536f470b591ea22f21a34a4ca99bfcc33204e9`. The registry changes from `REVIEW_CANDIDATE` to `FROZEN`, retains the immutable Wave6 candidate manifest binding, adds the final semantic/translation publication binding, and points to this publication record. The candidate record remains immutable history and is not overwritten.
 
 ## Apply boundary
 
-The transition may be applied only when the RC target and all downloaded assets match, gate.5 and gate.6 are recorded as PASS, and `firestige` has approved A2. Any different semantic digest, RC target, asset digest, record path, or conformance claim stops the transition and leaves the Contract `REVIEW_CANDIDATE`.
+The transition was applied after the RC target and all downloaded assets matched, gate.5 and gate.6 were recorded as PASS, and `firestige` approved A2 at the URL above. The machine transition commit is `a3f6d7ca8a3e08e89af4bc3ecea34524f5094bd5`; the paired superproject checkpoint records the final semantic bytes and exact gitlink.
