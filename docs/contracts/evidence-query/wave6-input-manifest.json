@@ -1,11 +1,11 @@
 {
   "manifest_version": "1.0.0",
   "wave": "wave6",
-  "generated_at": "2026-08-26T16:12:34+08:00",
+  "generated_at": "2026-08-26T19:35:36+08:00",
   "owner_approval": {
     "owner": "firestige",
     "date": "2026-08-26",
-    "decision": "APPROVED_REOPEN_EXPIRY_OWNER_IDENTITY"
+    "decision": "APPROVED_REOPEN_MACHINE_SEMANTICS"
   },
   "contract": {
     "name": "evidence.query",
@@ -13,19 +13,19 @@
     "lifecycle_status": "REVIEW_CANDIDATE",
     "semantic_path": "docs/contracts/evidence-query/evidence-query.md",
     "translation_path": "docs/contracts/evidence-query/evidence-query.zh-CN.md",
-    "approved_superproject_commit": "e228144703800b27e7c66aa738bd7e20de46d031",
-    "semantic_sha256": "9fc366c6e70ff250dcc8bd1267fecb999e4ad4c0389097487159a129395cdd3b",
-    "translation_sha256": "2966dd2028d71c131a21e06b67f9d75bd86b2e159e6ecb8ea1d78822f239ae2a"
+    "approved_superproject_commit": "2c0268ca50a55a8c95bc6f0f52940e33323a28c0",
+    "semantic_sha256": "90b26c9e1d882b77d5db5e208964bf27caeae54301e1dd8a53c4f5ddba8a419f",
+    "translation_sha256": "db6c86101ab8820cb2b157e3961c22e74eba27ec97f6b614e26dcb9da34bfbb4"
   },
   "shared_interface": {
     "component": "evidence-system",
-    "component_commit": "291aed453b49f34b66970581e0bdc7d303229e5c",
+    "component_commit": "af0e1086d02b3a27ab962bf0921cd749c118edfc",
     "read_model_revision": "1.0.0",
     "policy_revision": "1.0.0",
     "path": "src/wsr_evidence/storage/read_model.py",
-    "sha256": "341f2b9fb9b111180b78452ef8d63b5284e2597a905c9625324c0662515f8814",
+    "sha256": "ec1b6ed2f50cc628e9be9b95139d99e1cc272b7c4fd3c58316a436f3233ae5e8",
     "test_path": "tests/unit/test_query_expiry_contract.py",
-    "test_sha256": "d88d7c07d3495fb818f15d3ae70c6995b057f1cd8a13e608ee281694e287212c"
+    "test_sha256": "9a359ff4ee9a89fb68186323a5c3aec9b8afb5ce6ba5fdbd3b056b55736e495d"
   },
   "semantic_sections": {
     "truth_table": {
@@ -36,7 +36,7 @@
     "lifecycle_defaults": {
       "start_anchor": "evidence-query-10",
       "end_before_anchor": "evidence-query-11",
-      "sha256": "22060a33f8975d0e6184d932587f65c7f80235f2f4beb2aa1aaf4bdac7a96a1f"
+      "sha256": "fbdcd4f98a53cec84c3d686a0b85f66e357521495123cb878969ca25335f1fd8"
     }
   },
   "downstream_binding": {
