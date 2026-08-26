@@ -1,6 +1,6 @@
 # Wave12 partial-failure state matrix
 
-Status: `APPROVED — W12.5 EXECUTION_RC_CREATED` (2026-08-27)
+Status: `APPROVED — W12.6 EVIDENCE_RC_CREATED` (2026-08-27)
 
 This matrix is the required stop/recovery authority for Iter4 publication. It does not itself authorize a tag, Release, registry write, branch merge, or Contract transition. Every immutable object that has been created remains preserved; recovery always resumes from the recorded candidate and never overwrites, retargets, or rebuilds it.
 
@@ -12,7 +12,7 @@ The Contract owner clarified on 2026-08-26 that Iter4 remains in MVP/pre-1.0 mat
 
 | Object | Fixed identity |
 | --- | --- |
-| Unified input | `release/candidates/iter4-wave11.json`, SHA-256 `c5b78ce1d2c8a5b813032254759c93c9d94bbc1f6a6c250f4511e9dc7c534ef4` |
+| Unified input | Base `release/candidates/iter4-wave11.json`, SHA-256 `c5b78ce1d2c8a5b813032254759c93c9d94bbc1f6a6c250f4511e9dc7c534ef4`; append-only Linux qualification authority `release/candidates/iter4-wave12.json`, SHA-256 `56b982b205c05cd591019ac3165f8d9da5801323ae5a2dd181ec4f603aa0d0ca` |
 | Contract | `evidence.query@0.1.0`; RC `evidence-query-0.1.0-rc.1`; stable `evidence-query-0.1.0` |
 | Execution pair | RC `0.1.3-rc.1`; stable/npm `0.1.3`; core SHA-256 `7c5ab0c061d2cc9f6e3d486e885ee2072870eb09aa0284f0285547fb828d3ca0`; Intake SHA-256 `d518a687c32077aa8ced55a446da4c744461d3bb58d85aa705638073979618b8` |
 | Evidence | RC `0.1.0-rc.1`; stable `0.1.0`; Python 3.13/3.14 support; wheel/sdist/OCI adapter |
@@ -26,7 +26,7 @@ The DSH obligation in this matrix is exact npm-installed plugin qualification an
 1. A changed byte requires a new candidate and a new owner decision before any external state. An existing tag, npm coordinate, Release asset, or GHCR digest is never overwritten.
 2. Stable promotion consumes the qualified RC manifest and candidate commit. Squash-main is an integration target, not a rebuild or retag target.
 3. Build and qualification use read-only repository `GITHUB_TOKEN`. Only after candidate qualification may a short-lived, repository-scoped `wsr-release` App token receive the exact permissions required for RC writes; stable promotion mints a fresh token only for its final GitHub Release write. A workflow-bearing target requires both Contents and Workflows write.
-4. `evidence.query` remains `REVIEW_CANDIDATE` and Evidence makes no conformance claim until contract.gate.1–6 and Contract-owner approval all pass.
+4. `evidence.query@0.1.0` is `FROZEN` after contract.gate.1–6 and Contract-owner approval; Evidence may claim only `VALIDATOR_ONLY`, never production or cross-implementation conformance.
 5. A failed stage stops all later stages. Only the recovery action in its row is permitted; absence of a stable object is evidence, not permission to rebuild.
 6. Host `gh` may inspect state and push coordinator-owned branch commits. It is not a publication fallback: candidate/stable Releases, npm, and GHCR writes are performed by the repository workflows.
 
