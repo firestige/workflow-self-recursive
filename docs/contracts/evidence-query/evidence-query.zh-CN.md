@@ -13,7 +13,7 @@
 | Semantic authority | [Evidence System Design](../../systems/evidence/evidence-system.md)，尤其是 Query & API、lifecycle、ownership 与 access 各节 |
 | Upstream fact authority | FROZEN [Observation Catalog](../observation/observation-catalog.md) 与 [OTel Observation Profile](../observation/otel-observation-profile.md)，wire Profile `1.0.0` |
 | Machine representation | 计划为 `system-contracts/evidence-query/` revision `0.1.0`；Wave9 前不存在 |
-| Shared interface candidate | `evidence-system/src/wsr_evidence/storage/read_model.py` at `c71ad4565935025d524ffbd7236badf43ae11ac7` |
+| Shared interface candidate | `evidence-system/src/wsr_evidence/storage/read_model.py` at `0a1eef8bc77d65aae4a923df6b2fd17e81aba28d` |
 | Publication binding | 无；candidate material 不是 conformance target |
 | Reopen condition | 需要 write endpoint、remote listener、application authentication、consumer database access、inferred causality、Metric formula、第五种 lifecycle class、改变 truth/expiry 含义，或产生 incompatible field/enum/authority change |
 
@@ -72,6 +72,8 @@ Public identity 必须显式且绝非 alias：
 
 Opaque resource-ID bytes 有意保持 implementation-private。Machine validator 只检查 nonempty/byte bound 与 black-box equality/stability vector；不得为 public ID 发明或要求某一种 delimiter、escaping 或 tuple serialization。
 
+每种 Trace kind 的 identity tuple closed：`NODE=["NODE",trace_id,span_id]`；`PARENT_EDGE=["PARENT_EDGE",trace_id,recording_span_id,parent_span_id]`；`LINK=["LINK",trace_id,recording_span_id,target_trace_id,target_span_id]`。LINK `trace_state` 与 `flags` 是该 identity 下的 immutable detail，不参与 identity。完全相同的 repeated upstream link 折叠为一个 LINK resource。两个 upstream link 若 LINK identity 相同但 `trace_state`/`flags` presence 或 value 不同则 conflict，accepted record 与 Projection 均不 commit；list position 永不区分它们。
+
 每个 non-Trace relationship endpoint 使用 closed shape `{ "kind": <endpoint-kind>, "key": <owner-key> }`。Endpoint kind closed 为 `FINDING`、`FINDING_TARGET`、`FIX`、`RECHECK`、`ROLE`、`ROLE_LINEAGE`、`SPAN`、`DELIVERY`、`MODEL_ROLE`。`key` 遵守 bounded scalar-array `owner_key` 规则；其 kind、tuple arity 与含义由 §4 Projection matrix 固定。Endpoint 绝不是裸 display string 或无类型 array。
 
 <a id="evidence-query-4"></a>
@@ -110,7 +112,7 @@ Fact 与 Trace item resource ID nonempty 且最多 8192 UTF-8 bytes。`owner_key
 
 `compatibility` 恰好包含 `family_schema`、`event_name`、`completeness` 与 `dimensions`。Span-derived 或 relationship-only resource 的 `event_name` 为 null。`dimensions` 是 `{ "field": <upstream field ID 或 standard OTel name>, "value": <scalar> }` 的 ordered array，只包含 Evidence Design 要求的 coordinate：semantic/family version、measurement kind、unit-or-currency、source、source identity、completeness，以及适用的 review/test/coverage/model coordinate。Missing coordinate 保持 absent；Query 不从其他 record 补齐。
 
-`fields` 使用 `{ "field": <upstream field ID 或 standard OTel name>, "value": <scalar> }`。允许的 name、type、closed enum、applicability、bound、privacy rule、十个 EventName 与 complete Event shape 恰好来自 Wave6 input manifest 所绑定的 published Observation Profile `1.0.0` registry/schema/validator input；它们是 normative machine input，而不是留给 Wave9 重新解释的 prose。Query 只能返回 Projection 为该 resource kind 拥有的 value。不得返回 Resource/Scope envelope、raw OTLP、arbitrary `agentops.*`、prohibited body 或 unlisted field。每个 `fields` 或 `dimensions` array 的 `field` value 唯一。AgentOps field 按 registry ID 的 numeric family order（`C01..C57`、`I01..I10`、`S01..S06`）排序；随后 admitted standard OTel name 按 exact UTF-8 bytewise ascending order 排序。Factual detail 过期时 `fields` 为空；empty array 绝不 synthesise zero。
+`fields` 使用 `{ "field": <upstream field ID 或 standard OTel name>, "value": <scalar> }`。允许的 name、type、closed enum、applicability、bound、privacy rule、十个 EventName 与 complete Event shape 恰好来自 Wave6 input manifest 所绑定的 published Observation Profile `1.0.0` registry/schema/validator input；它们是 normative machine input，而不是留给 Wave9 重新解释的 prose。Query 只能返回 Projection 为该 resource kind 拥有的 value。不得返回 Resource/Scope envelope、raw OTLP、arbitrary `agentops.*`、prohibited body 或 unlisted field。每个 `fields` 或 `dimensions` array 的 `field` value 唯一。`fields` 先按 registry ID numeric family order（`C01..C57`、`I01..I10`、`S01..S06`）排列 AgentOps entry，再按 exact UTF-8 bytewise ascending order 排 admitted standard OTel name。`dimensions` 使用下文列出的 exact membership order。Factual detail 过期时 `fields` 为空；empty array 绝不 synthesise zero。
 
 `relationships` 恰好使用 `{ "kind", "from", "to" }`。Closed kind 为 `FINDING_TARGET`、`FINDING_FIX`、`FINDING_RECHECK`、`ROLE_LINEAGE`、`DELIVERY_ROOT`、`MODEL_ATTRIBUTION`。Endpoint 是 accepted fact 携带的 exact stable identity。Task grouping、name、time order 或 shared label 绝不产生 relationship。
 
@@ -130,7 +132,7 @@ Fact 与 Trace item resource ID nonempty 且最多 8192 UTF-8 bytes。`owner_key
 
 `MODEL_ATTRIBUTION` 是 factual relationship，只属于 `FACTUAL_PROJECTION`。每个 accepted Span 创建一个 `NODE`，其 `fields` 恰为 bound upstream registry 所准入的全部 Profile attribute。因此 `chat` 或 `generate_content` Span 的 node field 必有 `gen_ai.operation.name`、`gen_ai.provider.name`、`gen_ai.request.model`，并带所有 accepted optional `gen_ai.response.model`、token-usage、`error.type`、C57、C30 与 C06 field。恰好在 C57 存在时 Projection 创建一个 `MODEL_ATTRIBUTION`；upstream-valid record 此时必有 provider、request model、C30 与 C06，exact owner/field/relationship 使用上表对应行。没有 C57 时不创建 `MODEL_ATTRIBUTION` resource，但 model-call `NODE` 仍存在。NODE copy 是 Trace detail。任一 class expiry 都不删除、重建或改变另一个 class。
 
-`compatibility` 始终包含全部四个 named field。`family_schema`、`event_name`、`completeness` 各自是 string-or-null；`dimensions` 始终是 array。只有 source contribution 携带时，`event_name` 与 completeness 才 non-null。Dimension membership 必须精确：`usage` 使用 C42–C45，`implementation.summary` 使用 I05/I08/I09/I10，`test.summary` 使用 C28/C29，`review.summary` 与 `FINDING_ASSERTION` 使用 C13/C14，`MODEL_ATTRIBUTION` 使用 `gen_ai.provider.name`/C57/C30/C06；其他 kind 无 dimension。Missing applicable coordinate 只省略对应 dimension entry，绝不删除 compatibility object 的四个 field 之一。
+`compatibility` 始终包含全部四个 named field。`family_schema`、`event_name`、`completeness` 各自是 string-or-null；`dimensions` 始终是 array。只有 source contribution 携带时，`event_name` 与 completeness 才 non-null。Dimension membership 与 order 必须精确：`usage` 使用 C42/C43/C44/C45，`implementation.summary` 使用 I05/I08/I09/I10，`test.summary` 使用 C28/C29，`review.summary` 与 `FINDING_ASSERTION` 使用 C13/C14，`MODEL_ATTRIBUTION` 使用 `gen_ai.provider.name`/C57/C30/C06；其他 kind 无 dimension。Missing applicable coordinate 只省略对应 dimension entry，绝不删除 compatibility object 的四个 field 之一。
 
 <a id="evidence-query-5"></a>
 ## 5. Trace resource
@@ -185,6 +187,8 @@ Response-level `trace_state` required：`trace_summaries=[]` 时为 `ABSENT`；�
 | snapshot 中无 accepted identity | 无 resource | 无 item | 无 item | 无 item | 无 Evidence fact；不声明未 observed 的现实 activity |
 
 Expiry 绝不把 `FINAL` 改写成 `UNAVAILABLE`、把 `LOWER_BOUND` 提升为 `FINAL` 或改变 `NOT_APPLICABLE`。Availability 表示 retained representation 是否仍含 value/detail；当 provenance 保留时，completeness 仍是 owner 原始 claim。
+
+每个 ACTIVE Fact 的 `fields` 与 `relationships` 遵循 §4 Projection matrix。每个 EXPIRED Fact 的这两个 field 都恰为 empty array。Identity、provenance、compatibility、recorded time 与 truth 保留，但 Query 绝不从 tombstone 重建已删除 value 或 relationship。
 
 C17 必须精确：present accepted `agentops.review.observed.count=0` 产生 numeric zero field；absent C17 不产生 observed-count field，也不产生 synthetic unavailable resource。`LOWER_BOUND` 下的 present zero 仍是 lower-bound claim 下的 recorded zero；只有 `FINAL` 使其成为 final zero。
 
@@ -260,20 +264,22 @@ Query 与 Retention 共享 stable internal semantic port，而非 database table
 ```text
 acquire_snapshot(query, filters, limit, clock_now) -> SnapshotPage
 continue_snapshot(cursor, clock_now) -> SnapshotPage
+summarize_traces(snapshot_id) -> TraceSummary[0..32]
 read_expiry(resource_class, resource_kind, owner_key, snapshot) -> ExpiryRecord | ACTIVE
 plan_expiry(resource_class, policy_revision, cutoff, ttl_seconds, limit) -> ExpiryBatch
 apply_expiry(batch_identity, clock_now) -> ExpiryResult
 ```
 
-`SnapshotPage` 包含 exact Contract/read-model revision、snapshot identity、ordered public resource 与 continuation，不含 SQL row 或 mutable dictionary escape hatch。`ExpiryOwner` 是 public `resource_kind` 与 Projection `owner_key` 的 exact pair；不同 resource kind 的 owner key 不要求互斥。`ExpiryRecord` 包含 resource class、exact ExpiryOwner coordinate、policy revision、expired-at 及区分 expired/absent 所需的最小 bounded tombstone coordinate，不含 expired value/body。`ExpiryBatch` 对一个 policy revision/cutoff/TTL deterministic，并按 `batch_identity` idempotent。
+`SnapshotPage` 包含 exact Contract/read-model revision、snapshot identity、ordered public resource 与 continuation，不含 SQL row 或 mutable dictionary escape hatch。`summarize_traces` 只对 Trace-query snapshot 合法，并从同一 committed snapshot 返回 complete ordered `TraceSummary` array。每个 first/continuation page 都调用它；page replay 得到 identical summary。Public `trace_state` 只能按 §5 对该 array 的 aggregation rule 派生。`ExpiryOwner` 是 public `resource_kind` 与 Projection `owner_key` 的 exact pair；不同 resource kind 的 owner key 不要求互斥。`ExpiryRecord` 包含 resource class、exact ExpiryOwner coordinate、policy revision、expired-at 及区分 expired/absent 所需的最小 bounded tombstone coordinate，不含 expired value/body。`ExpiryBatch` 对一个 policy revision/cutoff/TTL deterministic，并按 `batch_identity` idempotent。
 
-`ExpiryRecord.source` 恰好使用 §3 的 Event/Span source identity。其 `compatibility` 是 ordered bounded pair list：factual marker 保留 §4 exact compatibility coordinate；`DELIVERY_ROOT_BINDING` marker 可额外保留 internal pair `delivery_id`，仅用于在 factual-detail expiry 后继续 exact Delivery traversal；Raw/Trace marker 使用 empty list。该 internal pair 永不出现在 public 四字段 compatibility object 中。
+`ExpiryRecord.source` 恰好使用 §3 的 Event/Span source identity。其 `compatibility` 是 0..7 个 unique 二元素 JSON array `[key,value]` 组成的 array；`key` 为 string，`value` 为 §3 scalar。Raw/Trace marker 使用 `[]`。每个 factual marker 依 exact order 先放 `["family_schema",value]`、`["event_name",value]`、`["completeness",value]`，包括 explicit null；随后把 public §4 `dimensions` 按 published exact order 展平为 `[field,value]` pair。其他 key 禁止；唯一例外是 `DELIVERY_ROOT_BINDING` 把 `["delivery_id",value]` 作为第四个、也是最后一个 pair append，仅用于 factual-detail expiry 后继续 exact Delivery traversal。Pair key 唯一；missing dimension omitted，不编码为 null。该 internal `delivery_id` pair 永不出现在 public 四字段 compatibility object 中。
 
 Internal value closed 为：
 
 | Value | Exact field 与 bound |
 | --- | --- |
 | `SnapshotPage` | `contract_revision`、`read_model_revision`、`snapshot_id`、`resources`（0..limit 个 ordered public resource）、`next_cursor` |
+| `TraceSummary` | 恰好 `trace_id` 与 `state`；0..32 个 value 按 `trace_id` 排序，含义使用 §5 `AVAILABLE`/`PARTIAL`/`EXPIRED` |
 | `ExpiryOwner` | `resource_kind` 与 exact `owner_key`；`owner_key` 遵守 §4 的 1..16 个 bounded scalar；同一 resource class 内 expiry identity 必须是该 pair，绝非裸 owner key |
 | `ExpiryRecord` | `resource_class`、`owner_key`、`source`、`resource_kind`、`recorded_at`、`compatibility`、`policy_revision`、`expires_at`、`expired_at`；无 value/body |
 | `ExpiryBatch` | `batch_identity`、`resource_class`、`policy_revision`、`cutoff`、nonnegative integer `ttl_seconds`，以及 `members`：0..1000 个 unique、canonical ascending ExpiryOwner value |
@@ -282,6 +288,8 @@ Internal value closed 为：
 `selected` 等于 applied batch 的 exact member count。Plan `ACCEPTED_PROVENANCE`、apply unknown/mixed-class member，或 planned resource 在没有 committed marker 时消失，都会使 internal operation fail，且 marker/scrub 均不 commit；不得返回 partial `ExpiryResult` 或 HTTP query error。
 
 Raw-debug owner 的 `resource_kind` 为 `RAW_DEBUG`；Trace detail 使用 public Trace kind（`NODE`、`PARENT_EDGE`、`LINK`）；factual projection 使用 §4 的九个 public Fact kind 之一。Internal projection-effect name 绝不是 port value；`MODEL_ATTRIBUTION` 只在 `FACTUAL_PROJECTION` 合法。
+
+Expiry `owner_key` 同样 closed。Raw Event 使用 `["event",event_id]`；Raw Span 使用 `["span",trace_id,span_id]`。Trace 使用去掉 leading kind discriminator 的 identity coordinate：NODE `[trace_id,span_id]`、PARENT_EDGE `[trace_id,recording_span_id,parent_span_id]`、LINK `[trace_id,recording_span_id,target_trace_id,target_span_id]`。LINK metadata 永不参与。Factual owner key 恰为 §4 matrix 的九种 tuple。Equality 逐 scalar 比较并保留 type；不得 append display value、metadata 或 list position。
 
 Batch canonical bytes 使用 versioned framing `evidence-expiry-batch-v1`：先写该 literal 的 UTF-8 bytes 加 LF；不加 outer container，随后依次写 `resource_class`、`policy_revision`、恰好六位 fractional digit 与 `Z` 的 UTC `cutoff`、integer `ttl_seconds` 及 member array 的 scalar encoding。每个 scalar encoding 都以 LF 结束：null=`n`+LF；boolean=`b0`/`b1`+LF；integer=`i` 加 canonical base-10+LF；finite number=`f` 加 IEEE-754 binary64 big-endian bits 的 16 位 lower-case hex+LF；string=`s` 加 UTF-8 byte length、colon、exact UTF-8 bytes、LF。Array 编码为 `a` 加 decimal element count+LF，再接各 element encoding。每个 member 是二元素 array `[resource_kind,owner_key]`；member 唯一，并按该完整 array encoding 的 bytewise lexicographic order 排序。不作 Unicode normalization。`batch_identity` 是这些 exact bytes 的 lower-case SHA-256 hex。相同 input 重新 plan 得到相同 identity；任何 cutoff、TTL、kind、scalar type/value 或 member 改变都改变 canonical input。再次 apply 同一 identity 时，每个已 committed member 报为 `already_expired`，无第二次 mutation。同一 class 下两个 resource 可以有相同裸 owner key；因 `resource_kind` 不同仍独立寻址。
 
