@@ -265,7 +265,7 @@ plan_expiry(resource_class, policy_revision, cutoff, ttl_seconds, limit) -> Expi
 apply_expiry(batch_identity, clock_now) -> ExpiryResult
 ```
 
-`SnapshotPage` 包含 exact Contract/read-model revision、snapshot identity、ordered public resource 与 continuation，不含 SQL row 或 mutable dictionary escape hatch。`ExpiryOwner` 是 public `resource_kind` 与 Projection `owner_key` 的 exact pair；不同 resource kind 的 owner key 不要求互斥。`ExpiryRecord` 包含 resource class、exact ExpiryOwner coordinate、policy revision、expired-at 及区分 expired/absent 所需的最小 bounded tombstone coordinate，不含 expired value/body。`ExpiryBatch` 对一个 policy revision/cutoff deterministic，并按 `batch_identity` idempotent。
+`SnapshotPage` 包含 exact Contract/read-model revision、snapshot identity、ordered public resource 与 continuation，不含 SQL row 或 mutable dictionary escape hatch。`ExpiryOwner` 是 public `resource_kind` 与 Projection `owner_key` 的 exact pair；不同 resource kind 的 owner key 不要求互斥。`ExpiryRecord` 包含 resource class、exact ExpiryOwner coordinate、policy revision、expired-at 及区分 expired/absent 所需的最小 bounded tombstone coordinate，不含 expired value/body。`ExpiryBatch` 对一个 policy revision/cutoff/TTL deterministic，并按 `batch_identity` idempotent。
 
 `ExpiryRecord.source` 恰好使用 §3 的 Event/Span source identity。其 `compatibility` 是 ordered bounded pair list：factual marker 保留 §4 exact compatibility coordinate；`DELIVERY_ROOT_BINDING` marker 可额外保留 internal pair `delivery_id`，仅用于在 factual-detail expiry 后继续 exact Delivery traversal；Raw/Trace marker 使用 empty list。该 internal pair 永不出现在 public 四字段 compatibility object 中。
 
