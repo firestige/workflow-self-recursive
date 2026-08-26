@@ -1,7 +1,7 @@
 {
   "manifest_version": "1.0.0",
   "wave": "wave6",
-  "generated_at": "2026-08-26T19:51:29+08:00",
+  "generated_at": "2026-08-26T20:06:16+08:00",
   "digest_rules": {
     "algorithm": "SHA-256",
     "encoding": "lower-case hex",
@@ -19,19 +19,19 @@
     "lifecycle_status": "REVIEW_CANDIDATE",
     "semantic_path": "docs/contracts/evidence-query/evidence-query.md",
     "translation_path": "docs/contracts/evidence-query/evidence-query.zh-CN.md",
-    "approved_superproject_commit": "58b4013d8dbe271b54a36eff255e76ea98c9e601",
-    "semantic_sha256": "02307b9477caf72175d004bc87820f68768dc0db5ff31dee889dfe1a891d8cf7",
-    "translation_sha256": "43ccd050cc0cf47a8f7f18516c95d6cc75892fe63219bae67a8096c9c0a1205a"
+    "approved_superproject_commit": "df3670739b074038f145a569ca30ea1c9e950e98",
+    "semantic_sha256": "49a4db21db4ce56ecf4c165246a3355840c3bb521500e644ae4a4234526fce32",
+    "translation_sha256": "ecd728bb2f89e16e20490aa2aa14bd64277764f65649b4e16ea8bb27f4bdc4da"
   },
   "shared_interface": {
     "component": "evidence-system",
-    "component_commit": "c71ad4565935025d524ffbd7236badf43ae11ac7",
+    "component_commit": "0a1eef8bc77d65aae4a923df6b2fd17e81aba28d",
     "read_model_revision": "1.0.0",
     "policy_revision": "1.0.0",
     "path": "src/wsr_evidence/storage/read_model.py",
-    "sha256": "ec1b6ed2f50cc628e9be9b95139d99e1cc272b7c4fd3c58316a436f3233ae5e8",
+    "sha256": "0cf4ccc67ce65b9c60c8ff7974c6a776b24aacb42d84eae6f097b4cd039ffedd",
     "test_path": "tests/unit/test_query_expiry_contract.py",
-    "test_sha256": "9a359ff4ee9a89fb68186323a5c3aec9b8afb5ce6ba5fdbd3b056b55736e495d"
+    "test_sha256": "56f32315db729e127aac6a6af1842353438ed2dd2a05c9b4d8e0317477901d29"
   },
   "upstream_machine": {
     "component": "system-contracts",
@@ -49,7 +49,7 @@
     "truth_table": {
       "start_anchor": "evidence-query-6",
       "end_before_anchor": "evidence-query-7",
-      "sha256": "fdfcead8d8e7f7362153bba98c205cb70148ec371eefe384a6cde3b4bb852d67"
+      "sha256": "59026c78e74d534755b04ca093602f283df4064fe7f12231b7f4f6dfd1df3304"
     },
     "lifecycle_defaults": {
       "start_anchor": "evidence-query-10",
