@@ -336,7 +336,7 @@ flowchart LR
 ### wave12 — 契约 FROZEN、Execution/Evidence 统一发布与 #92 真实验收
 
 - [ ] 在产生任何 tag/release/外部发布状态前完成并批准 partial-failure state matrix，覆盖 `contract candidate/RC publication → binding/FROZEN → Execution pair RC/prepublish qualification → Evidence RC/qualification → 唯一 component-first squash/repin → system-contracts stable → core stable publish/smoke → intake stable publish/smoke → DSH listing/postpublish smoke → Evidence stable`；逐阶段定义必须保留的 URL/tag/digest、不可变对象、恢复入口 SHA/manifest、npm 双包部分失败恢复、允许重试动作、oracle 与人工批准点。
-- [ ] contract.gate.1 semantic review、gate.2 fresh reader、gate.3 deterministic candidate verification、gate.4 translation parity 与全部发布前检查先通过；预生成最终 FROZEN 语义字节、register patch 和 publication-binding candidate，但不提前作 FROZEN 声明；gate.5/6 此时保持 pending。
+- [x] contract.gate.1 semantic review、gate.2 fresh reader、gate.3 deterministic candidate verification、gate.4 translation parity 与全部发布前检查先通过；预生成最终 FROZEN 语义字节、register patch 和 publication-binding candidate，但不提前作 FROZEN 声明；gate.5/6 此时保持 pending。
 - [ ] 协调者把 wave4 的 system-contracts release automation commit、wave9 机器表示与 publication-binding candidate 合并到批准基线；使用自动化流程按 immutable manifest 创建指定 system-contracts revision 的 candidate/RC machine publication，不做 main repin 或 stable promotion，不得使用 host `gh`/个人凭证。
 - [ ] 真实 machine release 后验证 gate.5，并在干净 checkout 复验已发布 publication record 对最终语义字节/机器表示的 exact revision+SHA-256 binding 以通过 gate.6；取得 Contract owner approval后原子合并预生成的状态元数据/register patch，将 `evidence.query` 转为 `FROZEN`，不得改变语义。
 - [ ] 只有 contract.gate.1–6 全部 PASS 且 `FROZEN` 后，Evidence 才可作 conformance claim并进入产品发布。
