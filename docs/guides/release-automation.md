@@ -29,7 +29,7 @@ Candidate workflows reject any ref other than `release/next`. The first RC is tr
 
 ```json
 {
-  "candidate_tag": "evidence-query-1.0.0-rc.1"
+  "candidate_tag": "evidence-query-0.1.0-rc.1"
 }
 ```
 

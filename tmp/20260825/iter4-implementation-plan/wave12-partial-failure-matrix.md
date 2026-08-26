@@ -1,14 +1,12 @@
 # Wave12 partial-failure state matrix
 
-Status: `BLOCKED — CONTRACT COORDINATE DECISION REQUIRED` (2026-08-26)
+Status: `PRE-PUBLICATION REVIEW CANDIDATE` (2026-08-26)
 
 This matrix is the required stop/recovery authority for Iter4 publication. It does not itself authorize a tag, Release, registry write, branch merge, or Contract transition. Every immutable object that has been created remains preserved; recovery always resumes from the recorded candidate and never overwrites, retargets, or rebuilds it.
 
-## Pre-publication blocker
+## Contract coordinate decision
 
-The approved Wave12 path currently names `evidence.query@0.1.0` as the revision that will transition to `FROZEN`. The adopted lifecycle authority at `docs/contracts/contract-lifecycle.md` §6 instead states that `0.x` is pre-release and `1.0.0` is the first frozen revision. No documented exception exists. Therefore A1 is not ready and no `release/next` request may be pushed until the Contract owner chooses and records one coherent rule.
-
-The recommended resolution is to promote the still-unpublished Contract coordinate to `evidence.query@1.0.0`, while keeping the Evidence product release at `0.1.0`. This is not a breaking change to a published Contract because `evidence.query@0.1.0` has never resolved as a release. It does, however, change the API's returned contract-revision literal and therefore requires a scoped reopen/requalification of the semantic/machine Contract, Evidence query implementation and exact Evidence candidate artifacts. The Wave11 Execution tgz pair remains byte-authoritative and does not need rebuilding.
+The Contract owner clarified on 2026-08-26 that Iter4 remains in MVP/pre-1.0 maturity and retains `evidence.query@0.1.0`. `FROZEN` means that this exact Contract revision is immutable and conformance-addressable after all gates; it does not claim project-wide 1.0 stability. The lifecycle authority now states this distinction explicitly. No Contract, Evidence, or Execution candidate byte is invalidated by the clarification.
 
 ## Fixed identities and scope
 

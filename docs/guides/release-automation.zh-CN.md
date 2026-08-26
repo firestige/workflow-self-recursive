@@ -29,7 +29,7 @@ candidate workflow 会拒绝 `release/next` 之外的 ref。首次 RC 由 push �
 
 ```json
 {
-  "candidate_tag": "evidence-query-1.0.0-rc.1"
+  "candidate_tag": "evidence-query-0.1.0-rc.1"
 }
 ```
 

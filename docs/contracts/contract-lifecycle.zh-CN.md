@@ -107,7 +107,7 @@ flowchart LR
 ## 6. 版本与兼容
 
 - Contract revision：`name@MAJOR.MINOR.PATCH`（如 `agentops.workflow-dsl@1.0.0`）。
-- `0.x` 是 pre-release：review 后语义仍可能调整；`1.0.0` 是第一个冻结 revision。
+- `0.x` 表示项目仍处于 1.0 之前：后续显式版本的兼容性仍可能演进。一个精确的 `0.x` revision 在全部 lifecycle gate 与 owner approval 通过后仍可达到 `FROZEN`；冻结使该 revision 不可变且可被 conformance 精确寻址，但不声称项目整体已达到 1.0 稳定性。`1.0.0` 是首个完整稳定 revision。
 - 兼容类别：
 
 | 变更 | Revision | 规则 |

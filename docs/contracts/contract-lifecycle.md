@@ -107,7 +107,7 @@ The fast path changes the ordering of evidence, never the required set of gates.
 ## 6. Versioning and Compatibility
 
 - Contract revision: `name@MAJOR.MINOR.PATCH` (e.g., `agentops.workflow-dsl@1.0.0`).
-- `0.x` is pre-release: semantics may still shift after review; `1.0.0` is the first frozen revision.
+- `0.x` denotes pre-1.0 project maturity: compatibility may still evolve through later explicitly versioned revisions. An exact `0.x` revision may nevertheless become `FROZEN` after all lifecycle gates and owner approval; freezing makes that revision immutable and conformance-addressable, but does not claim project-wide 1.0 stability. `1.0.0` is the first full-stability revision.
 - Compatibility classes:
 
 | Change | Revision | Rule |
