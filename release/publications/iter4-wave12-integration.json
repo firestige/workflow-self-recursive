@@ -23,17 +23,20 @@
       "qualified_product": "3c6259ca07276b1de8520fa6fc0d26c86fd93a41",
       "input_tree": "53cc293dd4247160b1c6bd330c48aec68f496e76",
       "squash_main_commit": "f23da5ab02d91589e50b2d1fb01df4f411aa8f9a",
-      "main_commit": "18e990a9830ce488bc91768453e783f7796802d7",
+      "main_commit": "437d2e562be1904fd8575730d35a2297f7ecc6bf",
       "integration_contract_test_commit": "0071622192b3edb2446e43647c0ff2bd36f89bfa",
-      "changelog_sync_commit": "18e990a9830ce488bc91768453e783f7796802d7",
+      "protected_scope_test_commit": "c308c5570464bf7fc4a8d6d3f631d8ed1cdfb29b",
+      "changelog_sync_commit": "437d2e562be1904fd8575730d35a2297f7ecc6bf",
       "post_squash_generated_fix": "CHANGELOG_ONLY_NO_CANDIDATE_ASSET_CHANGE",
       "integration_contract_test": "ROOT_LIFECYCLE_QUALIFIER_REQUIRES_PLUGIN_OLD_PLUGIN_NEW_AND_CORE_ARCHIVES",
       "transition_ci": "https://github.com/firestige/execution-system/actions/runs/33022584119",
       "transition_ci_status": "EXPECTED_SUPERPROJECT_PIN_MISMATCH_569_OF_570_PASS",
       "main_ci": "https://github.com/firestige/execution-system/actions/runs/33023423618",
       "main_ci_status": "PASS",
-      "root_integration_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33023413274",
-      "root_integration_ci_status": "EXPECTED_GENERATED_CHANGELOG_DRIFT_AFTER_TEST_COMMIT"
+      "root_changelog_drift_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33023413274",
+      "root_changelog_drift_ci_status": "EXPECTED_GENERATED_CHANGELOG_DRIFT_AFTER_TEST_COMMIT",
+      "root_legacy_contract_boundary_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33023674456",
+      "root_legacy_contract_boundary_ci_status": "EXPECTED_WHOLE_REPOSITORY_FREEZE_REPLACED_BY_PROTECTED_CONTRACT_TREE_FREEZES"
     },
     "evidence_system": {
       "feature_input": "183c055c5c29742ded4102d9b3e9466eb197cfcd",
@@ -48,7 +51,7 @@
     "main_base": "e229313dccb4fdb54444f3eb0408bf5dc5558a00",
     "feature_repin": "50346ce3cc2eb941b3e8ebaa0b01b8f290c4cbdf",
     "initial_squash_main_commit": "396960fd3ffaad62475282ee48f374b6593d218d",
-    "status": "EXECUTION_CHANGELOG_SYNCED_PENDING_REPIN_AND_CI"
+    "status": "PROTECTED_CONTRACT_TREE_BOUNDARIES_FIXED_PENDING_REPIN_AND_CI"
   },
   "stable_promotion": "NOT_STARTED"
 }
