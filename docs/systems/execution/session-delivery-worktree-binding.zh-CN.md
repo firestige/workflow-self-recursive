@@ -1,6 +1,6 @@
 # Session、Delivery 与 Worktree 排他绑定设计
 
-状态：`APPROVED`
+状态：`APPROVED — IMPLEMENTATION AUTHORIZED`
 
 Issue：[#94](https://github.com/firestige/workflow-self-recursive/issues/94)
 
@@ -8,7 +8,7 @@ Issue：[#94](https://github.com/firestige/workflow-self-recursive/issues/94)
 
 Owner：Execution System
 
-范围：仅设计与实现级验收；Iter4 不实施产品代码
+范围：批准后的设计权威；Owner 已于 2026-08-26 授权在 Iter4 Wave11 实施
 
 ## 1. 决策边界
 
@@ -41,7 +41,7 @@ Owner：Execution System
 7. Session authority 缺失/非法时，在任何 Delivery、Package、Runner、binding effect 前返回 `DSH_INTAKE_WORKSPACE_UNAUTHORIZED`。
 8. Session 已绑定返回 `SESSION_INTAKE_BOUND`；Delivery 已绑定其他 available Session 返回 `DELIVERY_INTAKE_BOUND`；worktree 占用保持既有 `CONTENDED`/exact `RECOVERY`。
 
-现有 architecture 的“一个 active Delivery 恰好绑定一个 session”需细化为“至多一个 Session”，否则无法表达 crash-safe `DETACHED`。该文字只在后续 implementation card 落地时修改。
+现有 architecture 的“一个 active Delivery 恰好绑定一个 session”需细化为“至多一个 Session”，否则无法表达 crash-safe `DETACHED`。Wave11/#102 实施时必须同步修改该文字。
 
 ## 4. 独立生命周期投影
 
@@ -96,10 +96,10 @@ Bootstrap 必须先完成 Execution recovery；失败则 application fail closed
 
 ## 7. 替换 #93 provisional 过渡
 
-#93 检查继续作为 authorization source，但不再把 raw workspace string 当成 durable worktree。后续实现须引入 private、typed、invocation-only conversation-workspace authorization input，由 Execution 推导/持久化 worktree；该输入没有自己的 identity 或 durable lifecycle。binding schema migration 增加 `deliveryBindingIdentity`；每条 v1 record 必须 exact join 一个 recovered Delivery，否则 fail closed，不静默改写。
+#93 检查继续作为 authorization source，但不再把 raw workspace string 当成 durable worktree。Wave11/#102 必须引入 private、typed、invocation-only conversation-workspace authorization input，由 Execution 推导/持久化 worktree；该输入没有自己的 identity 或 durable lifecycle。binding schema 从 `execution.intake-bindings@1.0.0` 显式迁移到 `execution.intake-bindings@2.0.0` 并增加 `deliveryBindingIdentity`；每条 v1 record 必须 exact join 一个 recovered Delivery，否则 fail closed，不静默改写。
 
-## 8. 后续实施边界
+## 8. 实施边界
 
-本 wave 不改产品。实施由 [#102](https://github.com/firestige/workflow-self-recursive/issues/102) 跟踪；除非显式修订 Iter4 plan/DAG/release baseline 与 `0.1.3+` 决策，否则该卡不进入 Iter4。
+Wave5 本身不改产品，只批准本设计与实现级验收。Owner 已于 2026-08-26 显式修订 Iter4 plan、DAG 与 release baseline：[#102](https://github.com/firestige/workflow-self-recursive/issues/102) 获准在 Iter4 Wave11 实施，`wsr-execution` / `wsr-dsh-intake` 必须从不可变的外部 `0.1.2` 基线锁步升级到 `0.1.3`。Wave12 是统一发布窗口；Wave11 不得产生外部发布状态。
 
 后续 owned paths：Intake `binding-repository.js`/`index.d.ts`/`plugin.js`；private invocation-authorization seam 的 `bootstrap/contracts.ts`/`production.ts` 与 `core/request.ts`/`execution-core.ts`；只在必要时触及 `delivery/manifest.ts`/`admission.ts`/`current-slot.ts`，不得改状态语义；配套 `test/intake/**`、`test/delivery/**`、`test/bootstrap/**` 与 DSH restart/product qualification。Runner 五模块、FROZEN contracts、Evidence、公开 application methods 与 Provider-native Session 类型均禁止修改。

@@ -1,6 +1,6 @@
 # Session, Delivery, and Worktree Binding Design
 
-Status: `APPROVED`
+Status: `APPROVED — IMPLEMENTATION AUTHORIZED`
 
 Issue: [#94](https://github.com/firestige/workflow-self-recursive/issues/94)
 
@@ -8,7 +8,7 @@ Implementation: [#102](https://github.com/firestige/workflow-self-recursive/issu
 
 Owner: Execution System
 
-Scope: design and implementation-level acceptance only; no Iteration 4 product implementation
+Scope: approved design authority; implementation authorized in Iteration 4 Wave11 by owner decision on 2026-08-26
 
 ## 1. Decision boundary
 
@@ -41,7 +41,7 @@ For a new Delivery, Intake supplies proof of the registered conversation workspa
 7. Missing/invalid Session authority produces `DSH_INTAKE_WORKSPACE_UNAUTHORIZED` before Delivery, Package, Runner, or binding effects.
 8. A Session conflict produces a typed `SESSION_INTAKE_BOUND`; a Delivery already bound to another available Session produces `DELIVERY_INTAKE_BOUND`; occupied-worktree behavior remains the existing `CONTENDED`/exact `RECOVERY` result.
 
-The current architecture statement “one active Delivery to exactly one session” is refined to “one active Delivery to at most one Session”; otherwise crash-safe `DETACHED` recovery would be impossible. This wording change is proposed for the architecture document only when the implementation card lands.
+The current architecture statement “one active Delivery to exactly one session” is refined to “one active Delivery to at most one Session”; otherwise crash-safe `DETACHED` recovery would be impossible. Wave11/#102 must apply this wording change to the architecture document.
 
 ## 4. Independent lifecycle projections
 
@@ -141,11 +141,11 @@ Conclusive terminal handling or authorized abandonment clears the Intake binding
 
 ## 7. Provisional transition replacement
 
-The #93 checks remain the authorization source but stop passing a raw workspace string as if it were already the durable worktree. The later implementation must introduce a private, typed, invocation-only conversation-workspace authorization input and let Execution derive/persist the worktree. The input has no identity or durable lifecycle of its own. Existing binding documents require an explicit schema migration that adds `deliveryBindingIdentity`; migration must exact-join every v1 record to one recovered Delivery or fail closed. It must not silently rewrite an unmatched record.
+The #93 checks remain the authorization source but stop passing a raw workspace string as if it were already the durable worktree. Wave11/#102 must introduce a private, typed, invocation-only conversation-workspace authorization input and let Execution derive/persist the worktree. The input has no identity or durable lifecycle of its own. Existing `execution.intake-bindings@1.0.0` documents require an explicit migration to `execution.intake-bindings@2.0.0` that adds `deliveryBindingIdentity`; migration must exact-join every v1 record to one recovered Delivery or fail closed. It must not silently rewrite an unmatched record.
 
-## 8. Later implementation ownership
+## 8. Implementation ownership
 
-No production path is changed by this design wave. Implementation is tracked by [#102](https://github.com/firestige/workflow-self-recursive/issues/102) and remains outside Iteration 4 unless the Iter4 plan, DAG, release baseline, and `0.1.3+` decision are explicitly revised.
+Wave5 changed no production path; it approved this design and implementation-level acceptance only. On 2026-08-26, the owner explicitly revised the Iter4 plan, DAG, and release baseline: [#102](https://github.com/firestige/workflow-self-recursive/issues/102) is authorized for Iteration 4 Wave11, and `wsr-execution` / `wsr-dsh-intake` must advance in lockstep from the immutable external `0.1.2` baseline to `0.1.3`. Wave12 is the unified publication window; Wave11 must not publish externally.
 
 Expected owned paths for that card:
 
