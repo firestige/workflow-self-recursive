@@ -1,0 +1,96 @@
+{
+  "schema_version": "wsr.iter4-unified-candidate@1.0.0",
+  "status": "IMMUTABLE_RELEASE_CANDIDATE",
+  "created_at": "2026-08-26",
+  "superproject": {
+    "wave10_pin_commit": "7d93175dc150a1a4a876c27a30e2625296ff56c8",
+    "wave11_replan_commit": "b67623267e01abc0d55d7649ee70ff381b4aafc3",
+    "wave11_payload_commit": "d0cb418c2d97b40d0c77692781bc5b3f39df64c7"
+  },
+  "contract_candidate": {
+    "coordinate": "evidence.query@0.1.0",
+    "status": "REVIEW_CANDIDATE",
+    "published": false,
+    "system_contracts_commit": "6f77510234961149922165666ed0be2d2f82b84b",
+    "machine_content_revision": "sha256:6d37245fbac11dde2967a7775efb541e00fb4c8b00c80011b91aef007346cfa1",
+    "publication_candidate_sha256": "97c3e158c18cd7e92da949d82a17b71c5e4bf08d081fef6e5f4b6dcb9c00c6a7"
+  },
+  "execution": {
+    "repository": "firestige/execution-system",
+    "input_commit": "3179eb13514aaaef733c20cf55b03effd98fbf4e",
+    "build_input_commit": "8ec2820e5a16c69dbcd1c46f6d5ddba68d63614b",
+    "candidate_archive_commit": "3c6259ca07276b1de8520fa6fc0d26c86fd93a41",
+    "metadata": {
+      "path": "execution-system/release/candidates/iter4-wave11/release-metadata.json",
+      "sha256": "sha256:cae4b4e126fe075c8a5826d17fdc664706b02bc0cfe1ce9bd40971a45a4999bd"
+    },
+    "release_notes": {
+      "path": "execution-system/release/candidates/iter4-wave11/release-notes.md",
+      "sha256": "sha256:9e72e4052350ec9c3c4417282bcb494d5b29b2f6599a1f7216288c5db501dbc3"
+    },
+    "artifacts": [
+      {
+        "package": "wsr-execution",
+        "version": "0.1.3",
+        "path": "execution-system/release/candidates/iter4-wave11/wsr-execution-0.1.3.tgz",
+        "bytes": 174990,
+        "sha256": "sha256:7c5ab0c061d2cc9f6e3d486e885ee2072870eb09aa0284f0285547fb828d3ca0"
+      },
+      {
+        "package": "wsr-dsh-intake",
+        "version": "0.1.3",
+        "path": "execution-system/release/candidates/iter4-wave11/wsr-dsh-intake-0.1.3.tgz",
+        "bytes": 22189,
+        "sha256": "sha256:d518a687c32077aa8ced55a446da4c744461d3bb58d85aa705638073979618b8"
+      }
+    ]
+  },
+  "evidence": {
+    "repository": "firestige/evidence-system",
+    "version": "0.1.0",
+    "payload_commit": "cdc540ac53991a2ba243598e2dc2ec9596c695e4",
+    "candidate_archive_commit": "d37f454e2379fed17294c863482f6fcb0c75a97e",
+    "manifest_path": "evidence-system/release/candidates/iter4-wave10.json",
+    "manifest_sha256": "sha256:28e35e81df4ca7b48f49e166e022eb04bafe0eae9b7347bde091f1c317de1904",
+    "migration_revision": "20260826_0003",
+    "assets": [
+      {
+        "name": "wsr_evidence-0.1.0-py3-none-any.whl",
+        "sha256": "sha256:e4e409561a1eb778bbdf7cefc406cf3242fc5972ef00aeffd3e558d6aeeb08ef"
+      },
+      {
+        "name": "wsr_evidence-0.1.0.tar.gz",
+        "sha256": "sha256:6660c0a2a05dbc92060764e3b03167adb9eef472cd98588e22af04ce0bc5ccea"
+      },
+      {
+        "name": "ghcr.io/firestige/wsr-evidence:0.1.0-rc",
+        "sha256": "sha256:51f890d1bc6cf75425d3696c88dbabbe5ab2413468eeaa8bb14a10cd23cf8d79",
+        "scope": "LOCAL_CANDIDATE_IMAGE_ID"
+      }
+    ]
+  },
+  "qualification": {
+    "execution_full_test": "PASS_567",
+    "execution_coverage": {
+      "statements": "90.03%",
+      "branches": "85.71%",
+      "functions": "94.21%",
+      "lines": "95.41%"
+    },
+    "execution_type_build_distribution": "PASS",
+    "execution_release_policy": "PASS",
+    "execution_exact_candidate_product": "PASS",
+    "execution_exact_candidate_interactive": "PASS",
+    "execution_package_lifecycle_0.1.2_to_0.1.3": "PASS",
+    "evidence_wave10": "PASS",
+    "contract_candidate": "PASS_18_TESTS_17_FIXTURES"
+  },
+  "non_claims": [
+    "NO_TAG_OR_GITHUB_RELEASE_CREATED",
+    "NO_NPM_OR_DSH_PUBLICATION_CREATED",
+    "NO_EVIDENCE_REGISTRY_OR_GHCR_PUBLICATION_CREATED",
+    "CONTRACT_NOT_FROZEN_OR_PUBLISHED",
+    "NO_IMPLEMENTATION_CONFORMANCE_CLAIM",
+    "ISSUE_102_REMAINS_OPEN_UNTIL_EXACT_ASSET_STABLE_PUBLICATION"
+  ]
+}

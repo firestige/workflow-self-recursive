@@ -79,7 +79,7 @@ GitHub 与显式配置的 alternate Source 是 private Adapter，不是产品 Sy
 | Workflow Package Snapshot | 一个不可变精确 Package 闭包及其必需关系/资源在 composition 层的含义；preview 可直接用 resolved Package 值表示，无需独立 proof 或 capability identity chain | Workflow composition authority；由 Execution 解析 |
 | Workflow selector | 指定 Package 和可选版本的通用用户输入；裸 name 与 `latest` 请求 sticky-local latest，精确版本只请求该版本 | Host/Intake 提供；Execution 解释 |
 | TaskPrompt | Host-neutral triggering-turn 正文与 immutable attachment reference；不含 host-native session/message object，也不存在 prompt command parameter | Host/Intake 提供；M01 只在 `NEW` snapshot 并 binding |
-| Intake session binding | 一个 active Delivery 与一个 host conversation session 之间排他的一对一 presentation relationship；不同 session 可并行服务不同 worktree | Intake Adapter 拥有 private binding；Execution 拥有 Delivery truth |
+| Intake session binding | 一个 active Delivery 与一个 host conversation session 之间排他的零或一 presentation relationship；不同 session 可并行服务不同 worktree | Intake Adapter 拥有 private binding；Execution 拥有 Delivery truth |
 | Resolved Workflow Package | 完成本地解析、普通校验和 Runner compatibility 检查后，包含 `name`、`exactVersion`、`packageDigest`、`localPath` 与 `workflowId` 的简单不可变值 | Delivery（M01） |
 | Execution installation configuration | 所有 embedding 与 Intake Adapter 共用的一份 closed、versioned、canonical、deeply immutable non-secret value | Execution-level support；Bootstrap 只加载一次 |
 | Delivery configuration projection | 可绑定 Delivery 的 Runner/Host、Provider/model/base URL、workspace/resource 与 required control input 的 config-only non-secret snapshot；不含 Package | Execution-level support；M01 binding 前投影 |
@@ -118,7 +118,7 @@ MVP 保留三个供 Evaluation/BI 直接消费的 owner fact，而不是 Observa
 14. **Binding 不漂移。** `latest` 或裸 name 在创建 Manifest 前解析成 `exactVersion`。后续 alias 或 Release 变化只影响后续 Delivery。
 15. **简单 Store 可见性。** `STAGING` 内容绝不是 cache hit。Initial-fill 失败回到 `MISSING`；refresh staging 是 private side state，在已校验 replacement 就绪之前仍保持原 `READY` Package 与 sticky alias 可见。Preview 不自动 eviction。
 16. **可信 preview 的克制。** Authentication、authorization、signing、sandboxing、hostile-input defense、multi-user coordination、concurrent Package correctness、distributed locking、HA、failover 和 production-grade Package recovery 不在当前设计内。只有部署信任、暴露面、规模或 DSH capability 变化时才重开设计。
-17. **Intake binding 按 session 生效。** 一个 host conversation 最多绑定一个 Delivery，一个 active Delivery 恰好绑定一个 session，不同 session 可并行服务不同 worktree。Restart 恢复 exact valid binding 或使 Delivery detached，绝不猜测 winner。
+17. **Intake binding 按 session 生效。** 一个 host conversation 最多绑定一个 Delivery，一个 active Delivery 最多绑定一个 session，不同 session 可并行服务不同 worktree。零个 bound session 是合法的 `DETACHED` recovery 状态。Restart 恢复 exact valid binding 或使 Delivery detached，绝不猜测 winner。
 18. **Action interaction completion 仍由 Action 拥有。** Ordinary answer 不结束 multi-turn Action。Target-free finish request 通过 current session binding 定位、恢复 same Action，并且只通过 validated structured completion 推进。
 
 <a id="ee-concept-5"></a>
@@ -280,7 +280,7 @@ Design acceptance 要求上表每行都有一个 semantic owner、evidence state
 | `concept.decision.026` | Configuration、factory 与 Bootstrap 是 Execution-level support。一份 canonical config 产生互不合并的 installation identity、config-only Delivery configuration projection identity 与 Package-dependent Delivery binding identity。只有 Bootstrap 拥有 production assembly、recovery readiness、rollback 与 reverse shutdown |
 | `concept.decision.027` | Execution 暴露一个 host-neutral Core request/result contract。Intake 可替换；首个 DSH Intake plugin 只拥有 presentation 与 installation lifecycle call。Intake DSH 与 Runner-owned execution DSH 使用不同 Context、service registry、session namespace 与 persistence root，同时由一个 installation lifecycle 级联关闭 |
 | `concept.decision.028` | Create 消费 triggering turn 作为 host-neutral `TaskPrompt`；prompt text 不是 command parameter，attachments 只在 `NEW` 成为 Execution-owned immutable snapshot，`CONTENDED`/`RECOVERY` 忽略新 turn |
-| `concept.decision.029` | Intake 排他按 host conversation session 生效，不是 installation-global。Active Delivery 的 session/Delivery binding 是 one-to-one；restart 恢复 exact valid mapping 或把 Delivery 标为 detached/recoverable |
+| `concept.decision.029` | Intake 排他按 host conversation session 生效，不是 installation-global。Active Delivery 的 session/Delivery binding 是排他的零或一关系；restart 恢复 exact valid mapping 或把 Delivery 标为 detached/recoverable |
 | `concept.decision.030` | Target-free Action-finish command 表示 finish requested，不表示 Action completed。Current Action 拥有 closure，只有 validated `workflow_complete` 推进 Workflow；approved Runner reopen 只限于表达该 internal interaction distinction |
 
 详细行为与验证义务见上方链接的三份 owner 文档。

@@ -1,0 +1,65 @@
+{
+  "manifest_version": "1.0.0",
+  "wave": "wave6",
+  "generated_at": "2026-08-26T20:06:16+08:00",
+  "digest_rules": {
+    "algorithm": "SHA-256",
+    "encoding": "lower-case hex",
+    "file_bytes": "exact repository bytes with no normalization",
+    "section_bytes": "exact UTF-8/LF repository bytes including the complete start-anchor line and its LF, ending immediately before the complete end-before-anchor line; no BOM or text normalization"
+  },
+  "owner_approval": {
+    "owner": "firestige",
+    "date": "2026-08-26",
+    "decision": "APPROVED_REOPEN_MACHINE_SEMANTICS"
+  },
+  "contract": {
+    "name": "evidence.query",
+    "revision": "0.1.0",
+    "lifecycle_status": "REVIEW_CANDIDATE",
+    "semantic_path": "docs/contracts/evidence-query/evidence-query.md",
+    "translation_path": "docs/contracts/evidence-query/evidence-query.zh-CN.md",
+    "approved_superproject_commit": "df3670739b074038f145a569ca30ea1c9e950e98",
+    "semantic_sha256": "49a4db21db4ce56ecf4c165246a3355840c3bb521500e644ae4a4234526fce32",
+    "translation_sha256": "ecd728bb2f89e16e20490aa2aa14bd64277764f65649b4e16ea8bb27f4bdc4da"
+  },
+  "shared_interface": {
+    "component": "evidence-system",
+    "component_commit": "0a1eef8bc77d65aae4a923df6b2fd17e81aba28d",
+    "read_model_revision": "1.0.0",
+    "policy_revision": "1.0.0",
+    "path": "src/wsr_evidence/storage/read_model.py",
+    "sha256": "0cf4ccc67ce65b9c60c8ff7974c6a776b24aacb42d84eae6f097b4cd039ffedd",
+    "test_path": "tests/unit/test_query_expiry_contract.py",
+    "test_sha256": "56f32315db729e127aac6a6af1842353438ed2dd2a05c9b4d8e0317477901d29"
+  },
+  "upstream_machine": {
+    "component": "system-contracts",
+    "component_commit": "74c5eb38b91fa774662dbfbfc02536bf97c7f188",
+    "profile_revision": "1.0.0",
+    "registry_path": "observation/registries/observation-profile-1.0.0.json",
+    "registry_sha256": "ddbd65262237680799aea90a49c843cb2f924cdaa884876e97cd27895aa42eed",
+    "schema_path": "observation/schemas/observation-record-1.0.0.schema.json",
+    "schema_sha256": "e851c40ab47f38e73f6ab115f43b36f8eb4f6965a8d3b43c7b4d0ec431f47842",
+    "validator_path": "observation/tools/validator.cjs",
+    "validator_sha256": "729cb4d54ffc9e66aeb19ba37b9e6c5954cdd93bcb8e1bd8799f45d5053eb4e4",
+    "authority": "Normative machine input for EventNames, fields, types, enums, applicability, bounds, privacy, and complete accepted Observation shapes. Wave9 must consume these exact bytes and may not recreate the registry from prose."
+  },
+  "semantic_sections": {
+    "truth_table": {
+      "start_anchor": "evidence-query-6",
+      "end_before_anchor": "evidence-query-7",
+      "sha256": "59026c78e74d534755b04ca093602f283df4064fe7f12231b7f4f6dfd1df3304"
+    },
+    "lifecycle_defaults": {
+      "start_anchor": "evidence-query-10",
+      "end_before_anchor": "evidence-query-11",
+      "sha256": "fbdcd4f98a53cec84c3d686a0b85f66e357521495123cb878969ca25335f1fd8"
+    }
+  },
+  "downstream_binding": {
+    "required_by": ["wave7", "wave8", "wave9"],
+    "rule": "Every downstream report and candidate must bind this exact manifest digest, contract revision, approved commit, Evidence component commit/interface SHA-256, all upstream-machine component/file SHA-256 coordinates, truth-table SHA-256, and defaults SHA-256. Any mismatch stops integration and returns to Wave6 owner review.",
+    "conformance_claim_allowed": false
+  }
+}

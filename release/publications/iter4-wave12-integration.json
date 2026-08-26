@@ -1,0 +1,46 @@
+{
+  "schema_version": "wsr.iter4-integration-state@1.0.0",
+  "state": "W12.7_COMPONENTS_MERGED",
+  "recorded_at": "2026-08-27",
+  "a3_approval": "APPROVED",
+  "components": {
+    "workflow_package": {
+      "feature_input": "d9e7b9f7f1013aef9d4a23fefe65563ec77e5af0",
+      "input_tree": "1870b5bc60cee69c2fb5b7b733e353a2f596af78",
+      "main_commit": "00cc5832e0d7507e7bdd7ce20869a1360a142861",
+      "main_ci": "https://github.com/firestige/workflow-package/actions/runs/33022393696",
+      "status": "PASS"
+    },
+    "system_contracts": {
+      "feature_input": "a3f6d7ca8a3e08e89af4bc3ecea34524f5094bd5",
+      "input_tree": "4b97cb6a707fa03e24b705e66483cb59fb020d1d",
+      "main_commit": "7744e00a4751399ceddee70e2febed8c4859a93a",
+      "main_ci": "https://github.com/firestige/system-contracts/actions/runs/33022447570",
+      "status": "PASS"
+    },
+    "execution_system": {
+      "feature_input": "8bf7e3f85f6829cbe686f6ff454eb2fe0ef02456",
+      "qualified_product": "3c6259ca07276b1de8520fa6fc0d26c86fd93a41",
+      "input_tree": "53cc293dd4247160b1c6bd330c48aec68f496e76",
+      "main_commit": "f23da5ab02d91589e50b2d1fb01df4f411aa8f9a",
+      "transition_ci": "https://github.com/firestige/execution-system/actions/runs/33022584119",
+      "transition_ci_status": "EXPECTED_SUPERPROJECT_PIN_MISMATCH_569_OF_570_PASS",
+      "final_ci_status": "PENDING_SUPERPROJECT_REPIN"
+    },
+    "evidence_system": {
+      "feature_input": "183c055c5c29742ded4102d9b3e9466eb197cfcd",
+      "qualified_product": "3770f283474728740fb1323dc186861cfcf08e16",
+      "input_tree": "0e2f696bced5823e9b523bc6082f02cf2b9fdfd4",
+      "main_commit": "624aad2f57c72964ac1b9f82509d9310cc56a781",
+      "main_ci": "https://github.com/firestige/evidence-system/actions/runs/33022820046",
+      "status": "PASS"
+    }
+  },
+  "superproject": {
+    "main_base": "e229313dccb4fdb54444f3eb0408bf5dc5558a00",
+    "feature_repin": "PENDING_THIS_RECORD_COMMIT",
+    "main_commit": null,
+    "status": "PENDING_REPIN_AND_SQUASH"
+  },
+  "stable_promotion": "NOT_STARTED"
+}

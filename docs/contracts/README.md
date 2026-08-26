@@ -19,6 +19,7 @@ English | [中文](README.zh-CN.md)
 | Observation Catalog | [observation/observation-catalog.md](observation/observation-catalog.md) | `FROZEN` | published `observation-contract@1.0.2`; immutable `1.0.0`/`1.0.1` resolving; wire Profile `1.0.0`; `VALIDATOR_ONLY` |
 | OTel Observation Profile | [observation/otel-observation-profile.md](observation/otel-observation-profile.md) | `FROZEN` | Contract `1.0.1`, wire profile `1.0.0`; `VALIDATOR_ONLY` |
 | Execution–Evidence Interaction Contract | [execution-evidence/interaction-contract.md](execution-evidence/interaction-contract.md) | `FROZEN` | Contract `1.0.1`, interaction schema `1.0.0`; `VALIDATOR_ONLY` |
+| Evidence Query | [evidence-query/evidence-query.md](evidence-query/evidence-query.md) | `FROZEN` | published `evidence.query@0.1.0`; `VALIDATOR_ONLY`; [publication record](../../system-contracts/evidence-query/publication/publication-record-0.1.0.json) |
 | Metric Catalog | [evaluation/metric-catalog.md](evaluation/metric-catalog.md) | `FROZEN` | published `agentops.evaluation.metric-catalog@1.0.0`; `VALIDATOR_ONLY` |
 | Workflow Definition DSL | [workflow/workflow-definition-dsl.md](workflow/workflow-definition-dsl.md) | `FROZEN` | published `agentops.workflow-dsl@1.0.0`; `VALIDATOR_ONLY` |
 
