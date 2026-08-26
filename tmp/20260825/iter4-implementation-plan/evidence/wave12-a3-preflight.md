@@ -8,7 +8,7 @@ Status: `READY_FOR_OWNER_APPROVAL — NO_A3_ACTION_TAKEN` (2026-08-27)
 - Execution RC: <https://github.com/firestige/execution-system/releases/tag/0.1.3-rc.1>; target `3c6259ca07276b1de8520fa6fc0d26c86fd93a41`; qualified publisher feature head `8bf7e3f85f6829cbe686f6ff454eb2fe0ef02456`.
 - Evidence RC: <https://github.com/firestige/evidence-system/releases/tag/0.1.0-rc.1>; target `3770f283474728740fb1323dc186861cfcf08e16`; qualified publisher/request feature head `183c055c5c29742ded4102d9b3e9466eb197cfcd`; OCI `sha256:3b0b6d290d9a7abf21a544f0110ef04f7398d0870a5f63e1a5a81e5274a7d403`.
 - Workflow-package has no Iter4 product publication. Its release adapter feature head is `d9e7b9f7f1013aef9d4a23fefe65563ec77e5af0` and remains configuration/oracle-only.
-- Superproject feature head before A3 is `d4ddae64fdf5f047eaff72f20c68ac28ba4b7459`.
+- Superproject publication-state head before this append-only preflight report is `d4ddae64fdf5f047eaff72f20c68ac28ba4b7459`; the report's own evidence-only checkpoint is included when the final squash input is resolved after component repins.
 
 ## Main bases and approved squash inputs
 
@@ -18,9 +18,9 @@ Status: `READY_FOR_OWNER_APPROVAL — NO_A3_ACTION_TAKEN` (2026-08-27)
 | `system-contracts` | `9e6ba782b742f49f3d2392c9af37ebd4ff328bc8` | `a3f6d7ca8a3e08e89af4bc3ecea34524f5094bd5` | `4b97cb6a707fa03e24b705e66483cb59fb020d1d` |
 | `execution-system` | `f095503bd5222af5f966fb7bfdcdb7928fdbb476` | `8bf7e3f85f6829cbe686f6ff454eb2fe0ef02456` | `53cc293dd4247160b1c6bd330c48aec68f496e76` |
 | `evidence-system` | `52c0dc73b8508b67f3c8978b8716cd291b66a7c8` | `183c055c5c29742ded4102d9b3e9466eb197cfcd` | `0e2f696bced5823e9b523bc6082f02cf2b9fdfd4` |
-| superproject | `e229313dccb4fdb54444f3eb0408bf5dc5558a00` | current `d4ddae64fdf5f047eaff72f20c68ac28ba4b7459`, followed only by exact component-main repins | `73c2984d493a31fffa12b4807dda288b331ffc3d` before repin |
+| superproject | `e229313dccb4fdb54444f3eb0408bf5dc5558a00` | publication-state `d4ddae64fdf5f047eaff72f20c68ac28ba4b7459`, this append-only preflight evidence, then only exact component-main repins | publication-state tree `73c2984d493a31fffa12b4807dda288b331ffc3d` before report/repin |
 
-All five worktrees are clean and every remote `iter4/implementation` ref equals its recorded local feature head.
+All five worktrees are clean. Every component remote `iter4/implementation` ref equals its recorded local feature head; the superproject remote equals the current append-only evidence checkpoint.
 
 ## Candidate-to-feature delta disposition
 
