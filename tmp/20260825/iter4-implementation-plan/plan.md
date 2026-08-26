@@ -1,8 +1,8 @@
 # Iteration 4 实施计划 — 执行计划 (Execution Plan)
 
 > **来源**: iter4 范围卡 #48/#49/#50/#51/#52/#92/#94/#97/#102 · 范围裁决: tmp/20260825/iter4-issues/issues.md · 冲突分析: tmp/20260825/iter4-issues/evidence-conflicts.md · 计划评审: 2026-08-25 DAG/退出条件/并行边界评审 · 2026-08-26 #102 范围/发布窗口重校准
-> **当前 wave**: wave11 · **上次执行**: Wave10 integration/deployment/backup-restore PASS；Evidence payload `cdc540ac53991a2ba243598e2dc2ec9596c695e4`，immutable manifest commit `d37f454e2379fed17294c863482f6fcb0c75a97e`，super pin `7d93175dc150a1a4a876c27a30e2625296ff56c8`；manifest SHA-256 `28e35e81df4ca7b48f49e166e022eb04bafe0eae9b7347bde091f1c317de1904`；无 tag/release/publication，Contract 仍为 `REVIEW_CANDIDATE` · **下一步**: 按 #102 在 Wave11 实施 Session/Delivery/Worktree 绑定，锁步形成 `wsr-execution@0.1.3` / `wsr-dsh-intake@0.1.3` immutable candidate；不得提前发布
-> 执行模式：Iter4 全程使用同一 `iter4/implementation` feature branch，按 wave 提交并推送检查点；全部产品实施与 RC 资格验证完成后，在 Wave12 执行唯一一次 component-first squash merge/repin，再作 stable promotion，Wave13 只负责最终复验与关闭。Wave5/Wave10 前置均已 PASS；当前剩余路径为 wave11→wave12→wave13。原发布 Wave11 因插入 #102 顺延为 Wave12。
+> **当前 wave**: wave12 · **上次执行**: Wave11 #102 implementation/product qualification PASS；Execution archive commit `3c6259ca07276b1de8520fa6fc0d26c86fd93a41`，super payload/repin `d0cb418c2d97b40d0c77692781bc5b3f39df64c7`；exact assets `wsr-execution@0.1.3` `sha256:7c5ab0...d3ca0` / `wsr-dsh-intake@0.1.3` `sha256:d518a6...618b8` 已固化，无 tag/release/publication，Contract 仍为 `REVIEW_CANDIDATE`，#102 保持 OPEN · **下一步**: 先完成 partial-failure matrix 与 Contract gate.1–4，再按统一 immutable manifest 进入 Wave12 发布流程
+> 执行模式：Iter4 全程使用同一 `iter4/implementation` feature branch，按 wave 提交并推送检查点；全部产品实施与 RC 资格验证完成后，在 Wave12 执行唯一一次 component-first squash merge/repin，再作 stable promotion，Wave13 只负责最终复验与关闭。Wave5/Wave10/Wave11 前置均已 PASS；当前剩余路径为 wave12→wave13。原发布 Wave11 因插入 #102 顺延为 Wave12。
 
 <!-- 「当前 wave」指针指向编号最小的、尚未集成且可执行的 wave；其他并行 wave 的状态由 checkbox 与独立 wave report 表达。plan.md/指针/checkbox 只由主协调者更新。 -->
 
@@ -316,16 +316,16 @@ flowchart LR
 
 > 2026-08-26 Owner 范围决策：#102 必须在统一发布 wave 前完成，`wsr-execution` / `wsr-dsh-intake` 从外部不可变 `0.1.2` 基线锁步升级到 `0.1.3`。为满足连续整数 wave 门禁，本 wave 占用 Wave11，原发布 Wave11 顺延为 Wave12。本 wave 只实现、验证并固化 candidate，不产生 tag、GitHub Release、npm publish 或 DSH listing 等外部状态。
 
-- [ ] 固定输入：Execution `3179eb13514aaaef733c20cf55b03effd98fbf4e`（含 Wave4 release adapter/oracle）、#94 批准设计、#93 provisional 基线、Wave10 super pin `7d93175dc150a1a4a876c27a30e2625296ff56c8` 与 Evidence/system-contracts immutable manifests；记录 clean worktree 与既有 `0.1.2` registry baseline。
-- [ ] 按 TDD 用 private、typed、invocation-only conversation-workspace authorization 替换 raw workspace-as-worktree；Execution 只接受 exact live Session/workspace proof，自行 canonicalize 并持久化 worktree，public `allowedWorktreeRoots` 保持 fail closed。
-- [ ] 把 Intake binding schema 从 `execution.intake-bindings@1.0.0` 升到 `execution.intake-bindings@2.0.0`，加入 immutable `deliveryBindingIdentity`；旧记录必须在 Bootstrap-ready inventory 上 exact join 后迁移，unmatched/duplicate/corrupt/ambiguous/identity drift 均 startup fail closed。
-- [ ] 实现 Session↔Delivery 双向排他与 canonical worktree↔current Delivery 排他；实现 `BOUND`/`RESTORING`/`DETACHED`、explicit recover、terminal/abandonment cleanup，保持 current-slot 状态语义和 authority 不变。
-- [ ] 实现并验证 `SESSION_INTAKE_BOUND`、`DELIVERY_INTAKE_BOUND`、`DSH_INTAKE_WORKSPACE_UNAUTHORIZED`、`CONTENDED`/exact `RECOVERY` 的顺序与零副作用语义；覆盖 #102 全部 crash/restart/concurrency/UI switch/cross-workspace/stale-binding oracles，并显式证明 Session loss、process crash、elapsed time 与新请求均不会把 occupied/uncertain worktree 释放为 free。
-- [ ] 运行完整 Execution unit/type/build/coverage、DSH distribution、fresh-install、restart/product qualification 与 release workflow policy oracle；任何 flaky、skipped 或依赖本机残留状态的结果均不算 PASS。
-- [ ] 同步 Execution/Intake README、configuration reference、agent architecture 双语文字与 changelog；只描述 #102 已实现语义，不改变 FROZEN contracts、Runner 五模块或 public application methods。
-- [ ] 把 `wsr-execution` 与 `wsr-dsh-intake` package metadata 锁步更新为 `0.1.3`，构建一次性 RC exact assets/digests；验证 core→intake 顺序、prepublish verifier、registry collision fail-closed，但不向 registry 发布。
-- [ ] 生成新的统一 immutable release manifest，绑定 contract candidate、Execution/Intake `0.1.3` exact assets、Evidence candidate、各组件/super repo SHA 与全部资格报告；旧 Wave10 Evidence manifest 保留为输入证据，不原地改写。
-- [ ] 生成 `evidence/wave11.md`，提交并推送 Execution component checkpoint，再由 super repo 精确 repin 并提交/推送本 wave checkpoint；#102 保持 OPEN，待 Wave12 exact-asset stable 发布后关闭。
+- [x] 固定输入：Execution `3179eb13514aaaef733c20cf55b03effd98fbf4e`（含 Wave4 release adapter/oracle）、#94 批准设计、#93 provisional 基线、Wave10 super pin `7d93175dc150a1a4a876c27a30e2625296ff56c8` 与 Evidence/system-contracts immutable manifests；记录 clean worktree 与既有 `0.1.2` registry baseline。
+- [x] 按 TDD 用 private、typed、invocation-only conversation-workspace authorization 替换 raw workspace-as-worktree；Execution 只接受 exact live Session/workspace proof，自行 canonicalize 并持久化 worktree，public `allowedWorktreeRoots` 保持 fail closed。
+- [x] 把 Intake binding schema 从 `execution.intake-bindings@1.0.0` 升到 `execution.intake-bindings@2.0.0`，加入 immutable `deliveryBindingIdentity`；旧记录必须在 Bootstrap-ready inventory 上 exact join 后迁移，unmatched/duplicate/corrupt/ambiguous/identity drift 均 startup fail closed。
+- [x] 实现 Session↔Delivery 双向排他与 canonical worktree↔current Delivery 排他；实现 `BOUND`/`RESTORING`/`DETACHED`、explicit recover、terminal/abandonment cleanup，保持 current-slot 状态语义和 authority 不变。
+- [x] 实现并验证 `SESSION_INTAKE_BOUND`、`DELIVERY_INTAKE_BOUND`、`DSH_INTAKE_WORKSPACE_UNAUTHORIZED`、`CONTENDED`/exact `RECOVERY` 的顺序与零副作用语义；覆盖 #102 全部 crash/restart/concurrency/UI switch/cross-workspace/stale-binding oracles，并显式证明 Session loss、process crash、elapsed time 与新请求均不会把 occupied/uncertain worktree 释放为 free。
+- [x] 运行完整 Execution unit/type/build/coverage、DSH distribution、fresh-install、restart/product qualification 与 release workflow policy oracle；任何 flaky、skipped 或依赖本机残留状态的结果均不算 PASS。
+- [x] 同步 Execution/Intake README、configuration reference、agent architecture 双语文字与 changelog；只描述 #102 已实现语义，不改变 FROZEN contracts、Runner 五模块或 public application methods。
+- [x] 把 `wsr-execution` 与 `wsr-dsh-intake` package metadata 锁步更新为 `0.1.3`，构建一次性 RC exact assets/digests；验证 core→intake 顺序、prepublish verifier、registry collision fail-closed，但不向 registry 发布。
+- [x] 生成新的统一 immutable release manifest，绑定 contract candidate、Execution/Intake `0.1.3` exact assets、Evidence candidate、各组件/super repo SHA 与全部资格报告；旧 Wave10 Evidence manifest 保留为输入证据，不原地改写。
+- [x] 生成 `evidence/wave11.md`，提交并推送 Execution component checkpoint，再由 super repo 精确 repin 并提交/推送本 wave checkpoint；#102 保持 OPEN，待 Wave12 exact-asset stable 发布后关闭。
 - 退出条件（任一触发即停，等人工）:
   - 实现需要修改 FROZEN contract、Runner 五模块、public `execute`/`inspect`/`cancel` 语义，或引入 Provider-native Session；
   - 需要第三份 durable truth、Prepared Binding store、persistent capability identity、cross-store transaction、新 runtime dependency 或 current-slot 状态语义重写；
