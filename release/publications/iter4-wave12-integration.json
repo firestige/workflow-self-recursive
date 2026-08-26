@@ -14,9 +14,11 @@
     "system_contracts": {
       "feature_input": "a3f6d7ca8a3e08e89af4bc3ecea34524f5094bd5",
       "input_tree": "4b97cb6a707fa03e24b705e66483cb59fb020d1d",
-      "main_commit": "7744e00a4751399ceddee70e2febed8c4859a93a",
+      "squash_main_commit": "7744e00a4751399ceddee70e2febed8c4859a93a",
+      "main_commit": "fe2e05e11af601845a996e139f1173e8e175df96",
+      "promotion_permission_commit": "fe2e05e11af601845a996e139f1173e8e175df96",
       "main_ci": "https://github.com/firestige/system-contracts/actions/runs/33022447570",
-      "status": "PASS"
+      "status": "PROMOTION_PERMISSION_TEST_PASS_PENDING_MAIN_CI"
     },
     "execution_system": {
       "feature_input": "8bf7e3f85f6829cbe686f6ff454eb2fe0ef02456",
@@ -51,7 +53,8 @@
     "main_base": "e229313dccb4fdb54444f3eb0408bf5dc5558a00",
     "feature_repin": "50346ce3cc2eb941b3e8ebaa0b01b8f290c4cbdf",
     "initial_squash_main_commit": "396960fd3ffaad62475282ee48f374b6593d218d",
-    "status": "PROTECTED_CONTRACT_TREE_BOUNDARIES_FIXED_PENDING_REPIN_AND_CI"
+    "last_passed_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33024024623",
+    "status": "CONTRACT_PROMOTION_PERMISSION_FIXED_PENDING_REPIN_AND_CI"
   },
   "stable_promotion": "NOT_STARTED"
 }
