@@ -225,23 +225,24 @@ Query 与 Retention 共享 stable internal semantic port，而非 database table
 ```text
 acquire_snapshot(query, filters, limit, clock_now) -> SnapshotPage
 continue_snapshot(cursor, clock_now) -> SnapshotPage
-read_expiry(resource_class, owner_key, snapshot) -> ExpiryRecord | ACTIVE
+read_expiry(resource_class, resource_kind, owner_key, snapshot) -> ExpiryRecord | ACTIVE
 plan_expiry(resource_class, policy_revision, cutoff, limit) -> ExpiryBatch
 apply_expiry(batch_identity, clock_now) -> ExpiryResult
 ```
 
-`SnapshotPage` 包含 exact Contract/read-model revision、snapshot identity、ordered public resource 与 continuation，不含 SQL row 或 mutable dictionary escape hatch。`ExpiryRecord` 包含 resource class、exact owner key、policy revision、expired-at 及区分 expired/absent 所需的最小 bounded tombstone coordinate，不含 expired value/body。`ExpiryBatch` 对一个 policy revision/cutoff deterministic，并按 `batch_identity` idempotent。
+`SnapshotPage` 包含 exact Contract/read-model revision、snapshot identity、ordered public resource 与 continuation，不含 SQL row 或 mutable dictionary escape hatch。`ExpiryOwner` 是 public `resource_kind` 与 Projection `owner_key` 的 exact pair；不同 resource kind 的 owner key 不要求互斥。`ExpiryRecord` 包含 resource class、exact ExpiryOwner coordinate、policy revision、expired-at 及区分 expired/absent 所需的最小 bounded tombstone coordinate，不含 expired value/body。`ExpiryBatch` 对一个 policy revision/cutoff deterministic，并按 `batch_identity` idempotent。
 
 Internal value closed 为：
 
 | Value | Exact field 与 bound |
 | --- | --- |
 | `SnapshotPage` | `contract_revision`、`read_model_revision`、`snapshot_id`、`resources`（0..limit 个 ordered public resource）、`next_cursor` |
+| `ExpiryOwner` | `resource_kind` 与 exact `owner_key`；`owner_key` 遵守 §4 的 1..16 个 bounded scalar；同一 resource class 内 expiry identity 必须是该 pair，绝非裸 owner key |
 | `ExpiryRecord` | `resource_class`、`owner_key`、`source`、`resource_kind`、`recorded_at`、`compatibility`、`policy_revision`、`expired_at`；无 value/body |
-| `ExpiryBatch` | `batch_identity`、`resource_class`、`policy_revision`、`cutoff` 及 canonical ascending order 的 0..1000 个 owner key |
+| `ExpiryBatch` | `batch_identity`、`resource_class`、`policy_revision`、`cutoff` 及按 `(resource_kind, owner_key)` canonical ascending order 的 0..1000 个 ExpiryOwner member |
 | `ExpiryResult` | exact `batch_identity`、nonnegative `selected`/`expired`/`already_expired` count，且 `expired + already_expired = selected` |
 
-`batch_identity` 是 canonical `(resource_class, policy_revision, cutoff, ordered owner keys)` 的 SHA-256 digest。相同 input 重新 plan 得到相同 identity；再次 apply 同一 identity 时，每个已 committed member 报为 `already_expired`，无第二次 mutation。
+Raw-debug owner 的 `resource_kind` 为 `RAW_DEBUG`；Trace detail 使用 public Trace kind（`NODE`、`PARENT_EDGE`、`LINK`）；factual projection 使用 §4 的九个 public Fact kind 之一。Internal projection-effect name 绝不是 port value。`batch_identity` 是 canonical `(resource_class, policy_revision, cutoff, ordered ExpiryOwner members)` 的 SHA-256 digest。相同 input 重新 plan 得到相同 identity；再次 apply 同一 identity 时，每个已 committed member 报为 `already_expired`，无第二次 mutation。同一 class 下两个 resource 可以有相同的裸 owner key；因其 `resource_kind` 不同，仍可独立寻址。
 
 Closed `resource_class` enum 为 `RAW_DEBUG`、`ACCEPTED_PROVENANCE`、`TRACE_DETAIL`、`FACTUAL_PROJECTION`。
 
@@ -306,6 +307,7 @@ Candidate implementation 与后续 machine representation 必须证明：
 | cursor expiry/restart/tamper | bounded typed error | approximate continuation |
 | unknown filter/method/body | bounded typed error、zero state effect | permissive ignore 或 write route |
 | concurrent expiry/read | whole pre-expiry 或 whole expired view | 无 tombstone 的 transient absence |
+| 两个 resource kind 使用相同 owner key | 按 exact ExpiryOwner pair 独立 plan/read/apply | collision、winner selection、coupled expiry 或对合法数据 fail |
 | expiry 后 same-identity retry | digest-based duplicate/conflict；不重建 detail | accepted payload rehydration |
 | listener/database boundary | loopback API only；无 external PostgreSQL/consumer credential | remote listener 或 direct SQL path |
 

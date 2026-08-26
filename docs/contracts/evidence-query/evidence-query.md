@@ -225,23 +225,24 @@ Query and Retention share a stable internal semantic port, not database tables. 
 ```text
 acquire_snapshot(query, filters, limit, clock_now) -> SnapshotPage
 continue_snapshot(cursor, clock_now) -> SnapshotPage
-read_expiry(resource_class, owner_key, snapshot) -> ExpiryRecord | ACTIVE
+read_expiry(resource_class, resource_kind, owner_key, snapshot) -> ExpiryRecord | ACTIVE
 plan_expiry(resource_class, policy_revision, cutoff, limit) -> ExpiryBatch
 apply_expiry(batch_identity, clock_now) -> ExpiryResult
 ```
 
-`SnapshotPage` contains exact Contract/read-model revisions, snapshot identity, ordered public resources, and continuation. It contains no SQL row or mutable dictionary escape hatch. `ExpiryRecord` contains resource class, exact owner key, policy revision, expired-at, and the minimum bounded tombstone coordinates required to distinguish expired from absent. It contains no expired value/body. `ExpiryBatch` is deterministic for one policy revision/cutoff and is idempotent by `batch_identity`.
+`SnapshotPage` contains exact Contract/read-model revisions, snapshot identity, ordered public resources, and continuation. It contains no SQL row or mutable dictionary escape hatch. `ExpiryOwner` is the exact pair of public `resource_kind` and Projection `owner_key`; owner keys are not required to be disjoint across resource kinds. `ExpiryRecord` contains resource class, the exact ExpiryOwner coordinate, policy revision, expired-at, and the minimum bounded tombstone coordinates required to distinguish expired from absent. It contains no expired value/body. `ExpiryBatch` is deterministic for one policy revision/cutoff and is idempotent by `batch_identity`.
 
 The internal values are closed:
 
 | Value | Exact fields and bounds |
 | --- | --- |
 | `SnapshotPage` | `contract_revision`, `read_model_revision`, `snapshot_id`, `resources` (0..limit ordered public resources), `next_cursor` |
+| `ExpiryOwner` | `resource_kind` and exact `owner_key`; `owner_key` has 1..16 bounded scalars under §4; the pair, never the bare owner key, is the expiry identity within one resource class |
 | `ExpiryRecord` | `resource_class`, `owner_key`, `source`, `resource_kind`, `recorded_at`, `compatibility`, `policy_revision`, `expired_at`; no value/body |
-| `ExpiryBatch` | `batch_identity`, `resource_class`, `policy_revision`, `cutoff`, and 0..1000 owner keys in canonical ascending order |
+| `ExpiryBatch` | `batch_identity`, `resource_class`, `policy_revision`, `cutoff`, and 0..1000 ExpiryOwner members in canonical ascending `(resource_kind, owner_key)` order |
 | `ExpiryResult` | exact `batch_identity`, nonnegative `selected`, `expired`, and `already_expired` counts with `expired + already_expired = selected` |
 
-`batch_identity` is the SHA-256 digest of canonical `(resource_class, policy_revision, cutoff, ordered owner keys)`. Replanning the same inputs yields the same identity; applying the same identity again reports every previously committed member as `already_expired` without another mutation.
+`resource_kind` is `RAW_DEBUG` for a Raw-debug owner, the public Trace kind (`NODE`, `PARENT_EDGE`, `LINK`) for Trace detail, or one of the nine public Fact kinds in §4 for factual projection. Internal projection-effect names are never port values. `batch_identity` is the SHA-256 digest of canonical `(resource_class, policy_revision, cutoff, ordered ExpiryOwner members)`. Replanning the same inputs yields the same identity; applying the same identity again reports every previously committed member as `already_expired` without another mutation. Two resources in the same class may have equal bare owner keys; they remain independently addressable because their `resource_kind` differs.
 
 The closed `resource_class` enum is `RAW_DEBUG`, `ACCEPTED_PROVENANCE`, `TRACE_DETAIL`, `FACTUAL_PROJECTION`.
 
@@ -306,6 +307,7 @@ A candidate implementation and later machine representation must prove:
 | cursor expiry/restart/tamper | bounded typed error | approximate continuation |
 | unknown filter/method/body | bounded typed error and zero state effect | permissive ignore or write route |
 | concurrent expiry/read | whole pre-expiry or whole expired view | transient absence without tombstone |
+| equal owner key across two resource kinds | independently planned/read/applied by exact ExpiryOwner pair | collision, winner selection, coupled expiry, or fail-on-valid-data |
 | same-identity retry after expiry | digest-based duplicate/conflict; no detail recreation | accepted payload rehydration |
 | listener/database boundary | loopback API only; no external PostgreSQL/consumer credential | remote listener or direct SQL path |
 
