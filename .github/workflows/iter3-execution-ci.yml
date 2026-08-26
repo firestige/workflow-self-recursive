@@ -106,7 +106,8 @@ jobs:
           VERSION="$(node -p 'require("./package.json").version')"
           pnpm qualify:dsh-package-lifecycle \
             "$RUNNER_TEMP/execution-release/wsr-dsh-intake-$VERSION.tgz" \
-            "$RUNNER_TEMP/execution-release/wsr-dsh-intake-$VERSION.tgz"
+            "$RUNNER_TEMP/execution-release/wsr-dsh-intake-$VERSION.tgz" \
+            "$RUNNER_TEMP/execution-release/wsr-execution-$VERSION.tgz"
 
       - name: Qualify local artifact install through real DSH Web Intake
         working-directory: execution-system
