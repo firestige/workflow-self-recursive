@@ -1,6 +1,6 @@
 # BI Metric 可计算性矩阵
 
-> **状态：** G1 评审候选，2026-08-27。英文 [`metric-computability.md`](metric-computability.md) 是规范权威，本文是跟踪译本。矩阵把每条 consumer branch 绑定到 `agentops.evaluation.metric-catalog@1.0.0`，不重述或改写公式。
+> **状态：** G1 owner 已批准，2026-08-27。英文 [`metric-computability.md`](metric-computability.md) 是规范权威，本文是跟踪译本。矩阵把每条 consumer branch 绑定到 `agentops.evaluation.metric-catalog@1.0.0`，不重述或改写公式。
 
 ## 1. Binding 与通用规则
 

@@ -1,6 +1,6 @@
 # BI 系统——Iteration 5 Consumer 与 UI 设计
 
-> **状态：** G1 评审候选，2026-08-27。英文 [`bi-system.md`](bi-system.md) 为规范权威，本文为中文跟踪译本。本设计只消费 published contract，不修改它们。
+> **状态：** G1 owner 已批准，2026-08-27。英文 [`bi-system.md`](bi-system.md) 为规范权威，本文为中文跟踪译本。本设计只消费 published contract，不修改它们。
 
 ## 1. 权威与冻结坐标
 
@@ -267,3 +267,9 @@ Wave2–9 严格串行估算 6.75 天：分别为 0.75、1.25、1.0、0.75、1.0
 G1 批准：全链路 TypeScript/TSX、独立 strict `tsc --noEmit` gate、Vite-only application build；`/factual`、`/trace` SPA route；browser-only evaluator；§4 manifest schema/digest；5 秒/4 MiB/8 页 bound；§5 state vocabulary；recorded-only deterministic Trace model；成对深浅色 style frame 与 system/light/dark 主题行为；用于 theme、density、color、spacing 的 Tailwind semantic token binding；Mermaid responsive wireframe、component boundary；§9 independence projection/ignore list；6.75 天串行估算。
 
 批准不授权新 cross-system contract、backend、registry publication、remote listener、auth 承诺、database path、未来 UI artifact 或推断的 metric/edge；出现任一项都 BLOCK Wave2。
+
+### 2026-08-27 — G1 owner 批准
+
+- 结论：owner 接受本 exact design，包括 Mermaid 设计图、成对深浅主题、Tailwind semantic binding、全链路 TypeScript/TSX 与 Vite-only application build。
+- 理由：consumer boundary、truth vocabulary、视觉主题、可快速调整的语义样式与 build shape 已足够具体，可进入预授权 Wave2 scaffold，且没有重开 cross-system contract。
+- 落地：本文与 [`metric-computability.md`](metric-computability.md) 是 Wave2 design input；exact dependency/base-image version、lockfile、path 仍由 Wave2 按 G2b 冻结。

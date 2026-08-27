@@ -1,6 +1,6 @@
 # BI System — Iteration 5 Consumer and UI Design
 
-> **Status:** G1 review candidate, 2026-08-27. English is normative; the Chinese tracking companion is [`bi-system.zh-CN.md`](bi-system.zh-CN.md). This design consumes published contracts and does not amend them.
+> **Status:** G1 owner-approved, 2026-08-27. English is normative; the Chinese tracking companion is [`bi-system.zh-CN.md`](bi-system.zh-CN.md). This design consumes published contracts and does not amend them.
 
 ## 1. Authority and fixed coordinates
 
@@ -273,3 +273,9 @@ Strictly serial elapsed estimate for wave2–9 is 6.75 days: 0.75, 1.25, 1.0, 0.
 G1 approves this exact consumer design: TypeScript/TSX throughout with a separate strict `tsc --noEmit` gate and Vite-only application build; SPA routes `/factual` and `/trace` under `/`; browser-only evaluator; §4 manifest schema and digest rule; five-second/4-MiB/eight-page bounds; §5 state vocabulary; recorded-only deterministic Trace model; paired light/dark style frames with system/light/dark theme behavior; Tailwind semantic token bindings for theme, density, color and spacing; Mermaid responsive wireframes and component boundaries; §9 independence projection/ignore list; and the 6.75-day serial estimate.
 
 Approval does not authorize a new cross-system contract, backend, registry publication, remote listener, authentication promise, database path, future UI artifact or inferred metric/edge. Any such need blocks Wave2.
+
+### 2026-08-27 — G1 owner approval
+
+- Conclusion: the owner accepted this exact design, including Mermaid design diagrams, paired light/dark themes, semantic Tailwind bindings, TypeScript/TSX throughout and Vite-only application build.
+- Reason: the consumer boundary, truth vocabulary, visual themes, rapidly adjustable semantic styling and build shape are concrete enough for the already-authorized Wave2 scaffold without reopening a cross-system contract.
+- Landing: this document and [`metric-computability.md`](metric-computability.md) are the Wave2 design input. Exact dependency/base-image versions, lockfile and paths remain Wave2-owned routine parameters under G2b.

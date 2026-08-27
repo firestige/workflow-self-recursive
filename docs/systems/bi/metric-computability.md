@@ -1,6 +1,6 @@
 # BI Metric Computability Matrix
 
-> **Status:** G1 review candidate, 2026-08-27. English is normative; [`metric-computability.zh-CN.md`](metric-computability.zh-CN.md) is the tracking translation. This matrix binds every consumer branch to `agentops.evaluation.metric-catalog@1.0.0`; it does not restate or redefine a formula.
+> **Status:** G1 owner-approved, 2026-08-27. English is normative; [`metric-computability.zh-CN.md`](metric-computability.zh-CN.md) is the tracking translation. This matrix binds every consumer branch to `agentops.evaluation.metric-catalog@1.0.0`; it does not restate or redefine a formula.
 
 ## 1. Binding and common rules
 
