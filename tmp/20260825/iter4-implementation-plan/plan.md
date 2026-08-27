@@ -1,7 +1,7 @@
 # Iteration 4 实施计划 — 执行计划 (Execution Plan)
 
 > **来源**: iter4 范围卡 #48/#49/#50/#51/#52/#92/#94/#97/#102 · 范围裁决: tmp/20260825/iter4-issues/issues.md · 冲突分析: tmp/20260825/iter4-issues/evidence-conflicts.md · 计划评审: 2026-08-25 DAG/退出条件/并行边界评审 · 2026-08-26 #102 范围/发布窗口重校准
-> **当前 wave**: wave13 · **上次执行**: Wave12 pre-close PASS；唯一 component-first squash/repin、Contract `evidence-query-0.1.0`、Execution/Intake `0.1.3` npm+GitHub stable 与 Evidence `0.1.0` wheel/sdist/OCI stable 均完成，stable target/assets 与 RC exact-match，根门禁 run `33025037456` PASS；DSH marketplace/listing 仍按独立 checklist 暂缓且未宣称完成 · **下一步**: Wave13 独立最终复验、关闭 #48–52/#92/#102、回填 closure URL 并生成 Iter4 closure report
+> **当前 wave**: wave13 · **上次执行**: Wave12 pre-close PASS；唯一 component-first squash/repin、Contract `evidence-query-0.1.0`、Execution/Intake `0.1.3` npm+GitHub stable 与 Evidence `0.1.0` wheel/sdist/OCI stable 均完成，stable target/assets 与 RC exact-match，发布后 CHANGELOG/repin 根门禁 run `33025969313` PASS；DSH marketplace/listing 仍按独立 checklist 暂缓且未宣称完成 · **下一步**: Wave13 关闭 #48–52/#92/#102、回填 closure URL 并生成 Iter4 closure report
 > 执行模式：Iter4 全程使用同一 `iter4/implementation` feature branch，按 wave 提交并推送检查点；全部产品实施与 RC 资格验证完成后，在 Wave12 执行唯一一次 component-first squash merge/repin，再作 stable promotion，Wave13 只负责最终复验与关闭。Wave5/Wave10/Wave11 前置均已 PASS；当前剩余路径为 wave12→wave13。原发布 Wave11 因插入 #102 顺延为 Wave12。
 
 <!-- 「当前 wave」指针指向编号最小的、尚未集成且可执行的 wave；其他并行 wave 的状态由 checkbox 与独立 wave report 表达。plan.md/指针/checkbox 只由主协调者更新。 -->

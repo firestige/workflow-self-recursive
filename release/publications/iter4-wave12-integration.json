@@ -79,10 +79,11 @@
     "feature_repin": "50346ce3cc2eb941b3e8ebaa0b01b8f290c4cbdf",
     "initial_squash_main_commit": "396960fd3ffaad62475282ee48f374b6593d218d",
     "final_repin_main_commit": "de5499b8c1eda14a6bb1d731b48c6dffefdede6c",
-    "last_passed_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33025037456",
+    "post_stable_repin_main_commit": "1a5f33a0eba8678d5d5615a5a68840e93af83e37",
+    "last_passed_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33025969313",
     "post_stable_changelog_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33025759550",
     "post_stable_changelog_ci_status": "EXPECTED_STABLE_TAG_SECTION_REGENERATION_PENDING_REPIN",
-    "status": "POST_STABLE_CHANGELOG_REPIN_PENDING_CI"
+    "status": "PASS"
   },
   "stable_promotion": "COMPLETE",
   "issue_closure": "PENDING_WAVE13"
