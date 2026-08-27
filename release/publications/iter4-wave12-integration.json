@@ -86,5 +86,19 @@
     "status": "PASS"
   },
   "stable_promotion": "COMPLETE",
-  "issue_closure": "PENDING_WAVE13"
+  "wave13_final_audit": {
+    "authority_commit": "534baa7cd06002601f43adc814cd35a59c16aaa1",
+    "root_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33026195904",
+    "status": "PASS"
+  },
+  "issue_closure": {
+    "status": "COMPLETE",
+    "48": "https://github.com/firestige/workflow-self-recursive/issues/48#issuecomment-5432638489",
+    "49": "https://github.com/firestige/workflow-self-recursive/issues/49#issuecomment-5432638987",
+    "50": "https://github.com/firestige/workflow-self-recursive/issues/50#issuecomment-5432639460",
+    "51": "https://github.com/firestige/workflow-self-recursive/issues/51#issuecomment-5432640154",
+    "52": "https://github.com/firestige/workflow-self-recursive/issues/52#issuecomment-5432640696",
+    "92": "https://github.com/firestige/workflow-self-recursive/issues/92#issuecomment-5432641187",
+    "102": "https://github.com/firestige/workflow-self-recursive/issues/102#issuecomment-5432641807"
+  }
 }

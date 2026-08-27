@@ -1,8 +1,8 @@
 # Wave12 unified publication pre-close report
 
-Status: `PASS — ISSUE CLOSURE PENDING WAVE13` (2026-08-27)
+Status: `PASS — FINALIZED BY WAVE13` (2026-08-27)
 
-Wave12 froze and published the Evidence Query contract, qualified immutable RCs, completed the one component-first squash/repin, and promoted the exact qualified Contract, Execution, Intake, and Evidence bytes. No release asset was rebuilt during promotion. Issues #48–52, #92, and #102 remain OPEN until Wave13 performs the independent final audit and records the closure URLs.
+Wave12 froze and published the Evidence Query contract, qualified immutable RCs, completed the one component-first squash/repin, and promoted the exact qualified Contract, Execution, Intake, and Evidence bytes. No release asset was rebuilt during promotion. Wave13 independently audited the result and closed #48–52, #92, and #102 with the evidence links below.
 
 ## Immutable authority
 
@@ -57,4 +57,14 @@ RC and stable GitHub asset inventories are identical. The promotion re-pulled th
 
 Wave12 is `PASS` at the pre-close boundary. Contract, Execution/Intake, and Evidence stable targets equal their accepted RC targets; all stable GitHub assets equal RC assets by name, size, and SHA-256; npm and OCI external coordinates resolve to those exact bytes/digest; component mains and the superproject pin are qualified. The only deferred DSH work is the separately scoped marketplace/listing checklist, not product publication or install qualification.
 
-Wave13 must independently re-read this evidence, verify clean worktrees and current external state, close #48–52/#92/#102 only if every gate still passes, record closure URLs, and produce the final Iter4 closure report. No product change or new release is authorized by this pre-close report.
+Wave13 independently re-read this evidence, verified clean worktrees and current external state, and closed the target issues only after root run `33026195904` passed. Closure evidence:
+
+- [#48](https://github.com/firestige/workflow-self-recursive/issues/48#issuecomment-5432638489)
+- [#49](https://github.com/firestige/workflow-self-recursive/issues/49#issuecomment-5432638987)
+- [#50](https://github.com/firestige/workflow-self-recursive/issues/50#issuecomment-5432639460)
+- [#51](https://github.com/firestige/workflow-self-recursive/issues/51#issuecomment-5432640154)
+- [#52](https://github.com/firestige/workflow-self-recursive/issues/52#issuecomment-5432640696)
+- [#92](https://github.com/firestige/workflow-self-recursive/issues/92#issuecomment-5432641187)
+- [#102](https://github.com/firestige/workflow-self-recursive/issues/102#issuecomment-5432641807)
+
+No product change or new release is authorized by this finalized report.

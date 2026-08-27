@@ -1,7 +1,7 @@
 # Iteration 4 实施计划 — 执行计划 (Execution Plan)
 
 > **来源**: iter4 范围卡 #48/#49/#50/#51/#52/#92/#94/#97/#102 · 范围裁决: tmp/20260825/iter4-issues/issues.md · 冲突分析: tmp/20260825/iter4-issues/evidence-conflicts.md · 计划评审: 2026-08-25 DAG/退出条件/并行边界评审 · 2026-08-26 #102 范围/发布窗口重校准
-> **当前 wave**: wave13 · **上次执行**: Wave12 pre-close PASS；唯一 component-first squash/repin、Contract `evidence-query-0.1.0`、Execution/Intake `0.1.3` npm+GitHub stable 与 Evidence `0.1.0` wheel/sdist/OCI stable 均完成，stable target/assets 与 RC exact-match，发布后 CHANGELOG/repin 根门禁 run `33025969313` PASS；DSH marketplace/listing 仍按独立 checklist 暂缓且未宣称完成 · **下一步**: Wave13 关闭 #48–52/#92/#102、回填 closure URL 并生成 Iter4 closure report
+> **当前 wave**: Iter4 complete · **上次执行**: Wave13 final audit PASS；#48–52/#92/#102 已以逐卡验收证据关闭，#94/#97 保持 CLOSED，Project #9 的 Iter4 Evidence items 均为 Done；最终权威 checkpoint `534baa7cd06002601f43adc814cd35a59c16aaa1` 与根门禁 run `33026195904` PASS · **下一步**: 等待 owner 启动 Iter5；DSH marketplace/listing 继续按独立 checklist 暂缓且未宣称完成
 > 执行模式：Iter4 全程使用同一 `iter4/implementation` feature branch，按 wave 提交并推送检查点；全部产品实施与 RC 资格验证完成后，在 Wave12 执行唯一一次 component-first squash merge/repin，再作 stable promotion，Wave13 只负责最终复验与关闭。Wave5/Wave10/Wave11 前置均已 PASS；当前剩余路径为 wave12→wave13。原发布 Wave11 因插入 #102 顺延为 Wave12。
 
 <!-- 「当前 wave」指针指向编号最小的、尚未集成且可执行的 wave；其他并行 wave 的状态由 checkbox 与独立 wave report 表达。plan.md/指针/checkbox 只由主协调者更新。 -->
@@ -355,12 +355,12 @@ flowchart LR
 
 ### wave13 — Iter4 最终汇合与关闭
 
-- [ ] wave5 与 wave11 report 均为 PASS，wave12 pre-close report 为 PASS；唯一 final squash/component-first repin 已完成，所有 component main、super repo main pins 与 release/publication records 一致。
-- [ ] 仅当前述 contract FROZEN、Execution 双包 `0.1.3` stable、Evidence stable、exact-asset reuse、E2E、repin、partial-failure oracle 与 pre-close report 全部 PASS 时，协调者关闭 #48–52/#92/#102；#94/#97 保持既有 CLOSED。
-- [ ] 把全部 issue closure URL 回填 `evidence/wave12.md`，复验后将 Wave12 report 定稿为 PASS；确认 #48–52/#92/#94/#97/#102 全部 CLOSED 且 Project #9 状态一致。
-- [ ] 最终回归、文档 links/parity、contract register、release links、版本/tag、asset digest、部署/恢复结果全部复验。
-- [ ] 确认未修改 FROZEN iter1 契约、#102 实施未超出 #94 已批准设计与 owned paths、未进入 #53–56/#58–60/#84/#85/#87 等非目标。
-- [ ] 生成 `evidence/wave13.md` Iter4 closure report，列出全部输入/输出 SHA、issue/PR/release URL、遗留项及 Iter5 handoff；头部指针和所有 checkbox 由协调者最终更新。
+- [x] wave5 与 wave11 report 均为 PASS，wave12 pre-close report 为 PASS；唯一 final squash/component-first repin 已完成，所有 component main、super repo main pins 与 release/publication records 一致。
+- [x] 仅当前述 contract FROZEN、Execution 双包 `0.1.3` stable、Evidence stable、exact-asset reuse、E2E、repin、partial-failure oracle 与 pre-close report 全部 PASS 时，协调者关闭 #48–52/#92/#102；#94/#97 保持既有 CLOSED。
+- [x] 把全部 issue closure URL 回填 `evidence/wave12.md`，复验后将 Wave12 report 定稿为 PASS；确认 #48–52/#92/#94/#97/#102 全部 CLOSED 且 Project #9 状态一致。
+- [x] 最终回归、文档 links/parity、contract register、release links、版本/tag、asset digest、部署/恢复结果全部复验。
+- [x] 确认未修改 FROZEN iter1 契约、#102 实施未超出 #94 已批准设计与 owned paths、未进入 #53–56/#58–60/#84/#85/#87 等非目标。
+- [x] 生成 `evidence/wave13.md` Iter4 closure report，列出全部输入/输出 SHA、issue/PR/release URL、遗留项及 Iter5 handoff；头部指针和所有 checkbox 由协调者最终更新。
 - 退出条件（任一触发即停，等人工）:
   - 任一范围卡未关闭、report/evidence 不完整、repo pin/release/tag/digest 不一致；
   - 出现未归属修改、未决契约 gap、未记录的人工特例或非目标改动；
