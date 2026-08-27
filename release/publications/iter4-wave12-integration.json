@@ -31,11 +31,12 @@
       "qualified_product": "3c6259ca07276b1de8520fa6fc0d26c86fd93a41",
       "input_tree": "53cc293dd4247160b1c6bd330c48aec68f496e76",
       "squash_main_commit": "f23da5ab02d91589e50b2d1fb01df4f411aa8f9a",
-      "main_commit": "7f25bef8d9362f3e336a3a5a61daef573296d893",
+      "main_commit": "c19c811c32cdadb61e0f54cc01bbe770b984c91d",
       "integration_contract_test_commit": "0071622192b3edb2446e43647c0ff2bd36f89bfa",
       "protected_scope_test_commit": "c308c5570464bf7fc4a8d6d3f631d8ed1cdfb29b",
       "promotion_permission_commit": "9be3d30034beb1897a571249f82a9c749849398c",
       "changelog_sync_commit": "7f25bef8d9362f3e336a3a5a61daef573296d893",
+      "post_stable_changelog_commit": "c19c811c32cdadb61e0f54cc01bbe770b984c91d",
       "post_squash_generated_fix": "CHANGELOG_ONLY_NO_CANDIDATE_ASSET_CHANGE",
       "integration_contract_test": "ROOT_LIFECYCLE_QUALIFIER_REQUIRES_PLUGIN_OLD_PLUGIN_NEW_AND_CORE_ARCHIVES",
       "transition_ci": "https://github.com/firestige/execution-system/actions/runs/33022584119",
@@ -79,7 +80,9 @@
     "initial_squash_main_commit": "396960fd3ffaad62475282ee48f374b6593d218d",
     "final_repin_main_commit": "de5499b8c1eda14a6bb1d731b48c6dffefdede6c",
     "last_passed_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33025037456",
-    "status": "PASS"
+    "post_stable_changelog_ci": "https://github.com/firestige/workflow-self-recursive/actions/runs/33025759550",
+    "post_stable_changelog_ci_status": "EXPECTED_STABLE_TAG_SECTION_REGENERATION_PENDING_REPIN",
+    "status": "POST_STABLE_CHANGELOG_REPIN_PENDING_CI"
   },
   "stable_promotion": "COMPLETE",
   "issue_closure": "PENDING_WAVE13"

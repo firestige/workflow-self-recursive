@@ -25,10 +25,10 @@ Wave12 froze and published the Evidence Query contract, qualified immutable RCs,
 |---|---|---|---|
 | workflow-package | `d9e7b9f7f1013aef9d4a23fefe65563ec77e5af0` | `00cc5832e0d7507e7bdd7ce20869a1360a142861` | `33022393696` PASS |
 | system-contracts | `a3f6d7ca8a3e08e89af4bc3ecea34524f5094bd5` | `b50525f5b1db2c017d71ed307ed25bb1c3a7c783` | `33024524430` PASS |
-| execution-system | `8bf7e3f85f6829cbe686f6ff454eb2fe0ef02456` | `7f25bef8d9362f3e336a3a5a61daef573296d893` | root authority run `33025037456` PASS |
+| execution-system | `8bf7e3f85f6829cbe686f6ff454eb2fe0ef02456` | `c19c811c32cdadb61e0f54cc01bbe770b984c91d` | root authority run `33025037456` PASS before stable-tag changelog sync |
 | evidence-system | `183c055c5c29742ded4102d9b3e9466eb197cfcd` | `624aad2f57c72964ac1b9f82509d9310cc56a781` | `33022820046` PASS |
 
-The squash commits reproduced the approved component input trees. Later main-only changes were limited to generated changelog synchronization and release-gate/workflow corrections covered by red/green tests; they did not alter candidate product trees or RC assets. The superproject repin main is `de5499b8c1eda14a6bb1d731b48c6dffefdede6c`; root run `33025037456` passed full tests, coverage, contract consumers, public artifacts, npm consumer import, DSH lifecycle, real Web Intake installation, independent Workflow Package assets, and protected-scope checks.
+The squash commits reproduced the approved component input trees. Later main-only changes were limited to generated changelog synchronization and release-gate/workflow corrections covered by red/green tests; they did not alter candidate product trees or RC assets. The pre-stable superproject repin main is `de5499b8c1eda14a6bb1d731b48c6dffefdede6c`; root run `33025037456` passed full tests, coverage, contract consumers, public artifacts, npm consumer import, DSH lifecycle, real Web Intake installation, independent Workflow Package assets, and protected-scope checks. After the stable tag converted the generated section name from `0.1.3-rc.1` to `0.1.3`, Execution commit `c19c811c32cdadb61e0f54cc01bbe770b984c91d` synchronized that release metadata without changing product or release bytes.
 
 The former whole-repository `system-contracts` freeze was narrowed to byte-exact tree freezes for Observation, Evaluation, Workflow DSL, and Delivery Admission. This admits the new `evidence-query/` contract while keeping every pre-existing protected contract unchanged.
 
