@@ -1,7 +1,7 @@
 # Iteration 4 实施计划 — 执行计划 (Execution Plan)
 
 > **来源**: iter4 范围卡 #48/#49/#50/#51/#52/#92/#94/#97/#102 · 范围裁决: tmp/20260825/iter4-issues/issues.md · 冲突分析: tmp/20260825/iter4-issues/evidence-conflicts.md · 计划评审: 2026-08-25 DAG/退出条件/并行边界评审 · 2026-08-26 #102 范围/发布窗口重校准
-> **当前 wave**: wave12 · **上次执行**: Evidence `0.1.0-rc.1` 已由 Actions run `32992944389` 从 append-only Wave12 authority 发布并独立下载/拉取验证；tag target `3770f283474728740fb1323dc186861cfcf08e16`，wheel/sdist digest、GHCR digest 与双重 deploy/backup-restore PASS；Execution RC 亦保持 qualified · **下一步**: 等待 A3 stable-promotion approval，再执行唯一 component-first squash/repin；尚未 merge、stable、npm 或 DSH listing
+> **当前 wave**: wave13 · **上次执行**: Wave12 pre-close PASS；唯一 component-first squash/repin、Contract `evidence-query-0.1.0`、Execution/Intake `0.1.3` npm+GitHub stable 与 Evidence `0.1.0` wheel/sdist/OCI stable 均完成，stable target/assets 与 RC exact-match，根门禁 run `33025037456` PASS；DSH marketplace/listing 仍按独立 checklist 暂缓且未宣称完成 · **下一步**: Wave13 独立最终复验、关闭 #48–52/#92/#102、回填 closure URL 并生成 Iter4 closure report
 > 执行模式：Iter4 全程使用同一 `iter4/implementation` feature branch，按 wave 提交并推送检查点；全部产品实施与 RC 资格验证完成后，在 Wave12 执行唯一一次 component-first squash merge/repin，再作 stable promotion，Wave13 只负责最终复验与关闭。Wave5/Wave10/Wave11 前置均已 PASS；当前剩余路径为 wave12→wave13。原发布 Wave11 因插入 #102 顺延为 Wave12。
 
 <!-- 「当前 wave」指针指向编号最小的、尚未集成且可执行的 wave；其他并行 wave 的状态由 checkbox 与独立 wave report 表达。plan.md/指针/checkbox 只由主协调者更新。 -->
@@ -343,9 +343,9 @@ flowchart LR
 - [x] 以 Wave11 的统一 immutable candidate manifest 为唯一 bits 输入且永不改写：创建 Execution 双包 RC 并完成 download/digest/restart/product/prepublish qualification；本步骤不执行 npm publish、DSH listing、main repin 或 stable promotion。
 - [x] 协调者把 wave4 的 Evidence release automation commit 合并到 wave10 candidate；合并树重新通过 release workflow oracle。Wave12 另建 append-only publication-state/binding record，引用 Wave11 candidate manifest digest、最终 contract publication binding 与所有外部 URL/digest，不回写或替换 Wave10/Wave11 immutable manifests。Linux Compose secret ownership 修复只改变资格脚本，重建 wheel/sdist byte-exact，因此以新 Wave12 authority 窄范围重校准而未改写旧 manifest。
 - [x] 使用同一流程创建 Evidence RC，完成 download/digest/policy/remote-install/deploy/backup-restore E2E；qualification 后保持 candidate 不变，等待唯一 final squash/repin。
-- [ ] 每个 stable tag 均指向对应已验收 candidate commit；stable Release 逐字节复用 RC assets/digests，不重建、不 retag candidate、不转向 squash-main。Execution 双包必须共享 `0.1.3` version/release window，`0.1.2` 保持不可变。
-- [ ] 仅在全部 RC/prepublish qualification PASS 后，执行本 Iter4 唯一一次 component-first squash merge：各 component candidate squash 入 main，super repo 精确 repin 后 squash 入 main；复验 candidate/main workflow tree 与 asset digest，再依次执行 system-contracts stable promotion → `wsr-execution@0.1.3` publish/smoke → `wsr-dsh-intake@0.1.3` publish/smoke → DSH listing/postpublish smoke → Evidence stable promotion。全部 stable 状态逐字节复用已验收 RC assets；任何部分失败按矩阵停机恢复，不追加 `0.1.4`、不重建资产。
-- [ ] 主协调者生成 `evidence/wave12.md` pre-close PASS：记录 system-contracts、Execution 双包、DSH、Evidence 的 Actions/Release/registry URL、candidate/main/stable SHA、asset digests、publication record、repin SHA、全部 oracle 与“issue closure pending”；#48–52/#92/#102 仍保持 OPEN。
+- [x] 每个 stable tag 均指向对应已验收 candidate commit；stable Release 逐字节复用 RC assets/digests，不重建、不 retag candidate、不转向 squash-main。Execution 双包共享 `0.1.3` version/release window，`0.1.2` 保持不可变。
+- [x] 仅在全部 RC/prepublish qualification PASS 后，执行本 Iter4 唯一一次 component-first squash merge：各 component candidate squash 入 main，super repo 精确 repin 后 squash 入 main；复验 candidate/main workflow tree 与 asset digest，再依次执行 system-contracts stable promotion → `wsr-execution@0.1.3` publish/smoke → `wsr-dsh-intake@0.1.3` publish/smoke → DSH product postpublish proof → Evidence stable promotion。全部 stable 状态逐字节复用已验收 RC assets；没有追加 `0.1.4` 或重建资产。DSH marketplace/listing 不属于本次产品 stable 门禁，按 owner 澄清和独立 checklist 的未勾选项继续暂缓，不宣称已上架。
+- [x] 主协调者生成 `evidence/wave12.md` pre-close PASS：记录 system-contracts、Execution 双包、DSH、Evidence 的 Actions/Release/registry URL、candidate/main/stable SHA、asset digests、publication record、repin SHA、全部 oracle 与“issue closure pending”；#48–52/#92/#102 仍保持 OPEN。
 - 退出条件（任一触发即停，等人工）:
   - partial-failure state matrix/oracle/必要批准未 PASS；不得产生任何 tag/release/外部发布状态；
   - 任一 contract gate、owner approval、#92 pre-release oracle、#102 qualification 或统一 immutable manifest 不满足；
