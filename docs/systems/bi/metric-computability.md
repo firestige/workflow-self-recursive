@@ -76,14 +76,18 @@ Trace detail may expire before factual Projection. A metric needing native Span 
 
 For each metric, the evaluator first fixes exact scope and compatibility coordinates, then follows the catalog in this order:
 
-1. Build the catalog coverage denominator from exact candidate population and scope.
-2. Classify required-input availability without treating ordinary negative evidence as missing.
-3. Build the coverage numerator from denominator units with every required direct input.
-4. Compute the exact coverage ratio/state and threshold alert by catalog cross multiplication.
-5. Apply eligibility and exclusions to form the metric's eligible/contributing units.
-6. If eligible count is below `minimum_sample`, return `SAMPLE_INSUFFICIENT` with value absent but full coverage/exclusion output.
-7. Otherwise apply only the catalog-bound formula within one compatibility coordinate.
-8. Emit sorted provenance and deterministic digest.
+```mermaid
+flowchart TD
+    scope["Fix exact scope + compatibility"] --> denominator["Build catalog coverage denominator"]
+    denominator --> availability["Classify direct-input availability<br/>ordinary negatives remain covered"]
+    availability --> coverage["Build coverage numerator<br/>compute exact ratio · state · alert"]
+    coverage --> eligibility["Apply catalog eligibility + exclusions"]
+    eligibility --> sample{"Eligible count ≥ minimum_sample?"}
+    sample -->|No| insufficient["SAMPLE_INSUFFICIENT<br/>value absent · coverage retained"]
+    sample -->|Yes| formula["Apply catalog-bound formula<br/>one compatibility coordinate"]
+    insufficient --> result["Sort provenance + deterministic digest"]
+    formula --> result
+```
 
 Coverage denominator zero produces `NO_POPULATION`; positive denominator with zero covered inputs produces `NO_COVERAGE`; a partial numerator produces `PARTIAL`; equality produces `FULL`. Coverage never changes completeness and low coverage does not independently hide an otherwise sample-sufficient metric value.
 

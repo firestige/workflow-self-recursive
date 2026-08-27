@@ -12,21 +12,26 @@ The BI system is a presentation consumer. It owns neither Observation facts nor 
 | Evidence Query | `evidence.query@0.1.0`, read model `1.0.0`, Observation Profile `1.0.0` |
 | Query publication | `sha256:feb0186da48661d2663b03d20e536f470b591ea22f21a34a4ca99bfcc33204e9` |
 | Evaluation publication | `sha256:1967dd9625b572ff6411edc19533cd32144cdedf3e526cb8460f39f688cf5014` |
-| Presentation stack | React SPA, browser-only TypeScript evaluator, D3.js visualizations, Tailwind CSS styling |
+| Presentation stack | TypeScript throughout, React TSX SPA, Vite build, browser-only TypeScript evaluator, D3.js visualizations, Tailwind CSS styling |
 
 Authority order is: owner-confirmed product intent; published Metric Catalog for formulas and readings; published Observation Catalog/Profile for fact meaning; Evidence Query for read representation, truth, expiry, compatibility and pagination; this document for BI-local input, presentation and bounded client behavior. An ambiguity is unavailable, never an invitation to infer.
 
 ## 2. System boundary
 
-```text
-evaluation-context.json ──read-only──┐
-                                    v
-Browser ──GET same origin──> bi-app Nginx ──GET Docker DNS──> Evidence ──private──> PostgreSQL
-  │                                  │
-  └─ React views <─ typed results <─ pure TypeScript evaluator
+```mermaid
+flowchart LR
+    context["evaluation-context.json<br/>local read-only"] --> evaluator["Pure TypeScript evaluator"]
+    browser[Browser] -->|same-origin GET| nginx["bi-app Nginx<br/>dist + read-only proxy"]
+    nginx -->|Docker DNS GET| evidence["Evidence 0.1.0"]
+    evidence -->|private network only| postgres[(PostgreSQL)]
+    nginx --> client["Typed Evidence client"]
+    client --> evaluator
+    evaluator --> views["React views + D3 visualizations"]
+    views --> browser
 ```
 
 - `bi-app` runtime is Nginx plus committed `dist` and Nginx configuration. There is no Node or other business server.
+- All BI application, domain, test and build-configuration source is TypeScript/TSX. Vite is the only application dev/build entry and produces `dist`; no parallel JavaScript product-source path or alternate bundler exists.
 - The browser only calls same-origin `/v1/evidence/facts` and `/v1/evidence/traces` through Nginx.
 - Nginx proxies only those GET paths. It computes no metric, holds no state and has no database client.
 - PostgreSQL is reachable only by Evidence. Evidence is reachable only on the private Compose network. Only Nginx publishes a host port, bound by default to `127.0.0.1`.
@@ -143,22 +148,62 @@ The Trace page accepts an exact Trace or Delivery identity, shows response and p
 
 ## 6. Visual direction and layout
 
-The approved style direction is a calm, dark, data-dense local observability console: charcoal canvas, slate panels, off-white text, cyan recorded/available state, amber partial/lower-bound state and muted red error/expired state. It avoids neon, glass effects, giant KPI tiles, traffic-light-only meaning and trading-dashboard language.
+The style direction is a calm, data-dense local observability console with equal dark and light themes. Dark uses a charcoal canvas, slate panels and off-white text. Light uses a cool off-white canvas, white panels and deep slate text. Both use cyan/teal for recorded/available state, amber for partial/lower-bound state and muted red for error/expired state. They avoid neon, glass effects, giant KPI tiles, traffic-light-only meaning and trading-dashboard language.
+
+The initial theme follows `prefers-color-scheme`. A header control switches `light`, `dark` or `system`; the explicit choice is BI-local browser preference only and may be stored in `localStorage`. Theme changes alter tokens, never semantic state, data, geometry order or accessible labels. Both themes must independently meet WCAG 2.2 AA.
+
+Tailwind is a semantic binding layer, not a palette pasted into components. BI defines CSS custom properties and maps Tailwind theme utilities to stable roles:
+
+| Token family | Stable roles | Adjustable mapping |
+|---|---|---|
+| surface | `canvas`, `panel`, `raised`, `subtle`, `selected` | light/dark color values |
+| content | `primary`, `secondary`, `muted`, `inverse`, `link` | theme contrast values |
+| state | `available`, `partial`, `unavailable`, `expired`, `error`, `focus` | redundant color/icon/border treatment |
+| border | `default`, `strong`, `focus` | theme contrast and width |
+| space | `page`, `section`, `panel`, `control`, `cluster`, `grid-gap` | compact/comfortable rhythm |
+| shape/type | panel/control radii; display/title/body/label/mono roles | global shape and typography rhythm |
+
+React components use semantic bindings such as `bg-surface-panel`, `text-content-primary`, `text-state-partial`, `p-space-panel` and `gap-space-cluster`; raw palette numbers, arbitrary spacing and inline style values are forbidden outside token definitions and D3 geometry. `data-theme` and `data-density` select token maps. D3 uses CSS variables/current color from the same state tokens, so canvas and DOM never drift. A token-boundary lint/test permits raw values only in the theme source, proves every semantic token exists in both themes/densities and checks representative contrast. Layout changes adjust `space`/container mappings or page composition, not truth components.
+
+```mermaid
+flowchart LR
+    intent["Truth + layout semantics"] --> tokens["BI semantic tokens"]
+    themes["light · dark"] --> tokens
+    density["compact · comfortable"] --> tokens
+    tokens --> tailwind["Tailwind semantic utilities"]
+    tailwind --> react["React components"]
+    tokens --> d3["D3 CSS variables / currentColor"]
+```
 
 Style frames:
 
-- [Factual dashboard](assets/style-frame-factual.svg)
-- [Recorded Trace](assets/style-frame-trace.svg)
-- [Unavailable and partial states](assets/style-frame-truth-states.svg)
+- Factual dashboard: [dark](assets/style-frame-factual.svg) / [light](assets/style-frame-factual-light.svg)
+- Recorded Trace: [dark](assets/style-frame-trace.svg) / [light](assets/style-frame-trace-light.svg)
+- Unavailable and partial states: [dark](assets/style-frame-truth-states.svg) / [light](assets/style-frame-truth-states-light.svg)
 
 Desktop uses a 12-column grid: shared header/filter context, primary chart/graph, right inspection rail and semantic table. Below 768 px, regions become a single ordered column: context, state/value, visualization, provenance/detail and table/actions. No content is hidden; charts horizontally scroll only after their tabular alternative.
 
 Wireframes:
 
-```text
-Factual: [header/routes] [exact filters] [value + D3 trend | reading/provenance] [semantic table]
-Trace:   [header/routes] [identity + snapshot] [D3 graph | item detail] [summaries + pager]
-Empty:   [context retained] [state/reason] [next action] [last provenance, visibly stale if any]
+```mermaid
+flowchart TB
+    subgraph factual["Factual page"]
+        f1["Header · routes · theme"] --> f2["Exact filters"]
+        f2 --> f3["Value + D3 trend"]
+        f2 --> f4["Reading + provenance"]
+        f3 --> f5["Semantic table"]
+        f4 --> f5
+    end
+    subgraph trace["Trace page"]
+        t1["Header · routes · theme"] --> t2["Exact identity + snapshot"]
+        t2 --> t3["Recorded D3 graph"]
+        t2 --> t4["Item detail"]
+        t3 --> t5["Trace summaries + pager"]
+        t4 --> t5
+    end
+    subgraph empty["Empty / error / partial"]
+        e1["Retained context"] --> e2["Typed state + reason"] --> e3["Next action"] --> e4["Last provenance · visibly stale when applicable"]
+    end
 ```
 
 ## 7. Component map
@@ -171,7 +216,20 @@ Empty:   [context retained] [state/reason] [next action] [last provenance, visib
 | domain visualization | `FactualTrend`, `RecordedTraceGraph` | D3 geometry only; receives precomputed nodes/series |
 | domain modules | Evidence decoder/client, context decoder, evaluator, Trace graph model | no React import |
 
+```mermaid
+flowchart LR
+    pages["Page composition"] --> semantic["Truth semantic components"]
+    pages --> viz["D3 domain visualization"]
+    semantic --> primitives["Visual primitives + theme tokens"]
+    viz --> primitives
+    domain["Typed client · evaluator · Trace model"] --> semantic
+    domain --> viz
+    contracts["Published contracts + local context"] --> domain
+```
+
 Components are BI-local. There is no shared product shell or future-deliverable API. Extraction requires demonstrated repetition inside BI.
+
+TypeScript runs with `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride` and `useUnknownInCatchVariables`. Vite configuration is typed. `tsc --noEmit` is a separate required gate from `vite build`; Vite transpilation never substitutes for type checking. Exact TypeScript, Vite and plugin versions are locked in Wave2.
 
 ## 8. Accessibility and deterministic review
 
@@ -212,6 +270,6 @@ Strictly serial elapsed estimate for wave2–9 is 6.75 days: 0.75, 1.25, 1.0, 0.
 
 ## 11. G1 decisions requested
 
-G1 approves this exact consumer design: SPA routes `/factual` and `/trace` under `/`; browser-only evaluator; §4 manifest schema and digest rule; five-second/4-MiB/eight-page bounds; §5 state vocabulary; recorded-only deterministic Trace model; style frames, responsive wireframes and component boundaries; §9 independence projection/ignore list; and the 6.75-day serial estimate.
+G1 approves this exact consumer design: TypeScript/TSX throughout with a separate strict `tsc --noEmit` gate and Vite-only application build; SPA routes `/factual` and `/trace` under `/`; browser-only evaluator; §4 manifest schema and digest rule; five-second/4-MiB/eight-page bounds; §5 state vocabulary; recorded-only deterministic Trace model; paired light/dark style frames with system/light/dark theme behavior; Tailwind semantic token bindings for theme, density, color and spacing; Mermaid responsive wireframes and component boundaries; §9 independence projection/ignore list; and the 6.75-day serial estimate.
 
 Approval does not authorize a new cross-system contract, backend, registry publication, remote listener, authentication promise, database path, future UI artifact or inferred metric/edge. Any such need blocks Wave2.

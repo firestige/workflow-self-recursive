@@ -12,21 +12,26 @@ BI 是 presentation consumer，不拥有 Observation 事实或 Metric 公式。
 | Evidence Query | `evidence.query@0.1.0`；read model `1.0.0`；Observation Profile `1.0.0` |
 | Query publication | `sha256:feb0186da48661d2663b03d20e536f470b591ea22f21a34a4ca99bfcc33204e9` |
 | Evaluation publication | `sha256:1967dd9625b572ff6411edc19533cd32144cdedf3e526cb8460f39f688cf5014` |
-| 展示栈 | React SPA、浏览器内 TypeScript evaluator、D3.js 可视化、Tailwind CSS 样式 |
+| 展示栈 | 全链路 TypeScript、React TSX SPA、Vite build、浏览器内 TypeScript evaluator、D3.js 可视化、Tailwind CSS 样式 |
 
 权威顺序：owner 已确认产品意图；Metric Catalog 拥有公式和读法；Observation Catalog/Profile 拥有事实语义；Evidence Query 拥有读取表示、truth、expiry、compatibility 和 pagination；本文只拥有 BI-local 输入、展示和有界 client 行为。有歧义时输出 unavailable，禁止推断。
 
 ## 2. 系统边界
 
-```text
-evaluation-context.json ──只读──┐
-                               v
-Browser ──同源 GET──> bi-app Nginx ──Docker DNS GET──> Evidence ──私网──> PostgreSQL
-  │                              │
-  └─ React view <─ typed result <─ 纯 TypeScript evaluator
+```mermaid
+flowchart LR
+    context["evaluation-context.json<br/>本地只读"] --> evaluator["纯 TypeScript evaluator"]
+    browser[Browser] -->|同源 GET| nginx["bi-app Nginx<br/>dist + 只读 proxy"]
+    nginx -->|Docker DNS GET| evidence["Evidence 0.1.0"]
+    evidence -->|仅私网| postgres[(PostgreSQL)]
+    nginx --> client["Typed Evidence client"]
+    client --> evaluator
+    evaluator --> views["React view + D3 visualization"]
+    views --> browser
 ```
 
 - `bi-app` runtime 只有 Nginx、committed `dist` 和 Nginx 配置；没有 Node 或其他业务 server。
+- BI application、domain、test、build configuration 源码统一为 TypeScript/TSX。Vite 是唯一 application dev/build 入口并生成 `dist`；不允许并行 JavaScript 产品源码路径或第二 bundler。
 - 浏览器只经 Nginx 调用同源 `/v1/evidence/facts` 与 `/v1/evidence/traces`。
 - Nginx 只代理这两个 GET 路径，不计算 metric、不持久化状态、无数据库 client。
 - PostgreSQL 只对 Evidence 可达；Evidence 只在 Compose 私网可达；只有 Nginx 发布默认绑定 `127.0.0.1` 的 host port。
@@ -139,20 +144,60 @@ Trace page 接受精确 Trace/Delivery identity，展示 response/per-Trace stat
 
 ## 6. 视觉方向与布局
 
-视觉方向是沉静、dark、data-dense 的本地 observability console：charcoal canvas、slate panel、off-white text、cyan 表示 recorded/available、amber 表示 partial/lower-bound、muted red 表示 error/expired。禁止 neon、glass、巨型 KPI、只靠红绿灯和交易盘语言。
+视觉方向是沉静、data-dense 的本地 observability console，并提供同等地位的深色与浅色主题。深色使用 charcoal canvas、slate panel、off-white text；浅色使用 cool off-white canvas、white panel、deep slate text。两者均以 cyan/teal 表示 recorded/available、amber 表示 partial/lower-bound、muted red 表示 error/expired。禁止 neon、glass、巨型 KPI、只靠红绿灯和交易盘语言。
+
+初始主题跟随 `prefers-color-scheme`。Header control 可切换 `light`、`dark`、`system`；显式选择只是 BI-local browser preference，可保存到 `localStorage`。切换主题只改变 token，不改变 semantic state、data、geometry order 或 accessible label。两种主题都必须独立满足 WCAG 2.2 AA。
+
+Tailwind 是语义 binding layer，不把 palette 散落进 component。BI 定义 CSS custom property，并把 Tailwind theme utility 映射到稳定角色：
+
+| Token family | 稳定角色 | 可调整 mapping |
+|---|---|---|
+| surface | `canvas`、`panel`、`raised`、`subtle`、`selected` | 深浅色值 |
+| content | `primary`、`secondary`、`muted`、`inverse`、`link` | theme contrast |
+| state | `available`、`partial`、`unavailable`、`expired`、`error`、`focus` | 冗余的 color/icon/border 表达 |
+| border | `default`、`strong`、`focus` | theme contrast 与 width |
+| space | `page`、`section`、`panel`、`control`、`cluster`、`grid-gap` | compact/comfortable rhythm |
+| shape/type | panel/control radius；display/title/body/label/mono role | 全局形状与排版节奏 |
+
+React component 使用 `bg-surface-panel`、`text-content-primary`、`text-state-partial`、`p-space-panel`、`gap-space-cluster` 等语义 binding；raw palette number、arbitrary spacing、inline style value 只能出现在 token definition 与 D3 geometry 中。`data-theme`、`data-density` 只选择 token map。D3 从相同 state token 读取 CSS variable/current color，避免 canvas 与 DOM 漂移。Token-boundary lint/test 只允许 theme source 出现 raw value，证明每个 semantic token 在两种 theme/density 中都有定义，并检查代表性 contrast。布局调整只改 `space`/container mapping 或 page composition，不改 truth component。
+
+```mermaid
+flowchart LR
+    intent["Truth + layout semantics"] --> tokens["BI semantic token"]
+    themes["light · dark"] --> tokens
+    density["compact · comfortable"] --> tokens
+    tokens --> tailwind["Tailwind semantic utility"]
+    tailwind --> react["React component"]
+    tokens --> d3["D3 CSS variable / currentColor"]
+```
 
 Style frame：
 
-- [Factual dashboard](assets/style-frame-factual.svg)
-- [Recorded Trace](assets/style-frame-trace.svg)
-- [Unavailable/partial states](assets/style-frame-truth-states.svg)
+- Factual dashboard：[深色](assets/style-frame-factual.svg) / [浅色](assets/style-frame-factual-light.svg)
+- Recorded Trace：[深色](assets/style-frame-trace.svg) / [浅色](assets/style-frame-trace-light.svg)
+- Unavailable/partial states：[深色](assets/style-frame-truth-states.svg) / [浅色](assets/style-frame-truth-states-light.svg)
 
 Desktop 使用 12-column grid：shared header/filter、主 chart/graph、右侧 inspection rail、semantic table。低于 768 px 时依次单列：context、state/value、visualization、provenance/detail、table/action。不得隐藏内容；chart 只有在其 table alternative 之后才能横向滚动。
 
-```text
-Factual: [header/routes] [exact filters] [value + D3 trend | reading/provenance] [semantic table]
-Trace:   [header/routes] [identity + snapshot] [D3 graph | item detail] [summaries + pager]
-Empty:   [context retained] [state/reason] [next action] [last provenance（若有则显式 stale）]
+```mermaid
+flowchart TB
+    subgraph factual["Factual page"]
+        f1["Header · route · theme"] --> f2["Exact filter"]
+        f2 --> f3["Value + D3 trend"]
+        f2 --> f4["Reading + provenance"]
+        f3 --> f5["Semantic table"]
+        f4 --> f5
+    end
+    subgraph trace["Trace page"]
+        t1["Header · route · theme"] --> t2["Exact identity + snapshot"]
+        t2 --> t3["Recorded D3 graph"]
+        t2 --> t4["Item detail"]
+        t3 --> t5["Trace summary + pager"]
+        t4 --> t5
+    end
+    subgraph empty["Empty / error / partial"]
+        e1["保留 context"] --> e2["Typed state + reason"] --> e3["Next action"] --> e4["Last provenance · 需要时显式 stale"]
+    end
 ```
 
 ## 7. Component map
@@ -165,7 +210,20 @@ Empty:   [context retained] [state/reason] [next action] [last provenance（若�
 | domain visualization | `FactualTrend`、`RecordedTraceGraph` | 只做 D3 geometry，接 precomputed node/series |
 | domain module | Evidence decoder/client、context decoder、evaluator、Trace graph model | 不 import React |
 
+```mermaid
+flowchart LR
+    pages["Page composition"] --> semantic["Truth semantic component"]
+    pages --> viz["D3 domain visualization"]
+    semantic --> primitives["Visual primitive + theme token"]
+    viz --> primitives
+    domain["Typed client · evaluator · Trace model"] --> semantic
+    domain --> viz
+    contracts["Published contract + local context"] --> domain
+```
+
 所有 component 都是 BI-local；无 shared product shell 或未来交付物 API。只有 BI 内已出现真实重复才能提取抽象。
+
+TypeScript 开启 `strict`、`noUncheckedIndexedAccess`、`exactOptionalPropertyTypes`、`noImplicitOverride`、`useUnknownInCatchVariables`。Vite config 使用 typed config。`tsc --noEmit` 是独立于 `vite build` 的 required gate；Vite transpilation 不能代替 typecheck。Wave2 冻结 TypeScript、Vite 与 plugin 的 exact version。
 
 ## 8. Accessibility 与 deterministic review
 
@@ -206,6 +264,6 @@ Wave2–9 严格串行估算 6.75 天：分别为 0.75、1.25、1.0、0.75、1.0
 
 ## 11. G1 请求批准内容
 
-G1 批准：`/factual`、`/trace` SPA route；browser-only evaluator；§4 manifest schema/digest；5 秒/4 MiB/8 页 bound；§5 state vocabulary；recorded-only deterministic Trace model；style frame、responsive wireframe、component boundary；§9 independence projection/ignore list；6.75 天串行估算。
+G1 批准：全链路 TypeScript/TSX、独立 strict `tsc --noEmit` gate、Vite-only application build；`/factual`、`/trace` SPA route；browser-only evaluator；§4 manifest schema/digest；5 秒/4 MiB/8 页 bound；§5 state vocabulary；recorded-only deterministic Trace model；成对深浅色 style frame 与 system/light/dark 主题行为；用于 theme、density、color、spacing 的 Tailwind semantic token binding；Mermaid responsive wireframe、component boundary；§9 independence projection/ignore list；6.75 天串行估算。
 
 批准不授权新 cross-system contract、backend、registry publication、remote listener、auth 承诺、database path、未来 UI artifact 或推断的 metric/edge；出现任一项都 BLOCK Wave2。

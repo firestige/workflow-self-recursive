@@ -76,14 +76,18 @@ Trace detail 可能早于 factual Projection 过期。需要 native Span duratio
 
 Evaluator 先固定 exact scope/compatibility，再按 Catalog 顺序执行：
 
-1. 以 exact candidate population/scope 建 coverage denominator。
-2. 分类 required-input availability；ordinary negative evidence 不能当 missing。
-3. 用所有 required direct input available 的 unit 建 coverage numerator。
-4. 按 Catalog cross multiplication 计算 exact coverage ratio/state/threshold alert。
-5. 应用 eligibility/exclusion，形成 metric eligible/contributing unit。
-6. Eligible count `< minimum_sample` 时返回 `SAMPLE_INSUFFICIENT`，value absent，但保留完整 coverage/exclusion。
-7. 否则只在一个 compatibility coordinate 内执行 catalog-bound formula。
-8. 输出 sorted provenance 与 deterministic digest。
+```mermaid
+flowchart TD
+    scope["冻结 exact scope + compatibility"] --> denominator["建立 Catalog coverage denominator"]
+    denominator --> availability["分类 direct-input availability<br/>ordinary negative 保持 covered"]
+    availability --> coverage["建立 coverage numerator<br/>计算 exact ratio · state · alert"]
+    coverage --> eligibility["应用 Catalog eligibility + exclusion"]
+    eligibility --> sample{"Eligible count ≥ minimum_sample?"}
+    sample -->|否| insufficient["SAMPLE_INSUFFICIENT<br/>value absent · coverage 保留"]
+    sample -->|是| formula["应用 catalog-bound formula<br/>单一 compatibility coordinate"]
+    insufficient --> result["排序 provenance + deterministic digest"]
+    formula --> result
+```
 
 Coverage denominator=0 是 `NO_POPULATION`；denominator>0 且 numerator=0 是 `NO_COVERAGE`；部分为 `PARTIAL`；相等为 `FULL`。Coverage 不改变 completeness；low coverage 本身不隐藏 sample-sufficient value。
 
