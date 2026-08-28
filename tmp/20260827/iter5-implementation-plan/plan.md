@@ -8,7 +8,7 @@
 >
 > **明确排除**：[#95](https://github.com/firestige/workflow-self-recursive/issues/95)（含 `intake-sidebar`）属于 DSH display plugin 工作；它与 BI 放在 `wsr-ui` 仅是 repository 管理共址，不构成共享 UI framework/layout/release contract。它不进入 Iter5 的 refinement、实现、分发、容量或完成判定。`workflow-builder` 当前仍是 idea，同样不进入 MVP。
 >
-> **当前 wave**：`WAVE10_IN_PROGRESS`；Wave9 authority 为 superproject `79771c3c`、`wsr-ui@7cfc8a8`、`evolution-system@a12fc92`、`evidence-system@030e6ee` 与 `evidence/wave9.md`。Wave10 只执行 #56 Execution/Evidence 独立性 qualification。
+> **当前 wave**：`WAVE11_IN_PROGRESS`；Wave10 authority 为 superproject `1352f8f9`、`execution-system@cf03813`、`evidence-system@7e3ff4a` 与 `evidence/wave10.md`。Wave11 只执行 component squash merge、superproject repin 与最终集成 qualification。
 
 ## 1. 目标与完成判定
 
@@ -472,17 +472,17 @@ BLOCK/FAIL：Evolution/BI 直连数据库；Evidence 承载 metric/UI；Nginx �
 
 ### wave10 — #56 Execution/Evidence 独立性 qualification
 
-> 状态：`IN_PROGRESS`。Wave9 PASS 已满足 ENTRY；开始 #56 independence qualification。
+> 状态：`PASS`。Authority 为 superproject `1352f8f9`、`execution-system@cf03813`、`evidence-system@7e3ff4a` 与 `evidence/wave10.md`；#56 保持 OPEN 至 Wave12。
 
-- [ ] 保留原 oracle sensitivity、canonical Execution result、external conforming producer、无 receipt/outbox/control edge、crash/restart/shutdown 场景。
-- [ ] 增加 Evolution 不参与 Execution progress/outcome 的静态与网络证明；Evolution/Evidence/BI 全部不可用时 Execution canonical result 不变。
-- [ ] 把 #56 验收逐一映射命令、fixture、digest 与结果；生成 `evidence/wave10.md`，保持 #56 OPEN 至 wave12。
+- [x] 保留原 oracle sensitivity、canonical Execution result、external conforming producer、无 receipt/outbox/control edge、crash/restart/shutdown 场景。
+- [x] 增加 Evolution 不参与 Execution progress/outcome 的静态与网络证明；Evolution/Evidence/BI 全部不可用时 Execution canonical result 不变。
+- [x] 把 #56 验收逐一映射命令、fixture、digest 与结果；生成 `evidence/wave10.md`，保持 #56 OPEN 至 wave12。
 
 BLOCK/FAIL：Observation/Evidence/Evolution/BI 状态改变 canonical Execution result；Evidence 只接受本项目 producer；harness 无法检出 deliberately-coupled mutant。
 
 ### wave11 — 最终集成、component squash merge 与 superproject repin
 
-> 状态：`NOT_STARTED`。ENTRY 依赖 Wave10 PASS，当前未满足。
+> 状态：`IN_PROGRESS`。Wave10 PASS 已满足 ENTRY；开始 component merge 与最终 repin。
 
 - [ ] 在所有特性分支运行 format/lint/type/unit/build/browser/docker/compose/contract/independence suite；逐提交核对文本变更不超过 500 行且每个有产物 wave 至少一提交。
 - [ ] 分别将 `evolution-system`、`wsr-ui` 等 Iter5 component 特性分支 squash merge 回各自主干；禁止保留未经验证的 browser evaluator/manifest 实现。
