@@ -1,6 +1,6 @@
-# BI Metric Computability Matrix
+# BI Metric Computability Matrix — Superseded G1 Input
 
-> **Status:** G1 owner-approved, 2026-08-27. English is normative; [`metric-computability.zh-CN.md`](metric-computability.zh-CN.md) is the tracking translation. This matrix binds every consumer branch to `agentops.evaluation.metric-catalog@1.0.0`; it does not restate or redefine a formula.
+> **Status:** **SUPERSEDED** by the Wave3 authority split. This file is retained as historical G1 analysis only. Browser evaluation, the BI-local context manifest, and the snapshot/digest model below are not current authority. Evolution's candidate 14-calculator/input matrix is [`../evolution/metric-computability.md`](../evolution/metric-computability.md).
 
 ## 1. Binding and common rules
 
