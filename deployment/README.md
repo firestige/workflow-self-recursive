@@ -16,8 +16,12 @@ chmod 700 deployment/.secrets
 openssl rand -out deployment/.secrets/admin-password -hex 32
 openssl rand -out deployment/.secrets/backup-password -hex 32
 openssl rand -out deployment/.secrets/runtime-password -hex 32
-chmod 600 deployment/.secrets/*
+chmod 644 deployment/.secrets/*
 ```
+
+The directory remains owner-only, while the files must be readable by the PostgreSQL process after
+the container entrypoint drops root privileges. Do not use `0600` host files with this file-backed
+mount on Linux.
 
 `evolution.config.json` is non-secret. Edit its ordered `workflow_sources` when Deliveries may refer to
 forks or other public Workflow repositories. The first exact Package/Snapshot digest match wins. Set
@@ -42,3 +46,7 @@ Run the bounded source-build, routing, and degraded-path smoke with temporary ge
 ```
 
 The deployment publishes no image and needs no registry or publisher credential.
+
+The loopback bind is the supported local boundary. If a user-owned Compose override or external
+reverse proxy exposes BI on `0.0.0.0` or a public interface, that operator also owns TLS,
+authentication, firewall policy, and the resulting public-exposure risk.

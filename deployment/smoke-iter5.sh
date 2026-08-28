@@ -28,9 +28,21 @@ trap cleanup EXIT INT TERM
 openssl rand -out "$secret_dir/admin" -hex 32
 openssl rand -out "$secret_dir/backup" -hex 32
 openssl rand -out "$secret_dir/runtime" -hex 32
+chmod 700 "$secret_dir"
+chmod 644 "$secret_dir/admin" "$secret_dir/backup" "$secret_dir/runtime"
 
 compose up --build --wait
 base_url="http://127.0.0.1:${host_port}"
+
+app_members=$(docker network inspect "${compose_project}_app-tier" --format '{{range .Containers}}{{.Name}} {{end}}')
+db_members=$(docker network inspect "${compose_project}_evidence-db" --format '{{range .Containers}}{{.Name}} {{end}}')
+case "$app_members" in *"${compose_project}-evidence-1"*) ;; *) exit 1 ;; esac
+case "$app_members" in *"${compose_project}-evolution-1"*) ;; *) exit 1 ;; esac
+case "$app_members" in *"${compose_project}-bi-app-1"*) ;; *) exit 1 ;; esac
+case "$app_members" in *"${compose_project}-database-1"*) exit 1 ;; esac
+case "$db_members" in *"${compose_project}-database-1"*) ;; *) exit 1 ;; esac
+case "$db_members" in *"${compose_project}-evidence-1"*) ;; *) exit 1 ;; esac
+case "$db_members" in *"${compose_project}-evolution-1"* | *"${compose_project}-bi-app-1"*) exit 1 ;; esac
 
 curl --fail --silent "$base_url/healthz" | grep -qx ok
 curl --fail --silent "$base_url/evaluate" | grep -q '<div id="root"></div>'
