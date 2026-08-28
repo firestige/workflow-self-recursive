@@ -40,6 +40,8 @@ Observation 与 Evidence 要求最终稳定，而不是 Fact/Trace routes 的 tr
 - `delivery_id` 用于把记录归入 Delivery trajectory。若 metric 必须关联某一次 model call，则以 exact Span identity `(trace_id, span_id)` 完成关联；Delivery identity 本身粒度不足。
 - 不新增 cross-route snapshot mechanism 或额外 final-stability oracle；扩展 projection 时复用现有 identity、duplicate/conflict、pagination、completeness、retention 与 expiry conformance rules。
 
+Resolver safety bounds 属于 runtime configuration，不是新的 Contract maximum。Wave 5 默认值为：每 side 最多 500 个 unique Delivery；每次 Task/Facts/Traces traversal 最多 20 页（按每页 200 项即 4,000 项）；每 side 最多 100,000 条 Fact 与 Trace input record；每 side deadline 120 秒。重复 cursor 或超过 bound 时，该 side 以不可重试的 `RESOLUTION_BOUND_EXCEEDED` 失败；COMPARE 仍保留成功侧。压力测试可调整这些配置默认值，但不得改变 metric 语义或静默截断结果。
+
 Iter5 physical mapping 从 recorded Trace NODE 读取 native operational Span measurement。未来 Contract 可以额外投影 metric-readable Fact，但本设计不依赖它，也不得因此静默替换 exact model-call/lifecycle 语义。
 
 ### 2.3 Manifest 与 Workflow content resolution
@@ -66,7 +68,7 @@ Public surface 是 closed、versioned、无副作用的 `POST /api/evolution/v1/
 - Receipt 随 response 返回，不存在预制 manifest。
 - 上报期间重复 unresolved selection 可看到新增 Evidence；settled 后 active Evidence 最终稳定，retention transition 可有意地产生 `EXPIRED`/`UNAVAILABLE`。
 
-Response 使用 tagged side union：`side_result={receipt,metric_results[12]}` 或 `side_error={code,retryable,detail}`。`SINGLE` 成功必须有一个 `side_result`；FULL `COMPARE` 有两个 side results 与 12 个 Delta entries；`PARTIAL_COMPARE` 有一个成功 side、一个 side_error，12 个 Delta coordinate entries 全部为 `SIDE_UNRESOLVED`。成功 side 内单项缺失不能令 coordinate 消失。
+Response 使用 tagged side union：`side_result={receipt,metric_results[12]}` 或 `side_error={code,retryable,detail}`。`SINGLE` 成功必须有一个 `side_result`；FULL `COMPARE` 有两个 side results，并为两侧 exact metric/slice identity 的并集逐项返回 Delta；`PARTIAL_COMPARE` 有一个成功 side、一个 side_error，并为成功侧已知的每个 slice 返回 `SIDE_UNRESOLVED` Delta，失败侧无法提供其 slice keys。12 是固定 Metric Result coordinate 数，不是固定 Delta entry 数。成功 side 内单项缺失不能令 coordinate 消失。
 
 Exact request examples 与英文 companion 第 3 节一致。
 
@@ -102,7 +104,7 @@ Receipt 是单次 response 的审计记录，不是 input manifest、持久 serv
 - 每个成功解析的 side 必须恰好包含 12 个 candidate coordinates；单项 withheld 不影响其他 11 项。
 - 每项分离 value truth、unit/compatibility、published numerator/denominator/contributing count、coverage、exclusion、missing input、provenance、uncertainty 与 forbidden reading。
 - minimum sample 隐藏 value 时 coverage 仍可见。
-- explicit zero、missing、lower bound、N/A、expired、incompatible 与 transport/service error 不得混同。
+- explicit zero、missing、lower bound、N/A、incompatible 与 transport/service error 不得混同。Expiry 在 receipt 中保持可见，但 expired record 退出当前 metric candidate population，且绝不被重建。
 - Compare 分别解析 left/right；只有 coordinate、kind、unit 与 required compatibility 均匹配时才返回 Delta，否则返回 typed withheld reason。
 - Before/After 是 Metric Result；Delta 是 Evolution 计算的 comparison result。
 
@@ -129,7 +131,7 @@ BI 可以把 Evolution 提供的 ratio 显示为百分数或小数，并将显�
 | Layer | 例子 | Response |
 |---|---|---|
 | Request | malformed JSON、unknown field/variant/version、empty/duplicate/over-limit Task set | bounded `400`，无 result；修正前不可 retry |
-| Resolution side | Evidence transport failure、invalid cursor、incomplete traversal、Contract mismatch | 不得伪装 `UNAVAILABLE`，明确 retryability。SINGLE 失败或 COMPARE 两侧都失败时返回 bounded `502`/`503`；单侧失败返回 `PARTIAL_COMPARE`，保留成功 `side_result`、返回 typed `side_error`，并将全部 12 个 Delta coordinate entries 标为 `SIDE_UNRESOLVED`，因为失败侧 slice keys 未知 |
+| Resolution side | Evidence transport failure、invalid cursor、incomplete traversal、Contract mismatch、configured safety bound | 不得伪装 `UNAVAILABLE`，明确 retryability。SINGLE 失败或 COMPARE 两侧都失败时返回 bounded `502`/`503`；safety bound 返回不可重试的 `413 RESOLUTION_BOUND_EXCEEDED`。单侧失败返回 `PARTIAL_COMPARE`，保留成功 `side_result`、返回 typed `side_error`，并将成功侧已知的每个 slice 标为 `SIDE_UNRESOLVED`；失败侧 slice keys 仍未知 |
 | Metric result | missing、lower bound、N/A、expired、sample insufficient、open/mixed Task、mixed unit/currency | HTTP success，保留 coordinate 与 typed truth/withheld reason；其他 metrics 继续 |
 | Compare Delta | 一侧无 value 或 compatibility mismatch | 保留两侧，Delta typed withheld |
 

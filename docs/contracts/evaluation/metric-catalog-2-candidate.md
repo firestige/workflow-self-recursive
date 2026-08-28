@@ -13,8 +13,8 @@ This is a MAJOR revision because it removes metrics and changes Usage compatibil
 
 | metric_id | kind / unit | evaluation unit |
 | --- | --- | --- |
-| `role-template-rework-rate` | rate / ratio | eligible terminal task in one event-time role-template cohort |
-| `role-template-trajectory-partial-cost` | money / reported money unit | eligible terminal task trajectory in one event-time role-template cohort |
+| `role-template-rework-rate` | rate / ratio | terminal Delivery exposed to one exact Manifest-bound role template |
+| `role-template-trajectory-partial-cost` | money / reported money unit | terminal Delivery trajectory exposed to one exact Manifest-bound role template |
 | `role-model-task-outcome-rate` | rate / ratio | eligible terminal task with complete canonical model-role attribution |
 | `operational-latency-ms` | duration / milliseconds | attributed operational model call with native Span duration |
 | `trajectory-partial-cost` | money / reported money unit | Delivery trajectory with linked reported money Usage |
@@ -40,6 +40,12 @@ Evolution consumes recorded Usage only. It does not introduce `cost basis`, `est
 
 For call-scoped metrics, a Usage record contributes only when native Trace/Span context binds it to the exact model call. For Delivery- or task-scoped metrics, exact Delivery/Task association is still required. Missing association reduces that metric result's coverage and is never repaired by time, arrival order, or text matching.
 
+For both role-template metrics, the evaluation unit is a Delivery/template exposure, not a Task. The exact template coordinate comes from that Delivery's accepted Manifest and is retained only when recorded C30 model-call data shows that role was exercised. Each terminal Delivery is counted independently even when several Deliveries belong to one Task. One Delivery exposed to several exact templates contributes once to each corresponding cohort. This is descriptive exposure grouping, not template causality or attribution.
+
+`role-template-rework-rate` counts a covered Delivery once in the numerator when its recorded Facts contain at least one valid `FINDING_FIX` relationship; repeated fixes in the same Delivery do not increase the numerator. A completed Fact traversal with no such relationship is a covered zero. Unavailable repair input is missing, never zero. Expired input is outside the current candidate population rather than an unknown historical denominator. `role-template-trajectory-partial-cost` sums only active Usage linked to that same Delivery, separately for each exact template and Usage compatibility coordinate. Both metrics use currently readable, covered Delivery/template exposures for their minimum sample of 20.
+
+A `PARTIAL` Trace read computes from the active exact exposures currently recorded and keeps `PARTIAL` visible in the receipt. The result may therefore change as reporting continues and must converge when Observation reaches final stability. Expired Trace nodes and expired Facts/Usage do not contribute candidates, values, or coverage counts; the receipt remains the authority that historical detail expired. Evolution never reconstructs those records or invents an unknown denominator.
+
 ## 4. Per-metric coverage
 
 Coverage is not a standalone quality score. Every metric result and every selected slice publishes its own `{numerator, denominator, raw_ratio, state, alert}`:
@@ -55,4 +61,3 @@ The 1.0 coverage state machine, exact rational arithmetic, `LOW_COVERAGE` thresh
 ## 5. Lifecycle and implementation rule
 
 The machine candidate lives under `system-contracts/evaluation-2-candidate/` and must reject both removed coordinates and all semantic drift described above. It has status `REVIEW_CANDIDATE`, has no publication record, and makes no conformance claim. Evolution may implement and test against the owner-approved candidate during Wave 5, but Wave 5 cannot claim a published 2.0 binding until the normal Contract gates and publication step finish.
-

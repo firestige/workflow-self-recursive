@@ -50,6 +50,8 @@ Observation and Evidence require eventual final stability, not transaction-wide 
 - `delivery_id` groups records into a Delivery trajectory. Where a metric must associate values with one particular model call, the exact Span identity `(trace_id, span_id)` performs that join; Delivery identity alone is not sufficiently specific.
 - No new cross-route snapshot mechanism or additional final-stability oracle is introduced. Existing identity, duplicate/conflict, pagination, completeness, retention, and expiry conformance rules apply to the extended projections.
 
+Resolver safety bounds are runtime configuration, not new Contract maxima. Wave 5 defaults are 500 unique Deliveries per side, 20 pages per Task/Facts/Traces traversal (4,000 items at the 200-item page size), 100,000 combined Fact and Trace input records per side, and a 120-second side deadline. A repeated cursor or exceeded bound fails that side non-retryably as `RESOLUTION_BOUND_EXCEEDED`; COMPARE still preserves the successful side. Load tests may revise these configured defaults without changing metric semantics or silently truncating a result.
+
 The Iter5 physical mapping reads native operational Span measurements from recorded Trace NODEs. A future contract may additionally project metric-readable Facts, but that is not required by this design and cannot silently replace the exact model-call or lifecycle semantics.
 
 ### 2.3 Manifest and Workflow content resolution
@@ -77,7 +79,7 @@ The public surface is a closed, versioned, side-effect-free `POST /api/evolution
 - A receipt is returned with the response; no prebuilt read-only manifest exists.
 - Repeating an unresolved selection may observe newly accepted Evidence. Once reporting has settled, active Evidence is finally stable; a later retention transition may intentionally produce `EXPIRED` or `UNAVAILABLE` instead of the former result.
 
-The response uses a tagged side union: `side_result={receipt, metric_results[12]}` or `side_error={code,retryable,detail}`. `SINGLE` succeeds only with one `side_result`. A full `COMPARE` has two side results and 12 coordinate-aligned Delta entries; `PARTIAL_COMPARE` has one of each side tag and 12 Delta-coordinate entries all marked `SIDE_UNRESOLVED`. A metric-level absence never removes an item from a successful side result.
+The response uses a tagged side union: `side_result={receipt, metric_results[12]}` or `side_error={code,retryable,detail}`. `SINGLE` succeeds only with one `side_result`. A full `COMPARE` has two side results and one Delta entry for every exact metric/slice identity in the union of both sides. `PARTIAL_COMPARE` has one of each side tag and one `SIDE_UNRESOLVED` Delta entry for every slice known from the successful side; the failed side cannot supply slice keys. Twelve is the fixed Metric Result coordinate count, not a fixed Delta-entry count. A metric-level absence never removes an item from a successful side result.
 
 ```json
 {"api_version":1,"mode":"SINGLE","selection":{"selection_version":1,"task_ids":["task-a","task-b"]}}
@@ -134,7 +136,7 @@ Canonical ordering is bytewise over stable IDs and exact coordinates; array orde
 - Every successful side resolution contains exactly the 12 candidate metric coordinates; no missing or additional coordinate is accepted silently. Individual entries may be withheld without failing the other 11.
 - Each result separates value truth, unit/compatibility coordinates, numerator/denominator or contributing count where published, coverage, exclusions, missing inputs, provenance references, uncertainty, and forbidden readings.
 - Coverage remains visible when minimum sample withholds a value.
-- Explicit zero, missing, lower bound, not applicable, expired, incompatible, and transport/service error remain distinct.
+- Explicit zero, missing, lower bound, not applicable, incompatible, and transport/service error remain distinct. Expiry remains visible in the receipt, while expired records leave the current metric candidate population and are never reconstructed.
 - Compare resolves both sides separately. Evolution returns Delta only for the same metric coordinate with compatible kind, unit, and required coordinates; otherwise it returns a typed withheld reason.
 - Before and After are Metric Results. Delta is an Evolution-derived comparison result, never a BI calculation.
 
@@ -174,7 +176,7 @@ Errors are layered so one missing metric never masquerades as a failed request:
 | Layer | Examples | Response behavior |
 |---|---|---|
 | Request | malformed JSON, unknown field/variant/version, empty/duplicate/over-limit Task set | bounded `400`; no result envelope; not retryable without correction |
-| Resolution side | Evidence transport failure, invalid cursor, incomplete traversal, Contract/revision mismatch | never converted to `UNAVAILABLE`; retryability explicit. SINGLE failure, or failure of both COMPARE sides, returns bounded `502`/`503`. One failed COMPARE side returns `PARTIAL_COMPARE`: retain the successful `side_result`, return one typed `side_error`, and mark all 12 Delta coordinate entries `SIDE_UNRESOLVED` because failed-side slice keys are unknown |
+| Resolution side | Evidence transport failure, invalid cursor, incomplete traversal, Contract/revision mismatch, configured safety bound | never converted to `UNAVAILABLE`; retryability explicit. SINGLE failure, or failure of both COMPARE sides, returns bounded `502`/`503`, or non-retryable `413 RESOLUTION_BOUND_EXCEEDED` for a safety bound. One failed COMPARE side returns `PARTIAL_COMPARE`: retain the successful `side_result`, return one typed `side_error`, and mark every slice known from the successful side `SIDE_UNRESOLVED`; failed-side slice keys remain unknown |
 | Metric result | missing input, lower bound, N/A, expired input, insufficient sample, open/mixed Task, mixed unit/currency | HTTP success with the coordinate retained and a typed truth/withheld reason; other metrics continue |
 | Compare Delta | side unavailable or compatibility mismatch | retain both side results; Delta entry withheld with exact reason |
 

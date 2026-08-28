@@ -10,12 +10,12 @@ BI is the presentation surface for Evolution Metric Results and the read-only dr
 |---|---|
 | Facts and recorded Traces | Evidence |
 | Metric concepts/formulas/readings | Evaluation Catalog |
-| 14 Metric Results, coverage, compatibility, compare Delta | Evolution |
+| 12 candidate Metric Results, coverage, compatibility, compare Delta | Evolution |
 | Selection, layout, visualization, interaction, accessibility | BI |
 
-BI submits population-oriented `EvaluationSelection`; it does not select a metric implementation. For every successfully resolved side, Evolution returns a `ResolvedEvaluationContext` receipt and exactly 14 `MetricResult` entries. BI may directly query Evidence for receipt/result-linked Fact and Trace detail, but it never calculates a metric, creates a Fact, writes a Result, accesses PostgreSQL, or reconstructs expired detail.
+BI submits population-oriented `EvaluationSelection`; it does not select a metric implementation. For every successfully resolved side, Evolution returns a `ResolvedEvaluationContext` receipt and exactly 12 review-candidate `MetricResult` entries. BI may directly query Evidence for receipt/result-linked Fact and Trace detail, but it never calculates a metric, creates a Fact, writes a Result, accesses PostgreSQL, or reconstructs expired detail.
 
-Detailed authority and API design: [`../evolution/evolution-system.md`](../evolution/evolution-system.md). Fourteen-calculator matrix: [`../evolution/metric-computability.md`](../evolution/metric-computability.md). Detailed UI contract: [`bi-ui-design.md`](bi-ui-design.md).
+Detailed authority and API design: [`../evolution/evolution-system.md`](../evolution/evolution-system.md). Twelve-calculator candidate matrix: [`../evolution/metric-computability.md`](../evolution/metric-computability.md). Detailed UI contract: [`bi-ui-design.md`](bi-ui-design.md).
 
 ## 2. Runtime boundary
 

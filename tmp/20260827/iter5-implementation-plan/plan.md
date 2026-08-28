@@ -52,7 +52,7 @@ Iter5 在现有 `evolution-system` 中补齐 Evaluation 的最小可执行实现
 
 1. **组件仓库待创建**：owner 已冻结并通过 G2a 授权独立 `firestige/wsr-ui` repository + `wsr-ui/` submodule；两者尚不存在，必须等 wave0/wave1/G1 PASS 后在 wave2 执行。把 BI 放进 Evidence/Execution/Evolution 或建立 `firestige/bi` 均不允许。
 2. **展示技术方向已由 owner 冻结，版本基线待定**：不采用 Grafana；UI 使用 D3.js + React + Tailwind CSS。精确版本、构建工具、SSR/SPA 形态和依赖锁仍由 wave1/wave2 验证并冻结。
-3. **Evolution 的 Evaluation 实现尚未物化**：Evidence API 只返回 Facts/Traces，Evaluation Catalog 只定义 metric 语义，当前没有权威 Metric Result API。Iter5 必须在 `evolution-system` 增加无状态 Python 服务、selection resolver、14 个隔离 calculator 与 result/receipt contract；不得把公式留在 BI。
+3. **Evolution 的 Evaluation 实现尚未物化**：Evidence API 只返回 Facts/Traces，Evaluation Catalog 只定义 metric 语义，当前没有权威 Metric Result API。Iter5 必须在 `evolution-system` 增加无状态 Python 服务、selection resolver、12 个 review-candidate 隔离 calculator 与 result/receipt contract；不得把公式留在 BI。
 4. **evaluation context 已在 Wave3 冻结**：compare 的左右两侧由 BI 提交独立 `EvaluationSelection`。Evolution 声明逻辑 `as_of`，把 Task membership/cohort materialize 为 receipt-bound immutable reading，并绑定各 Fact/Trace traversal 的 route-local coordinates、exact input/provenance identities 与 Catalog revision。Receipt 是 response audit record，不是预制 manifest、跨 route snapshot 或 deep-link digest；禁止 alias、ambient latest 与环境发现。
 5. **BI 本地分发终点待精确化**：不向 npm、GitHub Release、Docker Hub 或其他 registry 发布 BI 制品。`wsr-ui` 管理自己的 lockfile、multi-stage Dockerfile、Nginx config 与 source-build check；superproject 管理 `pg + evidence + bi-app` 完整 Compose 和 E2E。用户负责取得源码、配置可访问的公共源/私源、本地 image tag 与部署 override。G2b 只冻结项目内的 build command、Docker/Nginx 边界和 superproject E2E entrypoint。
 6. **共址边界需防止过度抽象**：`workflow-builder` 是 idea，`intake-sidebar` 属于 #95；它们与 BI 是独立交付物。Iter5 只按 BI 的真实重复需求提取视觉 tokens/components，不验证未来兼容性，不建立共享 framework/product shell，也不创建未来目录、package、image 或 job。
@@ -229,7 +229,7 @@ D7 detailed design 已完成 owner review 与 fresh-reader PASS。后续实现�
 | wave2 | G1 design commit + already-granted G2a authority | `wsr-ui` scaffold commit + `wsr-ui/docs/implementation-baseline.md` + exact owned-path/oracle map + G2b conformity PASS |
 | wave3 | wave2 PASS baseline + owner rebaseline + Archify v2.15.0/local materials | Evolution/BI detailed design、Mermaid diagrams、双主题 UI specification、revised oracle/owned-path map |
 | wave4 | wave3 PASS design/contract decision | Evolution Python scaffold + Metric Result/Selection/Resolved Context contract + isolated calculator interfaces |
-| wave5 | wave4 PASS interfaces | Evidence client/selection-read-set resolver + 14 calculator modules + compare/delta + metric golden tests |
+| wave5 | wave4 PASS interfaces | Evidence client/selection-read-set resolver + 12 candidate calculator modules + compare/delta + metric golden tests |
 | wave6 | wave5 PASS Metric Result API + wave3 UI specification | BI typed Evolution/Evidence clients + semantic Tailwind tokens/components + receipt/recorded-structure/motion foundations |
 | wave7 | wave6 PASS component foundations | #53 Metric Result single/compare UI + Before/Delta/After + #53 oracle artifacts |
 | wave8 | wave7 PASS commit/report | #54 Trace recorded-structure navigator/Live-Still UI + #54 oracle artifacts |
@@ -247,7 +247,7 @@ D7 detailed design 已完成 owner review 与 fresh-reader PASS。后续实现�
 | wave2 | 符合已授予 G2a/G2b 的 `wsr-ui` workspace/scaffold/build/test/deployment baseline paths；superproject `.gitmodules`/pin 仅协调者 | 不实现业务 UI；不创建 workflow-builder/intake-sidebar package；不碰 Evidence internals | repo/workspace/stack/dependency/path/distribution baseline + conformity PASS |
 | wave3 | `docs/systems/evolution/**`、`docs/systems/bi/**`、Mermaid 与 design evidence | 不写产品代码；不修改 FROZEN contract | Evolution/BI detailed redesign + UI decision closure |
 | wave4 | `evolution-system` contract/API/scaffold/calculator interface 与 tests | 不实现具体 metric；不改 Evidence/BI | Python service + Metric Result contract baseline |
-| wave5 | `evolution-system` Evidence client/resolver/14 calculators/compare 与 tests | 不在 BI/Evidence 算 metric；无数据库 | 权威 Metric Result implementation |
+| wave5 | `evolution-system` Evidence client/resolver/12 candidate calculators/compare 与 tests | 不在 BI/Evidence 算 metric；无数据库 | 权威 Metric Result implementation |
 | wave6 | `wsr-ui` typed clients、semantic tokens/components 与 tests | 不复制 metric formula；不改 Evolution calculator | BI presentation foundation |
 | wave7 | BI metric/compare views 与 browser fixtures | 不改 calculator formula、Trace view | #53 candidate |
 | wave8 | BI Trace recorded-structure/Motion views 与 browser fixtures | 不用时间戳/arrival order 推断顺序或因果 | #54 candidate |
@@ -300,7 +300,7 @@ wave 的 ENTRY、实现写入、PASS ownership 与下游放行严格串行，形
 | wave | 估算 | 主要不确定性 |
 |---|---:|---|
 | wave4 | 0.75–1.25 | Task/Selection/Metric Result 的 contract alignment 与 Python scaffold |
-| wave5 | 1.5–2.5 | 14 calculators、route-local traversal、partial compare 与 golden corpus |
+| wave5 | 1.5–2.5 | 12 candidate calculators、route-local traversal、partial compare 与 golden corpus |
 | wave6 | 1.0–1.5 | 双上游 typed clients、semantic tokens 与状态组件 |
 | wave7 | 0.75–1.25 | bounded dashboard、multi-slice single/compare 与 deep-link |
 | wave8 | 0.75–1.0 | recorded Trace、有界 graph、Still/Live 与 accessibility |
@@ -399,7 +399,7 @@ BLOCK/FAIL：任何 metric 仍由 BI/Evidence 计算；selection/read set 依赖
 
 - [x] 先写 RED schema/API tests，覆盖 selection、resolved receipt、single/compare result、truth/coverage、Decimal、unknown revision/field、idempotency 与 upstream failure。
 - [x] 在获准的 contract lifecycle 中对齐 Task contract：Delivery 默认 NEW、用户显式 REUSE exact `task_id`、Execution/Observation 逐级传递、Evidence declaration/membership 与 bounded Task query；`display_name` optional 且不参与 identity。此项是已确认方向的正常物化，不是待重开的架构 blocker。
-- [x] 建立 Python service、typed models、路由、依赖注入与 14 个 calculator interface/module slot；此 wave 不实现公式。
+- [x] 建立 Python service、typed models、路由、依赖注入与 12 个 candidate calculator interface/module slot；此 wave 不实现公式。
 - [x] 建立 calculator boundary tests，证明 UI、API resolver 与其他 calculator 不 import 具体算法；算法替换只影响目标 calculator focused UT。
 - [x] 固定每个 metric 只有一个 active implementation；依赖清单不含 NumPy/Pandas，除非新证据触发独立设计裁决。
 - [x] 生成 `evidence/wave4.md`。
@@ -408,23 +408,23 @@ BLOCK/FAIL：contract 把 Fact 与 Metric Result 混为同一身份；Evolution 
 
 ### wave5 — Evolution Evaluation 实现与 12 项 Candidate Metric Results
 
-> 状态：`IN_PROGRESS / CONTRACT_REBASELINE_FIRST`。Wave4 PASS 与 exact component pins 已满足 ENTRY；owner 已授权无阻塞时持续执行，并明确要求本次新增跨系统语义先改文档再写实现。
+> 状态：`PASS`。owner 已明确 expired records 退出当前 candidate population，PARTIAL 使用当前 active records 计算并最终收敛；Evolution `3ea42e1`、Evaluation candidate `a985acb`、153 tests、7 candidate tests 与最终 fresh-reader audit（P0/P1/P2=0）均通过。
 
-- [ ] 先闭合 durable design：Workflow DSL 2.0 Role/Route/Agent identity、Execution repository Role→Model/default 与单 source、Delivery Manifest revision、Observation Profile 2 Manifest carrier、Evidence atomic projection/exact query、Evolution ordered multi-source resolution及中英文 companion；历史 published bytes 不原地改写。
-- [ ] 进行 cross-system/fresh-reader review，证明 authority chain、bounds、failure/partial semantics、recovery、secret exclusion 与 old-version compatibility 无矛盾；在此 PASS 前不修改产品代码。
-- [ ] 按 TDD 物化 machine contracts 与 fixtures：先 RED，再实现 Workflow DSL 2.0/checker/first-party Packages、Execution admission/Manifest/activation、Observation carrier、Evidence projection/query；所有 component 按依赖串行提交。
-- [ ] 先写 Evolution Evidence/Workflow-source client 与 selection-read-set resolver RED tests：exact Manifest query、ordered exact Package/Snapshot digest match、source failure continuation、template-only unavailability、route-local cursor drift/expiry、partial traversal、timeout、unknown revision、selection ambiguity、receipt binding 与有界读取；不得增加跨 Facts/Traces global-snapshot Oracle。
-- [ ] 逐 metric 先写 RED golden/edge tests，再在独立 calculator module 实现 12 项 Catalog 2.0 candidate 公式；覆盖 explicit zero、missing/incompatible、minimum sample、per-metric/slice coverage、mixed Usage kind/unit/source/source_id、open/mixed task，并证明两个 removed coordinate 不可调用。
-- [ ] 对 count/ratio/money 使用 exact integer 与 Decimal pipeline，显式记录 numerator、denominator、unit、rounding 和 provenance；禁止 float 成为权威结果。
-- [ ] 实现 single 与 left/right compare；delta 由 Evolution 基于两个 Metric Results 计算，BI 只展示 Before/Delta/After。
-- [ ] 证明 calculator 局部替换只需其 focused UT 与固定 contract tests，不要求无关 metric/UI 全量测试作为算法正确性的前置证明。
-- [ ] 生成 `evidence/wave5.md`。
+- [x] 先闭合 durable design：Workflow DSL 2.0 Role/Route/Agent identity、Execution repository Role→Model/default 与单 source、Delivery Manifest revision、Observation Profile 2 Manifest carrier、Evidence atomic projection/exact query、Evolution ordered multi-source resolution及中英文 companion；历史 published bytes 不原地改写。
+- [x] 进行 cross-system/fresh-reader review，证明 authority chain、bounds、failure/partial semantics、recovery、secret exclusion 与 old-version compatibility 无矛盾；最终复审 P0/P1/P2=0。
+- [x] 按 TDD 物化 machine contracts 与 fixtures：先 RED，再实现 Workflow DSL 2.0/checker/first-party Packages、Execution admission/Manifest/activation、Observation carrier、Evidence projection/query；所有 component 按依赖串行提交。
+- [x] 先写 Evolution Evidence/Workflow-source client 与 selection-read-set resolver RED tests：exact Manifest query、ordered exact Package/Snapshot digest match、source failure continuation、template-only unavailability、route-local cursor drift/expiry、partial traversal、timeout、unknown revision、selection ambiguity、receipt binding 与有界读取；未增加跨 Facts/Traces global-snapshot Oracle。
+- [x] 逐 metric 先写 RED golden/edge tests，再在独立 calculator module 实现 12 项 Catalog 2.0 candidate 公式；覆盖 explicit zero、missing/incompatible、minimum sample、per-metric/slice coverage、mixed Usage kind/unit/source/source_id、open/mixed task，并证明两个 removed coordinate 不可调用。
+- [x] 对 count/ratio/money 使用 exact integer 与 exact rational pipeline，显式记录 numerator、denominator、unit 和 provenance；禁止 binary float 成为权威结果。
+- [x] 实现 single 与 left/right compare；delta 由 Evolution 基于两个 Metric Results 计算，BI 只展示 Before/Delta/After。
+- [x] 证明 calculator 局部替换只需其 focused UT 与固定 contract tests，不要求无关 metric/UI 全量测试作为算法正确性的前置证明。
+- [x] 生成 `evidence/wave5.md`。
 
 BLOCK/FAIL：先写产品代码后补契约；静默重解释 published Workflow 1.1/Profile 1/Evidence Query 0.1；BI 创建 Metric Result；Evidence 存储 derived metric；Evidence 读取 Workflow source；Evolution 读取 Execution filesystem；Workflow source 只按 name/version/URL 匹配；同一 coordinate 多算法并存；结果依赖 JS number、时间戳顺序或未绑定的 resolved read set。
 
 ### wave6 — BI clients、语义化样式与展示组件
 
-> 状态：`NOT_STARTED`。ENTRY 依赖 Wave5 PASS，当前未满足。
+> 状态：`IN_PROGRESS`。Wave5 PASS 与 exact component pins 已满足 ENTRY；开始 BI client、semantic tokens 与展示组件。
 
 - [ ] 先写 TypeScript client RED tests；实现 Evolution Metric Result/receipt 与 Evidence Fact/Trace drill-down clients，均由 Vite 构建并 fail closed。
 - [ ] 落地 Tailwind semantic tokens/bindings，覆盖 light/dark、type、space、density、shape、surface、border、status、focus、motion；禁止页面散落 raw palette/spacing magic values。
@@ -510,10 +510,10 @@ BLOCK/FAIL：clean source 无法 build；完整拓扑/E2E 不成立；superproje
 | ID | Issue 原验收义务 | 主要 wave | 固定 logical oracle | durable evidence |
 |---|---|---|---|---|
 | 53-A1 | 只读/无副作用 | 4,7,9 | `bi.factual.read-only` | Evolution idempotent API + BI/Nginx negative tests |
-| 53-A2 | dashboard/UI 不定义公式或改写 completeness | 3,5,7 | `bi.factual.formula-authority` | 14 isolated calculators + forbidden frontend import/scan |
+| 53-A2 | dashboard/UI 不定义公式或改写 completeness | 3,5,7 | `bi.factual.formula-authority` | 12 candidate isolated calculators + forbidden frontend import/scan |
 | 53-A3 | observed zero 只来自显式零 | 5,7 | `bi.factual.explicit-zero` | Evolution zero/absent/lower-bound golden fixture |
 | 53-A4 | 不推断因果 | 3,7 | `bi.factual.no-inference` | forbidden-copy/model test + UI review fixture |
-| 53-A5 | 按 Evaluation Catalog 渲染 | 3,5,7 | `bi.factual.catalog-binding` | exact catalog revision/digest + 14 Metric Result tests |
+| 53-A5 | 按 Evaluation Catalog 渲染 | 3,5,7 | `bi.factual.catalog-binding` | exact candidate catalog revision/digest + 12 Metric Result tests |
 | 53-A6 | selection/receipt/provenance/completeness/availability/expiry/compatibility 可见 | 4,7 | `bi.factual.truth-visible` | result/receipt contract + semantic browser assertions |
 | 54-A1 | 只显示 recorded causal edge | 6,8 | `bi.trace.recorded-only` | graph model fixture |
 | 54-A2 | 时间戳/task 分组/顺序/命名不产生边或播放顺序 | 3,8 | `bi.trace.no-derived-edge` | adversarial graph/motion fixture |
