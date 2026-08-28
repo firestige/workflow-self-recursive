@@ -48,7 +48,7 @@ A `PARTIAL` Trace read computes from the active exact exposures currently record
 
 ## 4. Per-metric coverage
 
-Coverage is not a standalone quality score. Every metric result and every selected slice publishes its own `{numerator, denominator, raw_ratio, state, alert}`:
+Coverage is not a standalone quality score. Every metric result and every selected slice publishes a required `coverage` field. When Evolution can establish the candidate population, the field contains `{numerator, denominator, raw_ratio, state, alert}`:
 
 - denominator: candidate units satisfying that metric's identity, time-window, cohort, and base-scope rules;
 - numerator: those candidates for which every direct input required to compute that metric is available and compatible;
@@ -56,7 +56,9 @@ Coverage is not a standalone quality score. Every metric result and every select
 
 For example, if Evidence exposes 20 in-scope Deliveries and 16 have all inputs required by one metric, that metric's coverage is exactly `16/20`, state `PARTIAL`, and its value uses the 16 covered Deliveries. Another metric over the same 20 Deliveries may have different coverage.
 
-The 1.0 coverage state machine, exact rational arithmetic, `LOW_COVERAGE` threshold rule, always-published coverage, and separate `minimum_sample` behavior remain unchanged.
+If Evolution cannot establish a denominator from the resolved inputs, it returns the field explicitly as `coverage: null`; it never omits the field or fabricates `0/0`. This is distinct from a known empty candidate population, which remains the five-field `0/0`, `raw_ratio: null`, `NO_POPULATION` coverage object. `null` is not a substitute for partial/invalid data and does not fail sibling slices.
+
+The 1.0 coverage state machine, exact rational arithmetic, `LOW_COVERAGE` threshold rule, required explicit coverage field, and separate `minimum_sample` behavior remain unchanged.
 
 ## 5. Lifecycle and implementation rule
 

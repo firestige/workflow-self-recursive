@@ -66,6 +66,8 @@ View mode 必须 flat-at-rest。保存的单 panel binding 失效时，该 panel
 
 每个 visualizer 声明 stable ID、arity、named channels、支持的 value kind/unit、所需 authoritative domain、missing tolerance、compare support、table fallback 与允许的 presentation transforms。Registry 在 binding 前过滤兼容项，不在 render 时临时猜语义。
 
+Wave7 的可执行 registry 刻意小于设计 grammar：只包含 numeric card、boolean badge、bounded ratio bar 与 lossless table。Gauge/pointer、categorical bar、line、radar 在 Evolution 尚未发布其所需的 authoritative domain、ordered dimension 或 shared normalized domain 前属于 deferred grammar。Deferred grammar 不是合法 layout binding，不得出现在 composer 中。
+
 | Visualizer | Eligible input | 必须行为 |
 |---|---|---|
 | Numeric card | 单 scalar/category result | value、unit、truth、sample/coverage 与 provenance 入口均可见 |
@@ -136,11 +138,11 @@ Evidence Console 是只读下钻，不是第二个 evaluator，明确分三层�
 
 1. **Result evidence**：Metric Result 明确引用的 exact provenance/input identities；
 2. **Related Facts**：匹配 selection/metric context、但未被声明为 calculation lineage 的 Facts；
-3. **Resolved read set**：receipt 绑定的 complete bounded Evidence population。
+3. **Resolved read set**：receipt 记录的 complete bounded identity index；Fact row 由 Evidence 加载，非 Fact resource detail 在查询其对应 Evidence route 前明确保持 unresolved。
 
 后两层不得标成“这个值的依据”。每行展示 Fact identity、class、相关 coordinate、accepted provenance、lifecycle state 与存在时的 exact Trace/Span link。empty、partial、expired、query error 不得混同；Facts 必须由 Evidence 提供，Console 不从 Metric Result 重建。
 
-Receipt 解释 canonical selection、Task/Delivery population、cutoff、Catalog/contract coordinates、query/read-set/provenance identities、completeness、expiry 与 compatibility。“Resolved read set”必须展示 receipt 中记录的 exact identities；用 current filters 重跑可能看到后续 ingestion，不得冒充旧 receipt read set。Receipt 是 response receipt，不是预制 manifest，也不是 causation proof。Single sequence 见英文 companion 第 11 节。
+Receipt 解释 canonical selection、Task/Delivery population、cutoff、Catalog/contract coordinates、query/read-set/provenance identities、completeness、expiry 与 compatibility。“Resolved read set”必须展示 receipt 中记录的每个 exact identity。Facts-only query 可以 hydrate 匹配的 `FACT` row，但必须把 `TRACE_NODE`、`TASK_MEMBERSHIP` 和未匹配 provenance identity 保留为可见的 unresolved reference，不能据此声称 resource set 为空或已完整抓取；用 current filters 重跑可能看到后续 ingestion，不得冒充旧 receipt read set。Receipt 是 response receipt，不是预制 manifest，也不是 causation proof。Single sequence 见英文 companion 第 11 节。
 
 ## 12. Recorded Trace layout 与有限动效
 
