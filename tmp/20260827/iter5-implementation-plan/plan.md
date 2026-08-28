@@ -8,7 +8,7 @@
 >
 > **明确排除**：[#95](https://github.com/firestige/workflow-self-recursive/issues/95)（含 `intake-sidebar`）属于 DSH display plugin 工作；它与 BI 放在 `wsr-ui` 仅是 repository 管理共址，不构成共享 UI framework/layout/release contract。它不进入 Iter5 的 refinement、实现、分发、容量或完成判定。`workflow-builder` 当前仍是 idea，同样不进入 MVP。
 >
-> **当前 wave**：`WAVE7_IN_PROGRESS`；Wave6 authority 为 `wsr-ui@205c2d5`、`evolution-system@b6aef07`、`evidence-system@80e2f12` 与 `system-contracts@d3f8876`。Wave7 只实现 #53 single/compare 产品视图、selection/deep-link 恢复、visualizer/layout binding 与 Before/Delta/After；Trace traversal 保持 Wave8 边界。
+> **当前 wave**：`WAVE8_IN_PROGRESS`；Wave7 authority 为 `wsr-ui@f474e35`、`evolution-system@294409c` 与 `evidence-system@04fd564`。Wave8 只实现 #54 recorded Trace structure、确定性布局与有限 Still/Live traversal；时间戳与 arrival order 不参与因果或播放顺序。
 
 ## 1. 目标与完成判定
 
@@ -436,19 +436,19 @@ BLOCK/FAIL：前端出现 Catalog 公式或 calculator；主题切换需要逐�
 
 ### wave7 — #53 Metric Result 与 compare 视图
 
-> 状态：`IN_PROGRESS`。Wave6 PASS 与 `wsr-ui@205c2d5` 已满足 ENTRY；开始真实 single/compare vertical slice。
+> 状态：`PASS`。`wsr-ui@f474e35`、186 tests、10 Playwright oracles、production build、Evolution 159 tests 与最终独立 exit review 均通过；详见 `evidence/wave7.md`。
 
-- [ ] 先写 single/compare vertical slice RED browser tests，覆盖 zero/absence/lower-bound/unavailable/expired/incompatible/sample/coverage/API error、responsive、theme parity 与 keyboard。
-- [ ] 实现 selection → resolved receipt → Metric Result 展示；compare 由 BI 提交左右 selection，展示 Evolution 返回的 Before/Delta/After。
-- [ ] 所有值均显示 Catalog coordinate、unit、Catalog 实际发布的 numerator/denominator（若有）、coverage、provenance、receipt 与 metric explanation；stable deep link 可重建 selection。
-- [ ] D3 只做展示聚合与布局；不得跨 incompatible coordinate 聚合或做 currency/unit conversion。
-- [ ] 逐条映射 #53，生成 `evidence/wave7.md`；保持 #53 OPEN 至 wave12。
+- [x] 先写 single/compare vertical slice RED browser tests，覆盖 zero/absence/lower-bound/unavailable/expired/incompatible/sample/coverage/API error、responsive、theme parity 与 keyboard。
+- [x] 实现 selection → resolved receipt → Metric Result 展示；compare 由 BI 提交左右 selection，展示 Evolution 返回的 Before/Delta/After。
+- [x] 所有值均显示 Catalog coordinate、unit、Catalog 实际发布的 numerator/denominator（若有）、coverage、provenance、receipt 与 metric explanation；stable deep link 可重建 selection。
+- [x] D3 只做展示聚合与布局；不得跨 incompatible coordinate 聚合或做 currency/unit conversion。
+- [x] 逐条映射 #53，生成 `evidence/wave7.md`；保持 #53 OPEN 至 wave12。
 
 BLOCK/FAIL：BI 公式、无来源值、隐式事实、compare 使用浏览器重算 metric；truth states、主题或窄屏不可区分。
 
 ### wave8 — #54 Trace recorded structure 与有限动效
 
-> 状态：`NOT_STARTED`。ENTRY 依赖 Wave7 PASS，当前未满足。
+> 状态：`IN_PROGRESS`。Wave7 PASS 已满足 ENTRY；开始 #54 recorded Trace vertical slice。
 
 - [ ] 先写 NODE/PARENT_EDGE/LINK、orphan、pagination、PARTIAL/EXPIRED/ABSENT、Live/Still、reduced-motion 与 keyboard RED tests。
 - [ ] 只按 OTel 已记录 parent structure 建图和遍历；同 depth sibling 同时展示，LINK 独立表现。时间戳只显示，不参与因果、排序或播放顺序。
