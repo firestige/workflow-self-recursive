@@ -25,7 +25,7 @@
 | direct Usage/cost | typed Usage Fact | exact source/kind/unit/currency/cost basis/value/provenance |
 | accepted Fact basis | Fact identity + accepted provenance | exact Fact ID 与 readable classification |
 
-首版直接使用 existing Trace NODE 的 latency/token measurement。若 Usage Fact 没有 exact Event-to-model-call binding，在同一 Delivery 多调用时不能精确归因；该 candidate unit 不能提供 call-attributed cost/source input，metric 按 Catalog coverage/exclusion rules 处理，其他 eligible units 仍可发布 value。禁止猜测。未来 exact binding projection 属于 contract alignment，不需要 cross-route transaction snapshot。
+首版直接使用 existing Trace NODE 的 latency/token measurement。Selection-scoped Event Fact 只能通过其已记录的 native OTLP LogRecord Trace/Span context，以及该 Trace 的 accepted Delivery-root binding 与 Delivery 关联；Evidence 的 exact `delivery_id` Fact filter 完成此 lookup。Uncorrelated Event 留在该 Delivery reading 之外，并按对应 missingness/coverage rule 处理；Evolution 绝不用 C01、timestamp、arrival order、name 或 proximity 修补。若 Usage Fact 没有 exact Event-to-model-call binding，在同一 Delivery 多调用时不能精确归因；该 candidate unit 不能提供 call-attributed cost/source input，metric 按 Catalog coverage/exclusion rules 处理，其他 eligible units 仍可发布 value。禁止猜测。未来 exact call-binding projection 属于 contract alignment，不需要 cross-route transaction snapshot。
 
 ## 3. 14-calculator matrix
 
