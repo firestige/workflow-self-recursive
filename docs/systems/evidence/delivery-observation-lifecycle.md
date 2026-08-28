@@ -30,6 +30,9 @@ Ordinary Evidence routes expose active Delivery data only:
 - `/facts` and `/traces` never return a resource belonging to a deleted Delivery;
 - `/tasks` lists only Tasks with at least one active Delivery and membership traversal returns only
   active Delivery memberships;
+- the membership relation is the Task reference authority; deletion removes the immutable Task
+  declaration/display metadata only when the deleted Delivery held its final membership, without a
+  separately stored reference counter;
 - exact Manifest lookup for a deleted Delivery returns no queryable Manifest;
 - direct Trace lookup after Delivery deletion is indistinguishable from absent detail to ordinary
   consumers; it cannot reveal or reconstruct deleted identity;

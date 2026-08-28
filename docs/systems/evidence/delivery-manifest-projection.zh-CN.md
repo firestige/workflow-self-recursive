@@ -91,9 +91,11 @@ Canonical projection 最大 64 KiB UTF-8、最多 128 个 Role entries，与 can
 4. optional `TASK_DISPLAY_NAME(task_id -> display_name)`；
 5. `DELIVERY_MANIFEST(manifest_digest -> canonical projection, projection_digest)`。
 
-任一 schema、identity、digest、duplicate 或 conflict failure 拒绝整条 record。Evidence 绝不能只暴露 membership 而没有 matching Manifest projection，反之亦然。Identical retry 是 duplicate；同一 Manifest digest 对应不同 projection bytes 是 conflict。即使 dependent Facts/Traces expired，这些 projection 也不 expire。
+任一 schema、identity、digest、duplicate 或 conflict failure 拒绝整条 record。Evidence 绝不能只暴露 membership 而没有 matching Manifest projection，反之亦然。Identical retry 是 duplicate；同一 Manifest digest 对应不同 projection bytes 是 conflict。Manifest、membership、Facts、Events 与 Traces 都由 Delivery 持有，并在该 Delivery 被物理删除时共同退出 query。
 
 Iteration 5 的 Task display metadata immutable。`NEW_TASK` 可提供一个 non-empty display name；`REUSE_TASK` 必须省略。后续 absent name 是 no-op、相同 non-empty name 幂等、不同 non-empty name 属于 producer conflict 并拒绝该 malformed owner record。Iteration 5 不提供 rename mutation。Closed reuse request 本就不能携 display name，因此合法 reuse 不受影响。
+
+Task declaration 与 optional display name 是 immutable Task-owned data。每条 active Delivery membership 都是对 declaration 的一个引用。Delivery deletion 在同一事务删除其 membership；Evidence 取得 Task lock 后，只在不存在任何 membership 时删除 declaration 与 display name。Membership relation 是引用 authority；Iteration 5 不存储 mutable reference-count column。Task discovery 因而只暴露至少含一个 active membership 的 declaration。
 
 ## 5. Task discovery 与 membership query
 

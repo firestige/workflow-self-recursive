@@ -91,9 +91,11 @@ One accepted `task.binding` record atomically creates or validates all five effe
 4. optional `TASK_DISPLAY_NAME(task_id -> display_name)`;
 5. `DELIVERY_MANIFEST(manifest_digest -> canonical projection, projection_digest)`.
 
-Any schema, identity, digest, duplicate, or conflict failure rejects the whole record. Evidence can never expose membership without the matching Manifest projection or vice versa. An identical retry is a duplicate; the same Manifest digest with different projection bytes is a conflict. These projections never expire even if dependent Facts or Traces expire.
+Any schema, identity, digest, duplicate, or conflict failure rejects the whole record. Evidence can never expose membership without the matching Manifest projection or vice versa. An identical retry is a duplicate; the same Manifest digest with different projection bytes is a conflict. Manifest, membership, Facts, Events and Traces are Delivery-owned and leave query together when that Delivery is physically deleted.
 
 Task display metadata is immutable in Iteration 5. `NEW_TASK` may supply one non-empty display name; every `REUSE_TASK` omits it. A later absent name is a no-op, the same non-empty name is idempotent, and a different non-empty name is a producer conflict that rejects that malformed owner record. Iteration 5 exposes no rename mutation. This does not endanger legal reuse because the closed reuse request cannot carry a display name.
+
+Task declaration and optional display name are immutable Task-owned data. Each active Delivery membership is one reference to that declaration. Delivery deletion removes its membership in the same transaction; after taking the Task lock, Evidence deletes the declaration and display name only when no membership remains. The membership relation is the reference authority: Iteration 5 stores no mutable reference-count column. Task discovery therefore exposes exactly declarations with at least one active membership.
 
 ## 5. Task discovery and membership query
 

@@ -28,6 +28,8 @@ authority 并阻止迟到 record 复活已删除 Delivery；它们不是 queryab
 
 - `/facts`、`/traces` 不返回 deleted Delivery 的任何 resource；
 - `/tasks` 只列出至少含一个 active Delivery 的 Task，membership traversal 只返回 active Delivery；
+- membership relation 是 Task 引用 authority；删除某个 Delivery 时，只有它持有最后一条 membership
+  才删除 immutable Task declaration/display metadata，不单独存储 reference counter；
 - deleted Delivery 的 exact Manifest lookup 不返回 queryable Manifest；
 - Delivery 删除后的 direct Trace lookup对普通 consumer 与 absent detail 不可区分，不泄露或重建删除身份；
 - retention 不产生 Trace `PARTIAL` 或 expired node/edge；`PARTIAL` 只描述 active Delivery 已知的 recorded data hole。
