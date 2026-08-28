@@ -16,7 +16,7 @@
 | Source lineage | Repository history; this candidate makes no claim against an unresolvable external commit. |
 | Concept authority | [`concept.identity.001`](../../agent-architecture.md#ee-concept), promoted atomically as the companion member |
 | Prior canonical Execution baseline | `execution.identity.001`; repository history owns provenance |
-| Composition authority | [`docs/workflow-composition-model.md`](../../workflow-composition-model.md) |
+| Composition authority | Exact-version dispatch: published Workflow DSL 1.x uses historical [`workflow-composition-model.md`](../../workflow-composition-model.md); Workflow DSL 2.0 uses [`workflow-composition-model-2.0.0-candidate.md`](../../workflow-composition-model-2.0.0-candidate.md) only after its publication gates pass |
 | Confirmed intent | `EE-WORKFLOW-IMPORT-BRIEF`; SHA-256 `7c9b1064084cf5f256f27bc5efd021bed0374910e1430586eebeb695344d4c6d` |
 | Confirmed direction | `EE-WORKFLOW-IMPORT-SKELETON`; SHA-256 `86a2a61a324d9bb7ca90108b433ded2f883bc91d9f60dadee87ac7d11feb8e46` |
 | Historical direction review | `EE-WORKFLOW-IMPORT-SD05-ARCH-RECHECK`; SHA-256 `2c4fbaef0db617ccfc9ce20be8b5470a7251938744cc2d5d792f5ed9ed197c4a`; `PASS`; applies to the prior large Workflow-import direction |
@@ -36,6 +36,25 @@
 Authority order is: confirmed user intent; the current structure issues named above; normative Concept; this Execution candidate; Workflow composition model; and published Contracts within their declared scopes. Published Observation and interaction packages currently support validator-only claims; production and cross-implementation conformance remain unproven. The [Evidence System](../evidence/evidence-system.md) remains a peer owner. This document owns the placement of M01–M03, their Core contracts, and system-wide invariants. [Runner Module Detailed Design](modules/runner/runner.md) owns private M02 detail. This document does not own Workflow Package publication policy, Evidence internals, Observation fact meaning, the payload registry, metric schema, or physical storage schema.
 
 The protected `system-design` and `implementation` Workflow Packages are initial verified distribution content and conformance fixtures, not redesign targets outside the R6 corrections authorized below. No disposable workspace artifact is required to interpret this document; the identities above are provenance only.
+
+### Iteration 5 Role/model and Manifest rebaseline candidate
+
+The 2026-08-28 owner decision changes only the target Contract and subsequent Deliveries; earlier publication evidence applies only to earlier bytes and `agentops.workflow-dsl@1.1.0` behavior. The candidate chain is:
+
+- [`workflow-definition-dsl-2.0.0-candidate.md`](../../contracts/workflow/workflow-definition-dsl-2.0.0-candidate.md) removes generic Agent-definition and Workflow-owned model resources;
+- [`repository-role-model-binding.md`](repository-role-model-binding.md) makes the canonical worktree repository the minimum model-policy scope and defines `repository[role] ?? execution.default_model_selection`;
+- [`execution-configuration-2.0.0-candidate.md`](execution-configuration-2.0.0-candidate.md) removes Provider-native credentials/endpoints from WSR configuration and defines the new global default-model-selection input;
+- [`delivery-manifest-2.0.0-candidate.md`](delivery-manifest-2.0.0-candidate.md) freezes exact Workflow Snapshot and resolved Role/Agent-Provider/LLM-route/model bindings while preserving historical 1.x recovery;
+- [`delivery-manifest-projection.md`](../evidence/delivery-manifest-projection.md) defines the portable Manifest reading emitted in the same Task-binding owner record;
+- each Execution installation still configures exactly one Workflow source. Delivery admission binds that exact source result; request/Workflow data cannot select another source or a source list.
+
+For a new-Contract Delivery, M01 validates the exact Workflow Package/Snapshot, reads optional `<canonical-worktree>/.wsr/model-bindings.json`, resolves every distinct Role referenced by an Agent Action in the exact Snapshot independently of later Route/path selection, and persists a revised Manifest before Runner effect. The Manifest freezes exact Package/Snapshot identities, repository binding-document state/digest, and the complete resolved Role→Agent-Provider/LLM-route/model map. Recovery consumes the persisted Manifest and never rereads current repository/global configuration.
+
+Agent identity is the admitted exact Role snapshot plus the installation's one Agent Provider identity and exact LLM provider-route/model identity. Route selection adds Action prompt, Skills, tools, Driver, access, and session policy but cannot change that selection. For 2.0, a DSH profile/composition boots an installation-scoped DSH-owned bridge/realm factory and supplies that factory to Execution. After Manifest persistence, Runner requests one isolated Delivery-scoped DSH-E realm; the DSH factory owns construction and Runner owns the Delivery lifecycle lease/disposal. Recovery repeats that request only through the same frozen Agent Provider identity. Execution does not load DSH profiles/settings/credentials, construct LLM adapters, or share DSH-I services. Provider-native authentication, credentials, endpoints, and session mechanics remain Provider-owned and are excluded from Workflow, repository binding, Manifest, and Observation content. Current DSH-owned configuration may provide connectivity/credentials for the frozen identities but is not binding authority and cannot rebind a Delivery. Historical Provider factory registry/key and per-Delivery construction paragraphs below describe only the 1.x path; their “Runner-owned DSH-E” wording means lifecycle ownership for 2.0 and does not grant configuration or construction authority back to Execution.
+
+After Manifest/current-slot persistence and before Runner launch, M01 emits one `task.binding` owner Fact built directly from the persisted Manifest. The same record carries the evidence-safe Manifest projection; no Workflow-ID prefix, Event timestamp, arrival order, or ambient lookup may determine whether it is emitted. Observation delivery remains non-controlling, but absence of the accepted record makes Task/Manifest-dependent BI metrics unavailable rather than reconstructable.
+
+These paragraphs are design authority for the Iteration 5 implementation candidate only after their corresponding machine revisions pass lifecycle gates. The current `agentops.delivery-admission@1.0.0` paragraph below accurately describes the historical implementation and must not be read as already implementing the rebaseline.
 
 ### Runner delivery-admission and Core projection
 
