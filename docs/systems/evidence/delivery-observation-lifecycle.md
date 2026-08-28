@@ -1,84 +1,71 @@
-# Evidence Retention and Evolution Expiry Disposition — Iteration 5 MVP
+# Evidence Delivery Retention and Evolution Disposition — Iteration 5 MVP
 
-> **Status:** Iteration 5 clarification, 2026-08-28. This document records the retention mechanism
-> already implemented by Evidence and the narrower way Evolution consumes its expiry states. It does
-> not change frozen `evidence.query@0.1.0`, add a new retention subsystem, or require Evidence Query
-> 1.0 to expose a Delivery lifecycle API. Chinese tracking companion:
+> **Status:** Evidence Query 1.0 candidate, 2026-08-28. This document supersedes the earlier
+> Iteration 5 resource-granular retention clarification for the unpublished Query 1.0 candidate. It
+> does not rewrite frozen `evidence.query@0.1.0`. Chinese tracking companion:
 > [`delivery-observation-lifecycle.zh-CN.md`](delivery-observation-lifecycle.zh-CN.md).
 
-## 1. Existing Evidence mechanism
+## 1. Delivery is the retention atom
 
-Evidence already runs automatic, resource-granular retention. Production assembly starts one bounded
-retention loop with the API process. The loop runs once immediately after startup, then waits the
-configured interval before each later iteration. One iteration plans and applies at most one bounded
-batch for each enabled lifecycle class in this order: Raw debug, Trace detail, and factual projection.
+Facts, recorded Trace detail, Task membership and the evidence-safe Manifest are one queryable
+Delivery dataset. They do not expire independently in Query 1.0. A Delivery becomes eligible only
+after an accepted terminal `delivery.summary`; its committed Projection `recorded_at` is the retention
+base. A Delivery with no accepted terminal summary is not automatically expired.
 
-This mechanism is time/policy driven. It is not triggered by an ingest failure, free-space threshold,
-database size, or write-path capacity check. An iteration failure is logged, does not terminate the API,
-and is retried only by a later scheduled iteration.
+The candidate default Delivery TTL is `P30D`, configurable from `P1D` through `P3650D` or `NEVER`.
+The scheduler remains bounded and configurable. A batch selects Delivery identities, not individual
+projection resources, and each selected Delivery commits one atomic deletion of all its queryable
+Facts, Trace detail, membership, guard and Manifest projection. A reader sees either the complete
+pre-delete Delivery dataset or no queryable Delivery dataset, never a retention-created subset.
 
-| Class | Default | Configurable range | Effect |
-|---|---:|---:|---|
-| Raw debug | `PT0S` | `PT0S`–`P1D` | accepted raw payload is scrubbed; accepted identity/provenance remains |
-| Trace detail | `P30D` | `P1D`–`P365D` or `NEVER` | expired detail payload is scrubbed and query exposes the published Trace availability/expiry state |
-| Factual projection | `P365D` | `P30D`–`P3650D` or `NEVER` | projection payload is scrubbed; query retains an explicit unavailable/expired tombstone |
-| Accepted provenance | `NEVER` | not configurable | identity and accepted provenance are retained |
+Raw debug remains a separate privacy lifecycle with its existing immediate default. Accepted-content
+digest/provenance and a minimal internal deleted-Delivery guard may remain solely to preserve
+duplicate/conflict authority and prevent late records from recreating a deleted Delivery. They are not
+queryable Delivery data, a tombstone API, or recoverable payload.
 
-The default batch size is 500 resources per enabled class per iteration (range 1–1000). The default
-interval is 60 seconds (range 10–3600 seconds). Configuration is read at service startup; changing an
-environment variable requires a restart. Query snapshots continue to provide their published
-route-local consistency while retention commits independently.
+## 2. Query and metric consequences
 
-## 2. Physical expiry is not metric partiality
+Ordinary Evidence routes expose active Delivery data only:
 
-Frozen Evidence Query 0.1 accurately exposes its existing resource-granular behavior: a Trace with a
-mix of active and expired detail may be returned as `PARTIAL`. That state means partial retained Trace
-detail. It does not prove that the still-current observation was incompletely reported, and Evolution
-must not translate it into metric coverage `PARTIAL`.
+- `/facts` and `/traces` never return a resource belonging to a deleted Delivery;
+- `/tasks` lists only Tasks with at least one active Delivery and membership traversal returns only
+  active Delivery memberships;
+- exact Manifest lookup for a deleted Delivery returns no queryable Manifest;
+- direct Trace lookup after Delivery deletion is indistinguishable from absent detail to ordinary
+  consumers; it cannot reveal or reconstruct deleted identity;
+- retention never creates Trace `PARTIAL` or an expired node/edge. `PARTIAL` is reserved for an active
+  Delivery whose recorded observation itself has a known data hole.
 
-For Iteration 5 metric calculation, Delivery is the outer population boundary:
+Evolution therefore needs no retention-specific per-resource normalization. It resolves only active
+Delivery membership and computes from those inputs. A deleted Delivery enters neither numerator,
+denominator, coverage nor minimum-sample count. If no active Delivery remains, the result population
+is empty. Metric Results are computed responses, not retained datasets, so there is no separate Metric
+Result deletion lifecycle.
 
-- if a Delivery-scoped read shows retention expiry, Evolution excludes that Delivery and all of its
-  inputs from the current population before applying the Catalog's Task, model-call, template-exposure,
-  or Delivery evaluation units;
-- the excluded Delivery affects neither metric numerator, denominator, coverage, nor minimum-sample
-  count;
-- a mix of active and retention-expired Deliveries is calculated from the active subset and is not
-  metric-partial merely because old data was removed;
-- if no active Delivery remains, the metric has `NO_POPULATION`; the receipt may still explain the
-  retained identity and expiry state.
+## 3. Physical deletion and no recovery
 
-An active Delivery with missing or invalid required input is different: the applicable evaluation unit
-remains in that metric's coverage denominator, while only valid covered input enters its coverage
-numerator. Therefore `0 / N` is `NO_COVERAGE`, `0 < C < N` is coverage `PARTIAL`, and `N / N` is
-`FULL`. Invalid values never enter arithmetic.
+MVP expiry is automatic physical deletion, not logical deletion. BI cannot discover deleted Delivery
+data. Iteration 5 provides no trash, undelete, restore, retention hold, administrative recovery view or
+separate Trace/metric data-management treatment. A later data-management design may introduce those
+capabilities only through a new explicit lifecycle and contract.
 
-Metric coverage `PARTIAL`, Evidence Trace detail `PARTIAL`, and `PARTIAL_COMPARE` are three separate
-states and must not be aliased.
+The internal deleted-Delivery guard contains no Fact value, Trace node/edge, Manifest payload or other
+recoverable dataset. It exists only to keep deletion final when delayed Observation export retries the
+same Delivery identity.
 
-## 3. Current invalid-input limit
+## 4. Active-data partiality
 
-Evidence admission stores no rejected record and OTLP `partial_success` is an aggregate response, not a
-durable Delivery-scoped disposition. Consequently, a rejected invalid record cannot later be
-distinguished from a record that was never reported. Evolution may report missing input or reject an
-invalid accepted value it can actually read, but it must not claim that Evidence recorded an invalid
-Delivery input when no such durable marker exists.
+An active Delivery can still have missing or invalid required input. That is not retention. The
+applicable evaluation unit remains in the affected metric's coverage denominator, while only valid
+covered input enters its numerator. Invalid values never enter arithmetic.
 
-Iteration 5 does not add an invalid-record store, expected-Span count, export-group sequence, or inferred
-missing leaf. A recorded missing parent/link endpoint may remain visible as an orphan; a completely
-unreferenced absent Span is unknowable.
+Evidence does not infer an unreported Span, expected-Span count or missing leaf. A recorded edge whose
+target NODE was never observed remains an unresolved endpoint. Such a hole may be presented as
+recorded incompleteness, but neither Evidence nor BI attributes it to expiry.
 
-## 4. MVP boundary
+## 5. MVP exclusions
 
-The MVP keeps the existing scheduler, TTL classes, environment configuration, resource-granular
-markers, bounded batches, and query states. It does not add:
-
-- disk-pressure or write-failure-triggered cleanup;
-- a manual Delivery deletion API or administrative UI;
-- a Delivery-atomic physical GC/tombstone protocol;
-- a durable Delivery-scoped invalid-record marker;
-- automatic capacity tuning, compaction, vacuum policy, or retention recommendations.
-
-Operational details and exact environment variables are documented in
-[`evidence-system/docs/operations.md`](../../../evidence-system/docs/operations.md) and its Chinese
-companion.
+Iteration 5 does not add disk-pressure cleanup, write-failure-triggered cleanup, logical deletion,
+restore, administrative data-management UI, automatic capacity tuning, compaction recommendations or
+a durable invalid-record store. Delivery TTL, scheduler interval and Delivery batch bounds remain
+startup configuration and require explicit restart to change.

@@ -25,7 +25,8 @@ Observation Profile `2.0.0` changes its `task.binding` carrier as follows:
 - the OTLP LogRecord body remains empty;
 - one required closed attribute, `agentops.delivery.manifest_projection`, contains canonical JSON;
 - one required attribute, `agentops.delivery.manifest_projection_digest`, is lowercase SHA-256 over those exact UTF-8 canonical JSON bytes;
-- existing C01 Delivery ID, C02 Task ID, C07 full Manifest digest, C09 Event ID, and optional C58 Task display name remain unchanged;
+- C01 Delivery ID, C02 Task ID, C07 full Manifest digest and C09 Event ID are required; optional C58 carries Task display name;
+- Profile 2 requires direct C01 on every supported Event and Span, and admission records internal record-to-Delivery membership so retention never infers ownership from Trace correlation or timestamps;
 - the record is produced only from the already persisted Manifest and its exact Workflow Snapshot; Workflow-ID prefixes, event names, timestamps, source URLs, and ambient configuration cannot select or suppress this projection.
 
 `C09` is deterministic and retry-stable: `task-binding-` plus the first 24 lowercase hexadecimal characters of `SHA-256(UTF-8(delivery_id))`. The same persisted Delivery/Manifest always re-emits the same Event identity and canonical content after transport retry or recovery; C09 is never random or regenerated from time.
@@ -116,7 +117,7 @@ GET /v1/evidence/manifests?manifest_digest=<exact-lowercase-sha256>
 
 The request has exactly one required parameter, no body, no pagination, no fuzzy lookup, no list mode, and no latest/version fallback. Success returns exactly one closed projection plus accepted provenance (`accepted_digest`, exact profile version, source) and its projection digest. Missing returns typed `NOT_FOUND`; conflicting stored content is an integrity error, never an arbitrary winner.
 
-The route is independent of Fact and Trace traversal snapshots. This is safe because the Manifest projection is immutable/non-expiring membership authority while Facts and Traces are finally stable recorded observations subject to their existing independent, resource-granular retention. Evidence Query 1.0 adds no Delivery lifecycle API and no cross-route snapshot Oracle. Evolution's consumer-side expiry disposition is documented in [`delivery-observation-lifecycle.md`](delivery-observation-lifecycle.md).
+The route is independent of Fact and Trace traversal snapshots and adds no cross-route snapshot Oracle. Query 1.0 ordinary routes expose only active Delivery datasets. When terminal Delivery TTL expires, the Manifest, membership, Facts and Trace detail leave ordinary query atomically; exact Manifest lookup then returns `NOT_FOUND`. [`delivery-observation-lifecycle.md`](delivery-observation-lifecycle.md) owns the physical-deletion semantics.
 
 ## 7. Evolution use
 
@@ -126,4 +127,4 @@ The Manifest projection itself supplies the immutable event-time Role-template c
 
 ## 8. Required conformance
 
-Fixtures must prove atomic success/rejection, exact canonical digest, deterministic C09 retry/recovery, duplicate/conflict behavior, C01/C02/C07 equality, absent/present repository state, role sort/uniqueness/Snapshot cross-check, secret/path/endpoint rejection, oversize rejection, exporter byte-bound splitting with a near-limit single record, non-expiry, exact Task/Manifest queries, Task display-name immutability/fallback, no Workflow-prefix inference, and compatibility with the published independent Fact/Trace expiry states.
+Fixtures must prove atomic success/rejection, exact canonical digest, deterministic C09 retry/recovery, duplicate/conflict behavior, C01/C02/C07 equality, direct C01 association for every Profile 2 record, absent/present repository state, role sort/uniqueness/Snapshot cross-check, secret/path/endpoint rejection, oversize rejection, exporter byte-bound splitting with a near-limit single record, active-only exact Task/Manifest queries, atomic Delivery deletion, Task display-name immutability/fallback, and no Workflow-prefix or timestamp inference.

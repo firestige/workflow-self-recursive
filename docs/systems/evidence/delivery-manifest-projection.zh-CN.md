@@ -25,7 +25,8 @@ Observation Profile `2.0.0` 对 `task.binding` carrier 作以下变更：
 - OTLP LogRecord body 保持 empty；
 - required closed attribute `agentops.delivery.manifest_projection` 携带 canonical JSON；
 - required attribute `agentops.delivery.manifest_projection_digest` 是上述 exact UTF-8 canonical JSON bytes 的 lowercase SHA-256；
-- 既有 C01 Delivery ID、C02 Task ID、C07 full Manifest digest、C09 Event ID 与 optional C58 Task display name 不变；
+- C01 Delivery ID、C02 Task ID、C07 full Manifest digest 与 C09 Event ID required；optional C58 携带 Task display name；
+- Profile 2 要求每个 supported Event/Span 直接携带 C01，admission 记录 internal record-to-Delivery membership，retention 不从 Trace correlation 或 timestamp 推断 ownership；
 - record 只能由 already persisted Manifest 及其 exact Workflow Snapshot 产生；Workflow-ID prefix、event name、timestamp、source URL 与 ambient configuration 均不能选择或抑制该 projection。
 
 `C09` deterministic 且 retry-stable：`task-binding-` 加 `SHA-256(UTF-8(delivery_id))` 的前 24 个 lowercase hex character。同一 persisted Delivery/Manifest 在 transport retry/recovery 后总是重发同一 Event identity/canonical content；C09 不随机，也不从 time 生成。
@@ -116,7 +117,7 @@ GET /v1/evidence/manifests?manifest_digest=<exact-lowercase-sha256>
 
 Request 恰有一个 required parameter、无 body、无 pagination、无 fuzzy lookup、无 list mode、无 latest/version fallback。成功恰好返回一个 closed projection、accepted provenance（`accepted_digest`、exact profile version、source）与 projection digest。Missing 返回 typed `NOT_FOUND`；stored content 冲突属于 integrity error，绝不任意选 winner。
 
-该 route 独立于 Fact/Trace traversal snapshots。这是安全的：Manifest projection 是 immutable/non-expiring membership authority，而 Facts/Traces 是 finally stable recorded observations，并继续受现有 independent、resource-granular retention 管理。Evidence Query 1.0 不新增 Delivery lifecycle API，也不新增 cross-route snapshot Oracle。Evolution 的 consumer-side expiry disposition 见 [`delivery-observation-lifecycle.zh-CN.md`](delivery-observation-lifecycle.zh-CN.md)。
+该 route 独立于 Fact/Trace traversal snapshots，且不新增 cross-route snapshot Oracle。Query 1.0 普通 routes 只暴露 active Delivery dataset；terminal Delivery TTL 到期后，Manifest、membership、Facts 与 Trace detail 原子退出 ordinary query，exact Manifest lookup 随后返回 `NOT_FOUND`。Physical-deletion 语义见 [`delivery-observation-lifecycle.zh-CN.md`](delivery-observation-lifecycle.zh-CN.md)。
 
 ## 7. Evolution 使用
 
@@ -126,4 +127,4 @@ Manifest projection 自身提供 immutable event-time Role-template cohort coord
 
 ## 8. Required conformance
 
-Fixtures 必须证明 atomic success/rejection、exact canonical digest、deterministic C09 retry/recovery、duplicate/conflict、C01/C02/C07 equality、absent/present repository state、Role sort/uniqueness/Snapshot cross-check、secret/path/endpoint rejection、oversize rejection、exporter byte-bound split 与 near-limit single-record acceptance、non-expiry、exact Task/Manifest query、Task display-name immutability/fallback、no Workflow-prefix inference，以及与 published independent Fact/Trace expiry states 的兼容性。
+Fixtures 必须证明 atomic success/rejection、exact canonical digest、deterministic C09 retry/recovery、duplicate/conflict、C01/C02/C07 equality、每个 Profile 2 record 的 direct C01 association、absent/present repository state、Role sort/uniqueness/Snapshot cross-check、secret/path/endpoint rejection、oversize rejection、exporter byte-bound split 与 near-limit single-record acceptance、active-only exact Task/Manifest query、atomic Delivery deletion、Task display-name immutability/fallback，以及不做 Workflow-prefix/timestamp inference。
