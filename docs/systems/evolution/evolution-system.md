@@ -6,7 +6,7 @@
 
 Evolution is the sole Iter5 runtime authority for the 14 Metric Results published by `agentops.evaluation.metric-catalog@1.0.0`.
 
-- Evidence owns accepted Facts and recorded Traces. Evolution reads them through the published Evidence Query surface and never accesses PostgreSQL.
+- Evidence owns accepted Facts, recorded Traces, Task membership, and evidence-safe Delivery Manifest projections. Evolution reads them through Evidence Query and never accesses PostgreSQL or Execution storage.
 - Evaluation is the metric conceptual Contract. It is not a deployable runtime component.
 - Evolution resolves a BI-supplied `EvaluationSelection`, computes every published metric in Python, and returns a `ResolvedEvaluationContext` receipt with a `MetricResultSet`.
 - BI presents Metric Results and may query Evidence directly for Fact/Trace drill-down. BI does not compute a metric, create a Fact, or write a Metric Result.
@@ -17,6 +17,8 @@ flowchart LR
     BI["BI · selection + presentation"] -->|"compute request"| EVO["Evolution · Metric Result authority"]
     EVO -->|"read-only exact query"| EVID["Evidence · Fact/Trace authority"]
     EVID --> PG[(PostgreSQL)]
+    EVID -->|"Manifest content coordinates"| EVO
+    SRC["ordered Workflow sources · content provider"] -->|"exact digest match"| EVO
     CAT["Evaluation Catalog · metric semantics"] --> EVO
     EVO -->|"receipt + 14 results"| BI
     BI -->|"Fact/Trace drill-down"| EVID
@@ -50,6 +52,19 @@ Observation and Evidence require eventual final stability, not transaction-wide 
 
 The Iter5 physical mapping reads native operational Span measurements from recorded Trace NODEs. A future contract may additionally project metric-readable Facts, but that is not required by this design and cannot silently replace the exact model-call or lifecycle semantics.
 
+### 2.3 Manifest and Workflow content resolution
+
+The Task binding and Workflow-template paths are also closed:
+
+- the admission-time `task.binding` atomically supplies Task membership and an immutable evidence-safe Delivery Manifest projection;
+- Evolution queries that projection by exact Manifest digest and verifies its Delivery/Task identities;
+- the projection supplies exact Package and Workflow Snapshot content coordinates plus the admitted Role→Agent-Provider/LLM-route/model map;
+- Evolution resolves Package/Snapshot bytes against a non-empty ordered list of user-configured public GitHub sources, accepting only the first candidate whose name, exact version, Package digest, Workflow identity/version, and Snapshot digest all match;
+- source URL/order is provenance, not equality authority. `name@version`, latest, a local checkout, Execution's source, or current repository configuration cannot substitute for the expected digests;
+- the Manifest's Snapshot/Role-prompt identities are sufficient for exact event-time Role-template cohort equality. Missing external Workflow bytes degrade only readable template enrichment; they do not change a settled Metric Result. Actual Role/model metrics continue to use recorded C30/C57 Span tuples.
+
+Execution requires exactly one Workflow source to admit new Deliveries; Evolution requires several ordered sources because one selected Task population may include Deliveries created from different repositories or forks. The exact algorithm, bounds, failure reduction, and receipt diagnostics are owned by [`workflow-source-resolution.md`](workflow-source-resolution.md). The portable carrier/query is owned by [`delivery-manifest-projection.md`](../evidence/delivery-manifest-projection.md).
+
 ## 3. Public compute model
 
 The public surface is a closed, versioned, side-effect-free `POST /api/evolution/v1/evaluations:compute`. POST is used because selections and receipts are structured and bounded, not because computation mutates server state. A retry with the same settled Evidence is idempotent in meaning.
@@ -81,7 +96,8 @@ flowchart LR
     V["validate closed selection"] --> C["canonicalize query"]
     C --> S["traverse bound Evidence queries"]
     S --> P["bind exact resolved read set"]
-    P --> K["bind Catalog coordinate"]
+    P --> W["resolve exact Manifest-bound Workflow content"]
+    W --> K["bind Catalog coordinate"]
     K --> R["issue ResolvedEvaluationContext"]
     R --> M["run 14 isolated calculators"]
 ```
@@ -90,7 +106,7 @@ No stage may use a display name as identity, an alias, ambient latest value, rec
 
 At side-resolution start, Evolution declares one logical evaluation `as_of` cutoff and applies it to Task membership and terminal/cohort readings. It is the Catalog §6.2 cutoff, not an Evidence snapshot token. Each `/facts` or `/traces` traversal still obtains only its own route-local consistency coordinate; those tokens neither create nor approximate a shared cutoff/snapshot.
 
-For each selected `task_id`, Evolution resolves the exact Task declaration and all accepted Delivery memberships at that logical cutoff, then materializes that side's immutable defined-task reading. Missing identity/membership or required event-time cohort coordinates is excluded with its typed reason; any member Delivery without an explicit terminal Delivery Summary makes the Task open; conflicting terminal outcomes make it mixed. Trace closure, timestamps, and arrival order never establish Task termination. Later reuse of the same Task may add a Delivery to a later read set, but cannot rewrite an already returned receipt.
+For each selected `task_id`, Evolution resolves the exact Task declaration, all accepted Delivery memberships, and each exact Manifest projection at that logical cutoff, then materializes that side's immutable defined-task reading. Missing identity/membership/Manifest is excluded or withheld with its typed metric-specific reason; external Workflow content is optional enrichment and never formula input. Any member Delivery without an explicit terminal Delivery Summary makes the Task open; conflicting terminal outcomes make it mixed. Trace closure, timestamps, and arrival order never establish Task termination. Later reuse of the same Task may add a Delivery to a later read set, but cannot rewrite an already returned receipt.
 
 ## 5. ResolvedEvaluationContext
 
@@ -102,10 +118,11 @@ The closed receipt shape contains:
 | `selection` | canonical `EvaluationSelection`; exact IDs only |
 | `as_of` | Evolution's declared logical Evaluation Catalog cutoff; applied to membership/terminal/cohort readings and distinct from every route snapshot token |
 | `resolved_at` | response-resolution completion time for operator diagnostics only; it does not participate in membership, metric, ordering, or causality readings |
-| `task_population` | sorted Task identities, optional display metadata, exact Delivery memberships, event-time cohort coordinates, and exclusion/terminal readings |
+| `task_population` | sorted Task identities, optional display metadata, exact Delivery memberships, Manifest digests, and exclusion/terminal readings |
 | `catalog` | exact Catalog coordinate, semantic digest, and bound Observation dependency |
 | `evidence_bindings` | Evidence Contract/profile/read-model coordinates and one entry per route traversal: route, canonical filter, route-local snapshot/cursor coordinate, completion state, and error/expiry state |
 | `input_refs` | sorted exact Fact and Trace/Span identities actually supplied to normalization/calculators, with accepted provenance references |
+| `workflow_resolutions` | one entry per unique Manifest content coordinate: Evidence projection provenance, expected Package/Snapshot digests, resolution state, matched source provenance when available, and bounded failed-attempt reasons |
 | `population_state` | complete/partial/open/mixed/expired classifications without collapsing their reasons |
 
 The receipt is the audit record for one response. It is not an input manifest, durable server resource, anti-forgery credential, deep-link requirement, or claim of a cross-route transaction snapshot. BI may display/copy it, but re-opening a selection asks Evolution to resolve a current receipt.
