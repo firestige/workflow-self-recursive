@@ -50,7 +50,7 @@ Catalog 拥有 exact formula、evaluation unit、numerator/denominator、minimum
 
 ## 4. Normalization 与 compare boundary
 
-Resolver 对 stable IDs 做 bytewise canonical sort，验证 closed enum/revision，分离 compatibility coordinates，只转换 representation 而不转换 unit。Integer/money minor unit 保持 integer；decimal string 按声明 precision/rounding 转 `Decimal`；ratio numerator/denominator 保持 exact integer。
+Resolver 对 stable IDs 做 bytewise canonical sort，验证 closed enum/revision，分离 compatibility coordinates，只转换 representation 而不转换 unit。Integer/money minor unit 保持 integer；decimal string 按声明 precision/rounding 转 `Decimal`；ratio numerator/denominator 保持 exact integer，ratio value 使用约分后的 canonical rational string；只有 BI 将百分数或小数显示值四舍五入到小数点后两位。
 
 Calculator 不比较 sides。左右独立 14-item sets 形成后，comparison layer 对齐相同 metric coordinate，再按 exact published measure/slice key 对齐，并检查 Catalog 要求的 kind/unit/cohort/provider/runtime/Role/currency/source/cost-basis。只有兼容 aligned slice 才按 authoritative unit 发布 `delta = after - before`；其他 slice typed withheld，所有可用 Before/After slices 保留。
 

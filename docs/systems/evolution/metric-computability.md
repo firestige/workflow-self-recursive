@@ -50,7 +50,7 @@ The Catalog owns each exact formula, eligibility unit, numerator/denominator, mi
 
 ## 4. Normalization and compare boundary
 
-The resolver canonicalizes stable IDs bytewise, validates closed enums/revisions, separates compatibility coordinates, and converts only representation—not units—into typed Python values. Integers and money minor units remain integers. Decimal strings become `Decimal` using declared precision/rounding. Ratio numerators and denominators remain exact integers.
+The resolver canonicalizes stable IDs bytewise, validates closed enums/revisions, separates compatibility coordinates, and converts only representation—not units—into typed Python values. Integers and money minor units remain integers. Decimal strings become `Decimal` using declared precision/rounding. Ratio numerators and denominators remain exact integers and ratio values use reduced canonical rational strings; BI alone rounds a percentage or decimal presentation to two digits after the decimal point.
 
 Calculators do not compare sides. After two independent 14-item result sets exist, the comparison layer aligns identical metric coordinates and then exact published measure/slice keys, verifying every Catalog-required kind/unit/cohort/provider/runtime/Role/currency/source/cost-basis coordinate. Only a compatible aligned slice may publish `delta = after - before` in the authoritative unit. Otherwise it retains all available Before/After slices and returns a typed withheld reason for the affected slice.
 

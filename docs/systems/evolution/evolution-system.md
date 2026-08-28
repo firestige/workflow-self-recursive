@@ -148,7 +148,7 @@ Each `MetricResult` has one closed multi-slice shape. Scalar metrics contain one
 | `slices[].state` / `value` | closed truth state; value absent when withheld, otherwise exact kind/value/unit/precision/rounding |
 | `slices[].measures` | named published measures only; never a BI-created total |
 | `slices[].numerator` / `denominator` / `contributing_count` | present only where the Catalog publishes them; exact integers |
-| `slices[].coverage` | exact Catalog fields `numerator`, `denominator`, `raw_ratio`, `state`, and `alert`; always present |
+| `slices[].coverage` | exact Catalog fields `numerator`, `denominator`, `raw_ratio`, `state`, and `alert`; always present; `raw_ratio` is `null` for `NO_POPULATION`, otherwise the canonical exact rational derived from the two integer counts |
 | `slices[].compatibility` | exact currency/source/basis or provider/model/Role/Runtime and other required coordinates |
 | `slices[].exclusions` / `missing_inputs` | typed reason counts/references allowed by the Contract |
 | `slices[].provenance_refs` / `reading` | receipt input references, uncertainty, limitations, and forbidden claims |
@@ -157,7 +157,9 @@ Each `MetricResult` has one closed multi-slice shape. Scalar metrics contain one
 
 ## 7. Exact numeric model
 
-Calculators use Python exact integers, money minor units, and `Decimal`. Public decimal values use a canonical decimal-string representation; binary floating point, implicit currency/unit conversion, and inferred precision are forbidden. Ratio results retain exact numerator and denominator. Any decimal expansion declares precision and rounding.
+Calculators use Python exact integers, money minor units, `Decimal`, and exact rational arithmetic. Public decimal values use a canonical decimal-string representation; binary floating point, implicit currency/unit conversion, and inferred precision are forbidden. Ratio values and coverage `raw_ratio` use a reduced canonical rational string (`0`, `1`, or a signed `numerator/denominator` with a positive denominator); published ratio numerator and denominator remain exact integers. `0/0` is not zero: coverage publishes `raw_ratio: null`, `state: NO_POPULATION`, and `alert: null`. Coverage alert is either `LOW_COVERAGE` or `null` and is determined by the Catalog's exact integer cross-multiplication rule, never by a displayed rounded value.
+
+BI may present an Evolution-supplied ratio as either a percentage or a decimal and rounds that presentation to two digits after the decimal point. This is a presentation-only transform: BI retains the exact numerator/denominator and rational value for receipt, tooltip, table fallback, and drill-down; the rounded display is neither a Fact nor a new Metric Result. Evolution does not persist or compare the two-decimal rendering.
 
 ## 8. Calculator isolation
 
