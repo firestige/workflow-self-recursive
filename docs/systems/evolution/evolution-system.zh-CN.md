@@ -90,10 +90,10 @@ Closed receipt shape 包含：
 | `selection` | canonical `EvaluationSelection`，只含 exact IDs |
 | `as_of` | Evolution 声明的 logical Evaluation Catalog cutoff；用于 membership/terminal/cohort reading，与 route snapshot token 分离 |
 | `resolved_at` | response resolution 完成时间，仅供 operator diagnostic；不参与 membership、metric、ordering 或 causality reading |
-| `task_population` | sorted Task IDs、optional display metadata、exact Delivery membership、Manifest digests、exclusion/terminal readings |
+| `task_population` | sorted Task IDs、optional display metadata、exact Delivery membership、Manifest digests、exclusion/terminal readings；`EXPIRED_DELIVERY` 表示至少一条 recorded membership 保留在 receipt 中，但被 consumer-side retention gate 排除 |
 | `catalog` | exact Catalog coordinate、semantic digest、Observation dependency |
 | `evidence_bindings` | Evidence Contract/profile/read-model coordinates；每次 route traversal 的 route、canonical filter、route-local snapshot/cursor coordinate、completion/error/expiry |
-| `input_refs` | 实际进入 normalization/calculator 的 sorted exact Fact 与 Trace/Span identities，以及 accepted provenance refs |
+| `input_refs` | 在 `as_of` 或之前读到的 sorted exact Fact 与 Trace/Span identities，以及 accepted provenance refs；该 audit read-set 保留 expired input，不表示每条 reference 都进入 calculator |
 | `workflow_resolutions` | 每个 unique Manifest content coordinate 一项：Evidence projection provenance、expected Package/Snapshot digests、resolution state、available 时的 matched source provenance 与 bounded failed-attempt reasons |
 | `population_state` | complete/partial/open/mixed/expired，保留具体 reason |
 
@@ -104,7 +104,7 @@ Receipt 是单次 response 的审计记录，不是 input manifest、持久 serv
 - 每个成功解析的 side 必须恰好包含 12 个 candidate coordinates；单项 withheld 不影响其他 11 项。
 - 每项分离 value truth、unit/compatibility、published numerator/denominator/contributing count、coverage、exclusion、missing input、provenance、uncertainty 与 forbidden reading。
 - minimum sample 隐藏 value 时 coverage 仍可见。
-- explicit zero、missing、lower bound、N/A、incompatible 与 transport/service error 不得混同。Evolution 以 Evidence 现有 resource-granular expiry state 为输入，在 consumer-side normalization 中先应用 Delivery-scoped population gate：retention expiry 使某 Delivery 不再 eligible 时，该 Delivery 及其 contained inputs 同时退出 numerator、denominator、coverage 与 minimum-sample count。Evidence 因 retained/expired detail 混合产生的 Trace-detail `PARTIAL` 绝不能变成 metric coverage `PARTIAL`；otherwise active Delivery 的 missing/invalid required input 才形成 metric-specific coverage gap。这里不新增 Evidence lifecycle API 或 physical GC behavior。Expiry 在 receipt 中保持可见且绝不被重建。
+- explicit zero、missing、lower bound、N/A、incompatible 与 transport/service error 不得混同。Evolution 以 Evidence 现有 resource-granular expiry state 为输入，在 consumer-side normalization 中先应用 Delivery-scoped population gate：retention expiry 使某 Delivery 不再 eligible 时，该 Delivery 及其 contained inputs 同时退出 numerator、denominator、coverage 与 minimum-sample count。Task 同时含 active/expired memberships 时按 active 子集 normalization；没有 active membership 的 Task 不进入 Task-metric counts。Evidence 因 retained/expired detail 混合产生的 Trace-detail `PARTIAL` 绝不能变成 metric coverage `PARTIAL`；otherwise active Delivery 的 missing/invalid required input 才形成 metric-specific coverage gap。Receipt 保留全部 resolved memberships/read references，并在受影响 Task population entry 上标记 `EXPIRED_DELIVERY`。这里不新增 Evidence lifecycle API 或 physical GC behavior。Expiry 在 receipt 中保持可见且绝不被重建。
 - Compare 分别解析 left/right；只有 coordinate、kind、unit 与 required compatibility 均匹配时才返回 Delta，否则返回 typed withheld reason。
 - Before/After 是 Metric Result；Delta 是 Evolution 计算的 comparison result。
 
