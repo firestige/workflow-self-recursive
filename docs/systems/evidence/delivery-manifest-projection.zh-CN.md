@@ -116,7 +116,7 @@ GET /v1/evidence/manifests?manifest_digest=<exact-lowercase-sha256>
 
 Request 恰有一个 required parameter、无 body、无 pagination、无 fuzzy lookup、无 list mode、无 latest/version fallback。成功恰好返回一个 closed projection、accepted provenance（`accepted_digest`、exact profile version、source）与 projection digest。Missing 返回 typed `NOT_FOUND`；stored content 冲突属于 integrity error，绝不任意选 winner。
 
-该 route 独立于 Fact/Trace traversal snapshots。这是安全的：Manifest projection 是 immutable/non-expiring membership authority，而 Facts/Traces 是 finally stable recorded observations。Evidence Query 1.0 应用 [`delivery-observation-lifecycle.zh-CN.md`](delivery-observation-lifecycle.zh-CN.md) 定义的 Delivery-level logical lifecycle；class-specific physical scrubbing 绝不能制造 consumer-visible partial Delivery。不新增 cross-route snapshot Oracle。
+该 route 独立于 Fact/Trace traversal snapshots。这是安全的：Manifest projection 是 immutable/non-expiring membership authority，而 Facts/Traces 是 finally stable recorded observations，并继续受现有 independent、resource-granular retention 管理。Evidence Query 1.0 不新增 Delivery lifecycle API，也不新增 cross-route snapshot Oracle。Evolution 的 consumer-side expiry disposition 见 [`delivery-observation-lifecycle.zh-CN.md`](delivery-observation-lifecycle.zh-CN.md)。
 
 ## 7. Evolution 使用
 
@@ -126,4 +126,4 @@ Manifest projection 自身提供 immutable event-time Role-template cohort coord
 
 ## 8. Required conformance
 
-Fixtures 必须证明 atomic success/rejection、exact canonical digest、deterministic C09 retry/recovery、duplicate/conflict、C01/C02/C07 equality、absent/present repository state、Role sort/uniqueness/Snapshot cross-check、secret/path/endpoint rejection、oversize rejection、exporter byte-bound split 与 near-limit single-record acceptance、non-expiry、exact Task/Manifest query、Task display-name immutability/fallback、no Workflow-prefix inference、Delivery-atomic logical expiry、不会改变 public state 的 incremental physical scrubbing，以及 Delivery-scoped sanitized integrity marker。
+Fixtures 必须证明 atomic success/rejection、exact canonical digest、deterministic C09 retry/recovery、duplicate/conflict、C01/C02/C07 equality、absent/present repository state、Role sort/uniqueness/Snapshot cross-check、secret/path/endpoint rejection、oversize rejection、exporter byte-bound split 与 near-limit single-record acceptance、non-expiry、exact Task/Manifest query、Task display-name immutability/fallback、no Workflow-prefix inference，以及与 published independent Fact/Trace expiry states 的兼容性。

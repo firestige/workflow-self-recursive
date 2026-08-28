@@ -104,7 +104,7 @@ Receipt 是单次 response 的审计记录，不是 input manifest、持久 serv
 - 每个成功解析的 side 必须恰好包含 12 个 candidate coordinates；单项 withheld 不影响其他 11 项。
 - 每项分离 value truth、unit/compatibility、published numerator/denominator/contributing count、coverage、exclusion、missing input、provenance、uncertainty 与 forbidden reading。
 - minimum sample 隐藏 value 时 coverage 仍可见。
-- explicit zero、missing、lower bound、N/A、incompatible 与 transport/service error 不得混同。Delivery lifecycle 必须先于 metric-specific evaluation unit 解析：expired Delivery 及其 contained inputs 同时退出 numerator、denominator、coverage 与 minimum-sample count。Retention 绝不产生 `PARTIAL`；active Delivery 的 missing/invalid input 只形成 metric-specific coverage gap。Expiry 在 receipt 中保持可见且绝不被重建。
+- explicit zero、missing、lower bound、N/A、incompatible 与 transport/service error 不得混同。Evolution 以 Evidence 现有 resource-granular expiry state 为输入，在 consumer-side normalization 中先应用 Delivery-scoped population gate：retention expiry 使某 Delivery 不再 eligible 时，该 Delivery 及其 contained inputs 同时退出 numerator、denominator、coverage 与 minimum-sample count。Evidence 因 retained/expired detail 混合产生的 Trace-detail `PARTIAL` 绝不能变成 metric coverage `PARTIAL`；otherwise active Delivery 的 missing/invalid required input 才形成 metric-specific coverage gap。这里不新增 Evidence lifecycle API 或 physical GC behavior。Expiry 在 receipt 中保持可见且绝不被重建。
 - Compare 分别解析 left/right；只有 coordinate、kind、unit 与 required compatibility 均匹配时才返回 Delta，否则返回 typed withheld reason。
 - Before/After 是 Metric Result；Delta 是 Evolution 计算的 comparison result。
 

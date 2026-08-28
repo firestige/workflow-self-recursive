@@ -6,7 +6,7 @@
 
 每个 exact `metric_id@version` 恰好映射一个 Python module 与一个 pure calculator entry point。Resolution/normalization 在 calculator 外完成；calculator 只接收 immutable typed input slice，不能查询 Evidence、读取其他 metric、选择 engine 或 fallback 到另一算法。
 
-每个成功解析 side 都返回全部 12 entries。Delivery lifecycle 必须先于 metric-specific evaluation unit 解析：每个 `EXPIRED` Delivery 及其 contained inputs 在形成 numerator、denominator、coverage 或 minimum-sample count 前退出当前 population。Active Delivery 即使 required input missing/invalid 也仍保持 eligible；该输入不进入受影响 metric 的 coverage numerator，其他 metric 继续。Retention 绝不产生 partial coverage。Coverage/exclusion 按 `agentops.evaluation.metric-catalog@2.0.0` 评审候选持续发布。
+每个成功解析 side 都返回全部 12 entries。Evolution 先通过 consumer-side Delivery population gate 解释 Evidence 现有 resource-granular expiry states：每个因 retention 不再 eligible 的 Delivery 及其 contained inputs，在形成 numerator、denominator、coverage 或 minimum-sample count 前退出当前 population。Otherwise active Delivery 即使 required input missing/invalid 也仍保持 eligible；该输入不进入受影响 metric 的 coverage numerator，其他 metric 继续。Evidence 因 retention 产生的 Trace-detail `PARTIAL` 不会变成 metric partial coverage。该规则不新增 Evidence lifecycle API 或 physical GC behavior。Coverage/exclusion 按 `agentops.evaluation.metric-catalog@2.0.0` 评审候选持续发布。
 
 共同禁止：按名称猜 Task membership；用 Trace closure 判 terminal；按 Delivery ID/time/arrival 绑定 model call；把 absent 当 zero；currency/unit conversion；估算 cost；合成 token total；把 Workflow 顺序当 recorded reach；因果或改进表述。
 
@@ -42,7 +42,7 @@
 | `operational-attributable-cost@2.0.0` / `operational_attributable_cost.py` | money/reported money unit；1 | reported money Usage + complete tuple + native Trace/Span exact Event-to-call binding | 只合并 exact model/Role/kind/unit/source/source_id；缺失精确绑定降低本 metric coverage；不按 Delivery/time join、不定价/估算/转换 |
 | `operational-usage-availability@2.0.0` / `operational_usage_availability.py` | rate/ratio；1 | 所有 exact eligible attributed model calls；explicit applicable usage-source；complete tuple | 每个 eligible call 保留在 denominator；只有 explicit applicable source 进入 numerator；missing classification 同时反映在 coverage，不等于 zero token usage，也不自动使整个 metric unavailable |
 
-Catalog 拥有 exact formula、内层 evaluation unit、numerator/denominator、minimum sample 与 coverage policy。Delivery lifecycle 是外层 population gate，不把 Task/model-call metric 改写成 Delivery metric；本文只拥有 Evolution module/input assignment 与 fail-closed physical reading。
+Catalog 拥有 exact formula、内层 evaluation unit、numerator/denominator、minimum sample 与 coverage policy。Evolution 的 consumer-side Delivery population gate 不把 Task/model-call metric 改写成 Delivery metric，也不改变 Evidence retention；本文只拥有 Evolution module/input assignment 与 fail-closed physical reading。
 
 ## 4. Normalization 与 compare boundary
 
