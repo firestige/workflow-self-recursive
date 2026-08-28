@@ -1,0 +1,11 @@
+.git
+.gitmodules
+deployment/.secrets
+tmp
+wsr-ui
+evidence-system
+execution-system
+observation-system
+dsh
+workflow
+roles
