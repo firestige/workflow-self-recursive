@@ -1,6 +1,6 @@
 # Iteration 5 实施计划 — BI 可视化与双系统独立验证
 
-> **计划状态**：`WAVE5_IN_PROGRESS`；G0、G2a、G2b、Wave3 与 Wave4 已 PASS。Owner 于 2026-08-28 明确允许在没有真实阻塞或产品裁决时持续向下执行。Wave4 的四组件实现、独立 exit audit、durable commits 与 submodule pin 已闭合；published/FROZEN 原件仍不得静默修改。
+> **计划状态**：`WAVE6_PASS / WAVE7_IN_PROGRESS`；G0、G2a、G2b 与 Wave1–6 已 PASS。Owner 于 2026-08-28 明确允许在没有真实阻塞或产品裁决时持续向下执行。Wave6 的 BI clients、semantic presentation foundations、独立 exit audit、durable commits 与 submodule pin 已闭合；published/FROZEN 原件仍不得静默修改。
 >
 > **排期权威**：[GitHub Project #9](https://github.com/users/firestige/projects/9) 的 Iter5（`Iter 5 bi 可视化 + 独立验证`，2026-09-21 起、7 天）。Issue 是需求、验收与决策事实源；`.project` 生命周期门仍适用。`plan.md` 只拥有已批准范围内的执行顺序、路径和门禁；issue 或 Project 发生变化时必须停止、同步计划并重新批准，不存在两个并列事实源。
 >
@@ -8,7 +8,7 @@
 >
 > **明确排除**：[#95](https://github.com/firestige/workflow-self-recursive/issues/95)（含 `intake-sidebar`）属于 DSH display plugin 工作；它与 BI 放在 `wsr-ui` 仅是 repository 管理共址，不构成共享 UI framework/layout/release contract。它不进入 Iter5 的 refinement、实现、分发、容量或完成判定。`workflow-builder` 当前仍是 idea，同样不进入 MVP。
 >
-> **当前 wave**：`WAVE5_IN_PROGRESS / CONTRACT_REBASELINE_FIRST`；Wave4 authority 为 `system-contracts@fa42134e`、`execution-system@06fe7102`、`evidence-system@6631f501`、`evolution-system@e6ff5a5` 与 superproject current component pointer。Wave5 先按 2026-08-28 owner 裁决完成 Workflow DSL 2.0、repository Role→Model、Delivery Manifest projection、Evidence exact Manifest query 与 Evolution ordered Workflow sources 的 durable design/machine-contract alignment；通过 cross-system review 后才继续 calculator/product implementation。
+> **当前 wave**：`WAVE7_IN_PROGRESS`；Wave6 authority 为 `wsr-ui@205c2d5`、`evolution-system@b6aef07`、`evidence-system@80e2f12` 与 `system-contracts@d3f8876`。Wave7 只实现 #53 single/compare 产品视图、selection/deep-link 恢复、visualizer/layout binding 与 Before/Delta/After；Trace traversal 保持 Wave8 边界。
 
 ## 1. 目标与完成判定
 
@@ -424,19 +424,19 @@ BLOCK/FAIL：先写产品代码后补契约；静默重解释 published Workflow
 
 ### wave6 — BI clients、语义化样式与展示组件
 
-> 状态：`IN_PROGRESS`。Wave5 PASS 与 exact component pins 已满足 ENTRY；开始 BI client、semantic tokens 与展示组件。
+> 状态：`PASS`。`wsr-ui@205c2d5`、102 tests、4 Playwright oracles、production build 与最终独立 exit audit（P0/P1/P2=0）均通过；详见 `evidence/wave6.md`。
 
-- [ ] 先写 TypeScript client RED tests；实现 Evolution Metric Result/receipt 与 Evidence Fact/Trace drill-down clients，均由 Vite 构建并 fail closed。
-- [ ] 落地 Tailwind semantic tokens/bindings，覆盖 light/dark、type、space、density、shape、surface、border、status、focus、motion；禁止页面散落 raw palette/spacing magic values。
-- [ ] 按 Wave3 map 实现 Metric Result、metric explanation、Receipt、compare metric navigator、Evidence Console、Trace recorded-structure navigator 与 Still/Live motion 的全状态 preview/tests；组件名不是必须保留的 API。
-- [ ] BI 只允许图形分桶、百分比显示、scale/layout 等 presentation aggregation；禁止输出、缓存或回写新的 Fact/Metric Result。
-- [ ] 生成 `evidence/wave6.md`。
+- [x] 先写 TypeScript client RED tests；实现 Evolution Metric Result/receipt 与 Evidence Fact/Trace drill-down clients，均由 Vite 构建并 fail closed。
+- [x] 落地 Tailwind semantic tokens/bindings，覆盖 light/dark、type、space、density、shape、surface、border、status、focus、motion；禁止页面散落 raw palette/spacing magic values。
+- [x] 按 Wave3 map 实现 Metric Result、metric explanation、Receipt、compare metric navigator、Evidence Console、Trace recorded-structure navigator 与 Still/Live motion 的全状态 preview/tests；组件名不是必须保留的 API。
+- [x] BI 只允许图形分桶、百分比显示、scale/layout 等 presentation aggregation；禁止输出、缓存或回写新的 Fact/Metric Result。
+- [x] 生成 `evidence/wave6.md`。
 
 BLOCK/FAIL：前端出现 Catalog 公式或 calculator；主题切换需要逐组件改色；浅/深主题语义不等价；组件缺失完整状态与 accessibility oracle。
 
 ### wave7 — #53 Metric Result 与 compare 视图
 
-> 状态：`NOT_STARTED`。ENTRY 依赖 Wave6 PASS，当前未满足。
+> 状态：`IN_PROGRESS`。Wave6 PASS 与 `wsr-ui@205c2d5` 已满足 ENTRY；开始真实 single/compare vertical slice。
 
 - [ ] 先写 single/compare vertical slice RED browser tests，覆盖 zero/absence/lower-bound/unavailable/expired/incompatible/sample/coverage/API error、responsive、theme parity 与 keyboard。
 - [ ] 实现 selection → resolved receipt → Metric Result 展示；compare 由 BI 提交左右 selection，展示 Evolution 返回的 Before/Delta/After。
