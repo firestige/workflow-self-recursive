@@ -1,0 +1,136 @@
+services:
+  database:
+    image: postgres:18.4-bookworm@sha256:882236b897e39051d2368c5ccc6cda944904723506b2dfc97f2a8f5bc9afa382
+    environment:
+      POSTGRES_DB: wsr_evidence
+      POSTGRES_PASSWORD_FILE: /run/secrets/admin_password
+      POSTGRES_USER: wsr_evidence_admin
+      WSR_EVIDENCE_BACKUP_PASSWORD_FILE: /run/secrets/backup_password
+      WSR_EVIDENCE_RUNTIME_PASSWORD_FILE: /run/secrets/runtime_password
+    secrets: [admin_password, backup_password, runtime_password]
+    volumes:
+      - evidence-data:/var/lib/postgresql
+      - ../evidence-system/deployment/postgres/init-roles.sh:/docker-entrypoint-initdb.d/10-wsr-roles.sh:ro
+    networks: [evidence-db]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wsr_evidence_admin -d wsr_evidence"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build:
+      context: ../evidence-system
+      dockerfile: deployment/Dockerfile
+    command:
+      [
+        "/app/deployment/run-with-database-secret.sh",
+        "uv",
+        "run",
+        "--no-sync",
+        "alembic",
+        "upgrade",
+        "head",
+      ]
+    environment:
+      WSR_EVIDENCE_DATABASE_HOST: database
+      WSR_EVIDENCE_DATABASE_NAME: wsr_evidence
+      WSR_EVIDENCE_DATABASE_PASSWORD_FILE: /run/secrets/admin_password
+      WSR_EVIDENCE_DATABASE_USER: wsr_evidence_admin
+    secrets: [admin_password]
+    networks: [evidence-db]
+    depends_on:
+      database:
+        condition: service_healthy
+
+  evidence:
+    build:
+      context: ../evidence-system
+      dockerfile: deployment/Dockerfile
+    command: ["/app/deployment/run-with-database-secret.sh", "wsr-evidence"]
+    environment:
+      WSR_EVIDENCE_BIND_SCOPE: container
+      WSR_EVIDENCE_DATABASE_HOST: database
+      WSR_EVIDENCE_DATABASE_NAME: wsr_evidence
+      WSR_EVIDENCE_DATABASE_PASSWORD_FILE: /run/secrets/runtime_password
+      WSR_EVIDENCE_DATABASE_USER: wsr_evidence_runtime
+      WSR_EVIDENCE_HOST: 0.0.0.0
+      WSR_EVIDENCE_RETENTION_INTERVAL_SECONDS: ${WSR_EVIDENCE_RETENTION_INTERVAL_SECONDS:-60}
+    secrets: [runtime_password]
+    networks: [evidence-db, app-tier]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4318/healthz', timeout=2).read()",
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  evolution:
+    build:
+      context: ..
+      dockerfile: evolution-system/Dockerfile
+    environment:
+      WSR_EVOLUTION_CONFIG: /run/config/evolution.json
+    volumes:
+      - ${WSR_EVOLUTION_CONFIG_FILE:-./evolution.config.json}:/run/config/evolution.json:ro
+    networks: [app-tier]
+    depends_on:
+      evidence:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).read()",
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  bi-app:
+    build:
+      context: ../wsr-ui
+      dockerfile: Dockerfile
+    environment:
+      EVIDENCE_UPSTREAM: evidence:4318
+      EVOLUTION_UPSTREAM: evolution:8000
+    ports:
+      - "127.0.0.1:${WSR_BI_PORT:-8080}:80"
+    networks: [app-tier]
+    depends_on:
+      evidence:
+        condition: service_healthy
+      evolution:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+secrets:
+  admin_password:
+    file: ${WSR_EVIDENCE_ADMIN_PASSWORD_FILE:-./.secrets/admin-password}
+  backup_password:
+    file: ${WSR_EVIDENCE_BACKUP_PASSWORD_FILE:-./.secrets/backup-password}
+  runtime_password:
+    file: ${WSR_EVIDENCE_RUNTIME_PASSWORD_FILE:-./.secrets/runtime-password}
+
+volumes:
+  evidence-data:
+
+networks:
+  evidence-db:
+    internal: true
+  app-tier:
+    driver: bridge
