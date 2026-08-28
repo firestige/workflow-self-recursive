@@ -25,7 +25,7 @@
 
 2026-08-28 candidate 在不改变 Evidence truth/control boundary 的前提下扩展系统。一条 accepted Profile 2 `task.binding` owner record 原子创建 Task declaration、Delivery membership/guard、optional Task display name 与一个按 full Manifest digest keyed 的 immutable evidence-safe Delivery Manifest projection。Evidence 只通过 exact read-only Manifest-digest query 暴露该 projection；它绝不读取 Execution storage、repository configuration 或 Workflow sources，也不把 projection 当作 Metric Result 或 actual model use proof。
 
-Projection 保留 Evolution 所需的 exact Workflow Package/Snapshot coordinates 与 admitted Role→Agent-Provider/LLM-route/model map，同时拒绝 credentials、endpoints、local/source paths、prompts、attachments 和 Provider-native configuration。它复用 accepted-record duplicate/conflict transaction 与 never-expire membership lifecycle；Fact/Trace retention 保持独立。Carrier、Task discovery/membership cutoff、Manifest shape/query 与 conformance rules 由 [`delivery-manifest-projection.zh-CN.md`](delivery-manifest-projection.zh-CN.md) 以及 `system-contracts/observation-task-binding`、`system-contracts/evidence-task-query` 下的 review candidates 共同闭合。这些在 Profile 2 与 Evidence Query 1.0 通过 lifecycle gates 前仍是 candidate bytes。Published Profile 1.0 与 Evidence Query 0.1 保持不变。
+Projection 保留 Evolution 所需的 exact Workflow Package/Snapshot coordinates 与 admitted Role→Agent-Provider/LLM-route/model map，同时拒绝 credentials、endpoints、local/source paths、prompts、attachments 和 Provider-native configuration。它复用 accepted-record duplicate/conflict transaction 与 never-expire membership lifecycle。Evidence Query 1.0 引入 [`delivery-observation-lifecycle.zh-CN.md`](delivery-observation-lifecycle.zh-CN.md) 定义的 Delivery-level logical observation lifecycle；class-specific physical Fact/Trace scrubbing 不会制造 consumer-visible partial Delivery。Carrier、Task discovery/membership cutoff、Manifest shape/query 与 conformance rules 由 [`delivery-manifest-projection.zh-CN.md`](delivery-manifest-projection.zh-CN.md) 以及 `system-contracts/observation-task-binding`、`system-contracts/evidence-task-query` 下的 review candidates 共同闭合。这些在 Profile 2 与 Evidence Query 1.0 通过 lifecycle gates 前仍是 candidate bytes。Published Profile 1.0 与 Evidence Query 0.1 保持不变。
 
 <a id="ee-evidence-2"></a>
 ## 2. 上下文、问题与范围
@@ -250,7 +250,7 @@ Backup/restore、任何扩展 trust boundary 的 TLS/auth、operational credenti
 | Security | loopback-only data service、无 external PostgreSQL、read-only API | 仅 trusted local preview | listener/API-method/credential/negative reachability test |
 | Maintainability | 三个 deep Module 与 unique writer | transaction choreography 集中在 Admission | Interface-level test 与 ownership scan |
 | Operability | explicit partial success、drop/error、retention visibility | 不保证 ingestion | bounded operational metric/log 下游完成 |
-| Resource efficiency | one data service/PostgreSQL、independent expiry | capacity/default 未证明 | workload 与 retention measurement 下游完成 |
+| Resource efficiency | one data service/PostgreSQL；Query 1.0 使用 Delivery-level logical expiry 与 bounded class-specific physical scrubbing | capacity/default 未证明 | workload 与 retention measurement 下游完成 |
 
 <a id="ee-evidence-12"></a>
 ## 12. 风险与取舍
@@ -276,7 +276,7 @@ Backup/restore、任何扩展 trust boundary 的 TLS/auth、operational credenti
 | COMMIT response loss | retry 收敛到一个 complete slice | first-write-wins idempotency | concept.fixture.003 ambiguity case |
 | final zero/lower-bound/unavailable | query result 分离 | Projection-owned completeness | concept.fixture.003 truth fixture |
 | incompatible unit/source | 分离 group | compatibility key | concept.fixture.003 grouping case |
-| Trace expiry | factual trend 保留；detail 显式 unavailable | independent lifecycle | concept.fixture.003 retention case |
+| Delivery observation expiry | 当前 metric population 排除整个 Delivery；retained identity/detail state 仍显式 | Delivery-level logical lifecycle；bounded physical scrubbing | Query 1.0 Delivery lifecycle corpus |
 | read-only consumer | bounded API read 成功；raw/database/write route denied | read-only API 加 least-privilege internal operations | concept.fixture.003 permission evidence；API negative 下游完成 |
 | local access profile | loopback ingest/query 在无 app auth 下工作；不暴露 UI 或 database listener | 固定 loopback data-service topology | 下游 listener、method、route 与 negative reachability test |
 | exact profile admission | 接纳 exact pin/Scope、十个 EventName 与 57 common 加 applicable 10 或 6 family field；拒绝 sibling-family/unlisted/fixture-only field | OTel Profile-linked closed validator | deterministic 57+10+6 count/unique/table-shape check 加 concept.fixture.002；machine validator/conformance 下游完成 |

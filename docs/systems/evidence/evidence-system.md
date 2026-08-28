@@ -25,7 +25,7 @@ This document is the single semantic owner of Evidence durable landing, accepted
 
 The 2026-08-28 candidate extends Evidence without changing its truth or control boundary. One accepted Profile 2 `task.binding` owner record atomically creates Task declaration, Delivery membership/guard, optional Task display name, and one immutable evidence-safe Delivery Manifest projection keyed by the full Manifest digest. Evidence exposes the projection only through an exact read-only Manifest-digest query. It never reads Execution storage, repository configuration, or Workflow sources and never treats the projection as a Metric Result or proof of actual model use.
 
-The projection preserves the exact Workflow Package/Snapshot coordinates and admitted Role→Agent-Provider/LLM-route/model map needed by Evolution, while rejecting credentials, endpoints, local/source paths, prompts, attachments, and Provider-native configuration. It shares the accepted-record duplicate/conflict transaction and never-expire membership lifecycle; Fact and Trace retention remain independent. Its carrier, Task discovery/membership cutoff, Manifest shape/query, and conformance rules are jointly closed by [`delivery-manifest-projection.md`](delivery-manifest-projection.md) and the review candidates under `system-contracts/observation-task-binding` and `system-contracts/evidence-task-query`. These are candidate bytes until Profile 2 and Evidence Query 1.0 pass their lifecycle gates. Published Profile 1.0 and Evidence Query 0.1 remain unchanged.
+The projection preserves the exact Workflow Package/Snapshot coordinates and admitted Role→Agent-Provider/LLM-route/model map needed by Evolution, while rejecting credentials, endpoints, local/source paths, prompts, attachments, and Provider-native configuration. It shares the accepted-record duplicate/conflict transaction and never-expire membership lifecycle. Evidence Query 1.0 introduces the Delivery-level logical observation lifecycle in [`delivery-observation-lifecycle.md`](delivery-observation-lifecycle.md); class-specific physical Fact/Trace scrubbing does not create a consumer-visible partial Delivery. Its carrier, Task discovery/membership cutoff, Manifest shape/query, and conformance rules are jointly closed by [`delivery-manifest-projection.md`](delivery-manifest-projection.md) and the review candidates under `system-contracts/observation-task-binding` and `system-contracts/evidence-task-query`. These are candidate bytes until Profile 2 and Evidence Query 1.0 pass their lifecycle gates. Published Profile 1.0 and Evidence Query 0.1 remain unchanged.
 
 <a id="ee-evidence-2"></a>
 ## 2. Context, Problem, and Scope
@@ -250,7 +250,7 @@ Backup/restore, TLS/auth for any expanded trust boundary, operational credential
 | Security | loopback-only data service, no external PostgreSQL, read-only API | trusted local preview only | listener/API-method/credential/negative reachability tests |
 | Maintainability | three deep Modules and unique writers | transaction choreography concentrated in Admission | Interface-level tests and ownership scans |
 | Operability | explicit partial success, drop/error, retention visibility | no guaranteed ingestion | bounded operational metrics/logs downstream |
-| Resource efficiency | one data service/PostgreSQL, independent expiry | capacity/defaults unproven | workload and retention measurements downstream |
+| Resource efficiency | one data service/PostgreSQL, Delivery-level logical expiry with bounded class-specific physical scrubbing in Query 1.0 | capacity/defaults unproven | workload and retention measurements downstream |
 
 <a id="ee-evidence-12"></a>
 ## 12. Risks and Trade-offs
@@ -276,7 +276,7 @@ Backup/restore, TLS/auth for any expanded trust boundary, operational credential
 | COMMIT response loss | retry converges to one complete slice | first-write-wins idempotency | concept.fixture.003 ambiguity cases |
 | final zero/lower-bound/unavailable | distinct query results | Projection-owned completeness | concept.fixture.003 truth fixtures |
 | incompatible units/sources | separate groups | compatibility key | concept.fixture.003 grouping cases |
-| Trace expiry | factual trend remains; detail explicitly unavailable | independent lifecycles | concept.fixture.003 retention case |
+| Delivery observation expiry | current metric population excludes the whole Delivery; retained identity/detail state stays explicit | Delivery-level logical lifecycle; bounded physical scrubbing | Query 1.0 Delivery lifecycle corpus |
 | read-only consumers | bounded API reads succeed; raw/database/write routes denied | read-only API plus least-privilege internal operations | concept.fixture.003 permission evidence; API negatives downstream |
 | local access profile | loopback ingest and query work without app auth; no UI or database listener is exposed | fixed loopback data-service topology | downstream listener, method, route and negative reachability tests |
 | exact profile admission | exact pins/Scope, ten EventNames and 57 common + applicable 10 or 6 family fields are accepted; sibling-family/unlisted/fixture-only fields reject | OTel Profile-linked closed validator | deterministic 57+10+6 count/unique/table-shape checks plus concept.fixture.002; machine validator/conformance downstream |

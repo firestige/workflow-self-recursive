@@ -6,7 +6,7 @@
 
 每个 exact `metric_id@version` 恰好映射一个 Python module 与一个 pure calculator entry point。Resolution/normalization 在 calculator 外完成；calculator 只接收 immutable typed input slice，不能查询 Evidence、读取其他 metric、选择 engine 或 fallback 到另一算法。
 
-每个成功解析 side 都返回全部 12 entries。每个 missing/expired input 按 Catalog exact disposition 处理：可能降低该 metric/slice 的 coverage、只排除对应 evaluation unit，或在 required reading/sample 无法建立时 withheld value；绝不自动使其他 metric 失败。Coverage/exclusion 按 `agentops.evaluation.metric-catalog@2.0.0` 评审候选持续发布。
+每个成功解析 side 都返回全部 12 entries。Delivery lifecycle 必须先于 metric-specific evaluation unit 解析：每个 `EXPIRED` Delivery 及其 contained inputs 在形成 numerator、denominator、coverage 或 minimum-sample count 前退出当前 population。Active Delivery 即使 required input missing/invalid 也仍保持 eligible；该输入不进入受影响 metric 的 coverage numerator，其他 metric 继续。Retention 绝不产生 partial coverage。Coverage/exclusion 按 `agentops.evaluation.metric-catalog@2.0.0` 评审候选持续发布。
 
 共同禁止：按名称猜 Task membership；用 Trace closure 判 terminal；按 Delivery ID/time/arrival 绑定 model call；把 absent 当 zero；currency/unit conversion；估算 cost；合成 token total；把 Workflow 顺序当 recorded reach；因果或改进表述。
 
@@ -18,7 +18,7 @@
 | admitted Workflow/Role configuration | exact Evidence Delivery Manifest projection；optional digest-matched Workflow source content 负责 validation/enrichment | Manifest 冻结 Snapshot + Role-prompt identity/digest 作为 event-time cohort；observed C30 选择该 coordinate。External bytes 不是公式真值输入；不使用 self-reported template Event、current checkout、source name 或 time inference |
 | Delivery terminal/outcome/C55/C56 | Delivery Summary/Event typed Facts | exact `delivery_id`；open 保持 open；C55/C56 只读 direct field |
 | repair relationship | typed Fact/relationship projection | exact recorded finding/fix identities，不按相邻关系推断 |
-| model-call identity/tuple | recorded Trace NODE + matching attribution projection | exact `(trace_id, span_id)` + provider+C57 model+C30 Role+C06 Runtime；独立 expiry 可见 |
+| model-call identity/tuple | recorded Trace NODE + matching attribution projection | exact `(trace_id, span_id)` + provider+C57 model+C30 Role+C06 Runtime；先应用 Delivery lifecycle gate，再形成 call units |
 | native call duration | recorded Trace NODE | exact Span；不用 Delivery elapsed 或 BI timestamp subtraction |
 | input/output tokens | recorded Trace NODE | exact Span；input/output 分离 |
 | reported Usage | typed Usage Fact | exact kind/unit/value/source/source_id；metric-specific identity/tuple linkage 仍须精确 |
@@ -42,7 +42,7 @@
 | `operational-attributable-cost@2.0.0` / `operational_attributable_cost.py` | money/reported money unit；1 | reported money Usage + complete tuple + native Trace/Span exact Event-to-call binding | 只合并 exact model/Role/kind/unit/source/source_id；缺失精确绑定降低本 metric coverage；不按 Delivery/time join、不定价/估算/转换 |
 | `operational-usage-availability@2.0.0` / `operational_usage_availability.py` | rate/ratio；1 | 所有 exact eligible attributed model calls；explicit applicable usage-source；complete tuple | 每个 eligible call 保留在 denominator；只有 explicit applicable source 进入 numerator；missing classification 同时反映在 coverage，不等于 zero token usage，也不自动使整个 metric unavailable |
 
-Catalog 拥有 exact formula、evaluation unit、numerator/denominator、minimum sample 与 coverage policy；本文只拥有 Evolution module/input assignment 与 fail-closed physical reading。
+Catalog 拥有 exact formula、内层 evaluation unit、numerator/denominator、minimum sample 与 coverage policy。Delivery lifecycle 是外层 population gate，不把 Task/model-call metric 改写成 Delivery metric；本文只拥有 Evolution module/input assignment 与 fail-closed physical reading。
 
 ## 4. Normalization 与 compare boundary
 
@@ -52,4 +52,4 @@ Calculator 不比较 sides。左右独立 12-item sets 形成后，comparison la
 
 ## 5. Conformance matrix
 
-复用并扩展 existing identity、duplicate/conflict、pagination、completeness、retention、expiry fixtures，证明：12 个 candidate slots 恰好各一次；两个 removed coordinate 及 alias 均不可调用；zero/absence 分离；每个 metric/slice 独立发布 coverage；minimum sample withheld value 但不隐藏 coverage；open/mixed Task fail closed；per-call join 只用 exact Span；mixed Usage coordinates 不合并；Trace expiry 只影响依赖输入；单 metric unavailable 不使 set 失败；incompatible sides 无 Delta；calculator 不导入 HTTP、DB、frontend、其他 calculator 或 engine selector。
+复用并扩展 existing identity、duplicate/conflict、pagination、completeness、retention、expiry fixtures，证明：12 个 candidate slots 恰好各一次；两个 removed coordinate 及 alias 均不可调用；zero/absence 分离；每个 metric/slice 独立发布 coverage；minimum sample withheld value 但不隐藏 coverage；open/mixed Task fail closed；per-call join 只用 exact Span；mixed Usage coordinates 不合并；增加 expired Delivery 不改变 value/numerator/denominator/coverage/sample count；增加 active 且 required input missing/invalid 的 Delivery 只形成 applicable coverage gap；all-expired population 返回 `NO_POPULATION`；单 metric unavailable 不使 set 失败；incompatible sides 无 Delta；calculator 不导入 HTTP、DB、frontend、其他 calculator 或 engine selector。
