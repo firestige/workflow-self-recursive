@@ -21,6 +21,12 @@
 
 本文是 Evidence durable landing、accepted state、factual projection、read-only query API、lifecycle 与 local data-service deployment 含义的唯一语义 owner。Execution binding、Runtime lifecycle、custody 与 outbound emission 是 opaque producer concern，由对等 Design 拥有。Observation fact meaning 由 Observation Catalog 命名，exact wire mapping 由 OTel Observation Profile 拥有，transport interaction 由 Interaction Contract 拥有，human metric reading 由 Metric Catalog 拥有；本 Design 不复制 73-field registry、complete-shape rule 或 metric schema。
 
+### Iteration 5 Task/Manifest projection 候选
+
+2026-08-28 candidate 在不改变 Evidence truth/control boundary 的前提下扩展系统。一条 accepted Profile 2 `task.binding` owner record 原子创建 Task declaration、Delivery membership/guard、optional Task display name 与一个按 full Manifest digest keyed 的 immutable evidence-safe Delivery Manifest projection。Evidence 只通过 exact read-only Manifest-digest query 暴露该 projection；它绝不读取 Execution storage、repository configuration 或 Workflow sources，也不把 projection 当作 Metric Result 或 actual model use proof。
+
+Projection 保留 Evolution 所需的 exact Workflow Package/Snapshot coordinates 与 admitted Role→Agent-Provider/LLM-route/model map，同时拒绝 credentials、endpoints、local/source paths、prompts、attachments 和 Provider-native configuration。它复用 accepted-record duplicate/conflict transaction 与 never-expire membership lifecycle；Fact/Trace retention 保持独立。Carrier、Task discovery/membership cutoff、Manifest shape/query 与 conformance rules 由 [`delivery-manifest-projection.zh-CN.md`](delivery-manifest-projection.zh-CN.md) 以及 `system-contracts/observation-task-binding`、`system-contracts/evidence-task-query` 下的 review candidates 共同闭合。这些在 Profile 2 与 Evidence Query 1.0 通过 lifecycle gates 前仍是 candidate bytes。Published Profile 1.0 与 Evidence Query 0.1 保持不变。
+
 <a id="ee-evidence-2"></a>
 ## 2. 上下文、问题与范围
 

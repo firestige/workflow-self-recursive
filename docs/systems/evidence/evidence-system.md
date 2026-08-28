@@ -21,6 +21,12 @@
 
 This document is the single semantic owner of Evidence durable landing, accepted state, factual projection, read-only query API, lifecycle, and local data-service deployment meanings. Execution binding, Runtime lifecycle, custody, and outbound emission are opaque producer concerns owned by the peer Design. Observation fact meaning is named by the Observation Catalog, exact wire mapping by the OTel Observation Profile, transport interaction by the Interaction Contract, and human metric reading by the Metric Catalog; this Design does not copy the 73-field registry, complete-shape rules, or metric schema.
 
+### Iteration 5 Task/Manifest projection candidate
+
+The 2026-08-28 candidate extends Evidence without changing its truth or control boundary. One accepted Profile 2 `task.binding` owner record atomically creates Task declaration, Delivery membership/guard, optional Task display name, and one immutable evidence-safe Delivery Manifest projection keyed by the full Manifest digest. Evidence exposes the projection only through an exact read-only Manifest-digest query. It never reads Execution storage, repository configuration, or Workflow sources and never treats the projection as a Metric Result or proof of actual model use.
+
+The projection preserves the exact Workflow Package/Snapshot coordinates and admitted Role→Agent-Provider/LLM-route/model map needed by Evolution, while rejecting credentials, endpoints, local/source paths, prompts, attachments, and Provider-native configuration. It shares the accepted-record duplicate/conflict transaction and never-expire membership lifecycle; Fact and Trace retention remain independent. Its carrier, Task discovery/membership cutoff, Manifest shape/query, and conformance rules are jointly closed by [`delivery-manifest-projection.md`](delivery-manifest-projection.md) and the review candidates under `system-contracts/observation-task-binding` and `system-contracts/evidence-task-query`. These are candidate bytes until Profile 2 and Evidence Query 1.0 pass their lifecycle gates. Published Profile 1.0 and Evidence Query 0.1 remain unchanged.
+
 <a id="ee-evidence-2"></a>
 ## 2. Context, Problem, and Scope
 
