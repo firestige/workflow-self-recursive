@@ -112,7 +112,9 @@ Receipt 是单次 response 的审计记录，不是 input manifest、持久 serv
 
 ## 7. Exact numeric model
 
-Calculator 使用 Python exact integer、money minor unit 与 `Decimal`。公共 decimal 使用 canonical decimal string；禁止 binary float、隐式 currency/unit conversion 与推断 precision。Ratio 保留 exact numerator/denominator；decimal expansion 声明 precision/rounding。
+Calculator 使用 Python exact integer、money minor unit、`Decimal` 与 exact rational arithmetic。公共 decimal 使用 canonical decimal string；禁止 binary float、隐式 currency/unit conversion 与推断 precision。Ratio value 与 coverage `raw_ratio` 使用约分后的 canonical rational string（`0`、`1`，或 denominator 为正的 signed `numerator/denominator`）；published ratio numerator/denominator 仍是 exact integer。`0/0` 不是零：coverage 发布 `raw_ratio: null`、`state: NO_POPULATION`、`alert: null`。Coverage alert 只能是 `LOW_COVERAGE` 或 `null`，并按 Catalog 的 exact integer cross-multiplication rule 决定，绝不使用显示后的舍入值。
+
+BI 可以把 Evolution 提供的 ratio 显示为百分数或小数，并将显示值四舍五入到小数点后两位。这只是 presentation-only transform：receipt、tooltip、table fallback 与 drill-down 仍保留 exact numerator/denominator 和 rational value；显示值既不是 Fact，也不是新的 Metric Result。Evolution 不持久化、也不使用两位小数显示值做 compare。
 
 ## 8. Calculator isolation
 
