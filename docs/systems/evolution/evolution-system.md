@@ -185,3 +185,27 @@ Metric truth states are closed as `AVAILABLE`, `LOWER_BOUND`, `NOT_APPLICABLE`, 
 Coverage is published independently for every metric/slice and never gates an otherwise eligible value. Minimum sample independently withholds the value. Mixed Usage kind/unit/source/source_id values remain separate or incompatible and are never converted. Contract/API additions are backward-incompatible unless introduced under a new exact revision; no SemVer range, alias, or runtime fallback selects an implementation.
 
 Conformance must prove 12/12 candidate registry completeness and rejection of both removed coordinates, pure calculator boundaries, deterministic normalization of the same bound inputs, exact rational/integer preservation, zero/absence separation, per-metric coverage, full pagination, final stability subject to expiry, Task open/mixed handling, compare incompatibility, no direct DB access, and no frontend formula import. Existing Evidence identity, conflict, pagination, completeness, retention, and expiry fixtures are extended; no Task-specific or cross-route-snapshot Oracle concept is added.
+
+## 10. Runtime assembly and health
+
+The production process is one stateless ASGI service on private container port `8000`. It is assembled
+only from an explicit JSON file named by required environment variable `WSR_EVOLUTION_CONFIG`; ambient
+repository files, Execution configuration, database variables, provider credentials, and browser input
+never participate. The configuration is closed and contains:
+
+- `schema_version: "evolution.runtime@1.0.0"`;
+- one absolute `http` or `https` `evidence_base_url` without user-info, query, or fragment;
+- the required ordered `workflow_sources` array defined by the Workflow source design;
+- optional lower-or-equal overrides for the published resolution limits.
+
+The source-built image bundles the pinned Workflow DSL 2.0 candidate checker and its locked validator
+dependency. Evolution extracts each bounded downloaded archive into a private temporary directory,
+runs that exact checker without a shell, reads only the checker-validated Package/Snapshot documents,
+and removes the directory after the attempt. This validator is integrity/enrichment plumbing, not a
+second metric engine; all Metric Results remain Python-owned. The image does not read a live
+`system-contracts` checkout at runtime.
+
+`GET /healthz` is process/listener liveness only and returns no configuration or dependency details.
+It is not browser-proxied and does not claim Evidence or GitHub readiness. Dependency failure remains
+route-scoped: Evidence transport failure produces typed retryable compute failure, while Workflow
+source failure remains the bounded receipt diagnostic defined in the source-resolution design.

@@ -140,3 +140,27 @@ Metric truth closed enum 为 `AVAILABLE`、`LOWER_BOUND`、`NOT_APPLICABLE`、`U
 Coverage 按 metric/slice 独立发布且不 gate eligible value；minimum sample 独立 withheld value。Mixed Usage kind/unit/source/source_id 分离或 incompatible，禁止换算。Contract/API addition 除非进入新 exact revision，否则视为 incompatible；不以 SemVer range、alias 或 runtime fallback 选择实现。
 
 Conformance 必须证明 12/12 candidate registry 且拒绝两个 removed coordinates、pure calculator boundary、相同 bound inputs 的 deterministic normalization、exact rational/integer preservation、zero/absence、per-metric coverage、完整 pagination、受 expiry 约束的 final stability、Task open/mixed、compare incompatibility、no DB、no frontend formula。扩展现有 Evidence identity/conflict/pagination/completeness/retention/expiry fixtures，不新增 Task-specific 或 cross-route-snapshot Oracle 概念。
+
+## 10. Runtime 装配与健康语义
+
+Production process 是监听私有容器端口 `8000` 的单一 stateless ASGI service。它只从 required
+environment variable `WSR_EVOLUTION_CONFIG` 指向的 explicit JSON file 装配；ambient repository
+file、Execution config、database variable、provider credential 与 browser input 均不参与。该配置
+是 closed shape，只包含：
+
+- `schema_version: "evolution.runtime@1.0.0"`；
+- 一个没有 user-info/query/fragment 的 absolute `http` 或 `https` `evidence_base_url`；
+- Workflow source design 已定义的 required ordered `workflow_sources` array；
+- 对已发布 resolution limits 的可选、只能降低或保持的 override。
+
+Source-built image 会绑定 pinned Workflow DSL 2.0 candidate checker 及其 locked validator
+dependency。Evolution 将每个 bounded downloaded archive 解压到 private temporary directory，以
+no-shell 方式运行该 exact checker，只读取 checker 已验证的 Package/Snapshot documents，并在该次
+attempt 后删除 temporary directory。此 validator 只是 integrity/enrichment plumbing，不是第二套
+metric engine；全部 Metric Result 仍由 Python 拥有。Runtime image 不读取 live
+`system-contracts` checkout。
+
+`GET /healthz` 只表达 process/listener liveness，不返回配置或依赖细节。它不经 browser proxy，
+也不声称 Evidence/GitHub ready。Dependency failure 保持 route-scoped：Evidence transport failure
+产生 typed retryable compute failure；Workflow source failure继续使用 source-resolution design 的
+bounded receipt diagnostic。
