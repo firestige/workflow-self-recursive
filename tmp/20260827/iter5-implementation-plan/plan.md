@@ -391,3 +391,176 @@ BLOCK/FAIL：wave0/wave1/G1 ENTRY 未满足；实际动作超出 G2a/G2b 已授�
 
 BLOCK/FAIL：任何 metric 仍由 BI/Evidence 计算；selection/read set 依赖跨 route transaction snapshot；UI 决策被推迟到组件实现；只有深色稿；设计图表不是 Mermaid；Archify 被当作 authority 或机械照搬。
 
+### wave4 — Metric Result contract 与 Evolution Python scaffold
+
+> 状态：`PASS`。四组件 durable heads 已由 superproject `b9601802` 固定；完整门禁与独立 exit audit 均无 P0/P1。
+
+- [x] 先写 RED schema/API tests，覆盖 selection、resolved receipt、single/compare result、truth/coverage、Decimal、unknown revision/field、idempotency 与 upstream failure。
+- [x] 在获准的 contract lifecycle 中对齐 Task contract：Delivery 默认 NEW、用户显式 REUSE exact `task_id`、Execution/Observation 逐级传递、Evidence declaration/membership 与 bounded Task query；`display_name` optional 且不参与 identity。此项是已确认方向的正常物化，不是待重开的架构 blocker。
+- [x] 建立 Python service、typed models、路由、依赖注入与 14 个 calculator interface/module slot；此 wave 不实现公式。
+- [x] 建立 calculator boundary tests，证明 UI、API resolver 与其他 calculator 不 import 具体算法；算法替换只影响目标 calculator focused UT。
+- [x] 固定每个 metric 只有一个 active implementation；依赖清单不含 NumPy/Pandas，除非新证据触发独立设计裁决。
+- [x] 生成 `evidence/wave4.md`。
+
+BLOCK/FAIL：contract 把 Fact 与 Metric Result 混为同一身份；Evolution 需要 DB；一个 metric 可在运行时选择多个引擎；算法细节泄漏到 API/UI。
+
+### wave5 — Evolution Evaluation 实现与 14 项 Metric Results
+
+> 状态：`IN_PROGRESS`。Wave4 PASS 与 exact component pins 已满足 ENTRY；owner 已授权无阻塞时持续执行。
+
+- [ ] 先写 Evidence client/selection-read-set resolver RED tests：route-local cursor drift/expiry、partial traversal、timeout、unknown revision、selection ambiguity、receipt binding 与有界读取；不得增加跨 Facts/Traces global-snapshot Oracle。
+- [ ] 逐 metric 先写 RED golden/edge tests，再在独立 calculator module 实现 14 项 Catalog 公式；覆盖 explicit zero、missing/incompatible、minimum sample、coverage、mixed unit/currency、open/mixed task。
+- [ ] 对 count/ratio/money 使用 exact integer 与 Decimal pipeline，显式记录 numerator、denominator、unit、rounding 和 provenance；禁止 float 成为权威结果。
+- [ ] 实现 single 与 left/right compare；delta 由 Evolution 基于两个 Metric Results 计算，BI 只展示 Before/Delta/After。
+- [ ] 证明 calculator 局部替换只需其 focused UT 与固定 contract tests，不要求无关 metric/UI 全量测试作为算法正确性的前置证明。
+- [ ] 生成 `evidence/wave5.md`。
+
+BLOCK/FAIL：BI 创建 Metric Result；Evidence 存储 derived metric；同一 coordinate 多算法并存；结果依赖 JS number、时间戳顺序或未绑定的 resolved read set。
+
+### wave6 — BI clients、语义化样式与展示组件
+
+> 状态：`NOT_STARTED`。ENTRY 依赖 Wave5 PASS，当前未满足。
+
+- [ ] 先写 TypeScript client RED tests；实现 Evolution Metric Result/receipt 与 Evidence Fact/Trace drill-down clients，均由 Vite 构建并 fail closed。
+- [ ] 落地 Tailwind semantic tokens/bindings，覆盖 light/dark、type、space、density、shape、surface、border、status、focus、motion；禁止页面散落 raw palette/spacing magic values。
+- [ ] 按 Wave3 map 实现 Metric Result、metric explanation、Receipt、compare metric navigator、Evidence Console、Trace recorded-structure navigator 与 Still/Live motion 的全状态 preview/tests；组件名不是必须保留的 API。
+- [ ] BI 只允许图形分桶、百分比显示、scale/layout 等 presentation aggregation；禁止输出、缓存或回写新的 Fact/Metric Result。
+- [ ] 生成 `evidence/wave6.md`。
+
+BLOCK/FAIL：前端出现 Catalog 公式或 calculator；主题切换需要逐组件改色；浅/深主题语义不等价；组件缺失完整状态与 accessibility oracle。
+
+### wave7 — #53 Metric Result 与 compare 视图
+
+> 状态：`NOT_STARTED`。ENTRY 依赖 Wave6 PASS，当前未满足。
+
+- [ ] 先写 single/compare vertical slice RED browser tests，覆盖 zero/absence/lower-bound/unavailable/expired/incompatible/sample/coverage/API error、responsive、theme parity 与 keyboard。
+- [ ] 实现 selection → resolved receipt → Metric Result 展示；compare 由 BI 提交左右 selection，展示 Evolution 返回的 Before/Delta/After。
+- [ ] 所有值均显示 Catalog coordinate、unit、Catalog 实际发布的 numerator/denominator（若有）、coverage、provenance、receipt 与 metric explanation；stable deep link 可重建 selection。
+- [ ] D3 只做展示聚合与布局；不得跨 incompatible coordinate 聚合或做 currency/unit conversion。
+- [ ] 逐条映射 #53，生成 `evidence/wave7.md`；保持 #53 OPEN 至 wave12。
+
+BLOCK/FAIL：BI 公式、无来源值、隐式事实、compare 使用浏览器重算 metric；truth states、主题或窄屏不可区分。
+
+### wave8 — #54 Trace recorded structure 与有限动效
+
+> 状态：`NOT_STARTED`。ENTRY 依赖 Wave7 PASS，当前未满足。
+
+- [ ] 先写 NODE/PARENT_EDGE/LINK、orphan、pagination、PARTIAL/EXPIRED/ABSENT、Live/Still、reduced-motion 与 keyboard RED tests。
+- [ ] 只按 OTel 已记录 parent structure 建图和遍历；同 depth sibling 同时展示，LINK 独立表现。时间戳只显示，不参与因果、排序或播放顺序。
+- [ ] MotionGovernor 使用有限、可终止的 recorded traversal；支持 Live/Still 与 `prefers-reduced-motion`，不依赖高精度时钟或 arrival order。
+- [ ] Trace recorded-structure navigator 只表达已记录 parent structure、LINK 与 orphan；不得把 authored reach、名称、task 分组或布局暗示为 runtime causality。独立 Recorded Reach 组件不实现。
+- [ ] 逐条映射 #54，生成 `evidence/wave8.md`；保持 #54 OPEN 至 wave12。
+
+BLOCK/FAIL：任何边/顺序从 timestamp、arrival order、名称或分组推断；无限动效；partial/expired 被当 complete/absent。
+
+### wave9 — #55 Evolution/Evidence/BI serving 与部署
+
+> 状态：`NOT_STARTED`。ENTRY 依赖 Wave8 PASS，当前未满足。
+
+- [ ] 先写 Nginx、Evolution、Evidence、network/health/degraded RED integration tests；unknown/write routes fail closed。
+- [ ] Vite multi-stage build 只产出 Nginx + dist；Nginx 同源反代 approved Evolution 与 Evidence 只读/无副作用 API。Nginx 不计算指标。
+- [ ] Compose 加入无状态 Evolution；PG 仅供 Evidence，Evolution 只经 Evidence Query 读取 Facts 与 recorded Traces，BI 无 DB path；PG/Evidence/Evolution 均无 host port，BI 默认 bind `127.0.0.1`。
+- [ ] 完成 local source build、operations、health/readiness 与 upstream degraded behavior；无 registry/publisher secret。
+- [ ] 逐条映射 #55，生成 `evidence/wave9.md`；保持 #55 OPEN 至 wave12。
+
+BLOCK/FAIL：Evolution/BI 直连数据库；Evidence 承载 metric/UI；Nginx 实现业务；默认暴露内部服务或需要远端 publisher。
+
+### wave10 — #56 Execution/Evidence 独立性 qualification
+
+> 状态：`NOT_STARTED`。ENTRY 依赖 Wave9 PASS，当前未满足。
+
+- [ ] 保留原 oracle sensitivity、canonical Execution result、external conforming producer、无 receipt/outbox/control edge、crash/restart/shutdown 场景。
+- [ ] 增加 Evolution 不参与 Execution progress/outcome 的静态与网络证明；Evolution/Evidence/BI 全部不可用时 Execution canonical result 不变。
+- [ ] 把 #56 验收逐一映射命令、fixture、digest 与结果；生成 `evidence/wave10.md`，保持 #56 OPEN 至 wave12。
+
+BLOCK/FAIL：Observation/Evidence/Evolution/BI 状态改变 canonical Execution result；Evidence 只接受本项目 producer；harness 无法检出 deliberately-coupled mutant。
+
+### wave11 — 最终集成、component squash merge 与 superproject repin
+
+> 状态：`NOT_STARTED`。ENTRY 依赖 Wave10 PASS，当前未满足。
+
+- [ ] 在所有特性分支运行 format/lint/type/unit/build/browser/docker/compose/contract/independence suite；逐提交核对文本变更不超过 500 行且每个有产物 wave 至少一提交。
+- [ ] 分别将 `evolution-system`、`wsr-ui` 等 Iter5 component 特性分支 squash merge 回各自主干；禁止保留未经验证的 browser evaluator/manifest 实现。
+- [ ] superproject 特性分支 repin 最终 component main commits，并提交 durable integration qualification；不关闭 Issue。
+- [ ] 生成 `evidence/wave11.md`。
+
+BLOCK/FAIL：组件未 squash merge；主干含旧 evaluator/manifest；final SHA 无法绑定测试；任一提交超过 500 文本行。
+
+### wave12 — clean-checkout 完整 E2E、superproject squash merge 与关闭
+
+> 状态：`NOT_STARTED`。ENTRY 依赖 Wave11 PASS，当前未满足。
+
+- [ ] 从 clean checkout 初始化 submodules，正常安装依赖并从源码构建 Evolution 与 Vite BI images；不依赖未提交文件或预建 dist/image。
+- [ ] 在隔离 network 启动 `pg + evidence + evolution + bi-app`，运行 single/compare/Trace/theme/health/degraded/network/browser E2E 与 #56 independence suite。
+- [ ] 检查 images/config/network 无 credential、DB client 泄漏、未来组件 artifact 或远端 push step。
+- [ ] 将 superproject `iter5/implementation` squash merge 回主干，在最终 main/pins 上重跑 closure suite。
+- [ ] criterion-level PASS 后回填并关闭 #53–56、更新 Project Done；生成 `evidence/wave12.md` 与 Iter5 closure summary。
+
+BLOCK/FAIL：clean source 无法 build；完整拓扑/E2E 不成立；superproject 未 squash merge；Issue/Project 状态与证据不一致。
+
+## 7. 验收追踪矩阵
+
+下面的 criterion ID 与 logical oracle name 在本计划批准后固定；wave2 必须把每个 logical name 映射到一个 exact test file/command，并写入 `wsr-ui/docs/implementation-baseline.md`，不得合并或遗漏。
+
+| ID | Issue 原验收义务 | 主要 wave | 固定 logical oracle | durable evidence |
+|---|---|---|---|---|
+| 53-A1 | 只读/无副作用 | 4,7,9 | `bi.factual.read-only` | Evolution idempotent API + BI/Nginx negative tests |
+| 53-A2 | dashboard/UI 不定义公式或改写 completeness | 3,5,7 | `bi.factual.formula-authority` | 14 isolated calculators + forbidden frontend import/scan |
+| 53-A3 | observed zero 只来自显式零 | 5,7 | `bi.factual.explicit-zero` | Evolution zero/absent/lower-bound golden fixture |
+| 53-A4 | 不推断因果 | 3,7 | `bi.factual.no-inference` | forbidden-copy/model test + UI review fixture |
+| 53-A5 | 按 Evaluation Catalog 渲染 | 3,5,7 | `bi.factual.catalog-binding` | exact catalog revision/digest + 14 Metric Result tests |
+| 53-A6 | selection/receipt/provenance/completeness/availability/expiry/compatibility 可见 | 4,7 | `bi.factual.truth-visible` | result/receipt contract + semantic browser assertions |
+| 54-A1 | 只显示 recorded causal edge | 6,8 | `bi.trace.recorded-only` | graph model fixture |
+| 54-A2 | 时间戳/task 分组/顺序/命名不产生边或播放顺序 | 3,8 | `bi.trace.no-derived-edge` | adversarial graph/motion fixture |
+| 54-A3 | NODE/PARENT_EDGE/LINK 忠实呈现 | 6,8 | `bi.trace.shape-complete` | published query corpus + browser assertions |
+| 54-A4 | detail 过期显式 unavailable | 6,8 | `bi.trace.expiry-visible` | AVAILABLE/PARTIAL/EXPIRED/ABSENT fixture |
+| 54-P1 | 未 observed target 保持 orphan endpoint，不制造 node | 6,8 | `bi.trace.orphan-preserved` | orphan target graph/browser fixture |
+| 54-P2 | snapshot/cursor pagination 忠实且有界 | 5,8 | `bi.trace.pagination-stable` | multi-page/cursor drift/continuation fixture |
+| 55-A1 | Evolution/Evidence 同源代理可用 | 4,9 | `bi.serving.same-origin` | Nginx dist + dual-upstream clean Compose E2E |
+| 55-A2 | read-only/无副作用 Viewer 生效 | 3,9 | `bi.serving.viewer-read-only` | allow-list + write/unknown reject |
+| 55-A3 | 独立 API 配置且不虚构 credential | 3,9 | `bi.serving.api-config` | Nginx/Compose schema + secret scan |
+| 55-A4 | BI/Evolution 无 PostgreSQL 直连/凭据 | 3,9 | `bi.serving.no-database-path` | dependency/config scan + network negative |
+| 55-A5 | UI/同源转发不由 Evidence 托管 | 3,9,11 | `bi.serving.presentation-owner` | image inventory + Compose topology |
+| 56-A1 | Execution 无 Evidence/Evolution/BI 可完整运行 | 10 | `product.independent.execution-alone` | canonical-result outage matrix |
+| 56-A2 | Evidence 接受任意 conforming producer | 10 | `product.independent.producer-neutral` | standalone producer + published fixture digest |
+| 56-A3 | 无 receipt/outbox/control dependency | 10 | `product.independent.no-control-edge` | static dependency + runtime callback/network scan |
+| 56-A4 | disable/refuse/timeout/tail-loss 不改变 Execution result | 10 | `product.independent.outage-invariant` | mutant sensitivity proof + canonical equivalence digest |
+
+## 8. 风险与缓解
+
+| 风险 | 概率×严重度 | 缓解/门 |
+|---|---:|---|
+| `EvaluationSelection` 无法确定性绑定实际 resolved read set | 3×3 | wave3 冻结 logical `as_of`、route-local traversal 与 receipt；禁止 ambient latest、alias 与未回显输入 |
+| 14 项 metric 所需 Fact/input 不可由 Evidence Query 稳定取得 | 3×3 | wave3/5 逐项 input matrix 与 golden；缺失则返回 typed unavailable，不在 BI 猜测 |
+| 严格串行的 Evolution + `wsr-ui` + #53–56 超出 7 天容量 | 3×3 | wave3 重估 critical path；仅增加 Evaluation 最小实现；超期即返回 Project 调整日期/范围，不启用并行 |
+| Python 数值实现或性能后续需要优化 | 2×3 | 每 metric 单一纯 calculator；exact int/minor-unit/Decimal 起步，未来只在目标 module 内经 focused UT/benchmark 替换；无运行时多引擎 |
+| D3.js/React/Tailwind 首版组合无法在 7 天内同时闭合图形、状态与 accessibility | 2×3 | wave1 验证边界，wave2 bounded spike；不回退 Grafana，必要时缩减非验收型视觉装饰 |
+| 缺少既有 layout/UX 导致实现期反复返工 | 3×3 | wave3 一次冻结 IA/layout/type/双主题/tokens/state/visualization/interaction/accessibility；page composition 与 semantic components 解耦 |
+| 深色稿被误当唯一主题规范 | 2×3 | 每个 style frame 成对提供 light/dark；semantic token parity、contrast 与 screenshot oracle 同时验收 |
+| 为未来 builder/sidebar 过早抽象共享 UI framework | 2×3 | repository 共址不等于 framework 共享；只抽取 BI 中已出现的重复视觉元素，未来按需复用 |
+| Docker topology 误暴露 PG/Evidence 或浏览器绕过 Nginx | 2×3 | PG/Evidence 无 host mapping、Nginx allow-list、network negative、Compose E2E |
+| UI 把 missing/expired/partial 显示成 0/absent/complete | 3×3 | typed truth model、RED fixtures、语义级 browser assertions |
+| Trace 图通过布局/动效暗示未记录因果或依赖高精度时钟 | 2×3 | 只沿 recorded parent structure；同 depth sibling 同显、LINK 独立、timestamp/arrival-order negative、finite/reduced motion |
+| #56 变成只读审计而非可证伪验证 | 2×3 | outage/external-producer runtime harness；要求 RED negative |
+| 实现者擅自增加 registry/GitHub/npm 发布 | 2×2 | D5 source-build-only；配置/secret/push step negative scan；wave12 仅 clean-checkout local build/E2E |
+| 用户把 `bi-app` 改成 `0.0.0.0` 后误认为项目提供公网安全 | 2×3 | 默认 bind `127.0.0.1`；override 文档明确 user-owned TLS/auth/firewall/risk |
+| workflow-builder/#95 被借 workspace scaffold 带入 | 3×2 | 禁止占位 package/job/image；component build 与 superproject E2E 均做 negative assertion |
+
+## 9. 评审清单
+
+请 owner 重点确认：
+
+- [x] G0/D1/G2a：owner 已确认并授权独立 `firestige/wsr-ui` + `wsr-ui/` submodule；不接受 BI submodule；授权只在 wave2 ENTRY 满足后执行。
+- [x] D2：owner 已确认不采用 Grafana，UI 使用 D3.js + React + Tailwind CSS；G1/G2b 只冻结应用结构、build tool 与 exact versions。
+- [x] D3 rebaseline：Evaluation 是概念契约；Evidence 提供 Facts/Traces；Evolution 用 Python 实现全部 14 项 Metric Results；BI 不计算 metric，只做展示聚合。
+- [x] D4 rebaseline：BI 提交 `EvaluationSelection`；Evolution 声明 logical `as_of`、绑定实际 exact resolved read set 并返回 `ResolvedEvaluationContext` receipt；不采用跨 Facts/Traces snapshot 或预制只读 manifest。
+- [x] calculator boundary：每个 metric coordinate 只有一个隔离纯 calculator；首版 exact int/minor-unit/Decimal，不做运行时多引擎，NumPy/Pandas 不作为初始依赖。
+- [x] D5 方向：owner 已确认 source-build-only 的 `nginx + dist` Docker image；不向 Docker Hub/GHCR/npm/GitHub Release 发布，用户从源码本地构建。
+- [x] G2b：owner 已授权实施方自行冻结 `wsr-ui` Dockerfile/Nginx/build command 与 superproject Compose/E2E command、ports/DNS/health、默认 `127.0.0.1` bind；无需逐项复批。若涉及 contract gap、规范冲突或实质产品选择则停止返回。
+- [x] D6：workflow-builder 为 idea，#95/intake-sidebar 为非 MVP DSH display plugin 工作；均不进入 Iter5 实现或发布。
+- [x] D7：owner 已确认语义化 Tailwind binding、layout 可换、组件复用；Wave3 必须补齐 IA/layout/排版/双主题/tokens/state/visualization/interaction/accessibility/responsive，并用 Mermaid 表达设计图表。
+- [x] Archify：v2.15.0 与 `tmp/20260827/archify-inspiration/**` 纳入 Wave3，形成 adopt/defer/reject 矩阵；AI 归因与 Workflow 改进/编辑不进入 Iter5。
+- [x] owner 已明确不接受跨 wave 并行；wave ENTRY/写入/PASS 为单链串行，同一 wave 内独立只读分析可并发。当前估算 7.25–10.75 工作日，超出 7 天则返回 Project 排期裁决。
+- [x] owner 已确认 Task/Evolution 已裁决语义走后续获准 contract lifecycle 正常对齐；任何超出这些语义的 FROZEN/cross-system contract gap 都立即返回，不在 Iter5 里顺手修改或重解释。
+
+Wave0–Wave3 的可继承 baseline 已存在；Wave3 durable PASS 已绑定 `wsr-ui@201268e`、superproject `2a1c056e` 与 Issue #53–56。Owner 已明确接受当前排期偏差并放行 Wave4；Project duration 不再是 Wave4 blocker。Issue/Project 后续发生实质范围变化时必须同步本计划；本 tmp 计划不能代替持久决策。
