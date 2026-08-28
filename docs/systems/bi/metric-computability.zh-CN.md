@@ -1,6 +1,6 @@
-# BI Metric 可计算性矩阵
+# BI Metric 可计算性矩阵——已 supersede 的 G1 输入
 
-> **状态：** G1 owner 已批准，2026-08-27。英文 [`metric-computability.md`](metric-computability.md) 是规范权威，本文是跟踪译本。矩阵把每条 consumer branch 绑定到 `agentops.evaluation.metric-catalog@1.0.0`，不重述或改写公式。
+> **状态：****SUPERSEDED**。本文只保留为历史 G1 分析；下面的 browser evaluation、BI-local context manifest 与 snapshot/digest model 均不是当前 authority。Evolution 候选 14-calculator/input matrix 见 [`../evolution/metric-computability.zh-CN.md`](../evolution/metric-computability.zh-CN.md)。
 
 ## 1. Binding 与通用规则
 
