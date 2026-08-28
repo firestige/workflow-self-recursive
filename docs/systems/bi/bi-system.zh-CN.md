@@ -10,12 +10,12 @@ BI 是 Evolution Metric Results 的展示层，也是 Evidence Facts/recorded Tr
 |---|---|
 | Facts / recorded Traces | Evidence |
 | Metric concept/formula/reading | Evaluation Catalog |
-| 14 Metric Results、coverage、compatibility、compare Delta | Evolution |
+| 12 项 candidate Metric Results、coverage、compatibility、compare Delta | Evolution |
 | Selection、layout、visualization、interaction、accessibility | BI |
 
-BI 提交 population-oriented `EvaluationSelection`，不选择 metric implementation。每个成功解析的 side 由 Evolution 返回 `ResolvedEvaluationContext` receipt 与恰好 14 个 `MetricResult`。BI 可直接查询 Evidence 做 result/receipt-linked Fact/Trace detail，但不计算 metric、不创造 Fact、不写 Result、不访问 PostgreSQL、不重建 expired detail。
+BI 提交 population-oriented `EvaluationSelection`，不选择 metric implementation。每个成功解析的 side 由 Evolution 返回 `ResolvedEvaluationContext` receipt 与恰好 12 个 review-candidate `MetricResult`。BI 可直接查询 Evidence 做 result/receipt-linked Fact/Trace detail，但不计算 metric、不创造 Fact、不写 Result、不访问 PostgreSQL、不重建 expired detail。
 
-详细 API/authority 见 [`../evolution/evolution-system.zh-CN.md`](../evolution/evolution-system.zh-CN.md)，14-calculator matrix 见 [`../evolution/metric-computability.zh-CN.md`](../evolution/metric-computability.zh-CN.md)，UI contract 见 [`bi-ui-design.zh-CN.md`](bi-ui-design.zh-CN.md)。
+详细 API/authority 见 [`../evolution/evolution-system.zh-CN.md`](../evolution/evolution-system.zh-CN.md)，12-calculator candidate matrix 见 [`../evolution/metric-computability.zh-CN.md`](../evolution/metric-computability.zh-CN.md)，UI contract 见 [`bi-ui-design.zh-CN.md`](bi-ui-design.zh-CN.md)。
 
 ## 2. Runtime boundary
 

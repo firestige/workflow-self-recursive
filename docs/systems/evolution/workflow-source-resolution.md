@@ -115,6 +115,6 @@ The matched source is explanatory provenance. Package and Snapshot digests remai
 - Evolution or Evidence reading Execution's Manifest repository, worktree, Package Store, or host configuration;
 - Evidence fetching Workflow content from GitHub;
 - accepting the first matching `name@version` without digest validation;
-- letting unavailable external template bytes change a settled Metric Result or fail all fourteen metrics;
+- letting unavailable external template bytes change a settled Metric Result or fail all twelve candidate metrics;
 - adding a cross-Fact/Trace snapshot Oracle;
 - treating source URL, order, release time, or fork name as Workflow content identity.
