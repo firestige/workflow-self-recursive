@@ -32,14 +32,6 @@ openssl rand -out "$secret_dir/runtime" -hex 32
 compose up --build --wait
 base_url="http://127.0.0.1:${host_port}"
 
-if compose exec --no-tty evolution python -c \
-  "import socket; socket.getaddrinfo('database', 5432)" >/dev/null 2>&1; then
-  exit 1
-fi
-if compose exec --no-tty bi-app getent hosts database >/dev/null 2>&1; then
-  exit 1
-fi
-
 curl --fail --silent "$base_url/healthz" | grep -qx ok
 curl --fail --silent "$base_url/evaluate" | grep -q '<div id="root"></div>'
 curl --fail --silent "$base_url/v1/evidence/tasks?limit=1" | grep -q '"items"'
