@@ -116,7 +116,7 @@ GET /v1/evidence/manifests?manifest_digest=<exact-lowercase-sha256>
 
 The request has exactly one required parameter, no body, no pagination, no fuzzy lookup, no list mode, and no latest/version fallback. Success returns exactly one closed projection plus accepted provenance (`accepted_digest`, exact profile version, source) and its projection digest. Missing returns typed `NOT_FOUND`; conflicting stored content is an integrity error, never an arbitrary winner.
 
-The route is independent of Fact and Trace traversal snapshots. This is safe because the Manifest projection is immutable/non-expiring membership authority while Facts and Traces are finally stable recorded observations. Evidence Query 1.0 applies the Delivery-level logical lifecycle defined in [`delivery-observation-lifecycle.md`](delivery-observation-lifecycle.md); class-specific physical scrubbing never creates a consumer-visible partial Delivery. No cross-route snapshot Oracle is introduced.
+The route is independent of Fact and Trace traversal snapshots. This is safe because the Manifest projection is immutable/non-expiring membership authority while Facts and Traces are finally stable recorded observations subject to their existing independent, resource-granular retention. Evidence Query 1.0 adds no Delivery lifecycle API and no cross-route snapshot Oracle. Evolution's consumer-side expiry disposition is documented in [`delivery-observation-lifecycle.md`](delivery-observation-lifecycle.md).
 
 ## 7. Evolution use
 
@@ -126,4 +126,4 @@ The Manifest projection itself supplies the immutable event-time Role-template c
 
 ## 8. Required conformance
 
-Fixtures must prove atomic success/rejection, exact canonical digest, deterministic C09 retry/recovery, duplicate/conflict behavior, C01/C02/C07 equality, absent/present repository state, role sort/uniqueness/Snapshot cross-check, secret/path/endpoint rejection, oversize rejection, exporter byte-bound splitting with a near-limit single record, non-expiry, exact Task/Manifest queries, Task display-name immutability/fallback, no Workflow-prefix inference, Delivery-atomic logical expiry, incremental physical scrubbing with no public state drift, and Delivery-scoped sanitized integrity markers.
+Fixtures must prove atomic success/rejection, exact canonical digest, deterministic C09 retry/recovery, duplicate/conflict behavior, C01/C02/C07 equality, absent/present repository state, role sort/uniqueness/Snapshot cross-check, secret/path/endpoint rejection, oversize rejection, exporter byte-bound splitting with a near-limit single record, non-expiry, exact Task/Manifest queries, Task display-name immutability/fallback, no Workflow-prefix inference, and compatibility with the published independent Fact/Trace expiry states.

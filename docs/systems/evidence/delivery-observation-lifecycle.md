@@ -1,93 +1,84 @@
-# Delivery Observation Lifecycle — Evidence Query 1.0 Candidate
+# Evidence Retention and Evolution Expiry Disposition — Iteration 5 MVP
 
-> **Status:** Iteration 5 design candidate, 2026-08-28. This document defines the breaking
-> Delivery-level lifecycle semantics intended for `evidence.query@1.0.0`. The frozen
-> `evidence.query@0.1.0` bytes and historical semantics remain unchanged. Chinese tracking
-> companion: [`delivery-observation-lifecycle.zh-CN.md`](delivery-observation-lifecycle.zh-CN.md).
+> **Status:** Iteration 5 clarification, 2026-08-28. This document records the retention mechanism
+> already implemented by Evidence and the narrower way Evolution consumes its expiry states. It does
+> not change frozen `evidence.query@0.1.0`, add a new retention subsystem, or require Evidence Query
+> 1.0 to expose a Delivery lifecycle API. Chinese tracking companion:
+> [`delivery-observation-lifecycle.zh-CN.md`](delivery-observation-lifecycle.zh-CN.md).
 
-## 1. Authority and unit boundary
+## 1. Existing Evidence mechanism
 
-Evidence owns the recorded observation lifecycle. A Delivery is the logical retention boundary for
-the observation dataset used by Evolution. Task membership, accepted provenance, and the immutable
-Delivery Manifest remain non-expiring identity authority; they do not keep an expired Delivery in the
-current metric population.
+Evidence already runs automatic, resource-granular retention. Production assembly starts one bounded
+retention loop with the API process. The loop runs once immediately after startup, then waits the
+configured interval before each later iteration. One iteration plans and applies at most one bounded
+batch for each enabled lifecycle class in this order: Raw debug, Trace detail, and factual projection.
 
-Delivery lifecycle is an outer gate. It does not replace the Metric Catalog's inner evaluation units:
-a metric may still count Delivery/template exposures, Tasks, or exact model calls. Evolution first
-removes every `EXPIRED` Delivery and all inputs contained by it, then applies each metric's published
-evaluation-unit and coverage rules to the remaining Deliveries.
+This mechanism is time/policy driven. It is not triggered by an ingest failure, free-space threshold,
+database size, or write-path capacity check. An iteration failure is logged, does not terminate the API,
+and is retried only by a later scheduled iteration.
 
-## 2. Closed observation states
+| Class | Default | Configurable range | Effect |
+|---|---:|---:|---|
+| Raw debug | `PT0S` | `PT0S`–`P1D` | accepted raw payload is scrubbed; accepted identity/provenance remains |
+| Trace detail | `P30D` | `P1D`–`P365D` or `NEVER` | expired detail payload is scrubbed and query exposes the published Trace availability/expiry state |
+| Factual projection | `P365D` | `P30D`–`P3650D` or `NEVER` | projection payload is scrubbed; query retains an explicit unavailable/expired tombstone |
+| Accepted provenance | `NEVER` | not configurable | identity and accepted provenance are retained |
 
-| State | Meaning | Metric-population consequence |
-|---|---|---|
-| `ACTIVE` | The Delivery remains in the current observation population and has no recorded integrity gap. | Its applicable inputs enter metric eligibility and coverage normally. |
-| `PARTIAL` | The Delivery remains current, but Evidence can prove a gap or invalid required record. | The Delivery remains in the applicable base population; each affected metric omits the bad/missing input from its coverage numerator. Unaffected metrics continue. |
-| `EXPIRED` | The Delivery has crossed the committed logical retention boundary. | All inputs owned by that Delivery leave current metric numerator, denominator, coverage, and minimum-sample counts together. |
+The default batch size is 500 resources per enabled class per iteration (range 1–1000). The default
+interval is 60 seconds (range 10–3600 seconds). Configuration is read at service startup; changing an
+environment variable requires a restart. Query snapshots continue to provide their published
+route-local consistency while retention commits independently.
 
-Retention never produces `PARTIAL`. A mix of active and expired Deliveries is evaluated from the
-active subset and is not partial merely because an exclusion exists. If all selected Deliveries are
-expired, metrics report `NO_POPULATION`; the receipt may retain `EXPIRED` identities and exclusion
-reasons without reconstructing detail.
+## 2. Physical expiry is not metric partiality
 
-Metric coverage `PARTIAL` (`0 < covered < eligible`) and compare `PARTIAL_COMPARE` are separate
-closed concepts. They are not aliases for Delivery lifecycle state.
+Frozen Evidence Query 0.1 accurately exposes its existing resource-granular behavior: a Trace with a
+mix of active and expired detail may be returned as `PARTIAL`. That state means partial retained Trace
+detail. It does not prove that the still-current observation was incompletely reported, and Evolution
+must not translate it into metric coverage `PARTIAL`.
 
-## 3. Integrity gaps and invalid records
+For Iteration 5 metric calculation, Delivery is the outer population boundary:
 
-Evidence may mark an active Delivery `PARTIAL` only from recorded, mechanically verifiable input:
+- if a Delivery-scoped read shows retention expiry, Evolution excludes that Delivery and all of its
+  inputs from the current population before applying the Catalog's Task, model-call, template-exposure,
+  or Delivery evaluation units;
+- the excluded Delivery affects neither metric numerator, denominator, coverage, nor minimum-sample
+  count;
+- a mix of active and retention-expired Deliveries is calculated from the active subset and is not
+  metric-partial merely because old data was removed;
+- if no active Delivery remains, the metric has `NO_POPULATION`; the receipt may still explain the
+  retained identity and expiry state.
 
-- a recorded parent or link endpoint required by the accepted Trace structure is absent;
-- a record with independently valid Delivery and record identity is rejected for a closed schema,
-  type, range, or identity-conflict reason.
+An active Delivery with missing or invalid required input is different: the applicable evaluation unit
+remains in that metric's coverage denominator, while only valid covered input enters its coverage
+numerator. Therefore `0 / N` is `NO_COVERAGE`, `0 < C < N` is coverage `PARTIAL`, and `N / N` is
+`FULL`. Invalid values never enter arithmetic.
 
-Evidence records a sanitized Delivery integrity marker for the second case. The marker contains only
-the validated Delivery identity, stable source/record identity or category, a closed reason code, and
-accepted-safe provenance. It never stores the invalid measurement, promotes rejected content to a
-Fact, or creates a Metric Result. A request whose Delivery identity cannot itself be validated remains
-an admission/transport failure and cannot contaminate any Delivery.
+Metric coverage `PARTIAL`, Evidence Trace detail `PARTIAL`, and `PARTIAL_COMPARE` are three separate
+states and must not be aliased.
 
-A completely absent leaf Span with no recorded reference, expected-count declaration, or sequence
-coordinate is not provably missing and must not be inferred. The current Observation contract has no
-Span expected-count or export-group sequence Oracle.
+## 3. Current invalid-input limit
 
-Separately, Evolution may find that an accepted input fails a metric-specific domain rule. That keeps
-the active Delivery/evaluation unit in the metric coverage denominator and omits it from the coverage
-numerator. Evolution reports the metric-specific gap without rewriting Evidence's recorded Delivery
-state or promoting the invalid value.
+Evidence admission stores no rejected record and OTLP `partial_success` is an aggregate response, not a
+durable Delivery-scoped disposition. Consequently, a rejected invalid record cannot later be
+distinguished from a record that was never reported. Evolution may report missing input or reject an
+invalid accepted value it can actually read, but it must not claim that Evidence recorded an invalid
+Delivery input when no such durable marker exists.
 
-## 4. Logical expiry and physical scrubbing
+Iteration 5 does not add an invalid-record store, expected-Span count, export-group sequence, or inferred
+missing leaf. A recorded missing parent/link endpoint may remain visible as an orphan; a completely
+unreferenced absent Span is unknowable.
 
-Logical expiry is atomic at Delivery scope. One committed non-expiring Delivery expiry tombstone
-makes all of that Delivery's queryable Fact/Trace input unavailable to current metric resolution.
-Background storage maintenance may scrub bounded physical records incrementally, but per-record GC
-markers and batch progress are internal bookkeeping. They never affect the public Delivery state and
-can never create `PARTIAL`.
+## 4. MVP boundary
 
-Snapshots observe either the Delivery before logical expiry or after it. They cannot observe a public
-half-expired Delivery merely because a scrub batch has not finished.
+The MVP keeps the existing scheduler, TTL classes, environment configuration, resource-granular
+markers, bounded batches, and query states. It does not add:
 
-## 5. Query and Evolution handoff
+- disk-pressure or write-failure-triggered cleanup;
+- a manual Delivery deletion API or administrative UI;
+- a Delivery-atomic physical GC/tombstone protocol;
+- a durable Delivery-scoped invalid-record marker;
+- automatic capacity tuning, compaction, vacuum policy, or retention recommendations.
 
-Evidence Query 1.0 exposes the exact Delivery observation state with Task membership and with
-Delivery-filtered Fact/Trace traversal. Membership identity remains queryable after expiry. Evolution
-binds the state and exclusion reason in `ResolvedEvaluationContext`, partitions Deliveries before
-normalization, and prevents expired Facts, Trace nodes, Usage, template exposures, model calls, or
-Task classifications from leaking into calculators.
-
-For an active or partial Delivery, missing/invalid required input remains metric-specific:
-
-- the applicable evaluation unit stays in the metric coverage denominator;
-- only valid covered input enters the coverage numerator;
-- `0 / N` is `NO_COVERAGE`, `0 < C < N` is coverage `PARTIAL`, and `N / N` is `FULL`;
-- unavailable input never becomes zero, and invalid input never enters arithmetic.
-
-## 6. Conformance
-
-Evidence must prove logical Delivery expiry is atomic across query snapshots, physical scrub progress
-does not change public state, retention never emits `PARTIAL`, validated Delivery-scoped invalid input
-does emit `PARTIAL`, unassignable invalid input does not, and unreferenced missing leaves are not
-inferred. Evolution must prove that adding an expired Delivery changes no metric value, numerator,
-denominator, coverage, or minimum-sample count; adding an active Delivery with missing/invalid required
-input changes only the applicable metric's coverage; all-expired selections produce `NO_POPULATION`;
-and mixed active/expired selections do not become partial or expired as a whole.
+Operational details and exact environment variables are documented in
+[`evidence-system/docs/operations.md`](../../../evidence-system/docs/operations.md) and its Chinese
+companion.
