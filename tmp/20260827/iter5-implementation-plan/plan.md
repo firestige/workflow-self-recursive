@@ -8,7 +8,7 @@
 >
 > **明确排除**：[#95](https://github.com/firestige/workflow-self-recursive/issues/95)（含 `intake-sidebar`）属于 DSH display plugin 工作；它与 BI 放在 `wsr-ui` 仅是 repository 管理共址，不构成共享 UI framework/layout/release contract。它不进入 Iter5 的 refinement、实现、分发、容量或完成判定。`workflow-builder` 当前仍是 idea，同样不进入 MVP。
 >
-> **当前 wave**：`WAVE11_IN_PROGRESS`；Wave10 authority 为 superproject `1352f8f9`、`execution-system@cf03813`、`evidence-system@7e3ff4a` 与 `evidence/wave10.md`。Wave11 只执行 component squash merge、superproject repin 与最终集成 qualification。
+> **当前 wave**：`WAVE12_IN_PROGRESS`；Wave11 authority 为 superproject `8bdd1434`、`system-contracts@49d7b85`、`execution-system@1ea4d69`、`evidence-system@9428018`、`evolution-system@394768d`、`wsr-ui@d92c6ce` 与 `evidence/wave11.md`。Wave12 只执行 clean-checkout closure、superproject squash merge 与最终关闭。
 
 ## 1. 目标与完成判定
 
@@ -482,18 +482,18 @@ BLOCK/FAIL：Observation/Evidence/Evolution/BI 状态改变 canonical Execution 
 
 ### wave11 — 最终集成、component squash merge 与 superproject repin
 
-> 状态：`IN_PROGRESS`。Wave10 PASS 已满足 ENTRY；开始 component merge 与最终 repin。
+> 状态：`PASS`。Authority 为 superproject `8bdd1434` 与五个 component main；最终独立 exit review 为 P0=0/P1=0/P2=0，详见 `evidence/wave11.md`。
 
-- [ ] 在所有特性分支运行 format/lint/type/unit/build/browser/docker/compose/contract/independence suite；逐提交核对文本变更不超过 500 行且每个有产物 wave 至少一提交。
-- [ ] 分别将 `evolution-system`、`wsr-ui` 等 Iter5 component 特性分支 squash merge 回各自主干；禁止保留未经验证的 browser evaluator/manifest 实现。
-- [ ] superproject 特性分支 repin 最终 component main commits，并提交 durable integration qualification；不关闭 Issue。
-- [ ] 生成 `evidence/wave11.md`。
+- [x] 在所有特性分支运行 format/lint/type/unit/build/browser/docker/compose/contract/independence suite；逐个日常开发提交核对文本变更不超过 500 行且每个有产物 wave 至少一提交。Squash/merge 集成提交不受 500 行限制。
+- [x] 分别将 `evolution-system`、`wsr-ui` 等 Iter5 component 特性分支 squash merge 回各自主干；禁止保留未经验证的 browser evaluator/manifest 实现。
+- [x] superproject 特性分支 repin 最终 component main commits，并提交 durable integration qualification；不关闭 Issue。
+- [x] 生成 `evidence/wave11.md`。
 
-BLOCK/FAIL：组件未 squash merge；主干含旧 evaluator/manifest；final SHA 无法绑定测试；任一提交超过 500 文本行。
+BLOCK/FAIL：组件未 squash merge；主干含旧 evaluator/manifest；final SHA 无法绑定测试；任一日常开发提交超过 500 文本行。Squash/merge 集成提交豁免。
 
 ### wave12 — clean-checkout 完整 E2E、superproject squash merge 与关闭
 
-> 状态：`NOT_STARTED`。ENTRY 依赖 Wave11 PASS，当前未满足。
+> 状态：`IN_PROGRESS`。Wave11 PASS 已满足 ENTRY；开始 isolated clean-checkout closure。
 
 - [ ] 从 clean checkout 初始化 submodules，正常安装依赖并从源码构建 Evolution 与 Vite BI images；不依赖未提交文件或预建 dist/image。
 - [ ] 在隔离 network 启动 `pg + evidence + evolution + bi-app`，运行 single/compare/Trace/theme/health/degraded/network/browser E2E 与 #56 independence suite。
