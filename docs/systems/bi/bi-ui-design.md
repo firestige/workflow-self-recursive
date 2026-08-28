@@ -8,7 +8,7 @@ The primary Iter5 user configures and operates agents and wants to understand th
 
 The three primary entry tasks are:
 
-1. select a Task-backed evaluation population and inspect its 14 Metric Results;
+1. select a Task-backed evaluation population and inspect its 12 candidate Metric Results;
 2. compare two explicitly selected populations using Evolution-computed Before/Delta/After results; and
 3. verify a result through its receipt, metric semantics, contributing Facts, and recorded Trace structure.
 
@@ -18,7 +18,7 @@ Single evaluation is the default. Compare is an explicit mode of the same worksp
 
 - Evidence is authoritative for accepted Facts and recorded Traces.
 - Evaluation is authoritative for metric concepts and published reading rules.
-- Evolution is authoritative for all 14 Metric Results, result status, coverage, compatibility, and compare Delta.
+- Evolution is authoritative for all 12 Metric Results in the owner-approved Catalog 2.0 review candidate, including result status, per-metric coverage, compatibility, and compare Delta. Published Catalog 1.0 remains historical until 2.0 publication.
 - BI submits `EvaluationSelection`, presents Evolution responses, and queries Evidence directly for Fact/Trace drill-down.
 - BI may perform only presentation transforms: layout, chart-domain selection, display rounding, percentage formatting from an authoritative ratio, and explicit visual binning. It must not calculate a metric, fill a missing value, convert currency/unit, infer causality, or persist a Metric Result.
 
@@ -193,9 +193,9 @@ Only one modal/drawer/sheet owns focus at a time. Receipt and metric explanation
 
 Compare is activated by adding an explicit right selection to the current workspace. Left and right retain separate `EvaluationSelection` and `ResolvedEvaluationContext` receipts. The URL contains both selections and side-specific focused evidence identity.
 
-Before and After are the primary facts and receive symmetric panels, labels, precision, coverage, and provenance. Delta is an Evolution result between them, displayed between/below the sides with a neutral increase/decrease/no-change label. BI never subtracts values. If kinds, units, currency, cost basis, catalog coordinates, or required cohort coordinates are incompatible, both sides remain readable and Delta shows the typed incompatibility reason.
+Before and After are the primary facts and receive symmetric panels, labels, precision, coverage, and provenance. Delta is an Evolution result between them, displayed between/below the sides with a neutral increase/decrease/no-change label. BI never subtracts values. If kinds, units, Usage source/source_id, catalog coordinates, or required cohort coordinates are incompatible, both sides remain readable and Delta shows the typed incompatibility reason.
 
-`PARTIAL_COMPARE` is not a metric-unavailable state. The successful side remains fully readable with its receipt and 14 results; the failed side is a scoped transport/resolution error surface with no receipt, retains its URL selection, owns the retry/focus action, and is announced once. All Delta coordinates show `SIDE_UNRESOLVED`; retry targets only the failed side. A full compare alone has two receipts.
+`PARTIAL_COMPARE` is not a metric-unavailable state. The successful side remains fully readable with its receipt and 12 results; the failed side is a scoped transport/resolution error surface with no receipt, retains its URL selection, owns the retry/focus action, and is announced once. All Delta coordinates show `SIDE_UNRESOLVED`; retry targets only the failed side. A full compare alone has two receipts.
 
 The compare navigator filters/searches exact metric coordinates and reports whether Delta is available; it never ranks heterogeneous metrics or synthesizes an overall winner. On narrow screens, Before precedes After and the Delta summary follows both so screen-reader and visual order preserve the primacy of the two results.
 
@@ -237,7 +237,7 @@ sequenceDiagram
     BI->>EV: compute(selection)
     EV->>ED: traverse bound queries
     ED-->>EV: accepted inputs + identities
-    EV-->>BI: receipt + 14 Metric Results
+    EV-->>BI: receipt + 12 Metric Results
     U->>BI: open result evidence
     BI->>ED: query receipt-bound identities
     ED-->>BI: Facts / recorded Trace detail

@@ -93,6 +93,6 @@ Matched source 只是 provenance；Package/Snapshot digest 是 equality authorit
 - Evolution/Evidence 读取 Execution Manifest repo、worktree、Package Store 或 host config；
 - Evidence fetch GitHub Workflow；
 - 不校验 digest 就接受首个同名同版本；
-- unavailable external template bytes 改变 settled Metric Result 或拖垮全部 14 metrics；
+- unavailable external template bytes 改变 settled Metric Result 或拖垮全部 12 个 candidate metrics；
 - 新增 cross-Fact/Trace snapshot Oracle；
 - 用 source URL/order/release time/fork name 充当 content identity。

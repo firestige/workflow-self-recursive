@@ -1,10 +1,10 @@
 # Evolution System — Iteration 5 Detailed Design Candidate
 
-> **Status:** Wave3 design candidate, 2026-08-28. English is the candidate normative text; the tracking Chinese companion is [`evolution-system.zh-CN.md`](evolution-system.zh-CN.md). This document records confirmed design direction but does not itself amend a published Contract or authorize Wave4 implementation.
+> **Status:** Wave5 implementation design, 2026-08-28. English is the candidate normative text; the tracking Chinese companion is [`evolution-system.zh-CN.md`](evolution-system.zh-CN.md). The owner-approved [Metric Catalog 2.0 review candidate](../../contracts/evaluation/metric-catalog-2-candidate.md) is the active implementation target; it is not yet a published Contract.
 
 ## 1. Authority and purpose
 
-Evolution is the sole Iter5 runtime authority for the 14 Metric Results published by `agentops.evaluation.metric-catalog@1.0.0`.
+Evolution is the sole Iter5 runtime authority for the 12 Metric Results in the `agentops.evaluation.metric-catalog@2.0.0` review candidate. Published 1.0.0 remains immutable history and is not silently rebound.
 
 - Evidence owns accepted Facts, recorded Traces, Task membership, and evidence-safe Delivery Manifest projections. Evolution reads them through Evidence Query and never accesses PostgreSQL or Execution storage.
 - Evaluation is the metric conceptual Contract. It is not a deployable runtime component.
@@ -20,7 +20,7 @@ flowchart LR
     EVID -->|"Manifest content coordinates"| EVO
     SRC["ordered Workflow sources · content provider"] -->|"exact digest match"| EVO
     CAT["Evaluation Catalog · metric semantics"] --> EVO
-    EVO -->|"receipt + 14 results"| BI
+    EVO -->|"receipt + 12 results"| BI
     BI -->|"Fact/Trace drill-down"| EVID
 ```
 
@@ -73,11 +73,11 @@ The public surface is a closed, versioned, side-effect-free `POST /api/evolution
 - `SINGLE` contains exactly one `selection`; `COMPARE` contains independently supplied `left` and `right` selections.
 - Each `EvaluationSelection` contains `selection_version: 1` and 1–24 duplicate-free exact `task_ids`, sorted canonically by Evolution. This is the closed count cap; BI independently enforces an 8 KiB limit on the complete percent-encoded URL because legal 128-character IDs may expand during encoding. It may carry only later-published closed filter fields; `display_name`, aliases, metric IDs, layout, and visualizer state are forbidden.
 - A selection describes a population query, not a set of metrics.
-- Evolution always evaluates the exact 14-coordinate catalog bound to the API revision.
+- Evolution always evaluates the exact 12-coordinate candidate catalog bound to the API revision.
 - A receipt is returned with the response; no prebuilt read-only manifest exists.
 - Repeating an unresolved selection may observe newly accepted Evidence. Once reporting has settled, active Evidence is finally stable; a later retention transition may intentionally produce `EXPIRED` or `UNAVAILABLE` instead of the former result.
 
-The response uses a tagged side union: `side_result={receipt, metric_results[14]}` or `side_error={code,retryable,detail}`. `SINGLE` succeeds only with one `side_result`. A full `COMPARE` has two side results and 14 coordinate-aligned Delta entries; `PARTIAL_COMPARE` has one of each side tag and 14 Delta-coordinate entries all marked `SIDE_UNRESOLVED`. A metric-level absence never removes an item from a successful side result.
+The response uses a tagged side union: `side_result={receipt, metric_results[12]}` or `side_error={code,retryable,detail}`. `SINGLE` succeeds only with one `side_result`. A full `COMPARE` has two side results and 12 coordinate-aligned Delta entries; `PARTIAL_COMPARE` has one of each side tag and 12 Delta-coordinate entries all marked `SIDE_UNRESOLVED`. A metric-level absence never removes an item from a successful side result.
 
 ```json
 {"api_version":1,"mode":"SINGLE","selection":{"selection_version":1,"task_ids":["task-a","task-b"]}}
@@ -99,7 +99,7 @@ flowchart LR
     P --> W["resolve exact Manifest-bound Workflow content"]
     W --> K["bind Catalog coordinate"]
     K --> R["issue ResolvedEvaluationContext"]
-    R --> M["run 14 isolated calculators"]
+    R --> M["run 12 isolated calculators"]
 ```
 
 No stage may use a display name as identity, an alias, ambient latest value, recency lookup, inferred Task membership, cursor restart, or partial traversal presented as complete.
@@ -131,14 +131,14 @@ Canonical ordering is bytewise over stable IDs and exact coordinates; array orde
 
 ## 6. MetricResultSet and compare
 
-- Every successful side resolution contains exactly the 14 published metric coordinates; no missing or additional coordinate is accepted silently. Individual entries may be withheld without failing the other 13.
+- Every successful side resolution contains exactly the 12 candidate metric coordinates; no missing or additional coordinate is accepted silently. Individual entries may be withheld without failing the other 11.
 - Each result separates value truth, unit/compatibility coordinates, numerator/denominator or contributing count where published, coverage, exclusions, missing inputs, provenance references, uncertainty, and forbidden readings.
 - Coverage remains visible when minimum sample withholds a value.
 - Explicit zero, missing, lower bound, not applicable, expired, incompatible, and transport/service error remain distinct.
 - Compare resolves both sides separately. Evolution returns Delta only for the same metric coordinate with compatible kind, unit, and required coordinates; otherwise it returns a typed withheld reason.
 - Before and After are Metric Results. Delta is an Evolution-derived comparison result, never a BI calculation.
 
-Each `MetricResult` has one closed multi-slice shape. Scalar metrics contain one slice with an empty canonical dimension map; multi-output metrics contain one slice per exact published outcome, stage, token direction, model/Role cohort, or currency/source/cost-basis key. No mixed truth is collapsed into a top-level scalar:
+Each `MetricResult` has one closed multi-slice shape. Scalar metrics contain one slice with an empty canonical dimension map; multi-output metrics contain one slice per exact candidate outcome, stage, token direction, model/Role cohort, or Usage kind/unit/source/source_id key. No mixed truth is collapsed into a top-level scalar:
 
 | Field | Rule |
 |---|---|
@@ -149,11 +149,11 @@ Each `MetricResult` has one closed multi-slice shape. Scalar metrics contain one
 | `slices[].measures` | named published measures only; never a BI-created total |
 | `slices[].numerator` / `denominator` / `contributing_count` | present only where the Catalog publishes them; exact integers |
 | `slices[].coverage` | exact Catalog fields `numerator`, `denominator`, `raw_ratio`, `state`, and `alert`; always present; `raw_ratio` is `null` for `NO_POPULATION`, otherwise the canonical exact rational derived from the two integer counts |
-| `slices[].compatibility` | exact currency/source/basis or provider/model/Role/Runtime and other required coordinates |
+| `slices[].compatibility` | exact Usage kind/unit/source/source_id or provider/model/Role/Runtime and other required coordinates |
 | `slices[].exclusions` / `missing_inputs` | typed reason counts/references allowed by the Contract |
 | `slices[].provenance_refs` / `reading` | receipt input references, uncertainty, limitations, and forbidden claims |
 
-`Delta` aligns each exact published measure/slice key inside the same metric coordinate—for example outcome, stage, token direction, or currency/source/cost-basis slice. For a compatible aligned slice, `delta = after - before` in the authoritative unit; `INCREASE`, `DECREASE`, or `NO_CHANGE` follows the sign. It does not publish percent change, rank, winner, or good/bad meaning. For ratio metrics, a UI may label the same Evolution-supplied difference in percentage points; it must not calculate another delta. An unpaired, valueless, or incompatible slice is withheld while every available Before/After slice remains present.
+`Delta` aligns each exact candidate measure/slice key inside the same metric coordinate—for example outcome, stage, token direction, or Usage kind/unit/source/source_id slice. For a compatible aligned slice, `delta = after - before` in the authoritative unit; `INCREASE`, `DECREASE`, or `NO_CHANGE` follows the sign. It does not publish percent change, rank, winner, or good/bad meaning. For ratio metrics, a UI may label the same Evolution-supplied difference in percentage points; it must not calculate another delta. An unpaired, valueless, or incompatible slice is withheld while every available Before/After slice remains present.
 
 ## 7. Exact numeric model
 
@@ -165,7 +165,7 @@ BI may present an Evolution-supplied ratio as either a percentage or a decimal a
 
 Each exact metric coordinate maps to one pure Python calculator module. A calculator consumes an immutable normalized input slice and does not access HTTP, Evidence, a database, React, selection parsing, or another metric implementation. Compare/delta is outside individual calculators. Replacement is a source-level change inside one module, never a runtime engine selector or fallback.
 
-The companion [`metric-computability.md`](metric-computability.md) is the 14-calculator input/conformance matrix. The initial physical mapping reads native model-call duration and standard input/output token measurements from recorded Trace NODEs and joins per call only by `(trace_id, span_id)`. Direct Usage/cost remains a Fact input. If the current contracts cannot bind a Usage event to one exact model call, that candidate unit cannot supply call-attributed cost/source input; the calculator applies the Catalog's exact exclusion and coverage behavior while other eligible units may still produce a value. Delivery identity, timestamps, or arrival order may not repair the join.
+The companion [`metric-computability.md`](metric-computability.md) is the 12-calculator input/conformance matrix. The initial physical mapping reads native model-call duration and standard input/output token measurements from recorded Trace NODEs and joins per call only by `(trace_id, span_id)`. Reported Usage remains a Fact input. If the current contracts cannot bind a Usage event to one exact model call, that candidate unit cannot supply call-attributed Usage input; the calculator applies the Catalog's exact exclusion and coverage behavior while other eligible units may still produce a value. Delivery identity, timestamps, or arrival order may not repair the join.
 
 ## 9. Compatibility, errors, and conformance
 
@@ -174,12 +174,12 @@ Errors are layered so one missing metric never masquerades as a failed request:
 | Layer | Examples | Response behavior |
 |---|---|---|
 | Request | malformed JSON, unknown field/variant/version, empty/duplicate/over-limit Task set | bounded `400`; no result envelope; not retryable without correction |
-| Resolution side | Evidence transport failure, invalid cursor, incomplete traversal, Contract/revision mismatch | never converted to `UNAVAILABLE`; retryability explicit. SINGLE failure, or failure of both COMPARE sides, returns bounded `502`/`503`. One failed COMPARE side returns `PARTIAL_COMPARE`: retain the successful `side_result`, return one typed `side_error`, and mark all 14 Delta coordinate entries `SIDE_UNRESOLVED` because failed-side slice keys are unknown |
+| Resolution side | Evidence transport failure, invalid cursor, incomplete traversal, Contract/revision mismatch | never converted to `UNAVAILABLE`; retryability explicit. SINGLE failure, or failure of both COMPARE sides, returns bounded `502`/`503`. One failed COMPARE side returns `PARTIAL_COMPARE`: retain the successful `side_result`, return one typed `side_error`, and mark all 12 Delta coordinate entries `SIDE_UNRESOLVED` because failed-side slice keys are unknown |
 | Metric result | missing input, lower bound, N/A, expired input, insufficient sample, open/mixed Task, mixed unit/currency | HTTP success with the coordinate retained and a typed truth/withheld reason; other metrics continue |
 | Compare Delta | side unavailable or compatibility mismatch | retain both side results; Delta entry withheld with exact reason |
 
 Metric truth states are closed as `AVAILABLE`, `LOWER_BOUND`, `NOT_APPLICABLE`, `UNAVAILABLE`, `EXPIRED`, and `INCOMPATIBLE`; `SAMPLE_INSUFFICIENT` is a distinct value-withholding reason with coverage still present. Request/upstream `ERROR` is not a truth value. Explicit zero is an available value and is never encoded as absence.
 
-Coverage is always published according to the Catalog and never gates an otherwise eligible value. Minimum sample independently withholds the value. Mixed currency/unit/source/cost-basis values remain separate or incompatible and are never converted. Contract/API additions are backward-incompatible unless introduced under a new exact revision; no SemVer range, alias, or runtime fallback selects an implementation.
+Coverage is published independently for every metric/slice and never gates an otherwise eligible value. Minimum sample independently withholds the value. Mixed Usage kind/unit/source/source_id values remain separate or incompatible and are never converted. Contract/API additions are backward-incompatible unless introduced under a new exact revision; no SemVer range, alias, or runtime fallback selects an implementation.
 
-Conformance must prove 14/14 registry completeness, pure calculator boundaries, deterministic normalization of the same bound inputs, Decimal canonicalization, zero/absence separation, full pagination, final stability subject to expiry, Task open/mixed handling, compare incompatibility, no direct DB access, and no frontend formula import. Existing Evidence identity, conflict, pagination, completeness, retention, and expiry fixtures are extended; no Task-specific or cross-route-snapshot Oracle concept is added.
+Conformance must prove 12/12 candidate registry completeness and rejection of both removed coordinates, pure calculator boundaries, deterministic normalization of the same bound inputs, exact rational/integer preservation, zero/absence separation, per-metric coverage, full pagination, final stability subject to expiry, Task open/mixed handling, compare incompatibility, no direct DB access, and no frontend formula import. Existing Evidence identity, conflict, pagination, completeness, retention, and expiry fixtures are extended; no Task-specific or cross-route-snapshot Oracle concept is added.
