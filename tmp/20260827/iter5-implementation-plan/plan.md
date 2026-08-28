@@ -8,7 +8,7 @@
 >
 > **明确排除**：[#95](https://github.com/firestige/workflow-self-recursive/issues/95)（含 `intake-sidebar`）属于 DSH display plugin 工作；它与 BI 放在 `wsr-ui` 仅是 repository 管理共址，不构成共享 UI framework/layout/release contract。它不进入 Iter5 的 refinement、实现、分发、容量或完成判定。`workflow-builder` 当前仍是 idea，同样不进入 MVP。
 >
-> **当前 wave**：`WAVE8_IN_PROGRESS`；Wave7 authority 为 `wsr-ui@f474e35`、`evolution-system@294409c` 与 `evidence-system@04fd564`。Wave8 只实现 #54 recorded Trace structure、确定性布局与有限 Still/Live traversal；时间戳与 arrival order 不参与因果或播放顺序。
+> **当前 wave**：`WAVE9_IN_PROGRESS`；Wave8 authority 为 `wsr-ui@d67ba3c`、`evolution-system@294409c` 与 `evidence-system@030e6ee`。Wave9 只实现 #55 same-origin serving、容器网络、health 与 degraded-path integration。
 
 ## 1. 目标与完成判定
 
@@ -448,19 +448,19 @@ BLOCK/FAIL：BI 公式、无来源值、隐式事实、compare 使用浏览器�
 
 ### wave8 — #54 Trace recorded structure 与有限动效
 
-> 状态：`IN_PROGRESS`。Wave7 PASS 已满足 ENTRY；开始 #54 recorded Trace vertical slice。
+> 状态：`PASS`。Authority 为 `wsr-ui@d67ba3c` 与 `evidence/wave8.md`；#54 保持 OPEN 至 Wave12。
 
-- [ ] 先写 NODE/PARENT_EDGE/LINK、orphan、pagination、PARTIAL/EXPIRED/ABSENT、Live/Still、reduced-motion 与 keyboard RED tests。
-- [ ] 只按 OTel 已记录 parent structure 建图和遍历；同 depth sibling 同时展示，LINK 独立表现。时间戳只显示，不参与因果、排序或播放顺序。
-- [ ] MotionGovernor 使用有限、可终止的 recorded traversal；支持 Live/Still 与 `prefers-reduced-motion`，不依赖高精度时钟或 arrival order。
-- [ ] Trace recorded-structure navigator 只表达已记录 parent structure、LINK 与 orphan；不得把 authored reach、名称、task 分组或布局暗示为 runtime causality。独立 Recorded Reach 组件不实现。
-- [ ] 逐条映射 #54，生成 `evidence/wave8.md`；保持 #54 OPEN 至 wave12。
+- [x] 先写 NODE/PARENT_EDGE/LINK、orphan、pagination、active `PARTIAL/ABSENT`、Delivery-deleted not-found、Live/Still、reduced-motion 与 keyboard RED tests。
+- [x] 只按 OTel 已记录 parent structure 建图和遍历；同 depth sibling 同时展示，LINK 独立表现。时间戳只显示，不参与因果、排序或播放顺序。
+- [x] MotionGovernor 使用有限、可终止的 recorded traversal；支持 Live/Still 与 `prefers-reduced-motion`，不依赖高精度时钟或 arrival order。
+- [x] Trace recorded-structure navigator 只表达已记录 parent structure、LINK 与 orphan；不得把 authored reach、名称、task 分组或布局暗示为 runtime causality。独立 Recorded Reach 组件不实现。
+- [x] 逐条映射 #54，生成 `evidence/wave8.md`；保持 #54 OPEN 至 wave12。
 
-BLOCK/FAIL：任何边/顺序从 timestamp、arrival order、名称或分组推断；无限动效；partial/expired 被当 complete/absent。
+BLOCK/FAIL：任何边/顺序从 timestamp、arrival order、名称或分组推断；无限动效；active data hole 被当 complete；为已物理删除 Delivery 重建 expired item/detail。
 
 ### wave9 — #55 Evolution/Evidence/BI serving 与部署
 
-> 状态：`NOT_STARTED`。ENTRY 依赖 Wave8 PASS，当前未满足。
+> 状态：`IN_PROGRESS`。Wave8 PASS 已满足 ENTRY；开始 #55 serving/deployment integration。
 
 - [ ] 先写 Nginx、Evolution、Evidence、network/health/degraded RED integration tests；unknown/write routes fail closed。
 - [ ] Vite multi-stage build 只产出 Nginx + dist；Nginx 同源反代 approved Evolution 与 Evidence 只读/无副作用 API。Nginx 不计算指标。
