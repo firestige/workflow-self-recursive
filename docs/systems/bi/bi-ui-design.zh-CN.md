@@ -20,7 +20,7 @@ Iter5 只陈述已记录结果、覆盖、来源与限制。它不做 AI/Skill �
 
 ## 3. 用户任务、routes 与 deep-link identity
 
-Task selection 必须区分机器身份与人类辨识。`task_id` 是 selection request、URL parameter、deep-link restoration、equality 与 receipt 唯一使用的稳定值；Task query 另返回可选 `display_name`。Selector 与 context surface 在名称非空白时显示名称，缺失或仅含空白时回退显示 `task_id`。`display_name` 不要求唯一：同名 Task 必须用次级 ID 文本消歧，Task 搜索同时接受名称与 exact ID，且不得合并 identity。空间允许时可以把 ID 作为次级、可复制元数据展示，但 Task 改名不得改变 selection identity，也不得使 deep link 失效。
+Task selection 必须区分机器身份与人类辨识。`task_id` 是 selection request、URL parameter、deep-link restoration、equality 与 receipt 唯一使用的稳定值；Task query 另返回可选 immutable `display_name`。Selector 与 context surface 在名称非空白时显示名称，缺失或仅含空白时回退显示 `task_id`。`display_name` 不要求唯一：同名 Task 必须用次级 ID 文本消歧，Task 搜索同时接受名称与 exact ID，且不得合并 identity。空间允许时可以把 ID 作为次级、可复制元数据展示。Iteration 5 不提供 Task rename mutation；未来若发布 rename capability，必须保持 `task_id` 与 deep-link identity。
 
 稳定 route family 以 `/evaluate` 为根。表中 `{selection-query}` 恰为 single 的 `v=1&task=<task_id>...`，或 compare 的 `v=1&mode=compare&left_task=<task_id>...&right_task=<task_id>...`：
 
@@ -188,7 +188,7 @@ Archify v2.15.0 与本地材料只是设计证据，不是项目 authority。下
 
 ## 15. Verification checklist 与 baseline migration
 
-Wave4+ implementation 必须复用现有 test layers 证明以下设计；Wave3 不写产品代码：URL 优先并恢复完整 single/compare/detail/focus；BI 无 formula/conversion/fill/Delta；visualizer incompatible fail before render 且均有 table/text fallback；全部 truth/interaction/motion states 在双主题下非颜色表达；长名称、大数、双侧 compare、200 rows 与 bounded large Trace 在三档容量可操作；完整 keyboard/focus/forced-colors/reduced-motion；Trace 去 timestamp 后仍确定且 Live 最终停止；Task name missing/duplicate/rename/deep-link 稳定；versioned layout import fail closed；multi-slice duplicate/noncanonical key fail 且 mixed truth 不折叠；24 Task/side 与完整 encoded URL 8 KiB 双重 bound；PARTIAL_COMPARE 保留成功侧、只重试/announce 失败侧并将全部 Delta coordinates 标为 `SIDE_UNRESOLVED`；paired light/dark style frame 语义等价。
+Wave4+ implementation 必须复用现有 test layers 证明以下设计；Wave3 不写产品代码：URL 优先并恢复完整 single/compare/detail/focus；BI 无 formula/conversion/fill/Delta；visualizer incompatible fail before render 且均有 table/text fallback；全部 truth/interaction/motion states 在双主题下非颜色表达；长名称、大数、双侧 compare、200 rows 与 bounded large Trace 在三档容量可操作；完整 keyboard/focus/forced-colors/reduced-motion；Trace 去 timestamp 后仍确定且 Live 最终停止；Task name missing/duplicate/fallback 且不暴露 rename control；versioned layout import fail closed；multi-slice duplicate/noncanonical key fail 且 mixed truth 不折叠；24 Task/side 与完整 encoded URL 8 KiB 双重 bound；PARTIAL_COMPARE 保留成功侧、只重试/announce 失败侧并将全部 Delta coordinates 标为 `SIDE_UNRESOLVED`；paired light/dark style frame 语义等价。
 
 可继承：React、D3.js、Tailwind CSS、TypeScript、Vite、layout-independent primitives、preview/test harness、Docker/Nginx scaffold 与 semantic-token machinery。已 supersede：browser metric computation、BI-local manifest、固定 `/factual`/`/trace` IA、dark-only authority、旧 component boundary，以及把 BI 标成 Evidence authority 的旧 style frame。
 

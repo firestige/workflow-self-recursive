@@ -6,7 +6,7 @@
 
 Evolution 是 Iter5 中 `agentops.evaluation.metric-catalog@1.0.0` 全部 14 项 Metric Result 的唯一运行时权威。
 
-- Evidence 拥有 accepted Facts 与 recorded Traces；Evolution 只经 Evidence Query 读取，不访问 PostgreSQL。
+- Evidence 拥有 accepted Facts、recorded Traces、Task membership 与 evidence-safe Delivery Manifest projections；Evolution 只经 Evidence Query 读取，不访问 PostgreSQL 或 Execution storage。
 - Evaluation 是 metric 概念 Contract，不是可部署组件。
 - Evolution 解析 BI 提交的 `EvaluationSelection`，用 Python 计算全部 published metrics，并返回 `ResolvedEvaluationContext` 回执和 `MetricResultSet`。
 - BI 只展示 Metric Result，并可直接向 Evidence 做 Fact/Trace 下钻；BI 不计算 metric、不创造 Fact、不写回 Metric Result。
@@ -42,6 +42,19 @@ Observation 与 Evidence 要求最终稳定，而不是 Fact/Trace routes 的 tr
 
 Iter5 physical mapping 从 recorded Trace NODE 读取 native operational Span measurement。未来 Contract 可以额外投影 metric-readable Fact，但本设计不依赖它，也不得因此静默替换 exact model-call/lifecycle 语义。
 
+### 2.3 Manifest 与 Workflow content resolution
+
+Task binding 与 Workflow-template 路径也已闭合：
+
+- admission-time `task.binding` 原子提供 Task membership 与 immutable evidence-safe Delivery Manifest projection；
+- Evolution 按 exact Manifest digest 查询 projection，并验证 Delivery/Task identities；
+- projection 提供 exact Package/Workflow Snapshot content coordinates 与 admitted Role→Agent-Provider/LLM-route/model map；
+- Evolution 按 user-configured public GitHub sources 的 non-empty ordered list 解析 Package/Snapshot bytes，只接受 name、exact version、Package digest、Workflow identity/version 与 Snapshot digest 全部匹配的第一个 candidate；
+- source URL/order 只是 provenance，不是 equality authority；`name@version`、latest、local checkout、Execution source 或 current repository configuration 均不能替代 expected digests；
+- Manifest 的 Snapshot/Role-prompt identities 已足够判断 exact event-time Role-template cohort equality。Missing external Workflow bytes 只降级 readable template enrichment，不改变 settled Metric Result；actual Role/model metrics 继续使用 recorded C30/C57 Span tuple。
+
+Execution 需要恰好一个 Workflow source 来 admit 新 Delivery；Evolution 需要多个 ordered sources，因为一个 selected Task population 可能包含来自不同 repository/fork 的 Delivery。Exact algorithm、bounds、failure reduction 与 receipt diagnostics 由 [`workflow-source-resolution.zh-CN.md`](workflow-source-resolution.zh-CN.md) 拥有；portable carrier/query 由 [`delivery-manifest-projection.zh-CN.md`](../evidence/delivery-manifest-projection.zh-CN.md) 拥有。
+
 ## 3. Public compute model
 
 Public surface 是 closed、versioned、无副作用的 `POST /api/evolution/v1/evaluations:compute`。使用 POST 是因为 selection/receipt 是有界结构，不代表 server mutation；settled Evidence 下相同请求在语义上幂等。
@@ -59,11 +72,11 @@ Exact request examples 与英文 companion 第 3 节一致。
 
 ## 4. Selection resolution
 
-意图中的 fail-closed pipeline 是：closed selection validation → canonical query → 遍历 bound Evidence queries → 绑定 exact resolved read set → Catalog binding → receipt → 14 isolated calculators。禁止把 display name 当 identity，也禁止 alias、ambient latest、recency、Task membership 推断、cursor 自动重启或把 partial traversal标成 complete。
+意图中的 fail-closed pipeline 是：closed selection validation → canonical query → 遍历 bound Evidence queries → 绑定 exact resolved read set → 解析 exact Manifest-bound Workflow content → Catalog binding → receipt → 14 isolated calculators。禁止把 display name 当 identity，也禁止 alias、ambient latest、recency、Task membership 推断、cursor 自动重启或把 partial traversal标成 complete。
 
 每个 side resolution 开始时，Evolution 声明一个 logical evaluation `as_of` cutoff，并应用于 Task membership 与 terminal/cohort reading。它是 Catalog §6.2 cutoff，不是 Evidence snapshot token。每个 `/facts`/`/traces` traversal 仍只有自己的 route-local consistency coordinate；这些 token 不建立或近似 shared cutoff/snapshot。
 
-对每个 `task_id`，Evolution 在 logical cutoff 解析 exact Task declaration 与 accepted Delivery membership，并 materialize 该 side 的 immutable defined-task reading。缺 identity/membership 或 event-time cohort coordinates 以 typed reason 排除；任一 member Delivery 没有 explicit terminal Delivery Summary 则 Task 为 open；terminal outcome 冲突则 mixed。Trace closure、timestamp、arrival order 均不能证明 Task terminal。后续复用可改变未来 read set，但不能改写已返回 receipt。
+对每个 `task_id`，Evolution 在 logical cutoff 解析 exact Task declaration、全部 accepted Delivery membership 与每个 exact Manifest projection，并 materialize 该 side 的 immutable defined-task reading。缺 identity/membership/Manifest 时，按 metric-specific typed reason exclude/withhold；external Workflow content 只是 optional enrichment，绝不是公式输入。任一 member Delivery 没有 explicit terminal Delivery Summary 则 Task 为 open；terminal outcome 冲突则 mixed。Trace closure、timestamp、arrival order 均不能证明 Task terminal。后续复用可改变未来 read set，但不能改写已返回 receipt。
 
 ## 5. ResolvedEvaluationContext
 
@@ -75,10 +88,11 @@ Closed receipt shape 包含：
 | `selection` | canonical `EvaluationSelection`，只含 exact IDs |
 | `as_of` | Evolution 声明的 logical Evaluation Catalog cutoff；用于 membership/terminal/cohort reading，与 route snapshot token 分离 |
 | `resolved_at` | response resolution 完成时间，仅供 operator diagnostic；不参与 membership、metric、ordering 或 causality reading |
-| `task_population` | sorted Task IDs、optional display metadata、exact Delivery membership、event-time cohort coordinates、exclusion/terminal readings |
+| `task_population` | sorted Task IDs、optional display metadata、exact Delivery membership、Manifest digests、exclusion/terminal readings |
 | `catalog` | exact Catalog coordinate、semantic digest、Observation dependency |
 | `evidence_bindings` | Evidence Contract/profile/read-model coordinates；每次 route traversal 的 route、canonical filter、route-local snapshot/cursor coordinate、completion/error/expiry |
 | `input_refs` | 实际进入 normalization/calculator 的 sorted exact Fact 与 Trace/Span identities，以及 accepted provenance refs |
+| `workflow_resolutions` | 每个 unique Manifest content coordinate 一项：Evidence projection provenance、expected Package/Snapshot digests、resolution state、available 时的 matched source provenance 与 bounded failed-attempt reasons |
 | `population_state` | complete/partial/open/mixed/expired，保留具体 reason |
 
 Receipt 是单次 response 的审计记录，不是 input manifest、持久 server resource、anti-forgery credential、deep-link requirement 或 cross-route transaction snapshot。BI 可展示/复制 receipt；重新打开 selection 时请求 current receipt。Stable IDs/coordinates 采用 bytewise canonical order；Evidence 返回数组顺序不携带语义。复用 published Evidence identities/digests，不新增 global snapshot digest 或 Oracle。

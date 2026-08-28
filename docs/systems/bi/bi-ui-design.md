@@ -34,7 +34,7 @@ flowchart LR
 
 ## 3. User tasks, routes, and deep-link identity
 
-Task selection separates machine identity from human recognition. `task_id` is the sole stable value used by selection requests, URL parameters, deep-link restoration, equality, and receipts. The Task query also returns an optional `display_name`; selectors and context surfaces show that name when non-blank and fall back to `task_id` when it is absent or whitespace-only. `display_name` is not required to be unique: duplicate names must be disambiguated with secondary ID text, and Task search accepts either name or exact ID without merging identities. Where space permits, the UI may expose the ID as secondary copyable metadata, but renaming a Task must not change selection identity or break a deep link.
+Task selection separates machine identity from human recognition. `task_id` is the sole stable value used by selection requests, URL parameters, deep-link restoration, equality, and receipts. The Task query also returns an optional immutable `display_name`; selectors and context surfaces show that name when non-blank and fall back to `task_id` when it is absent or whitespace-only. `display_name` is not required to be unique: duplicate names must be disambiguated with secondary ID text, and Task search accepts either name or exact ID without merging identities. Where space permits, the UI may expose the ID as secondary copyable metadata. Iteration 5 has no Task rename mutation; a future published rename capability must preserve `task_id` and deep-link identity.
 
 The stable route family is rooted at `/evaluate`. In the table, `{selection-query}` is exactly either `v=1&task=<task_id>...` for single or `v=1&mode=compare&left_task=<task_id>...&right_task=<task_id>...` for compare:
 
@@ -309,7 +309,7 @@ Wave4+ implementation must prove this design through existing test layers; Wave3
 - responsive: long names, large numbers, two-sided compare, 200 rows, and bounded large Trace preserve operation at desktop/tablet/narrow capacities;
 - accessibility: complete keyboard journey, dialog focus restoration, skip link, announcements, forced colors, and reduced motion;
 - Trace: timestamp removal does not change layout/traversal; same settled data preserves identity/order; traversal terminates;
-- Task: display name and ID stay separate, duplicate names disambiguate, rename preserves URL identity, and missing name falls back to ID;
+- Task: display name and ID stay separate, duplicate names disambiguate, no rename control is exposed, and missing name falls back to ID;
 - layout: versioned presets/custom import fail closed and never change selection identity;
 - multi-slice results: duplicate/noncanonical slice keys fail, mixed slice truth is not collapsed, and Delta aligns exact keys only;
 - URL bounds: 24 Task IDs per side and the independent 8 KiB complete encoded-URL limit both fail visibly before navigation;

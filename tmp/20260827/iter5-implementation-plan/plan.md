@@ -8,13 +8,13 @@
 >
 > **明确排除**：[#95](https://github.com/firestige/workflow-self-recursive/issues/95)（含 `intake-sidebar`）属于 DSH display plugin 工作；它与 BI 放在 `wsr-ui` 仅是 repository 管理共址，不构成共享 UI framework/layout/release contract。它不进入 Iter5 的 refinement、实现、分发、容量或完成判定。`workflow-builder` 当前仍是 idea，同样不进入 MVP。
 >
-> **当前 wave**：`WAVE5_IN_PROGRESS`；Wave4 authority 为 `system-contracts@fa42134e`、`execution-system@06fe7102`、`evidence-system@6631f501`、`evolution-system@67e8bf6` 与 superproject pin `b9601802`。Wave5 按 TDD 实现 bounded Evidence resolver、14 项 Catalog 公式与 Evolution-owned compare/delta。
+> **当前 wave**：`WAVE5_IN_PROGRESS / CONTRACT_REBASELINE_FIRST`；Wave4 authority 为 `system-contracts@fa42134e`、`execution-system@06fe7102`、`evidence-system@6631f501`、`evolution-system@e6ff5a5` 与 superproject current component pointer。Wave5 先按 2026-08-28 owner 裁决完成 Workflow DSL 2.0、repository Role→Model、Delivery Manifest projection、Evidence exact Manifest query 与 Evolution ordered Workflow sources 的 durable design/machine-contract alignment；通过 cross-system review 后才继续 calculator/product implementation。
 
 ## 1. 目标与完成判定
 
 Iter5 在现有 `evolution-system` 中补齐 Evaluation 的最小可执行实现，并在独立 `wsr-ui` 组件仓库中交付其 BI presentation surface。Evidence 只负责原始上报数据的汇总、整理、存储与查询，并提供 Facts/Traces；Fact 是输入 `x`。Evaluation 只规定 metric 语义；Evolution 对 Fact 执行计算（包括恒等计算 `f(x)=x`）并返回 Metric Result。BI 不拥有 Evaluation、不计算 metric、不创造 Fact 或 Metric Result，只消费 Evolution 的 Metric Results，并按需直接查询 Evidence 做 Fact/Trace drill-down；图表百分比、分桶和像素布局等展示聚合不得被发布或回写为事实。
 
-运行时由用户从源码构建 Vite/TypeScript 生成的 `nginx + dist` BI 镜像，并新增一个无状态 Python Evolution 服务。BI 经同源路径访问 Evolution 的无副作用 compute API，并只读访问 Evidence 的 Task/Fact/Trace 查询；PostgreSQL 仍只对 Evidence 可达。Evolution 解析 BI 提交的 `EvaluationSelection`，声明逻辑 `as_of`，完整遍历各自使用 route-local snapshot/cursor 的 Evidence queries，绑定本次 response 实际使用的 exact resolved read set，计算全部 14 项 Metric Result，并返回 `ResolvedEvaluationContext` receipt。不存在跨 Fact/Trace transaction snapshot 或新增 stability Oracle。
+运行时由用户从源码构建 Vite/TypeScript 生成的 `nginx + dist` BI 镜像，并新增一个无状态 Python Evolution 服务。BI 经同源路径访问 Evolution 的无副作用 compute API，并只读访问 Evidence 的 Task/Fact/Trace 查询；PostgreSQL 仍只对 Evidence 可达。Evolution 解析 BI 提交的 `EvaluationSelection`，声明逻辑 `as_of`，完整遍历各自使用 route-local snapshot/cursor 的 Evidence queries，按 exact Manifest digest 取得 evidence-safe Manifest projection，再从用户配置的 ordered Workflow sources 解析 digest-matched Package/Snapshot content，绑定本次 response 实际使用的 exact resolved read set，计算全部 14 项 Metric Result，并返回 `ResolvedEvaluationContext` receipt。不存在跨 Fact/Trace transaction snapshot 或新增 stability Oracle。
 
 完成判定要求全部满足：
 
@@ -111,6 +111,7 @@ BI **没有业务 backend**：React/D3 通过 typed TypeScript clients 访问 Ng
 - 结论：BI 无业务 backend；`bi-app` runtime 是 Vite 构建的 Nginx + dist，并由 Nginx 在 Docker 内网分别反代 Evolution Metric Result 与 Evidence Fact/Trace 只读 API。Evolution 使用 Python，实现 Evaluation 的 14 项 metric。
 - 结论：`workflow-builder`、`bi`、`intake-sidebar` 只是 repository 共址的独立交付物。Iter5 只交付 BI；视觉元素优先组件化，未来两个交付物仅按当时需求选择性复用。
 - contract stop rule：已确认的 Task binding/query 与 Evolution Metric Result/selection/receipt 需要在后续获准 lifecycle 中物化为 exact revision，这是正常 contract alignment，不是架构 blocker。只有实现要求超出这些已确认语义、修改其他 FROZEN 语义或新增未裁决的跨系统 authority 时，当前 wave 才立即 BLOCK 并返回 owner。
+- 2026-08-28 contract rebaseline：Repository 是 Role→model-selection policy 的最小 scope；missing repository file/Role mapping 使用 Execution global default `{provider, model}` selection。Agent identity 是 exact Role snapshot + Agent Provider + LLM route/model；Route 不再拥有 generic Agent-definition/model。DSH profile/composition 拥有 settings/credential/endpoint/adapter，并向 Execution 提供 installation-scoped realm factory；Manifest 后每个 Delivery 获得独立 DSH-E realm，Runner 只拥有 lifecycle lease/disposal。Execution 恰配置一个 Workflow source；Evolution 配置 ordered non-empty Workflow source list，并以 Package/Snapshot digests 精确匹配。Manifest 冻结 Snapshot 与 resolved Role→Agent-Provider/LLM-route/model map；同一 `task.binding` 原子投影 membership 与 evidence-safe Manifest reading。实现必须先更新 durable design/machine contracts，再按 TDD 修改产品代码。
 
 ### 3.3 两阶段人工门
 
@@ -130,6 +131,7 @@ BI **没有业务 backend**：React/D3 通过 typed TypeScript clients 访问 Ng
 | D3（决策编号，非 D3.js） | metric computation | **OWNER_REBASELINED**：Evaluation 是概念契约；Evolution 以 Python 实现全部 14 项 metric 并提供 Metric Results；BI 不计算 metric | 任一 metric 落入 BI/Evidence，或同一 metric 出现运行时多引擎/多算法选择时停止 |
 | D4 | evaluation-level inputs | **OWNER_CONFIRMED / WAVE3 DETAILED**：BI 提交 1–24 exact Task IDs/side 的 `EvaluationSelection`；Evolution 声明逻辑 `as_of`、解析 exact resolved Evidence read set 并返回 `ResolvedEvaluationContext` receipt；各 traversal 自有 snapshot/cursor，不存在跨 route snapshot、只读 manifest 或 deep-link digest | selection 需要 ambient latest/alias、receipt 不能绑定实际 read set，或实现要求跨 route transaction snapshot 时停止 |
 | D8 | Task selection 与展示 | **OWNER_CONFIRMED / CONTRACT_ALIGNMENT REQUIRED**：Delivery 默认 NEW Task，用户可显式 REUSE exact `task_id`；Execution 固定绑定并沿 Observation 传递；Evidence 接收 declaration/membership 并提供 bounded Task query；BI 以 optional `display_name` 展示、缺名回退 ID，identity/URL/receipt 一律使用 ID | 不得按名称、时间、Workflow 或相邻 Delivery 推断 reuse/membership；published Contract revision 只在后续获准 lifecycle 中落地 |
+| D9 | Role/model 与 Workflow source authority | **OWNER_CONFIRMED / CONTRACT REBASELINE REQUIRED**：repo 配置 exact Role→model；缺项回退 Execution default；删除新 DSL 的 generic Agent-definition/model resource；Execution 一 source、Evolution ordered multi-source；Manifest/Evidence 提供 exact Package/Snapshot 与 resolved binding reading | 不得按 Route/Action/Task/Delivery 覆盖 model，不得让 Evolution 读 Execution filesystem/current checkout，不得只按 `name@version` 或 source URL 匹配 |
 | D5 | BI source-to-image 分发闭环 | **OWNER_CONFIRMED**：`wsr-ui` 自管 Dockerfile/Nginx/source-build check；superproject 自管完整 Compose/E2E；用户自管源码搬运、源配置、local tag 与 override；无远端制品发布 | committed source 无法 native build 或完整 Compose E2E 不成立则不关闭 Iter5；不得增加平台矩阵、reproducible-build contract 或远端 publisher |
 | D6 | 非 MVP UI 与共址边界 | **OWNER_CONFIRMED**：workflow-builder 仍为 idea；intake-sidebar 属于 #95；均不进入 Iter5。三者是独立交付物，共址不等于共享 framework；BI 只组件化自身需要的视觉元素 | 只能另走 refinement/schedule；不得借未来复用扩大 BI scaffold |
 | D7 | BI UI/UX 与组件化原则 | **OWNER_REBASELINED**：语义先行、浅色/深色等价、布局可换、组件复用、逐层收敛；Tailwind semantic binding 承载配色、间距、排版、形状、层级、focus 与 motion；设计图表统一使用 Mermaid | detailed UI decisions、light/dark parity 或可执行 semantic token binding 任一缺失时停止 |
@@ -147,7 +149,7 @@ D5 的“发布”是 **source-to-image distribution**，不是把预构建制�
 | source boundary | 哪个项目负责什么 | `wsr-ui` 管 BI source、Dockerfile、Nginx 和自身 build test；superproject 管 `wsr-ui` pin、完整 `pg + evidence + bi-app` Compose 与 E2E | wave2 冻结 exact repo:path 和命令；不得把完整系统 Compose 塞回 `wsr-ui` |
 | dependency/source access | 公共源不可达由谁处理 | 用户负责配置 Docker/npm 等公共源或自己的私源；项目不提供镜像同步、离线包、vendor bundle 或私源适配 | 文档只列正常构建前提；源连通性失败不是产品 fallback 设计 |
 | platform | 是否做 amd64/arm64 构建矩阵 | 不做。Docker native build 使用当前构建目标平台，并从支持多平台的 base image 选择对应变体；不设置交叉编译矩阵，不发布 multi-arch manifest | 项目只运行 native source-build smoke；某环境/base/dependency不支持时由该用户调整构建环境或源码 |
-| runtime topology | 四个容器如何连接 | `pg`、`evidence`、`evolution`、`bi-app` 在隔离 Docker network 内互联；PostgreSQL 只对 Evidence，Evolution 只经 Evidence Query 取 Fact，Nginx 仅允许已批准的 Evolution Metric Result 与 Evidence Fact/Trace 路径，浏览器只访问 Nginx | components 验证自身 image；superproject 冻结 service/DNS/port/health/readiness 并执行完整 E2E |
+| runtime topology | 四个容器如何连接 | `pg`、`evidence`、`evolution`、`bi-app` 在隔离 Docker network 内互联；PostgreSQL 只对 Evidence；Evolution 经 Evidence Query 取 Fact/Trace/Task/Manifest reading，并按配置访问 public Workflow sources；Nginx 仅允许已批准的 Evolution Metric Result 与浏览器所需 Evidence Task/Fact/Trace 路径，浏览器只访问 Nginx | components 验证自身 image；superproject 冻结 service/DNS/port/health/readiness、Evolution source config 并执行完整 E2E |
 | listener / auth | 默认谁能访问、是否鉴权 | 默认不做 application auth/RBAC；`bi-app` host port 默认 bind `127.0.0.1`。用户要跨机/公网访问时，自行配置外部反代，或显式改为 `0.0.0.0` 并自行承担访问控制 | wave9 验证默认配置；文档明确 override 是 user-owned deployment choice，不把它误报为安全默认 |
 | build qualification | 如何证明 committed source 没漏文件且可以构建 | fresh checkout/submodule init → 正常 dependency install → `docker compose build` → isolated Compose up → factual/Trace/health/network smoke；这是普通 build/E2E 验收，不承诺跨机器字节相同或 image digest 相同 | `wsr-ui` 保存自身 build test；superproject 保存完整 E2E command/result |
 | local customization | tag、源、监听和源码修改能否由用户决定 | 可以。默认 Compose 值只为开箱使用；用户可换 local tag、源、反代、host bind 或修改源码，修改后的系统不再是项目验收过的 exact checkout | 文档说明默认值和责任边界，不把用户 override 纳入版本/兼容契约 |
@@ -406,16 +408,19 @@ BLOCK/FAIL：contract 把 Fact 与 Metric Result 混为同一身份；Evolution 
 
 ### wave5 — Evolution Evaluation 实现与 14 项 Metric Results
 
-> 状态：`IN_PROGRESS`。Wave4 PASS 与 exact component pins 已满足 ENTRY；owner 已授权无阻塞时持续执行。
+> 状态：`IN_PROGRESS / CONTRACT_REBASELINE_FIRST`。Wave4 PASS 与 exact component pins 已满足 ENTRY；owner 已授权无阻塞时持续执行，并明确要求本次新增跨系统语义先改文档再写实现。
 
-- [ ] 先写 Evidence client/selection-read-set resolver RED tests：route-local cursor drift/expiry、partial traversal、timeout、unknown revision、selection ambiguity、receipt binding 与有界读取；不得增加跨 Facts/Traces global-snapshot Oracle。
+- [ ] 先闭合 durable design：Workflow DSL 2.0 Role/Route/Agent identity、Execution repository Role→Model/default 与单 source、Delivery Manifest revision、Observation Profile 2 Manifest carrier、Evidence atomic projection/exact query、Evolution ordered multi-source resolution及中英文 companion；历史 published bytes 不原地改写。
+- [ ] 进行 cross-system/fresh-reader review，证明 authority chain、bounds、failure/partial semantics、recovery、secret exclusion 与 old-version compatibility 无矛盾；在此 PASS 前不修改产品代码。
+- [ ] 按 TDD 物化 machine contracts 与 fixtures：先 RED，再实现 Workflow DSL 2.0/checker/first-party Packages、Execution admission/Manifest/activation、Observation carrier、Evidence projection/query；所有 component 按依赖串行提交。
+- [ ] 先写 Evolution Evidence/Workflow-source client 与 selection-read-set resolver RED tests：exact Manifest query、ordered exact Package/Snapshot digest match、source failure continuation、template-only unavailability、route-local cursor drift/expiry、partial traversal、timeout、unknown revision、selection ambiguity、receipt binding 与有界读取；不得增加跨 Facts/Traces global-snapshot Oracle。
 - [ ] 逐 metric 先写 RED golden/edge tests，再在独立 calculator module 实现 14 项 Catalog 公式；覆盖 explicit zero、missing/incompatible、minimum sample、coverage、mixed unit/currency、open/mixed task。
 - [ ] 对 count/ratio/money 使用 exact integer 与 Decimal pipeline，显式记录 numerator、denominator、unit、rounding 和 provenance；禁止 float 成为权威结果。
 - [ ] 实现 single 与 left/right compare；delta 由 Evolution 基于两个 Metric Results 计算，BI 只展示 Before/Delta/After。
 - [ ] 证明 calculator 局部替换只需其 focused UT 与固定 contract tests，不要求无关 metric/UI 全量测试作为算法正确性的前置证明。
 - [ ] 生成 `evidence/wave5.md`。
 
-BLOCK/FAIL：BI 创建 Metric Result；Evidence 存储 derived metric；同一 coordinate 多算法并存；结果依赖 JS number、时间戳顺序或未绑定的 resolved read set。
+BLOCK/FAIL：先写产品代码后补契约；静默重解释 published Workflow 1.1/Profile 1/Evidence Query 0.1；BI 创建 Metric Result；Evidence 存储 derived metric；Evidence 读取 Workflow source；Evolution 读取 Execution filesystem；Workflow source 只按 name/version/URL 匹配；同一 coordinate 多算法并存；结果依赖 JS number、时间戳顺序或未绑定的 resolved read set。
 
 ### wave6 — BI clients、语义化样式与展示组件
 
@@ -459,7 +464,7 @@ BLOCK/FAIL：任何边/顺序从 timestamp、arrival order、名称或分组推�
 
 - [ ] 先写 Nginx、Evolution、Evidence、network/health/degraded RED integration tests；unknown/write routes fail closed。
 - [ ] Vite multi-stage build 只产出 Nginx + dist；Nginx 同源反代 approved Evolution 与 Evidence 只读/无副作用 API。Nginx 不计算指标。
-- [ ] Compose 加入无状态 Evolution；PG 仅供 Evidence，Evolution 只经 Evidence Query 读取 Facts 与 recorded Traces，BI 无 DB path；PG/Evidence/Evolution 均无 host port，BI 默认 bind `127.0.0.1`。
+- [ ] Compose 加入无状态 Evolution；PG 仅供 Evidence，Evolution 只经 Evidence Query 读取 Facts、recorded Traces 与 Manifest projections，并按配置只读访问 public Workflow sources；BI 无 DB path；PG/Evidence/Evolution 均无 host port，BI 默认 bind `127.0.0.1`。
 - [ ] 完成 local source build、operations、health/readiness 与 upstream degraded behavior；无 registry/publisher secret。
 - [ ] 逐条映射 #55，生成 `evidence/wave9.md`；保持 #55 OPEN 至 wave12。
 
@@ -531,7 +536,7 @@ BLOCK/FAIL：clean source 无法 build；完整拓扑/E2E 不成立；superproje
 | 风险 | 概率×严重度 | 缓解/门 |
 |---|---:|---|
 | `EvaluationSelection` 无法确定性绑定实际 resolved read set | 3×3 | wave3 冻结 logical `as_of`、route-local traversal 与 receipt；禁止 ambient latest、alias 与未回显输入 |
-| 14 项 metric 所需 Fact/input 不可由 Evidence Query 稳定取得 | 3×3 | wave3/5 逐项 input matrix 与 golden；缺失则返回 typed unavailable，不在 BI 猜测 |
+| 14 项 metric 所需 Fact/input 或 readable Workflow template 不可稳定取得 | 3×3 | wave3/5 逐项 input matrix 与 golden；Manifest projection 冻结公式所需 event-time Role-prompt identity/digest，ordered digest-exact Workflow resolver 只做可读内容 enrichment/integrity check；外部 source 不可用不得改变 settled Metric Result |
 | 严格串行的 Evolution + `wsr-ui` + #53–56 超出 7 天容量 | 3×3 | wave3 重估 critical path；仅增加 Evaluation 最小实现；超期即返回 Project 调整日期/范围，不启用并行 |
 | Python 数值实现或性能后续需要优化 | 2×3 | 每 metric 单一纯 calculator；exact int/minor-unit/Decimal 起步，未来只在目标 module 内经 focused UT/benchmark 替换；无运行时多引擎 |
 | D3.js/React/Tailwind 首版组合无法在 7 天内同时闭合图形、状态与 accessibility | 2×3 | wave1 验证边界，wave2 bounded spike；不回退 Grafana，必要时缩减非验收型视觉装饰 |

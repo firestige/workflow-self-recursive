@@ -14,7 +14,8 @@
 
 | Input reading | 首版 physical source | Exact binding/lifecycle |
 |---|---|---|
-| Task declaration/membership/cohort | 已确认 cross-system design 的 accepted Evidence Task projection | exact `task_id`、explicit Delivery membership、event-time role-template coordinates、Evolution-declared logical `as_of`；不按名称推断 |
+| Task declaration/membership | accepted Evidence Task projection | exact `task_id`、explicit Delivery membership 与 Manifest digest、Evolution-declared logical `as_of`；不按名称推断 |
+| admitted Workflow/Role configuration | exact Evidence Delivery Manifest projection；optional digest-matched Workflow source content 负责 validation/enrichment | Manifest 冻结 Snapshot + Role-prompt identity/digest 作为 event-time cohort；observed C30 选择该 coordinate。External bytes 不是公式真值输入；不使用 self-reported template Event、current checkout、source name 或 time inference |
 | Delivery terminal/outcome/C55/C56 | Delivery Summary/Event typed Facts | exact `delivery_id`；open 保持 open；C55/C56 只读 direct field |
 | repair relationship | typed Fact/relationship projection | exact recorded finding/fix identities，不按相邻关系推断 |
 | packet identity | implementation-summary Fact | exact packet identity 与 supported governance revision |
@@ -30,8 +31,8 @@
 
 | Metric / Python slot | Kind/unit；min sample | Required input/join | Compatibility、withholding 与禁止解释 |
 |---|---|---|---|
-| `role-template-rework-rate@1.0.0` / `role_template_rework_rate.py` | rate/ratio；20 | defined Tasks、event-time template、unique terminal reading、repair links | open/mixed/undefined、missing template/repair 按 Catalog 排除或 withheld；known no-repair 是 zero numerator；无因果归因 |
-| `role-template-trajectory-partial-cost@1.0.0` / `role_template_trajectory_partial_cost.py` | money/source currency；20 | Task/template reading + Delivery-linked direct Usage | 仅 exact currency/source/basis；estimated/unattributed/mixed 排除；只能称 partial attributable cost |
+| `role-template-rework-rate@1.0.0` / `role_template_rework_rate.py` | rate/ratio；20 | defined Tasks、由 observed C30 选择的 exact Manifest-bound Snapshot/Role-prompt coordinate、unique terminal reading、repair links | open/mixed/undefined、missing/incompatible Manifest coordinate 或 repair input 按 Catalog 排除/withhold；external prompt-byte availability 不是公式输入；known no-repair 是 zero numerator；无因果归因 |
+| `role-template-trajectory-partial-cost@1.0.0` / `role_template_trajectory_partial_cost.py` | money/source currency；20 | 同一 Manifest/Snapshot/observed-Role template reading + Delivery-linked direct Usage | 仅 exact currency/source/basis；estimated/unattributed/mixed 排除；只能称 partial attributable cost |
 | `role-model-task-outcome-rate@1.0.0` / `role_model_task_outcome_rate.py` | rate/ratio；20 | terminal Task + Catalog-required complete provider/model/Role/Runtime attribution | incomplete projection eligibility 与 open/mixed 严格按 Catalog 处理；每 outcome 与 exact cohort slice 一 numerator；不宣称 model causality |
 | `packet-rework-rate@1.0.0` / `packet_rework_rate.py` | rate/ratio；1 | exact packet/revision + repair relation | missing/unsupported unavailable；known no-repair 是 covered zero；无 severity 推断 |
 | `operational-latency-ms@1.0.0` / `operational_latency_ms.py` | duration/ms；1 | Trace NODE native duration + exact Span 上 complete tuple | invalid duration/tuple 排除 call；发布 contributing count；不用 C55/timestamp/zero |
