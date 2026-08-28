@@ -48,7 +48,7 @@ Trace read 为 `PARTIAL` 时，使用当前已记录且 active 的 exact exposur
 
 ## 4. 每项 metric 自己的 coverage
 
-Coverage 不是独立的数据质量总分。每个 metric result、每个 selected slice 都发布自己的 `{numerator, denominator, raw_ratio, state, alert}`：
+Coverage 不是独立的数据质量总分。每个 metric result、每个 selected slice 都必须发布 `coverage` 字段。Evolution 能建立候选总体时，该字段包含 `{numerator, denominator, raw_ratio, state, alert}`：
 
 - denominator：满足该 metric identity、time-window、cohort 和 base-scope 规则的候选单元；
 - numerator：其中计算该 metric 所需的全部直接输入都可用且兼容的候选单元；
@@ -56,7 +56,9 @@ Coverage 不是独立的数据质量总分。每个 metric result、每个 selec
 
 例如 Evidence 暴露 20 个 in-scope Delivery，其中 16 个具备某项 metric 所需的全部输入，则该项 coverage 精确为 `16/20`、状态为 `PARTIAL`，metric value 只使用这 16 个 Delivery。同一批 20 个 Delivery 上的另一项 metric 可以有不同 coverage。
 
-1.0 的 coverage 状态机、精确有理数、`LOW_COVERAGE` 阈值规则、coverage 永远发布以及独立的 `minimum_sample` 行为全部保持不变。
+Evolution 无法从 resolved input 建立 denominator 时，必须显式返回 `coverage: null`；不得省略字段，也不得伪造 `0/0`。这与“已知候选总体为空”不同：后者仍返回五字段 coverage 对象，其中 counts 为 `0/0`、`raw_ratio: null`、state 为 `NO_POPULATION`。`null` 不能替代 partial/invalid data，也不能导致 sibling slice 失败。
+
+1.0 的 coverage 状态机、精确有理数、`LOW_COVERAGE` 阈值规则、必须显式出现的 coverage 字段以及独立的 `minimum_sample` 行为全部保持不变。
 
 ## 5. 生命周期与实现规则
 

@@ -108,6 +108,8 @@ Read mode is flat at rest. Editing affordances appear only in edit mode. If a sa
 
 Each visualizer declares a stable ID, arity, named input channels, accepted value kinds/units, required authoritative domain, missing-data tolerance, compare support, table fallback, and allowed presentation transforms. The registry filters choices before binding; it does not accept a binding and improvise a semantic interpretation later.
 
+The Wave7 executable registry is deliberately smaller than the design grammar: numeric card, boolean badge, bounded ratio bar, and lossless table. Gauge/pointer, categorical bar, line, and radar remain deferred grammar until Evolution publishes the authoritative domain, ordered dimension, or shared normalized domain they require. A deferred grammar entry is not a valid layout binding and must not appear in the composer.
+
 | Visualizer | Eligible input | Required behavior |
 |---|---|---|
 | Numeric card | one scalar/category result | value, unit, truth state, sample/coverage, and provenance entry point remain visible |
@@ -221,11 +223,11 @@ Evidence Console is a read-only drill-down, not a second evaluator. It has three
 
 1. **Result evidence** — exact provenance/input identities cited by the Metric Result;
 2. **Related Facts** — Facts matching the current selection/metric context but not claimed as calculation lineage; and
-3. **Resolved read set** — the complete bounded Evidence population bound by the receipt.
+3. **Resolved read set** — the complete bounded identity index recorded by the receipt; Fact rows are loaded from Evidence, while non-Fact resource detail remains explicitly unresolved until its own Evidence route is queried.
 
 The UI must not describe Related Facts as contributors. Every row exposes Fact identity, class, relevant coordinates, accepted provenance, lifecycle state, and an exact Trace/Span link when present. Empty, partial, expired, and query-error states remain distinct. Facts come from Evidence; the Console never reconstructs them from Metric Results.
 
-The receipt explains what Evolution resolved: canonical selections, Task/Delivery population, cutoff, catalog and contract coordinates, query/read-set/provenance identities, completeness, expiry, and compatibility. “Resolved read set” displays the exact identities recorded in that receipt; re-running current filters may discover later ingestion and must not be presented as the old receipt's read set. The receipt is a response receipt, not a pre-created manifest and not proof of causation.
+The receipt explains what Evolution resolved: canonical selections, Task/Delivery population, cutoff, catalog and contract coordinates, query/read-set/provenance identities, completeness, expiry, and compatibility. “Resolved read set” displays every exact identity recorded in that receipt. A Facts-only query may hydrate matching `FACT` rows, but it must retain `TRACE_NODE`, `TASK_MEMBERSHIP`, and unmatched provenance identities as visible unresolved references rather than claim an empty or complete fetched resource set. Re-running current filters may discover later ingestion and must not be presented as the old receipt's read set. The receipt is a response receipt, not a pre-created manifest and not proof of causation.
 
 ```mermaid
 sequenceDiagram
