@@ -1,6 +1,6 @@
 # BI Metric Computability Matrix — Superseded G1 Input
 
-> **Status:** **SUPERSEDED** by the Wave3 authority split. This file is retained as historical G1 analysis only. Browser evaluation, the BI-local context manifest, and the snapshot/digest model below are not current authority. Evolution's candidate 14-calculator/input matrix is [`../evolution/metric-computability.md`](../evolution/metric-computability.md).
+> **Status:** **SUPERSEDED** by the Wave3 authority split and the owner-approved Catalog 2.0 candidate. This file is retained as historical G1 / published-1.0 analysis only. Browser evaluation, the BI-local context manifest, the snapshot/digest model, and the 14-metric implementation scope below are not current authority. Evolution's current 12-calculator/input matrix is [`../evolution/metric-computability.md`](../evolution/metric-computability.md).
 
 ## 1. Binding and common rules
 

@@ -1,6 +1,6 @@
 # BI Metric 可计算性矩阵——已 supersede 的 G1 输入
 
-> **状态：****SUPERSEDED**。本文只保留为历史 G1 分析；下面的 browser evaluation、BI-local context manifest 与 snapshot/digest model 均不是当前 authority。Evolution 候选 14-calculator/input matrix 见 [`../evolution/metric-computability.zh-CN.md`](../evolution/metric-computability.zh-CN.md)。
+> **状态：****SUPERSEDED**。本文已被 Wave3 authority split 与 owner 批准的 Catalog 2.0 candidate 废止，只保留为历史 G1 / published-1.0 分析；下面的 browser evaluation、BI-local context manifest、snapshot/digest model 与 14-metric 实现范围均不是当前 authority。Evolution 当前 12-calculator/input matrix 见 [`../evolution/metric-computability.zh-CN.md`](../evolution/metric-computability.zh-CN.md)。
 
 ## 1. Binding 与通用规则
 

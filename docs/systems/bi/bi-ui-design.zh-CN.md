@@ -4,7 +4,7 @@
 
 ## 1. 产品目的与非目标
 
-Iter5 的首要用户是配置和运行 agent、希望理解其配置实际表现的 owner。最常见的三个任务是：选择 Task population 查看 14 项 Metric Result；在同一工作区比较两个明确 selection；经评估回执、指标说明、Facts 与 recorded Trace 核验结果来源。Single 是默认主路径，compare 是同页派生模式，不是事故调查台。
+Iter5 的首要用户是配置和运行 agent、希望理解其配置实际表现的 owner。最常见的三个任务是：选择 Task population 查看 12 项 candidate Metric Result；在同一工作区比较两个明确 selection；经评估回执、指标说明、Facts 与 recorded Trace 核验结果来源。Single 是默认主路径，compare 是同页派生模式，不是事故调查台。
 
 Iter5 只陈述已记录结果、覆盖、来源与限制。它不做 AI/Skill 因果归因，不提出改进建议，不编辑或校准 Workflow，不应用 revision，也不实现 meta-recursive loop。
 
@@ -12,7 +12,7 @@ Iter5 只陈述已记录结果、覆盖、来源与限制。它不做 AI/Skill �
 
 - Evidence 是 accepted Facts 与 recorded Traces 的权威。
 - Evaluation 是 metric 概念与 published reading rules 的权威。
-- Evolution 是 14 项 Metric Results、coverage、compatibility 与 compare Delta 的权威。
+- Evolution 是 owner 已批准的 Catalog 2.0 评审候选 12 项 Metric Results、per-metric coverage、compatibility 与 compare Delta 的权威；2.0 发布前，Catalog 1.0 保持历史状态。
 - BI 提交 `EvaluationSelection`、展示 Evolution response，并直接查询 Evidence 做 Fact/Trace 下钻。
 - BI 只允许 presentation transform：layout、chart domain、display rounding、权威 ratio 的百分比显示和明确标注的视觉分桶。BI 不计算 metric、不填补缺失、不换算 unit/currency、不推断因果、不写回 Result。
 
@@ -124,9 +124,9 @@ Status/compare 总是以颜色加 label/icon/shape/stroke/position 冗余表达�
 
 Compare 由用户为当前 workspace 添加 explicit right selection 启用；左右分别保留 `EvaluationSelection` 与 `ResolvedEvaluationContext`。URL 编码两侧 selection 和 side-specific evidence focus。
 
-Before/After 是事实本体，使用对称 panel、label、precision、coverage 与 provenance；Delta 是 Evolution 返回的 comparison result，以较弱层级、中性 increase/decrease/no-change 文本展示。BI 不做减法。kind/unit/currency/cost basis/catalog/cohort 等不兼容时，左右仍可读，Delta 显示 typed incompatibility。Compare navigator 只定位 exact metric coordinate，不排名或生成 winner。窄屏先 Before、再 After、最后 Delta，确保视觉与 screen-reader 顺序都不倒置事实层级。
+Before/After 是事实本体，使用对称 panel、label、precision、coverage 与 provenance；Delta 是 Evolution 返回的 comparison result，以较弱层级、中性 increase/decrease/no-change 文本展示。BI 不做减法。kind/unit/Usage source/source_id/catalog/cohort 等不兼容时，左右仍可读，Delta 显示 typed incompatibility。Compare navigator 只定位 exact metric coordinate，不排名或生成 winner。窄屏先 Before、再 After、最后 Delta，确保视觉与 screen-reader 顺序都不倒置事实层级。
 
-`PARTIAL_COMPARE` 不是 metric-unavailable：成功侧完整保留 receipt 与 14 results；失败侧是 scoped transport/resolution error surface，没有 receipt，但保留 URL selection、拥有 retry/focus，并只 announce 一次。全部 Delta coordinates 为 `SIDE_UNRESOLVED`，retry 只针对失败侧；只有 FULL compare 才有两份 receipt。
+`PARTIAL_COMPARE` 不是 metric-unavailable：成功侧完整保留 receipt 与 12 results；失败侧是 scoped transport/resolution error surface，没有 receipt，但保留 URL selection、拥有 retry/focus，并只 announce 一次。全部 Delta coordinates 为 `SIDE_UNRESOLVED`，retry 只针对失败侧；只有 FULL compare 才有两份 receipt。
 
 Compare sequence 见英文 companion 第 10 节。
 
