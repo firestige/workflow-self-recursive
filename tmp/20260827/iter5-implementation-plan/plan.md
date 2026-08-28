@@ -8,7 +8,7 @@
 >
 > **明确排除**：[#95](https://github.com/firestige/workflow-self-recursive/issues/95)（含 `intake-sidebar`）属于 DSH display plugin 工作；它与 BI 放在 `wsr-ui` 仅是 repository 管理共址，不构成共享 UI framework/layout/release contract。它不进入 Iter5 的 refinement、实现、分发、容量或完成判定。`workflow-builder` 当前仍是 idea，同样不进入 MVP。
 >
-> **当前 wave**：`WAVE9_IN_PROGRESS`；Wave8 authority 为 `wsr-ui@d67ba3c`、`evolution-system@294409c` 与 `evidence-system@030e6ee`。Wave9 只实现 #55 same-origin serving、容器网络、health 与 degraded-path integration。
+> **当前 wave**：`WAVE10_IN_PROGRESS`；Wave9 authority 为 superproject `79771c3c`、`wsr-ui@7cfc8a8`、`evolution-system@a12fc92`、`evidence-system@030e6ee` 与 `evidence/wave9.md`。Wave10 只执行 #56 Execution/Evidence 独立性 qualification。
 
 ## 1. 目标与完成判定
 
@@ -460,19 +460,19 @@ BLOCK/FAIL：任何边/顺序从 timestamp、arrival order、名称或分组推�
 
 ### wave9 — #55 Evolution/Evidence/BI serving 与部署
 
-> 状态：`IN_PROGRESS`。Wave8 PASS 已满足 ENTRY；开始 #55 serving/deployment integration。
+> 状态：`PASS`。Authority 为 superproject `79771c3c`、`wsr-ui@7cfc8a8`、`evolution-system@a12fc92`、`evidence-system@030e6ee` 与 `evidence/wave9.md`；#55 保持 OPEN 至 Wave12。
 
-- [ ] 先写 Nginx、Evolution、Evidence、network/health/degraded RED integration tests；unknown/write routes fail closed。
-- [ ] Vite multi-stage build 只产出 Nginx + dist；Nginx 同源反代 approved Evolution 与 Evidence 只读/无副作用 API。Nginx 不计算指标。
-- [ ] Compose 加入无状态 Evolution；PG 仅供 Evidence，Evolution 只经 Evidence Query 读取 Facts、recorded Traces 与 Manifest projections，并按配置只读访问 public Workflow sources；BI 无 DB path；PG/Evidence/Evolution 均无 host port，BI 默认 bind `127.0.0.1`。
-- [ ] 完成 local source build、operations、health/readiness 与 upstream degraded behavior；无 registry/publisher secret。
-- [ ] 逐条映射 #55，生成 `evidence/wave9.md`；保持 #55 OPEN 至 wave12。
+- [x] 先写 Nginx、Evolution、Evidence、network/health/degraded RED integration tests；unknown/write routes fail closed。
+- [x] Vite multi-stage build 只产出 Nginx + dist；Nginx 同源反代 approved Evolution 与 Evidence 只读/无副作用 API。Nginx 不计算指标。
+- [x] Compose 加入无状态 Evolution；PG 仅供 Evidence，Evolution 只经 Evidence Query 读取 Facts、recorded Traces 与 Manifest projections，并按配置只读访问 public Workflow sources；BI 无 DB path；PG/Evidence/Evolution 均无 host port，BI 默认 bind `127.0.0.1`。
+- [x] 完成 local source build、operations、health/readiness 与 upstream degraded behavior；无 registry/publisher secret。
+- [x] 逐条映射 #55，生成 `evidence/wave9.md`；保持 #55 OPEN 至 wave12。
 
 BLOCK/FAIL：Evolution/BI 直连数据库；Evidence 承载 metric/UI；Nginx 实现业务；默认暴露内部服务或需要远端 publisher。
 
 ### wave10 — #56 Execution/Evidence 独立性 qualification
 
-> 状态：`NOT_STARTED`。ENTRY 依赖 Wave9 PASS，当前未满足。
+> 状态：`IN_PROGRESS`。Wave9 PASS 已满足 ENTRY；开始 #56 independence qualification。
 
 - [ ] 保留原 oracle sensitivity、canonical Execution result、external conforming producer、无 receipt/outbox/control edge、crash/restart/shutdown 场景。
 - [ ] 增加 Evolution 不参与 Execution progress/outcome 的静态与网络证明；Evolution/Evidence/BI 全部不可用时 Execution canonical result 不变。
