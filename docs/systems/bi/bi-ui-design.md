@@ -253,7 +253,7 @@ Trace layout is derived only from recorded OTel parent structure. Timestamps and
 - Sibling ordering uses one documented stable identity order so refresh of the same active data yields the same layout.
 - LINK is rendered as a separate non-parent edge with distinct stroke/legend and never changes depth or traversal.
 - Missing/orphan endpoints remain visible as typed placeholders in a separate orphan lane ordered by stable identity. They receive no inferred parent depth and are not inserted into parent-depth traversal; BI does not repair parentage.
-- Partial and expired detail is labeled at the affected node/edge and in the text alternative.
+- An active Delivery data hole is labeled as partial recorded structure at Trace level and in the text alternative; an unresolved endpoint is never attributed to expiry. Query 1.0 physically deletes an expired Delivery atomically, so BI receives no expired node/edge or drawable Trace and never reconstructs one.
 - Desktop graph view is bounded and supports pan/zoom/focus; narrow screens default to a virtualized outline with an explicit graph toggle.
 - `Still` is the default. `Live` starts only on user action, reveals the deterministic recorded structure in finite depth steps, then stops. It is a reading aid, not replay of wall-clock execution.
 - `prefers-reduced-motion` forces Still behavior while preserving selection and final structure.

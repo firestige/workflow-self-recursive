@@ -152,7 +152,7 @@ Trace layout 只来自 recorded OTel parent structure；timestamp 与 arrival or
 - sibling 使用 documented stable identity order，settled Evidence 刷新后保持布局。
 - LINK 使用独立 stroke/legend，不改变 depth/traversal。
 - orphan/missing endpoint 在 separate orphan lane 中按 stable identity 排序并保留为 typed placeholder；它们没有 inferred parent depth，也不插入 parent-depth traversal，BI 不修补 parentage。
-- partial/expired 在具体 node/edge 与 text alternative 中标注。
+- Active Delivery 的 data hole 在 Trace 整体与 text alternative 中标为 partial recorded structure；unresolved endpoint 不得归因为 expiry。Query 1.0 对过期 Delivery 做原子物理删除，因此 BI 不会收到 expired node/edge 或可绘制 Trace，也不得重建。
 - desktop graph 有界并支持 pan/zoom/focus；narrow 默认 virtualized outline，可显式切 graph。
 - `Still` 默认；`Live` 只由用户启动，按 deterministic depth 有限展示并最终停止，只是阅读 recorded structure，不重放 wall-clock execution。
 - `prefers-reduced-motion` 强制 Still，信息与 selection 不变。

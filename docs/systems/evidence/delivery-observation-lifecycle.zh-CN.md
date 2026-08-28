@@ -1,75 +1,65 @@
-# Evidence Retention 与 Evolution Expiry 处理 — Iteration 5 MVP
+# Evidence Delivery Retention 与 Evolution Disposition — Iteration 5 MVP
 
-> **状态：** Iteration 5 澄清，2026-08-28。本文记录 Evidence 已实现的 retention mechanism，以及
-> Evolution 消费 expiry state 时更窄的规则。本文不修改 frozen `evidence.query@0.1.0`，不新增
-> retention subsystem，也不要求 Evidence Query 1.0 暴露 Delivery lifecycle API。英文 companion：
-> [`delivery-observation-lifecycle.md`](delivery-observation-lifecycle.md)。
+> **状态：** Evidence Query 1.0 candidate，2026-08-28。本文针对尚未发布的 Query 1.0 candidate
+> 取代先前 Iteration 5 resource-granular retention 说明，不改写 frozen
+> `evidence.query@0.1.0`。英文 companion 为 normative authority。
 
-## 1. Evidence 现有机制
+## 1. Delivery 是 retention 原子
 
-Evidence 已实现 automatic、resource-granular retention。Production assembly 随 API process 启动
-一个 bounded retention loop：启动后立即执行一次，随后每次等待 configured interval 再执行。
-每轮按 Raw debug、Trace detail、factual projection 的顺序，对每个 enabled lifecycle class 最多
-plan/apply 一个 bounded batch。
+Facts、recorded Trace detail、Task membership 与 evidence-safe Manifest 共同构成一份可查询的
+Delivery 数据集，在 Query 1.0 中不得独立过期。只有存在 accepted terminal
+`delivery.summary` 的 Delivery 才具备自动过期资格；该 terminal summary Projection 的
+`recorded_at` 是 retention base。没有 accepted terminal summary 的 Delivery 不自动过期。
 
-该机制由时间与 policy 驱动，不由 ingest failure、free-space threshold、database size 或 write-path
-capacity check 触发。某轮失败会记录日志，不终止 API；只由之后的 scheduled iteration 再次尝试。
+Candidate 默认 Delivery TTL 为 `P30D`，可配置范围 `P1D`–`P3650D` 或 `NEVER`。Scheduler 与
+batch 保持有界、可配置，但 batch 选择 Delivery identity，而不是单个 projection resource。
+每个 selected Delivery 在一个 transaction 中原子删除全部 queryable Facts、Trace detail、
+membership、guard 与 Manifest projection。Reader 只能看到完整 pre-delete Delivery dataset 或
+完全查不到该 dataset，绝不会看到 retention 制造的子集。
 
-| Class | 默认值 | 可配置范围 | 效果 |
-|---|---:|---:|---|
-| Raw debug | `PT0S` | `PT0S`–`P1D` | 清除 accepted raw payload；保留 accepted identity/provenance |
-| Trace detail | `P30D` | `P1D`–`P365D` 或 `NEVER` | 清除 expired detail payload；query 保留已发布的 Trace availability/expiry state |
-| Factual projection | `P365D` | `P30D`–`P3650D` 或 `NEVER` | 清除 projection payload；query 保留 explicit unavailable/expired tombstone |
-| Accepted provenance | `NEVER` | 不可配置 | 保留 identity 与 accepted provenance |
+Raw debug 继续使用独立 privacy lifecycle 与既有即时清理默认值。Accepted-content
+digest/provenance 与最小 internal deleted-Delivery guard 可以保留，只用于维持 duplicate/conflict
+authority 并阻止迟到 record 复活已删除 Delivery；它们不是 queryable Delivery data、tombstone API
+或可恢复 payload。
 
-默认每轮每个 enabled class 最多处理 500 resources（范围 1–1000）；默认 interval 为 60 秒（范围
-10–3600 秒）。配置在 service startup 时读取；修改环境变量后必须重启。Query snapshot 继续提供
-各 route 已发布的一致性，retention commit 独立进行。
+## 2. Query 与 metric 后果
 
-## 2. Physical expiry 不等于 metric partiality
+普通 Evidence routes 只暴露 active Delivery：
 
-Frozen Evidence Query 0.1 忠实暴露现有 resource-granular behavior：同一 Trace 同时存在 active 与
-expired detail 时可能返回 `PARTIAL`。该状态表示 retained Trace detail 只有一部分，不证明当前
-observation 上报不完整；Evolution 不能把它翻译成 metric coverage `PARTIAL`。
+- `/facts`、`/traces` 不返回 deleted Delivery 的任何 resource；
+- `/tasks` 只列出至少含一个 active Delivery 的 Task，membership traversal 只返回 active Delivery；
+- deleted Delivery 的 exact Manifest lookup 不返回 queryable Manifest；
+- Delivery 删除后的 direct Trace lookup对普通 consumer 与 absent detail 不可区分，不泄露或重建删除身份；
+- retention 不产生 Trace `PARTIAL` 或 expired node/edge；`PARTIAL` 只描述 active Delivery 已知的 recorded data hole。
 
-Iteration 5 metric calculation 使用 Delivery 作为外层 population boundary：
+Evolution 无需 per-resource retention normalization，只解析 active membership 并基于这些输入计算。
+Deleted Delivery 不进入 numerator、denominator、coverage 或 minimum-sample count；没有 active
+Delivery 时 population 为空。Metric Result 是即时计算 response，不是 retained dataset，因此没有
+独立 Metric Result 删除生命周期。
 
-- 若 Delivery-scoped read 表明发生 retention expiry，Evolution 在应用 Catalog 的 Task、model-call、
-  template-exposure 或 Delivery evaluation unit 前，先排除该 Delivery 及其全部 inputs；
-- 被排除 Delivery 不影响 metric numerator、denominator、coverage 或 minimum-sample count；
-- active 与 retention-expired Deliveries 混合时只按 active 子集计算，不能仅因旧数据被移除就标
-  metric-partial；
-- 若没有 active Delivery，metric 为 `NO_POPULATION`；receipt 仍可解释 retained identity 与 expiry。
+## 3. 物理删除且不可恢复
 
-Active Delivery 的 required input missing/invalid 是另一回事：applicable evaluation unit 留在该
-metric coverage denominator，只有 valid covered input 进入 coverage numerator。因此 `0 / N` 是
-`NO_COVERAGE`，`0 < C < N` 是 coverage `PARTIAL`，`N / N` 是 `FULL`；invalid value 绝不参与
-arithmetic。
+MVP expiry 是 automatic physical deletion，不是 logical deletion。BI 无法发现 deleted Delivery。
+Iteration 5 不提供 trash、undelete、restore、retention hold、administrative recovery view，也不把
+Trace 与 metric 当成两套 data-management lifecycle。未来若需要，必须通过新的显式 lifecycle 与
+contract 设计。
 
-Metric coverage `PARTIAL`、Evidence Trace detail `PARTIAL` 与 `PARTIAL_COMPARE` 是三个不同状态，
-不得互相 alias。
+Internal deleted-Delivery guard 不包含 Fact value、Trace node/edge、Manifest payload 或任何可恢复
+dataset，只负责让迟到 Observation export 无法以相同 Delivery identity 复活已删除数据。
 
-## 3. 当前 invalid-input 限制
+## 4. Active-data partiality
 
-Evidence admission 不保存 rejected record；OTLP `partial_success` 只是 aggregate response，不是
-durable Delivery-scoped disposition。因此，后续无法区分“record 因 invalid 被拒绝”和“record 从未
-上报”。Evolution 可以报告 missing input，也可以拒绝它实际读到的 invalid accepted value，但在没有
-durable marker 时不能声称 Evidence 记录了某个 Delivery 的 invalid input。
+Active Delivery 仍可能缺少 required input 或含 invalid input，这不是 retention。Applicable
+evaluation unit 继续进入该 metric 的 coverage denominator，只有 valid covered input 进入
+numerator；invalid value 永不进入 arithmetic。
 
-Iteration 5 不新增 invalid-record store、expected-Span count、export-group sequence，也不推断 missing
-leaf。Recorded missing parent/link endpoint 可作为 orphan 显示；完全没有 reference 的 absent Span
-不可知。
+Evidence 不推断未上报 Span、expected-Span count 或 missing leaf。Recorded edge 的 target NODE
+从未 observed 时保留 unresolved endpoint；它可以表示 recorded incompleteness，但 Evidence 与 BI
+均不得把原因归为 expiry。
 
-## 4. MVP 边界
+## 5. MVP exclusions
 
-MVP 保留现有 scheduler、TTL classes、environment configuration、resource-granular markers、bounded
-batches 与 query states，不新增：
-
-- disk-pressure 或 write-failure-triggered cleanup；
-- manual Delivery deletion API 或 administrative UI；
-- Delivery-atomic physical GC/tombstone protocol；
-- durable Delivery-scoped invalid-record marker；
-- automatic capacity tuning、compaction、vacuum policy 或 retention recommendation。
-
-运维细节与 exact environment variables 见
-[`evidence-system/docs/operations.zh-CN.md`](../../../evidence-system/docs/operations.zh-CN.md)。
+Iteration 5 不新增 disk-pressure/write-failure cleanup、logical deletion、restore、administrative
+data-management UI、automatic capacity tuning、compaction recommendation 或 durable invalid-record
+store。Delivery TTL、scheduler interval 与 Delivery batch bounds 仍是 startup configuration，修改后
+需要显式 restart。
