@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "status": "WAVE11_OWNER_QUALIFIED",
+  "repositories": {
+    "superproject": "firestige/workflow-self-recursive@fe7a5ebe8bf02814d9fe5da1017b766509dd763a",
+    "contracts": "firestige/wsr-contracts@008f90ce7169cc8e71e547f9ee2aafc5c91cee54",
+    "workflowPackage": "firestige/wsr-workflow-package@ff972d150438321bcb64e3442b99aad54bb38f56",
+    "evidence": "firestige/wsr-evidence@f09a1f04175140659726c6583a23928f03769a60",
+    "evolution": "firestige/wsr-evolution@7de7250d0c0c4d70e4de44a960ab15b46f5f132c",
+    "execution": "firestige/wsr-execution@244a9b18f7d3166f7ac60e7b9d5c6fd6ef90b7bc",
+    "dsh": "firestige/wsr-dsh@dc1395f15daf4f110ffea63f74b8c41eb5639631"
+  },
+  "release_candidates": {
+    "execution": {
+      "tag": "0.1.4-rc.1",
+      "product_commit": "17052b41df892093a2956c9fe1dbea36e67e47dd",
+      "asset": "wsr-execution-0.1.4.tgz",
+      "sha256": "4407239534795f528b3ca597583a682636dd539516f567434a128d5437345e4d"
+    },
+    "evidence": {
+      "tag": "0.1.0-rc.3",
+      "product_commit": "35d63469650e978d0fb795419df5d4a0ea5eafa7",
+      "image": "ghcr.io/firestige/wsr-evidence:0.1.0-rc.3@sha256:5ce1574260677b5fdfcecacae872a53f0e080092b0c375ddee1216479f18c542",
+      "qualification_sha256": "003d79bd8ea1a67eeff455b39067620bdeceaa2a198343c85eb7e8d9e371135b"
+    },
+    "evolution": {
+      "tag": "0.1.0-rc.1",
+      "product_commit": "b33bb503e95c3853a87e53b4b32183d34fd55b70",
+      "image": "ghcr.io/firestige/wsr-evolution:0.1.0-rc.1@sha256:41e244d68f588d8b0a4789488a694c55e2034e36f4a152638e026c03dde1a14f",
+      "qualification_sha256": "d8ca8329e5daed92fbab442305ccb3de9c0444edba2147a38027e867b46c642b"
+    }
+  },
+  "npm": {
+    "executionStableBeforeWave12": "wsr-execution@0.1.3",
+    "dshExecutionReservation": "dsh-wsr-execution@0.0.1",
+    "dshStudioReservation": "dsh-wsr-studio@0.0.1",
+    "dshSuiteReservation": "dsh-wsr@0.0.1"
+  },
+  "notes": [
+    "The superproject coordinate is unchanged.",
+    "DSH stable versions remain Wave 12 outputs and are intentionally not invented in Wave 11.",
+    "Target npm trusted publishers were configured during bootstrap and are verified by qualified OIDC publication."
+  ]
+}
