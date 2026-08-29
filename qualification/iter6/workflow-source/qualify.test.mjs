@@ -8,7 +8,7 @@ import { assertPinnedOwners } from "./qualify.mjs";
 
 const expected = Object.freeze({
   "workflow-package": "ff972d150438321bcb64e3442b99aad54bb38f56",
-  "execution-system": "71a1bf4bb1d1562556081fad5c10b32f1ed7d8d4",
+  "execution-system": "244a9b18f7d3166f7ac60e7b9d5c6fd6ef90b7bc",
   "evolution-system": "7de7250d0c0c4d70e4de44a960ab15b46f5f132c",
 });
 
