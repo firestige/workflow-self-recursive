@@ -1,0 +1,34 @@
+{
+  "schema": "wsr.compatibility@1.0.0",
+  "release": "iter6-fixture-1",
+  "components": [
+    {
+      "id": "dsh-bundle",
+      "layer": "DSH/Execution",
+      "coordinate": "fixture://dsh-bundle",
+      "version": "0.0.0-fixture.1",
+      "digest": "sha256:b226231b20bad27188755ea6680129443e53e54e015f5bd6aa0ae2e30c002ae4"
+    },
+    {
+      "id": "services",
+      "layer": "Evidence/Evolution",
+      "coordinate": "fixture://services",
+      "version": "0.0.0-fixture.1",
+      "digest": "sha256:ef1c4b45f2ed763283f8de890730defb2e7d1f8f0cc4214b740dd8cc5f10364d"
+    },
+    {
+      "id": "workflow-source",
+      "layer": "Workflow source",
+      "coordinate": "fixture://workflow-source",
+      "version": "0.0.0-fixture.1",
+      "digest": "sha256:30aea1fb3ac2b8cb7148e05e6c82ed65cfbe0bc80cfab876b5fc4901e2ea1bfd"
+    },
+    {
+      "id": "providers",
+      "layer": "Provider",
+      "coordinate": "fixture://providers",
+      "version": "0.0.0-fixture.1",
+      "digest": "sha256:1e19bab29bc6432a45375515ae332f5fc9540db0100ac0b05c3ccb42923c189d"
+    }
+  ]
+}

@@ -2,52 +2,35 @@
 
 [English](quickstart.md) | 中文
 
-本指南帮助你在一台可信的个人电脑上启动 Workflow Self Recursive 的本地数据服务并打开 BI。
-当前部署包括 PostgreSQL、Evidence、Evolution 和 BI；本脚本不会启动 DeepSeek Harness（DSH）或 Execution，它们必须另行运行。
+本指南描述在一台可信个人电脑上的正式首次使用旅程。当前打包产品尚未完成资格验证；不得用源码
+checkout 或 fixture operations adapter 冒充已经发布的产品。
 
-## 1. 准备环境
+## 1. 检查发行版
 
-安装并启动：
+最终旅程将从顶层 `preflight` 和 `setup` 开始，在产生任何安装 effect 前，校验 DSH bundle、
+Evidence/Evolution 服务镜像、Workflow source 与本机 Agent Provider 的 exact compatibility manifest。
 
-- Git；
-- OpenSSL；
-- Docker Desktop，或含 Compose v2 的 Docker Engine。
+Iter6 命令契约已经位于 `product-operations`，但目前只接受 fixture adapter，仅用于自动资格验证，
+不能用于正式安装。
 
-获取完整源码：
+## 2. 安装与配置
 
-```sh
-git clone --recurse-submodules https://github.com/firestige/workflow-self-recursive.git
-cd workflow-self-recursive
-```
+稳定产品操作为 `setup`、`install` 和 `config`。setup 将收集 repository/workspace、durable state
+位置、loopback port、exact Workflow source 与 Role→Provider/model binding。WSR 只复用本机 DSH、
+Copilot 与 Codex 登录状态；配置和诊断不得包含 credential。
 
-已有 checkout 如果缺少组件仓库，执行：
+## 3. 启动与检查
 
-```sh
-git submodule update --init --recursive
-```
+稳定日常操作为 `start`、`status`、`health`、`logs`、`stop` 和 `restart`。结果分别映射到
+DSH/Execution、Evidence/Evolution、Workflow source 与 Provider 层，使部分故障仍可定位。
 
-## 2. 一条命令启动
+## 4. 升级或移除
 
-```sh
-./deployment/start.sh
-```
+`upgrade` 与 `rollback` 只使用明确的 compatible version 和 digest，不读取 ambient `latest`。
+`uninstall` 默认保留 Delivery、checkpoint、binding、Evidence、配置与其他 durable data。未来若提供
+数据清理，必须是独立、显式的破坏性操作。
 
-首次启动会下载基础镜像、构建当前源码并初始化本地数据库，因此通常比后续启动慢。脚本等待服务健康后会打印访问地址。
+## Contributor 源码预览
 
-## 3. 打开 BI
-
-打开启动器打印的地址，默认是 <http://127.0.0.1:8080/evaluate>。
-
-当前 Evidence 没有 Task 时，页面会显示空选择状态。这表示服务已经就绪但尚未收到 Execution 上报的数据，并非启动失败。
-
-## 4. 停止
-
-停止服务并保留 Evidence 数据：
-
-```sh
-docker compose -f deployment/compose.yaml stop
-```
-
-再次运行 `./deployment/start.sh` 即可恢复。
-
-配置 Workflow source、运行 DSH/Execution、使用 BI、查看日志或清空数据，请继续阅读[用户指南](user-guide.zh-CN.md)。维护者可查看[部署实现说明](../../deployment/README.md)。
+需要运行现有源码构建数据服务预览的贡献者，请使用单独的[源码构建指南](../contributing/source-build.zh-CN.md)。
+它不是最终 clean-machine 产品路径。

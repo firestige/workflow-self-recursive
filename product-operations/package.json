@@ -1,0 +1,15 @@
+{
+  "name": "@wsr/product-operations",
+  "version": "0.0.0-iter6-skeleton",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "wsr": "./bin/wsr.mjs"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
