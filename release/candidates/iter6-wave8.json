@@ -1,0 +1,56 @@
+{
+  "schema_version": "wsr.iter4-unified-candidate@1.0.0",
+  "status": "IMMUTABLE_RELEASE_CANDIDATE",
+  "created_at": "2026-08-29",
+  "execution": {
+    "repository": "firestige/execution-system",
+    "input_commit": "74676e9e3d0a6b0fa562f28025594c9a94d1df5e",
+    "build_input_commit": "74676e9e3d0a6b0fa562f28025594c9a94d1df5e",
+    "candidate_archive_commit": "17052b41df892093a2956c9fe1dbea36e67e47dd",
+    "metadata": {
+      "path": "execution-system/release/candidates/iter6-wave8/release-metadata.json",
+      "sha256": "sha256:9433e483fbf8dab20a45d686dd6550656941537e736439f97243d3ff33b540fc"
+    },
+    "release_notes": {
+      "path": "execution-system/release/candidates/iter6-wave8/release-notes.md",
+      "sha256": "sha256:88bbc3a9941c504a82598be9c17ee8c0f2f3b574db3d9de3000ec6649efe8ba6"
+    },
+    "artifacts": [
+      {
+        "package": "wsr-execution",
+        "version": "0.1.4",
+        "path": "execution-system/release/candidates/iter6-wave8/wsr-execution-0.1.4.tgz",
+        "bytes": 214125,
+        "sha256": "sha256:4407239534795f528b3ca597583a682636dd539516f567434a128d5437345e4d"
+      },
+      {
+        "package": "wsr-dsh-intake",
+        "version": "0.1.4",
+        "path": "execution-system/release/candidates/iter6-wave8/wsr-dsh-intake-0.1.4.tgz",
+        "bytes": 22184,
+        "sha256": "sha256:f108d58bd2c891c4b7447e1c459717c2b5ea80e1a16888d1313eac933b26a4c2"
+      }
+    ]
+  },
+  "qualification": {
+    "execution_full_test": "PASS_695",
+    "execution_coverage": {
+      "statements": "90.00%",
+      "branches": "85.95%",
+      "functions": "93.81%",
+      "lines": "95.19%"
+    },
+    "execution_type_build_generated_distribution": "PASS",
+    "execution_static_and_feasibility_harness": "PASS",
+    "execution_release_policy_and_simulation": "PASS",
+    "execution_artifact_digest_rebuild": "BYTE_EXACT",
+    "execution_dependency_audit": "NO_ADVISORIES",
+    "execution_exact_candidate_interactive": "PASS_BROWSER_DOM",
+    "execution_dual_real_provider": "PASS_PR_13"
+  },
+  "non_claims": [
+    "NO_TAG_OR_GITHUB_RELEASE_CREATED",
+    "NO_NPM_OR_DSH_PUBLICATION_CREATED",
+    "NO_STABLE_COMPONENT_OR_SUPERPROJECT_PUBLICATION_CREATED"
+  ]
+}
