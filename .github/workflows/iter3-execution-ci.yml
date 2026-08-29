@@ -28,8 +28,12 @@ jobs:
       - name: Verify pinned component worktrees
         run: |
           git submodule status --recursive
+          test "$(git rev-parse HEAD:workflow-package)" = ff972d150438321bcb64e3442b99aad54bb38f56
+          test "$(git rev-parse HEAD:execution-system)" = 32ab972ae9d673b57599ecbd01461f982c41ac7c
+          test "$(git rev-parse HEAD:evolution-system)" = 7de7250d0c0c4d70e4de44a960ab15b46f5f132c
           test -z "$(git status --porcelain --untracked-files=no)"
           test -z "$(git -C execution-system status --porcelain --untracked-files=no)"
+          test -z "$(git -C evolution-system status --porcelain --untracked-files=no)"
           test -z "$(git -C system-contracts status --porcelain --untracked-files=no)"
           test -z "$(git -C workflow-package status --porcelain --untracked-files=no)"
 
@@ -43,6 +47,12 @@ jobs:
         with:
           version: 11.23.0
 
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: 0.11.28
+          python-version: "3.14"
+
       - name: Install exact dependencies
         working-directory: execution-system
         run: pnpm install --frozen-lockfile
@@ -50,6 +60,7 @@ jobs:
       - name: Install frozen contract checker dependencies
         run: |
           npm --prefix system-contracts/workflow-dsl ci
+          npm --prefix system-contracts/workflow-dsl-2-candidate ci
           npm --prefix system-contracts/observation ci
           npm --prefix system-contracts/evaluation ci
 
@@ -67,6 +78,22 @@ jobs:
           pnpm harness feasibility
           pnpm verify:dsh-intake
           pnpm verify:iteration3-docs
+
+      - name: Qualify exact public Workflow source and cache in a clean directory
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --test qualification/iter6/workflow-source/qualify.test.mjs
+          node workflow-package/release/cli/release.cjs build \
+            "$RUNNER_TEMP/workflow-v2-assets" \
+            "$(git rev-parse HEAD:workflow-package)" \
+            "$(git rev-parse HEAD:system-contracts)"
+          node workflow-package/release/cli/release.cjs qualify \
+            "$RUNNER_TEMP/workflow-v2-assets" \
+            system-contracts/workflow-dsl
+          node qualification/iter6/workflow-source/qualify.mjs
+          uv run --project evolution-system --python 3.14 \
+            pytest -q evolution-system/tests/unit/workflow_sources
 
       - name: Qualify frozen contracts and Package consumers
         run: |
