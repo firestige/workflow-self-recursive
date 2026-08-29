@@ -40,3 +40,7 @@ for the source topology, networks, generated local secrets, and maintainer smoke
 The checkout currently links the Workflow Package, Execution, Evidence, Evolution, shared Contracts,
 and UI repositories as Git submodules. Those are source workstreams, not separate product installation
 steps and not a statement that the product has six systems.
+
+Release maintainers qualify the separate published-image service bundle with
+`deployment/published/build-bundle.py`. That tooling consumes only frozen image coordinates and is not
+an alternative source-preview launcher or an end-user release before clean-machine qualification.
