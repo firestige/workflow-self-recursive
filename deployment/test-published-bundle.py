@@ -142,6 +142,7 @@ class PublishedBundleTest(unittest.TestCase):
             )
             commands = log.read_text(encoding="utf-8")
             self.assertNotIn("down --volumes", commands)
+            self.assertIn("compose.yaml restart database evidence evolution", commands)
             self.assertIn("compose.yaml stop", commands)
             self.assertIn("volume rm wsr-evidence-data", commands)
 

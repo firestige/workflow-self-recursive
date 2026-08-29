@@ -42,8 +42,7 @@ export WSR_EVIDENCE_RUNTIME_PASSWORD_FILE="$secret_dir/runtime-password"
 export WSR_EVIDENCE_VOLUME="$volume"
 compose() { docker compose -f "$compose_file" "$@"; }
 
-start_stack() {
-  compose pull
+wait_stack() {
   set +e
   compose up --wait --wait-timeout "$wait_timeout"
   status=$?
@@ -57,9 +56,14 @@ start_stack() {
   printf 'WSR services @BUNDLE_VERSION@ are ready at Evidence 127.0.0.1:%s and Evolution 127.0.0.1:%s.\n' "$evidence_port" "$evolution_port"
 }
 
+start_stack() {
+  compose pull
+  wait_stack
+}
+
 case "$action" in
   start | upgrade | rollback) start_stack;;
-  restart) compose up --wait --wait-timeout "$wait_timeout";;
+  restart) compose restart database evidence evolution && wait_stack;;
   stop) compose stop;;
   down) compose down;;
   status) compose ps;;
