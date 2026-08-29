@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -91,8 +92,16 @@ class PublishedBundleTest(unittest.TestCase):
             "https://github.com/firestige/evidence-system/releases/download/0.1.0-rc.2/release-qualification.json",
         )
         self.assertEqual(
+            release["images"]["evidence"]["qualificationSha256"],
+            "sha256:41d65d028fd08f1c3a717bede21fe61cf7ba73076cd576a9732bbeba7d651425",
+        )
+        self.assertEqual(
             release["images"]["evolution"]["provenance"],
             "https://github.com/firestige/evolution-system/releases/download/0.1.0-rc.1/release-qualification.json",
+        )
+        self.assertEqual(
+            release["images"]["evolution"]["qualificationSha256"],
+            "sha256:d8ca8329e5daed92fbab442305ccb3de9c0444edba2147a38027e867b46c642b",
         )
 
         with tempfile.TemporaryDirectory() as temporary:
@@ -301,8 +310,6 @@ class PublishedBundleTest(unittest.TestCase):
             value["images"]["evolution"]["provenance"] = (  # type: ignore[index]
                 "https://github.com/firestige/evolution-system/releases/download/0.1.0/release-qualification.json"
             )
-            release = root / "release.json"
-            release.write_text(json.dumps(value), encoding="utf-8")
             evidence = root / "evidence.json"
             evidence.write_text(
                 json.dumps(
@@ -331,6 +338,11 @@ class PublishedBundleTest(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
+            for name, path in (("evidence", evidence), ("evolution", evolution)):
+                digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                value["images"][name]["qualificationSha256"] = f"sha256:{digest}"  # type: ignore[index]
+            release = root / "release.json"
+            release.write_text(json.dumps(value), encoding="utf-8")
             command = [
                 str(PUBLISHED / "validate-qualification.py"),
                 str(release),
@@ -339,6 +351,10 @@ class PublishedBundleTest(unittest.TestCase):
             ]
 
             subprocess.run(command, check=True)
+            original = evolution.read_text(encoding="utf-8")
+            evolution.write_text(original + "\n", encoding="utf-8")
+            self.assertNotEqual(subprocess.run(command).returncode, 0)
+            evolution.write_text(original, encoding="utf-8")
             broken = json.loads(evolution.read_text(encoding="utf-8"))
             broken["ociDigest"] = f"sha256:{'d' * 64}"
             evolution.write_text(json.dumps(broken), encoding="utf-8")

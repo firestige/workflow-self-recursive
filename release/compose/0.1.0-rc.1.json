@@ -20,12 +20,14 @@
     "evidence": {
       "coordinate": "ghcr.io/firestige/wsr-evidence:0.1.0-rc.2@sha256:ad9f66b9203850d4111ac627f66de5a9bbf2037537f7fd6265b2f5f410f711c4",
       "source": "https://github.com/firestige/evidence-system/tree/3770f283474728740fb1323dc186861cfcf08e16",
-      "provenance": "https://github.com/firestige/evidence-system/releases/download/0.1.0-rc.2/release-qualification.json"
+      "provenance": "https://github.com/firestige/evidence-system/releases/download/0.1.0-rc.2/release-qualification.json",
+      "qualificationSha256": "sha256:41d65d028fd08f1c3a717bede21fe61cf7ba73076cd576a9732bbeba7d651425"
     },
     "evolution": {
       "coordinate": "ghcr.io/firestige/wsr-evolution:0.1.0-rc.1@sha256:41e244d68f588d8b0a4789488a694c55e2034e36f4a152638e026c03dde1a14f",
       "source": "https://github.com/firestige/evolution-system/tree/b33bb503e95c3853a87e53b4b32183d34fd55b70",
-      "provenance": "https://github.com/firestige/evolution-system/releases/download/0.1.0-rc.1/release-qualification.json"
+      "provenance": "https://github.com/firestige/evolution-system/releases/download/0.1.0-rc.1/release-qualification.json",
+      "qualificationSha256": "sha256:d8ca8329e5daed92fbab442305ccb3de9c0444edba2147a38027e867b46c642b"
     }
   }
 }

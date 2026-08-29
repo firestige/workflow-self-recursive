@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
@@ -23,7 +24,9 @@ def load(path: Path) -> dict[str, Any]:
     return value
 
 
-def validate(name: str, image: dict[str, Any], qualification: dict[str, Any]) -> None:
+def validate(
+    name: str, image: dict[str, Any], qualification: dict[str, Any], qualification_bytes: bytes
+) -> None:
     match = IMAGE.fullmatch(str(image.get("coordinate", "")))
     if match is None:
         fail(f"{name} coordinate is not exact")
@@ -36,7 +39,10 @@ def validate(name: str, image: dict[str, Any], qualification: dict[str, Any]) ->
         f"https://github.com/firestige/{name}-system/releases/download/"
         f"{tag}/release-qualification.json"
     )
+    expected_sha256 = image.get("qualificationSha256")
+    actual_sha256 = f"sha256:{hashlib.sha256(qualification_bytes).hexdigest()}"
     checks = {
+        "qualification SHA-256": expected_sha256 == actual_sha256,
         "candidate tag": qualification.get("candidateTag") == tag,
         "OCI digest": qualification.get("ociDigest") == match.group("digest"),
         "source commit": image.get("source") == expected_source,
@@ -77,7 +83,8 @@ def main() -> None:
         image = images.get(name)
         if not isinstance(image, dict):
             fail(f"release manifest {name} image is missing")
-        validate(name, image, load(Path(path)))
+        qualification_path = Path(path)
+        validate(name, image, load(qualification_path), qualification_path.read_bytes())
 
 
 if __name__ == "__main__":
