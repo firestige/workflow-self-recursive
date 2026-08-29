@@ -13,3 +13,6 @@
 [submodule "system-contracts"]
 	path = system-contracts
 	url = https://github.com/firestige/system-contracts.git
+[submodule "wsr-ui"]
+	path = wsr-ui
+	url = https://github.com/firestige/wsr-ui.git

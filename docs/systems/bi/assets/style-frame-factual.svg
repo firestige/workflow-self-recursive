@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960" role="img" aria-labelledby="title desc">
+  <title id="title">WSR Evidence factual dashboard style frame</title>
+  <desc id="desc">Dark, data-dense dashboard showing factual trends, truth state, coverage, compatibility, and provenance.</desc>
+  <defs>
+    <style>
+      .bg{fill:#0b1117}.panel{fill:#121b24;stroke:#2b3946}.soft{fill:#17232e}.line{stroke:#52d3d8;stroke-width:4;fill:none}.grid{stroke:#253340;stroke-width:1}.ink{fill:#e8eef2;font-family:Inter,system-ui,sans-serif}.muted{fill:#8da0af;font-family:Inter,system-ui,sans-serif}.mono{fill:#aec0cc;font-family:ui-monospace,monospace}.cyan{fill:#52d3d8}.amber{fill:#f5b642}.red{fill:#e06c75}.chip{fill:#20303a;stroke:#3a4c59}.h1{font-size:24px;font-weight:700}.h2{font-size:17px;font-weight:650}.body{font-size:14px}.small{font-size:12px}.value{font-size:42px;font-weight:700}
+    </style>
+  </defs>
+  <rect class="bg" width="1440" height="960"/>
+  <rect class="panel" x="32" y="24" width="1376" height="72" rx="10"/>
+  <text class="ink h1" x="56" y="67">WSR Evidence</text>
+  <rect class="chip" x="252" y="43" width="190" height="32" rx="16"/><text class="mono small" x="269" y="64">evidence.query@0.1.0</text>
+  <text class="cyan body" x="1014" y="65">Factual</text><text class="muted body" x="1095" y="65">Trace</text>
+  <rect class="cyan" x="1008" y="82" width="64" height="2"/>
+  <text class="muted small" x="1200" y="62">SNAPSHOT</text><text class="mono small" x="1272" y="62">4F2A…91C</text>
+  <rect class="panel" x="32" y="116" width="1376" height="64" rx="10"/>
+  <text class="muted small" x="56" y="142">COHORT</text><text class="ink body" x="56" y="164">implementation@1</text>
+  <text class="muted small" x="278" y="142">WINDOW</text><text class="ink body" x="278" y="164">Aug 20 — Aug 27</text>
+  <text class="muted small" x="504" y="142">ROLE</text><text class="ink body" x="504" y="164">writer</text>
+  <text class="muted small" x="700" y="142">PROVIDER / MODEL</text><text class="ink body" x="700" y="164">openai / gpt-5</text>
+  <text class="muted small" x="994" y="142">COMPATIBILITY</text><text class="cyan body" x="994" y="164">Exact coordinates</text>
+  <rect class="panel" x="32" y="200" width="910" height="404" rx="10"/>
+  <text class="ink h2" x="56" y="234">Delivery cycle time</text><text class="muted small" x="56" y="256">Recorded C55 · milliseconds · descriptive only</text>
+  <text class="ink value" x="56" y="320">842 ms</text><text class="muted body" x="225" y="318">13 contributing deliveries</text>
+  <line class="grid" x1="70" y1="382" x2="908" y2="382"/><line class="grid" x1="70" y1="446" x2="908" y2="446"/><line class="grid" x1="70" y1="510" x2="908" y2="510"/>
+  <path class="line" d="M80 486 C170 458,210 476,292 438 S434 462,514 410 S668 428,742 360 S840 394,900 344"/>
+  <g class="cyan"><circle cx="80" cy="486" r="6"/><circle cx="292" cy="438" r="6"/><circle cx="514" cy="410" r="6"/><circle cx="742" cy="360" r="6"/><circle cx="900" cy="344" r="6"/></g>
+  <circle cx="210" cy="510" r="7" fill="#0b1117" stroke="#52d3d8" stroke-width="4"/><text class="muted small" x="190" y="540">explicit 0</text>
+  <text class="muted small" x="70" y="580">Aug 20</text><text class="muted small" x="850" y="580">Aug 27</text>
+  <rect class="panel" x="962" y="200" width="446" height="404" rx="10"/>
+  <text class="ink h2" x="986" y="234">Reading</text>
+  <rect class="soft" x="986" y="258" width="190" height="64" rx="8"/><circle class="cyan" cx="1008" cy="278" r="5"/><text class="cyan small" x="1022" y="282">AVAILABLE</text><text class="ink body" x="1008" y="306">Value recorded</text>
+  <rect class="soft" x="1192" y="258" width="190" height="64" rx="8"/><circle class="amber" cx="1214" cy="278" r="5"/><text class="amber small" x="1228" y="282">LOWER BOUND</text><text class="ink body" x="1214" y="306">Not a final total</text>
+  <rect class="soft" x="986" y="338" width="190" height="64" rx="8"/><circle class="red" cx="1008" cy="358" r="5"/><text class="red small" x="1022" y="362">EXPIRED</text><text class="ink body" x="1008" y="386">Identity retained</text>
+  <rect class="soft" x="1192" y="338" width="190" height="64" rx="8"/><circle class="amber" cx="1214" cy="358" r="5"/><text class="amber small" x="1228" y="362">SAMPLE 18 / 20</text><text class="ink body" x="1214" y="386">Value withheld</text>
+  <text class="muted small" x="986" y="438">COVERAGE</text><text class="ink h2" x="986" y="466">13 / 15 · PARTIAL</text>
+  <rect fill="#293845" x="986" y="482" width="396" height="8" rx="4"/><rect class="amber" x="986" y="482" width="343" height="8" rx="4"/>
+  <text class="muted small" x="986" y="526">PROVENANCE</text><text class="mono small" x="986" y="550">accepted 7c9f…2b1a · profile 1.0.0</text>
+  <text class="muted small" x="986" y="578">No causal claim · no inferred value</text>
+  <rect class="panel" x="32" y="624" width="1376" height="304" rx="10"/>
+  <text class="ink h2" x="56" y="660">Evidence values</text>
+  <rect class="soft" x="56" y="680" width="1328" height="42"/>
+  <text class="muted small" x="72" y="706">VALUE</text><text class="muted small" x="220" y="706">NUMERATOR / DENOMINATOR</text><text class="muted small" x="494" y="706">COVERAGE</text><text class="muted small" x="676" y="706">UNIT</text><text class="muted small" x="810" y="706">SOURCE</text><text class="muted small" x="1110" y="706">TRUTH</text>
+  <text class="ink body" x="72" y="760">842</text><text class="mono body" x="220" y="760">13 / 15</text><text class="amber body" x="494" y="760">PARTIAL</text><text class="ink body" x="676" y="760">milliseconds</text><text class="mono small" x="810" y="760">delivery.summary / C55</text><text class="cyan body" x="1110" y="760">FINAL · ACTIVE</text>
+  <line class="grid" x1="56" y1="780" x2="1384" y2="780"/>
+  <text class="ink body" x="72" y="824">0</text><text class="mono body" x="220" y="824">0 / 12</text><text class="cyan body" x="494" y="824">FULL</text><text class="ink body" x="676" y="824">ratio</text><text class="mono small" x="810" y="824">explicit recorded zero</text><text class="cyan body" x="1110" y="824">FINAL · ACTIVE</text>
+  <line class="grid" x1="56" y1="844" x2="1384" y2="844"/>
+  <text class="muted body" x="72" y="888">—</text><text class="muted body" x="220" y="888">—</text><text class="red body" x="494" y="888">NO COVERAGE</text><text class="muted body" x="676" y="888">USD</text><text class="mono small" x="810" y="888">source unavailable</text><text class="red body" x="1110" y="888">UNAVAILABLE</text>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960" role="img" aria-labelledby="title desc">
+  <title id="title">WSR Evidence recorded Trace style frame</title>
+  <desc id="desc">Dark Trace explorer that distinguishes recorded parent edges, links, and unresolved endpoints without inferred causality.</desc>
+  <defs><style>
+    .bg{fill:#0b1117}.panel{fill:#121b24;stroke:#2b3946}.soft{fill:#17232e;stroke:#31414e}.ink{fill:#e8eef2;font-family:Inter,system-ui,sans-serif}.muted{fill:#8da0af;font-family:Inter,system-ui,sans-serif}.mono{fill:#aec0cc;font-family:ui-monospace,monospace}.cyan{fill:#52d3d8}.amber{fill:#f5b642}.red{fill:#e06c75}.edge{stroke:#52d3d8;stroke-width:3;fill:none}.link{stroke:#f5b642;stroke-width:3;stroke-dasharray:9 7;fill:none}.grid{stroke:#253340}.h1{font-size:24px;font-weight:700}.h2{font-size:17px;font-weight:650}.body{font-size:14px}.small{font-size:12px}
+  </style></defs>
+  <rect class="bg" width="1440" height="960"/>
+  <rect class="panel" x="32" y="24" width="1376" height="72" rx="10"/><text class="ink h1" x="56" y="67">WSR Evidence</text>
+  <text class="muted body" x="1000" y="65">Factual</text><text class="cyan body" x="1084" y="65">Trace</text><rect class="cyan" x="1078" y="82" width="55" height="2"/>
+  <text class="muted small" x="1206" y="55">TRACE STATE</text><circle class="amber" cx="1212" cy="76" r="5"/><text class="amber small" x="1226" y="80">PARTIAL</text>
+  <rect class="panel" x="32" y="116" width="1376" height="64" rx="10"/><text class="muted small" x="56" y="142">LOOK UP BY</text><text class="ink body" x="56" y="164">Delivery identity</text><text class="mono body" x="250" y="164">delivery-0187</text><text class="muted small" x="1110" y="142">SNAPSHOT</text><text class="mono small" x="1110" y="164">trace-snap-09</text>
+  <rect class="panel" x="32" y="200" width="1020" height="728" rx="10"/><text class="ink h2" x="56" y="236">Recorded structure</text><text class="muted small" x="56" y="258">Layout groups recorded identities only · time is display metadata</text>
+  <g opacity=".7"><line class="grid" x1="64" y1="310" x2="1020" y2="310"/><line class="grid" x1="64" y1="470" x2="1020" y2="470"/><line class="grid" x1="64" y1="630" x2="1020" y2="630"/><line class="grid" x1="64" y1="790" x2="1020" y2="790"/></g>
+  <path class="edge" d="M250 388 C330 388 344 470 424 470"/><path class="edge" d="M582 470 C666 470 672 388 756 388"/>
+  <path class="link" d="M582 492 C680 568 760 650 858 706"/>
+  <rect class="soft" x="92" y="344" width="158" height="88" rx="8"/><circle class="cyan" cx="112" cy="366" r="5"/><text class="cyan small" x="126" y="370">NODE</text><text class="ink body" x="112" y="396">Delivery root</text><text class="mono small" x="112" y="416">span 0a14…bb73</text>
+  <rect class="soft" x="424" y="426" width="158" height="88" rx="8"/><circle class="cyan" cx="444" cy="448" r="5"/><text class="cyan small" x="458" y="452">NODE</text><text class="ink body" x="444" y="478">Writer call</text><text class="mono small" x="444" y="498">span 10be…7fc1</text>
+  <rect class="soft" x="756" y="344" width="158" height="88" rx="8"/><circle class="cyan" cx="776" cy="366" r="5"/><text class="cyan small" x="790" y="370">NODE</text><text class="ink body" x="776" y="396">Reviewer call</text><text class="mono small" x="776" y="416">span f26d…ee08</text>
+  <polygon points="858,652 892,686 858,720 824,686" fill="#2d271c" stroke="#f5b642" stroke-width="3"/><text class="amber small" x="858" y="754" text-anchor="middle">ENDPOINT NOT OBSERVED</text><text class="mono small" x="858" y="774" text-anchor="middle">trace b4… / span 91…</text>
+  <rect class="soft" x="88" y="808" width="878" height="86" rx="8"/><text class="muted small" x="110" y="835">LEGEND</text><line class="edge" x1="110" y1="860" x2="160" y2="860"/><text class="ink body" x="174" y="865">PARENT_EDGE · recorded</text><line class="link" x1="390" y1="860" x2="440" y2="860"/><text class="ink body" x="454" y="865">LINK · recorded</text><polygon points="712,846 726,860 712,874 698,860" fill="#2d271c" stroke="#f5b642" stroke-width="2"/><text class="ink body" x="740" y="865">Endpoint not observed</text>
+  <rect class="panel" x="1072" y="200" width="336" height="728" rx="10"/><text class="ink h2" x="1096" y="236">Recorded detail</text>
+  <text class="muted small" x="1096" y="274">IDENTITY</text><text class="mono small" x="1096" y="298">LINK / aaaa… / 10be…</text><text class="mono small" x="1096" y="318">→ bbbb… / 91c2…</text>
+  <text class="muted small" x="1096" y="362">TRUTH</text><circle class="cyan" cx="1102" cy="386" r="5"/><text class="cyan body" x="1116" y="391">AVAILABLE · ACTIVE</text>
+  <text class="muted small" x="1096" y="438">RECORDED METADATA</text><text class="ink body" x="1096" y="464">flags</text><text class="mono body" x="1288" y="464">1</text><text class="ink body" x="1096" y="490">trace_state</text><text class="mono body" x="1240" y="490">vendor=x</text>
+  <text class="muted small" x="1096" y="542">PROVENANCE</text><text class="mono small" x="1096" y="568">profile 1.0.0</text><text class="mono small" x="1096" y="590">recorded 08:41:12.406Z</text>
+  <rect x="1096" y="634" width="288" height="92" rx="8" fill="#2d271c" stroke="#6f5624"/><text class="amber small" x="1116" y="662">PARTIAL TRAVERSAL</text><text class="ink body" x="1116" y="688">2 trace summaries available</text><text class="muted small" x="1116" y="710">Expired detail is not reconstructed.</text>
+  <rect class="soft" x="1096" y="758" width="288" height="56" rx="8"/><text class="ink body" x="1116" y="791">Load next recorded page</text><text class="mono small" x="1300" y="791">2 / 8</text>
+  <text class="muted small" x="1096" y="858">No edge from time, name, order,</text><text class="muted small" x="1096" y="878">task grouping, or visual proximity.</text>
+</svg>
