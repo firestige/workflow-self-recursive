@@ -28,7 +28,7 @@ class EvidenceRc3AuthorityTest(unittest.TestCase):
 
         self.assertEqual(value["execution"], wave8["execution"])
         self.assertEqual(
-            head(ROOT / "execution-system"), "a9a5f998b7fc1757eab7f3e4ac733d2a3fba62c3"
+            head(ROOT / "execution-system"), "71a1bf4bb1d1562556081fad5c10b32f1ed7d8d4"
         )
         self.assertEqual(
             head(ROOT / "evidence-system"), "f09a1f04175140659726c6583a23928f03769a60"
