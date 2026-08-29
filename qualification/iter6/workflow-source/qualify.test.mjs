@@ -8,7 +8,7 @@ import { assertPinnedOwners } from "./qualify.mjs";
 
 const expected = Object.freeze({
   "workflow-package": "ff972d150438321bcb64e3442b99aad54bb38f56",
-  "execution-system": "17052b41df892093a2956c9fe1dbea36e67e47dd",
+  "execution-system": "a9a5f998b7fc1757eab7f3e4ac733d2a3fba62c3",
   "evolution-system": "7de7250d0c0c4d70e4de44a960ab15b46f5f132c",
 });
 
@@ -41,7 +41,10 @@ test("canonical CI replays v2 assets and the public exact-content cache qualific
     path.join(repository, "release/candidates/iter6-wave8.json"),
     "utf8",
   ));
-  assert.equal(releaseAuthority.execution.candidate_archive_commit, expected["execution-system"]);
+  assert.equal(
+    releaseAuthority.execution.candidate_archive_commit,
+    "17052b41df892093a2956c9fe1dbea36e67e47dd",
+  );
   assert.match(workflow, new RegExp(`HEAD:execution-system\\)" = ${expected["execution-system"]}`));
   assert.match(workflow, /node qualification\/iter6\/workflow-source\/qualify\.mjs/);
   assert.match(workflow, /release\/cli\/release\.cjs build/);
