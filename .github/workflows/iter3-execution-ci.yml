@@ -33,7 +33,7 @@ jobs:
           test "$(git rev-parse HEAD:evidence-system)" = 5065cf8aede5191c3a702f3516e2f8db8af36002
           test "$(git rev-parse HEAD:evolution-system)" = b302595942b2307514570a47be9ed87f26f8cf84
           test "$(git rev-parse HEAD:system-contracts)" = 352f5c771ff0abd11acb80c58dc7ea528a729dca
-          test "$(git rev-parse HEAD:wsr-dsh)" = dc1395f15daf4f110ffea63f74b8c41eb5639631
+          test "$(git rev-parse HEAD:wsr-dsh)" = aae7c5c914afab299b1fa34bd2ae0960c427f868
           test -z "$(git status --porcelain --untracked-files=no)"
           test -z "$(git -C execution-system status --porcelain --untracked-files=no)"
           test -z "$(git -C evolution-system status --porcelain --untracked-files=no)"
@@ -142,8 +142,12 @@ jobs:
           npm --prefix wsr-dsh run build
           npm --prefix wsr-dsh run pack:verify
           npm --prefix wsr-dsh run qualify:clean-profile
-          WSR_RELEASE_CHANNEL=candidate npm --prefix wsr-dsh run release:candidate -- "$RUNNER_TEMP/wsr-dsh-release"
+          npm --prefix wsr-dsh run qualify:lifecycle
+          npm --prefix wsr-dsh run qualify:provider-routing
+          WSR_RELEASE_CHANNEL=candidate WSR_CANDIDATE_TAG=0.1.0-rc.1 npm --prefix wsr-dsh run release:candidate -- "$RUNNER_TEMP/wsr-dsh-release"
           npm --prefix wsr-dsh run provenance:verify -- "$RUNNER_TEMP/wsr-dsh-release"
+          npm --prefix wsr-dsh run release:qualify -- "$RUNNER_TEMP/wsr-dsh-release"
+          npm --prefix wsr-dsh run release:verify -- "$RUNNER_TEMP/wsr-dsh-release"
 
       - name: Verify independent Workflow Package release assets
         env:
