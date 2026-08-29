@@ -43,7 +43,7 @@ def main() -> None:
         ROOT / "evidence-system",
     )
     run(["./scripts/integration-test.sh"], ROOT / "evidence-system", timeout=240)
-    run([sys.executable, "deployment/check-iter5-compose.py"], ROOT)
+    run([sys.executable, "deployment/check-compose.py"], ROOT)
     print("Iteration 5 Wave10 independence qualification: PASS")
 
 

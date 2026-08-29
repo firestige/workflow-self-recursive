@@ -5,5 +5,6 @@ tmp/
 # pnpm content-addressable store (local cache)
 .pnpm-store/
 
-# Local deployment secrets
+# Local deployment state
 deployment/.secrets/
+deployment/.local/
