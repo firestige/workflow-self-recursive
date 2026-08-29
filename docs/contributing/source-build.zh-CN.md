@@ -38,3 +38,7 @@ docker compose -f deployment/compose.yaml stop
 
 当前 checkout 通过 Git submodule 连接 Workflow Package、Execution、Evidence、Evolution、共享
 Contracts 与 UI 仓库。这些是源码 workstream，不是独立的产品安装步骤，也不代表产品包含六个系统。
+
+Release 维护者使用 `deployment/published/build-bundle.py` 资格验证独立的 published-image service
+bundle。该工具只消费已冻结的镜像坐标；它不是另一套源码预览启动器，也不会在 clean-machine
+qualification 前成为最终用户 Release。

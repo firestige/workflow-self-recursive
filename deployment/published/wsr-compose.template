@@ -1,0 +1,90 @@
+#!/bin/sh
+set -eu
+
+bundle_dir=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
+compose_file="$bundle_dir/compose.yaml"
+state_dir=${WSR_LOCAL_STATE_DIR:-"$bundle_dir/.local"}
+secret_dir="$state_dir/secrets"
+volume=${WSR_EVIDENCE_VOLUME:-wsr-evidence-data}
+wait_timeout=${WSR_READY_TIMEOUT_SECONDS:-120}
+evidence_port=${WSR_EVIDENCE_PORT:-4318}
+evolution_port=${WSR_EVOLUTION_PORT:-8000}
+evolution_config=${WSR_EVOLUTION_CONFIG_FILE:-"$bundle_dir/evolution.config.json"}
+action=${1:-start}
+
+case "$volume" in *[!A-Za-z0-9_.-]* | "") printf 'Invalid WSR_EVIDENCE_VOLUME.\n' >&2; exit 2;; esac
+for value in "$evidence_port" "$evolution_port" "$wait_timeout"; do
+  case "$value" in *[!0-9]* | "") printf 'Ports and ready timeout must be integers.\n' >&2; exit 2;; esac
+done
+for port in "$evidence_port" "$evolution_port"; do
+  if test "$port" -lt 1 || test "$port" -gt 65535; then printf 'Ports must be in 1..65535.\n' >&2; exit 2; fi
+done
+if test "$wait_timeout" -lt 1 || test "$wait_timeout" -gt 3600; then
+  printf 'WSR_READY_TIMEOUT_SECONDS must be in 1..3600.\n' >&2
+  exit 2
+fi
+if ! test -f "$evolution_config" || ! test -r "$evolution_config"; then
+  printf 'WSR_EVOLUTION_CONFIG_FILE must name a readable file.\n' >&2
+  exit 2
+fi
+config_parent=$(CDPATH= cd -- "$(dirname "$evolution_config")" && pwd)
+evolution_config="$config_parent/$(basename "$evolution_config")"
+if ! command -v docker >/dev/null 2>&1; then printf 'Required command not found: docker\n' >&2; exit 1; fi
+if ! command -v openssl >/dev/null 2>&1; then printf 'Required command not found: openssl\n' >&2; exit 1; fi
+if ! docker compose version >/dev/null 2>&1; then printf 'Docker Compose v2 is required.\n' >&2; exit 1; fi
+if ! docker info >/dev/null 2>&1; then printf 'Docker daemon is unavailable.\n' >&2; exit 1; fi
+
+umask 077
+mkdir -p "$secret_dir"
+chmod 700 "$state_dir" "$secret_dir"
+for name in admin-password backup-password runtime-password; do
+  path="$secret_dir/$name"
+  if ! test -s "$path"; then openssl rand -out "$path" -hex 32; fi
+  chmod 644 "$path"
+done
+
+export WSR_EVIDENCE_ADMIN_PASSWORD_FILE="$secret_dir/admin-password"
+export WSR_EVIDENCE_BACKUP_PASSWORD_FILE="$secret_dir/backup-password"
+export WSR_EVIDENCE_RUNTIME_PASSWORD_FILE="$secret_dir/runtime-password"
+export WSR_EVIDENCE_VOLUME="$volume"
+export WSR_EVOLUTION_CONFIG_FILE="$evolution_config"
+compose() { docker compose -f "$compose_file" "$@"; }
+
+wait_stack() {
+  set +e
+  compose up --wait --wait-timeout "$wait_timeout"
+  status=$?
+  set -e
+  if test "$status" -ne 0; then
+    printf 'Published service stack did not become ready (bundle @BUNDLE_VERSION@).\n' >&2
+    compose ps >&2 || true
+    compose logs --no-color database migrate evidence evolution >&2 || true
+    return "$status"
+  fi
+  printf 'WSR services @BUNDLE_VERSION@ are ready at Evidence 127.0.0.1:%s and Evolution 127.0.0.1:%s.\n' "$evidence_port" "$evolution_port"
+}
+
+start_stack() {
+  compose pull
+  wait_stack
+}
+
+case "$action" in
+  start | upgrade | rollback) start_stack;;
+  restart) compose restart database evidence evolution && wait_stack;;
+  stop) compose stop;;
+  down) compose down;;
+  status) compose ps;;
+  logs)
+    if test "$#" -gt 1; then compose logs --no-color "$2"; else compose logs --no-color; fi
+    ;;
+  purge)
+    if test "${WSR_CONFIRM_PURGE:-}" != DELETE_EVIDENCE_DATA; then
+      printf 'Refusing purge. Set WSR_CONFIRM_PURGE=DELETE_EVIDENCE_DATA to delete %s.\n' "$volume" >&2
+      exit 2
+    fi
+    compose down
+    docker volume rm "$volume"
+    ;;
+  *) printf 'usage: %s {start|stop|restart|down|status|logs|upgrade|rollback|purge}\n' "$0" >&2; exit 2;;
+esac

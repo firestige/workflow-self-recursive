@@ -1,0 +1,64 @@
+name: Build published-image Compose bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      authority_ref:
+        description: Immutable superproject ref containing the qualified image manifest
+        required: true
+        type: string
+      release_manifest:
+        description: Superproject-relative release/compose manifest path
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      authority_ref:
+        required: true
+        type: string
+      release_manifest:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.authority_ref }}
+          fetch-depth: 0
+
+      - name: Validate immutable manifest location
+        env:
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
+        run: |
+          case "$RELEASE_MANIFEST" in release/compose/*.json) ;; *) exit 1 ;; esac
+          test -f "$RELEASE_MANIFEST"
+
+      - name: Build versioned bundle
+        env:
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
+        run: |
+          VERSION="$(python3 -c 'import json,os; print(json.load(open(os.environ["RELEASE_MANIFEST"]))["version"])')"
+          deployment/published/build-bundle.py "$RELEASE_MANIFEST" "$RUNNER_TEMP/wsr-services-$VERSION"
+          echo "BUNDLE=$RUNNER_TEMP/wsr-services-$VERSION" >> "$GITHUB_ENV"
+
+      - name: Requalify generated bundle
+        run: |
+          cd "$BUNDLE"
+          sha256sum --check SHA256SUMS
+          docker compose -f compose.yaml config --quiet
+          test "$(grep -c '@sha256:' compose.yaml)" = 4
+          test -z "$(grep -E '(^|[[:space:]])build:|\.\./(evidence|evolution)-system|bi-app|workflow-builder' compose.yaml || true)"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: published-image-compose-bundle
+          path: ${{ env.BUNDLE }}
+          if-no-files-found: error
+          retention-days: 14
