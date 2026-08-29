@@ -1,0 +1,82 @@
+{
+  "schema_version": "wsr.iter4-unified-candidate@1.0.0",
+  "status": "IMMUTABLE_RELEASE_CANDIDATE",
+  "created_at": "2026-08-29",
+  "contract_candidate": {
+    "coordinate": "evidence.query@0.1.0",
+    "status": "FROZEN",
+    "published": true,
+    "system_contracts_commit": "a3f6d7ca8a3e08e89af4bc3ecea34524f5094bd5",
+    "publication_record_sha256": "sha256:feb0186da48661d2663b03d20e536f470b591ea22f21a34a4ca99bfcc33204e9",
+    "semantic_sha256": "sha256:ce13b76cb3c2737e8243c97de880574060a61c05a6a7a67182a2804c04a2a8ef",
+    "conformance_claim": "VALIDATOR_ONLY"
+  },
+  "execution": {
+    "repository": "firestige/execution-system",
+    "input_commit": "74676e9e3d0a6b0fa562f28025594c9a94d1df5e",
+    "build_input_commit": "74676e9e3d0a6b0fa562f28025594c9a94d1df5e",
+    "candidate_archive_commit": "17052b41df892093a2956c9fe1dbea36e67e47dd",
+    "metadata": {
+      "path": "execution-system/release/candidates/iter6-wave8/release-metadata.json",
+      "sha256": "sha256:9433e483fbf8dab20a45d686dd6550656941537e736439f97243d3ff33b540fc"
+    },
+    "release_notes": {
+      "path": "execution-system/release/candidates/iter6-wave8/release-notes.md",
+      "sha256": "sha256:88bbc3a9941c504a82598be9c17ee8c0f2f3b574db3d9de3000ec6649efe8ba6"
+    },
+    "artifacts": [
+      {
+        "package": "wsr-execution",
+        "version": "0.1.4",
+        "path": "execution-system/release/candidates/iter6-wave8/wsr-execution-0.1.4.tgz",
+        "bytes": 214125,
+        "sha256": "sha256:4407239534795f528b3ca597583a682636dd539516f567434a128d5437345e4d"
+      },
+      {
+        "package": "wsr-dsh-intake",
+        "version": "0.1.4",
+        "path": "execution-system/release/candidates/iter6-wave8/wsr-dsh-intake-0.1.4.tgz",
+        "bytes": 22184,
+        "sha256": "sha256:f108d58bd2c891c4b7447e1c459717c2b5ea80e1a16888d1313eac933b26a4c2"
+      }
+    ]
+  },
+  "evidence": {
+    "repository": "firestige/evidence-system",
+    "version": "0.1.0",
+    "payload_commit": "7e3ff4a9f87b17b428a07054ff9826aeb863b57f",
+    "candidate_archive_commit": "35d63469650e978d0fb795419df5d4a0ea5eafa7",
+    "publisher_commit": "f09a1f04175140659726c6583a23928f03769a60",
+    "candidate_tag": "0.1.0-rc.3",
+    "manifest_path": "evidence-system/release/candidates/iter6-wave10-rc3.json",
+    "manifest_sha256": "sha256:11be3bf4e7cdaacf1adeadcc00e4d4ef27bc46096ec32f55e5125692b0c28cf6",
+    "migration_revision": "20260828_0004",
+    "assets": [
+      {
+        "name": "wsr_evidence-0.1.0-py3-none-any.whl",
+        "sha256": "sha256:1cc5587fea69ba5efb4b77e3824878b3ce2caa9780c1a9c1ff8e37fe01f2408f"
+      },
+      {
+        "name": "wsr_evidence-0.1.0.tar.gz",
+        "sha256": "sha256:b2e1458dd511403d002b303e57de155bd4cd84dcbba9467db020c04aa29490e8"
+      }
+    ]
+  },
+  "qualification": {
+    "evidence_product_python_3_14_unit": "PASS_138",
+    "evidence_publisher_unit": "PASS_148",
+    "evidence_postgresql_integration": "PASS_16",
+    "evidence_deployment_backup_restore": "PASS",
+    "evidence_task_route_and_schema": "PASS",
+    "evidence_artifact_digest_rebuild": "BYTE_EXACT",
+    "evidence_platform_identity_provenance": "PASS",
+    "execution_wave8_authority_preserved": "PASS",
+    "contract_frozen_authority": "PASS"
+  },
+  "non_claims": [
+    "NO_EVIDENCE_TAG_OR_GITHUB_RELEASE_CREATED",
+    "NO_EVIDENCE_REGISTRY_OR_GHCR_PUBLICATION_CREATED",
+    "NO_STABLE_COMPONENT_OR_SUPERPROJECT_PUBLICATION_CREATED",
+    "NO_IMPLEMENTATION_CONFORMANCE_CLAIM"
+  ]
+}
