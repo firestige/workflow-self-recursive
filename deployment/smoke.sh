@@ -2,9 +2,9 @@
 set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-compose_file="$repo_root/deployment/compose.iter5.yaml"
-compose_project="wsriter5smoke-$$"
-host_port="${WSR_ITER5_SMOKE_PORT:-18081}"
+compose_file="$repo_root/deployment/compose.yaml"
+compose_project="wsrsmoke-$$"
+host_port="${WSR_SMOKE_PORT:-18081}"
 secret_dir=$(mktemp -d)
 
 compose() {
@@ -17,7 +17,7 @@ compose() {
 
 cleanup() {
   compose down --volumes >/dev/null 2>&1 || true
-  find /tmp -maxdepth 1 -name "wsr-iter5-smoke-response-$$" -delete
+  find /tmp -maxdepth 1 -name "wsr-smoke-response-$$" -delete
   if test -d "$secret_dir"; then
     find "$secret_dir" -type f -delete
     rmdir "$secret_dir" >/dev/null 2>&1 || true
@@ -78,9 +78,9 @@ curl --fail --silent "$base_url/healthz" | grep -qx ok
 curl --fail --silent "$base_url/evaluate" | grep -q '<div id="root"></div>'
 http_code=$(curl --silent --output /dev/null --write-out '%{http_code}' "$base_url/v1/evidence/tasks?limit=1")
 test "$http_code" = 502 || test "$http_code" = 504
-http_code=$(curl --silent --output /tmp/wsr-iter5-smoke-response-$$ --write-out '%{http_code}' \
+http_code=$(curl --silent --output /tmp/wsr-smoke-response-$$ --write-out '%{http_code}' \
   --header 'content-type: application/json' \
   --data '{"api_version":1,"mode":"SINGLE","selection":{"selection_version":1,"task_ids":["task-smoke"]}}' \
   "$base_url/api/evolution/v1/evaluations:compute")
 test "$http_code" = 503
-grep -q '"code":"UPSTREAM_UNAVAILABLE"' /tmp/wsr-iter5-smoke-response-$$
+grep -q '"code":"UPSTREAM_UNAVAILABLE"' /tmp/wsr-smoke-response-$$

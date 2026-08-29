@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
-COMPOSE = ROOT / "deployment/compose.iter5.yaml"
+COMPOSE = ROOT / "deployment/compose.yaml"
 
 
 def normalized() -> dict[str, object]:

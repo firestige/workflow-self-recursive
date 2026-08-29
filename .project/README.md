@@ -7,6 +7,7 @@ This directory is a **vendored snapshot** of the project-ops mechanism, installe
 ## Layout
 
 - `requirements/` — step 1: requirement lifecycle protocol (single source for this repo's cards): lifecycle, vocabulary, card format, online automations handoff.
+- `plans/` — execution plan (plan.md) protocol: template + rules + machine gate (`pctl plan lint`).
 - `branches/` — step 2 (future): branch / operating norms (分支运营规范). Placeholder.
 - `skills/` — vendored copy of the capture skill definition (registered under `~/.agents/skills/` by init).
 

@@ -17,7 +17,7 @@ Small skill: triggers and dispatch only. Protocol details live in the repo's `.p
 3. **Ambiguous** → ask one question.
 
 ## Card operations
-Always use `pctl` (`pctl req new|queue|ready`, `pctl tmp-scan`). Never hand-roll gh commands for card operations. Repo is inferred from the cwd's git remote.
+Always use `pctl` for card state transitions (`pctl req new|ready|plan|close|retire|reopen|link|flag|scan`, `pctl tmp-scan`, `pctl plan lint`); queries, comments and manual labels go straight to `gh`. Never hand-roll gh commands for state transitions. Repo is inferred from the cwd's git remote.
 
 ## tmp hygiene
 - The agent executing a tmp task deletes its own `tmp/<date>/<topic>` when the task closes (delivered or abandoned).
@@ -27,4 +27,5 @@ Always use `pctl` (`pctl req new|queue|ready`, `pctl tmp-scan`). Never hand-roll
 - Lifecycle, gates, retirement params: `.project/requirements/lifecycle.md`
 - Vocabulary: `.project/requirements/vocabulary.md`
 - Card format: `.project/requirements/card-format.md`
+- Execution plan (plan.md) format + rules: `.project/plans/plan-template.md`, `.project/plans/plan-rules.md` — generate `tmp/<date>/<topic>/plan.md` before executing, gate with `pctl plan lint`
 - Online automations handoff: `.project/requirements/automations.md`
