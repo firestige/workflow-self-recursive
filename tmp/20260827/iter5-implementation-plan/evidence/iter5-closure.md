@@ -83,5 +83,5 @@ the required domains/dimensions, add logical-delete retention only through a sep
 or implement attribution/improvement through later Evolution scope. Those are not deferred acceptance
 criteria for #53–56.
 
-The remaining closure operation is tracking-only: use `wave12.md` to update and close Issues #53–56 and
-set their Project #9 items to `Done`, then mark the plan complete. No automatic product release follows.
+Issues #53–56 have criterion-level closure comments, complete acceptance checkboxes, CLOSED /
+`completed` state and Project #9 `Done`. The plan is complete. No automatic product release follows.

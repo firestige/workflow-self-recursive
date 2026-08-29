@@ -168,6 +168,10 @@ this as non-blocking P2, with no P0/P1 or product risk.
 
 ## Exit
 
-Wave12 technical closure is `PASS`. After this file is committed and pushed, the remaining actions are
-criterion-level Issue #53–56 comments/body updates, closure, Project `Done`, and the final plan tracking
-commit. No Wave4+ product implementation remains open in Iter5.
+Wave12 technical and tracking closure is `PASS`. Criterion-level comments were published for
+[#53](https://github.com/firestige/workflow-self-recursive/issues/53#issuecomment-5459131118),
+[#54](https://github.com/firestige/workflow-self-recursive/issues/54#issuecomment-5459132608),
+[#55](https://github.com/firestige/workflow-self-recursive/issues/55#issuecomment-5459134168) and
+[#56](https://github.com/firestige/workflow-self-recursive/issues/56#issuecomment-5459135790). All original
+acceptance checkboxes are complete; the four Issues are CLOSED / `completed` and their Project #9 items
+are `Done`. No Wave4+ product implementation remains open in Iter5.

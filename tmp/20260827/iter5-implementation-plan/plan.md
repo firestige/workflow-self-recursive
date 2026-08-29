@@ -1,14 +1,14 @@
 # Iteration 5 实施计划 — BI 可视化与双系统独立验证
 
-> **计划状态**：`WAVE6_PASS / WAVE7_IN_PROGRESS`；G0、G2a、G2b 与 Wave1–6 已 PASS。Owner 于 2026-08-28 明确允许在没有真实阻塞或产品裁决时持续向下执行。Wave6 的 BI clients、semantic presentation foundations、独立 exit audit、durable commits 与 submodule pin 已闭合；published/FROZEN 原件仍不得静默修改。
+> **计划状态**：`ITER5_COMPLETE`；G0、G2a、G2b 与 Wave0–12 全部 PASS。Final product authority 为 superproject `4bac3fa2` 与下列 exact component pins；Wave12 clean-checkout、final-main、独立 exit review、Issue closure 与 Project tracking 均已闭合。Published/FROZEN 原件仍不得静默修改。
 >
 > **排期权威**：[GitHub Project #9](https://github.com/users/firestige/projects/9) 的 Iter5（`Iter 5 bi 可视化 + 独立验证`，2026-09-21 起、7 天）。Issue 是需求、验收与决策事实源；`.project` 生命周期门仍适用。`plan.md` 只拥有已批准范围内的执行顺序、路径和门禁；issue 或 Project 发生变化时必须停止、同步计划并重新批准，不存在两个并列事实源。
 >
-> **Committed baseline**：[#53](https://github.com/firestige/workflow-self-recursive/issues/53)、[#54](https://github.com/firestige/workflow-self-recursive/issues/54)、[#55](https://github.com/firestige/workflow-self-recursive/issues/55)、[#56](https://github.com/firestige/workflow-self-recursive/issues/56)。四卡当前均为 OPEN / `ready` / Project `Todo`。
+> **Committed baseline**：[#53](https://github.com/firestige/workflow-self-recursive/issues/53)、[#54](https://github.com/firestige/workflow-self-recursive/issues/54)、[#55](https://github.com/firestige/workflow-self-recursive/issues/55)、[#56](https://github.com/firestige/workflow-self-recursive/issues/56)。四卡均为 CLOSED / `completed` / Project `Done`，原始 acceptance checkbox 已逐条回填。
 >
 > **明确排除**：[#95](https://github.com/firestige/workflow-self-recursive/issues/95)（含 `intake-sidebar`）属于 DSH display plugin 工作；它与 BI 放在 `wsr-ui` 仅是 repository 管理共址，不构成共享 UI framework/layout/release contract。它不进入 Iter5 的 refinement、实现、分发、容量或完成判定。`workflow-builder` 当前仍是 idea，同样不进入 MVP。
 >
-> **当前 wave**：`WAVE12_IN_PROGRESS`；Wave11 authority 为 superproject `8bdd1434`、`system-contracts@49d7b85`、`execution-system@1ea4d69`、`evidence-system@9428018`、`evolution-system@394768d`、`wsr-ui@d92c6ce` 与 `evidence/wave11.md`。Wave12 只执行 clean-checkout closure、superproject squash merge 与最终关闭。
+> **当前 wave**：`ITER5_COMPLETE`；final authority 为 superproject `4bac3fa2`、`system-contracts@49d7b85`、`execution-system@f8bc325`、`evidence-system@9428018`、`evolution-system@394768d`、`wsr-ui@d92c6ce`，技术证据见 `evidence/wave12.md`，总结见 `evidence/iter5-closure.md`。Final root CI `33222686110` 与 Execution exact-authority CI `33222722931` 均为 SUCCESS。
 
 ## 1. 目标与完成判定
 
@@ -493,13 +493,13 @@ BLOCK/FAIL：组件未 squash merge；主干含旧 evaluator/manifest；final SH
 
 ### wave12 — clean-checkout 完整 E2E、superproject squash merge 与关闭
 
-> 状态：`IN_PROGRESS`。Wave11 PASS 已满足 ENTRY；开始 isolated clean-checkout closure。
+> 状态：`PASS`。Final product authority 为 superproject `4bac3fa2`；独立 exit review 为 P0=0/P1=0/P2=1。P2 是已披露的 final CI 修复 main-first/feature-sync 时序偏差，不影响最终树、产品或资格验证。详见 `evidence/wave12.md` 与 `evidence/iter5-closure.md`。
 
-- [ ] 从 clean checkout 初始化 submodules，正常安装依赖并从源码构建 Evolution 与 Vite BI images；不依赖未提交文件或预建 dist/image。
-- [ ] 在隔离 network 启动 `pg + evidence + evolution + bi-app`，运行 single/compare/Trace/theme/health/degraded/network/browser E2E 与 #56 independence suite。
-- [ ] 检查 images/config/network 无 credential、DB client 泄漏、未来组件 artifact 或远端 push step。
-- [ ] 将 superproject `iter5/implementation` squash merge 回主干，在最终 main/pins 上重跑 closure suite。
-- [ ] criterion-level PASS 后回填并关闭 #53–56、更新 Project Done；生成 `evidence/wave12.md` 与 Iter5 closure summary。
+- [x] 从 clean checkout 初始化 submodules，正常安装依赖并从源码构建 Evolution 与 Vite BI images；不依赖未提交文件或预建 dist/image。
+- [x] 在隔离 network 启动 `pg + evidence + evolution + bi-app`，运行 single/compare/Trace/theme/health/degraded/network/browser E2E 与 #56 independence suite。
+- [x] 检查 images/config/network 无 credential、DB client 泄漏、未来组件 artifact 或远端 push step。
+- [x] 将 superproject `iter5/implementation` squash merge 回主干，在最终 main/pins 上重跑 closure suite；首个 exact-main CI RED 暴露 changelog/tag 缺陷，按 TDD 修复后 replacement CI 全绿。
+- [x] criterion-level PASS 后回填并关闭 #53–56、更新 Project Done；生成 `evidence/wave12.md` 与 Iter5 closure summary。
 
 BLOCK/FAIL：clean source 无法 build；完整拓扑/E2E 不成立；superproject 未 squash merge；Issue/Project 状态与证据不一致。
 
@@ -568,4 +568,4 @@ BLOCK/FAIL：clean source 无法 build；完整拓扑/E2E 不成立；superproje
 - [x] owner 已明确不接受跨 wave 并行；wave ENTRY/写入/PASS 为单链串行，同一 wave 内独立只读分析可并发。当前估算 7.25–10.75 工作日，超出 7 天则返回 Project 排期裁决。
 - [x] owner 已确认 Task/Evolution 已裁决语义走后续获准 contract lifecycle 正常对齐；任何超出这些语义的 FROZEN/cross-system contract gap 都立即返回，不在 Iter5 里顺手修改或重解释。
 
-Wave0–Wave3 的可继承 baseline 已存在；Wave3 durable PASS 已绑定 `wsr-ui@201268e`、superproject `2a1c056e` 与 Issue #53–56。Owner 已明确接受当前排期偏差并放行 Wave4；Project duration 不再是 Wave4 blocker。Issue/Project 后续发生实质范围变化时必须同步本计划；本 tmp 计划不能代替持久决策。
+Wave0–Wave12 已全部闭合。Final product authority、clean/final-main gates、旧 RED 与 replacement GREEN CI、逐卡 acceptance mapping、history/process disclosure 均记录于 Wave12 evidence；#53–56 已关闭且 Project 为 Done。任何后续 capability 都必须重新进入 requirements lifecycle，不得把本计划继续当作开放实施授权。
