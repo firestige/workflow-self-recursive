@@ -188,6 +188,29 @@ class PublishedBundleTest(unittest.TestCase):
                     )
                     self.assertEqual(completed.returncode, 2)
 
+    def test_logs_without_service_does_not_pass_an_empty_service_name(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            docker = fake_bin / "docker"
+            docker.write_text(
+                "#!/bin/sh\nlast=x\nfor argument do last=$argument; done\n"
+                "if test -z \"$last\"; then exit 31; fi\nexit 0\n",
+                encoding="utf-8",
+            )
+            docker.chmod(0o755)
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "logs"],
+                env=os.environ
+                | {
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
+                },
+            )
+            self.assertEqual(completed.returncode, 0)
+
     def test_release_workflow_builds_and_rechecks_the_versioned_bundle(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "release-compose-bundle.yml").read_text(
             encoding="utf-8"

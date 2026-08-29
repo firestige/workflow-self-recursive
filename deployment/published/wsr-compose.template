@@ -63,7 +63,9 @@ case "$action" in
   stop) compose stop;;
   down) compose down;;
   status) compose ps;;
-  logs) compose logs --no-color "${2:-}";;
+  logs)
+    if test "$#" -gt 1; then compose logs --no-color "$2"; else compose logs --no-color; fi
+    ;;
   purge)
     if test "${WSR_CONFIRM_PURGE:-}" != DELETE_EVIDENCE_DATA; then
       printf 'Refusing purge. Set WSR_CONFIRM_PURGE=DELETE_EVIDENCE_DATA to delete %s.\n' "$volume" >&2
