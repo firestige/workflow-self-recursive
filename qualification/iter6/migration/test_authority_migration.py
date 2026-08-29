@@ -331,6 +331,22 @@ class OldCoordinateScannerTest(unittest.TestCase):
             self.assertEqual(reverse_changed, ["README.md"])
             self.assertEqual(active.read_text(encoding="utf-8"), original_active)
 
+    def test_fixed_contract_publication_builders_remain_historical_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            builder = root / "observation/tools/build-publication-record.cjs"
+            builder.parent.mkdir(parents=True)
+            builder.write_text('repository: "firestige/system-contracts"\n', encoding="utf-8")
+
+            findings = scan_paths(root, [builder], self.manifest)
+            changed = rewrite_paths(root, [builder], self.manifest, direction="forward")
+
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0].classification, "historical")
+            self.assertEqual(findings[0].allowlist_id, "immutable-contract-publications")
+            self.assertEqual(changed, [])
+            self.assertIn("firestige/system-contracts", builder.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()
