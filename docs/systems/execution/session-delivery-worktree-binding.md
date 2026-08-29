@@ -145,7 +145,7 @@ The #93 checks remain the authorization source but stop passing a raw workspace 
 
 ## 8. Implementation ownership
 
-Wave5 changed no production path; it approved this design and implementation-level acceptance only. On 2026-08-26, the owner explicitly revised the Iter4 plan, DAG, and release baseline: [#102](https://github.com/firestige/workflow-self-recursive/issues/102) is authorized for Iteration 4 Wave11, and `wsr-execution` / `wsr-dsh-intake` must advance in lockstep from the immutable external `0.1.2` baseline to `0.1.3`. Wave12 is the unified publication window; Wave11 must not publish externally.
+Wave5 changed no production path; it approved this design and implementation-level acceptance only. On 2026-08-26, the owner explicitly revised the Iter4 plan, DAG, and release baseline: [#102](https://github.com/firestige/workflow-self-recursive/issues/102) is authorized for Iteration 4 Wave11, and `wsr-execution` / `dsh-wsr-execution` must advance in lockstep from the immutable external `0.1.2` baseline to `0.1.3`. Wave12 is the unified publication window; Wave11 must not publish externally.
 
 Expected owned paths for that card:
 

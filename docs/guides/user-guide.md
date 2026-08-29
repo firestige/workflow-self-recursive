@@ -35,7 +35,7 @@ that database.
 
 ## Workflow sources
 
-The default configuration contains the official `firestige/workflow-package` source. Only when
+The default configuration contains the official `firestige/wsr-workflow-package` source. Only when
 Deliveries may refer to forks or other Workflow repositories must you add ordered `workflow_sources`
 in [`deployment/evolution.config.json`](../../deployment/evolution.config.json).
 Evolution uses the first exact Package/Snapshot digest match; a repository name or version string alone

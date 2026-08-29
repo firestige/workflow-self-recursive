@@ -6,7 +6,7 @@
   "ports": {
     "bi": 8080
   },
-  "workflowSource": "github:firestige/workflow-package@0.0.0-fixture.1",
+  "workflowSource": "github:firestige/wsr-workflow-package@0.0.0-fixture.1",
   "roleBindings": {
     "implementer": {
       "provider": "copilot",

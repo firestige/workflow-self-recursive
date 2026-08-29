@@ -1,6 +1,6 @@
 # Execution 与 DSH Intake 发布流程
 
-本 adapter 以 lockstep 方式发布 `wsr-execution` 与 `wsr-dsh-intake`。stable tag 是 qualification 与 component-first repin 的输出，不能作为 qualification 的触发器。通用身份与恢复规则见[发布自动化指南](release-automation.zh-CN.md)。
+本 adapter 以 lockstep 方式发布 `wsr-execution` 与 `dsh-wsr-execution`。stable tag 是 qualification 与 component-first repin 的输出，不能作为 qualification 的触发器。通用身份与恢复规则见[发布自动化指南](release-automation.zh-CN.md)。
 
 ## 强制顺序
 
@@ -57,6 +57,6 @@ qualification 后，把组件 candidate squash merge 到 `main`，再更新并�
 
 ## 4. 只晋级 qualified 字节
 
-先在 npm 为两个包配置 trusted publisher：`firestige/execution-system` + `release-promote.yml`。随后用 qualified RC 与 stable tag dispatch promotion。workflow 会重新验证 candidate commit、qualification evidence、manifest、release notes 与 remote DSH install；用 npm OIDC 先发 `wsr-execution`、再发 `wsr-dsh-intake`，然后核对 registry 的精确 tarball digest、description、versions 与 `latest`。全部通过后才生成 scoped GitHub App token，并把 stable tag/Release 作为最后一步创建。
+先在 npm 为两个包配置 trusted publisher：`firestige/wsr-execution` + `release-promote.yml`。随后用 qualified RC 与 stable tag dispatch promotion。workflow 会重新验证 candidate commit、qualification evidence、manifest、release notes 与 remote DSH install；用 npm OIDC 先发 `wsr-execution`、再发 `dsh-wsr-execution`，然后核对 registry 的精确 tarball digest、description、versions 与 `latest`。全部通过后才生成 scoped GitHub App token，并把 stable tag/Release 作为最后一步创建。
 
 若 core 成功而 intake 失败，保持 stable 不存在，并对同一 candidate 重跑。publisher 会下载已有坐标；只有其 digest 与 immutable manifest 一致时才跳过 core，再发布 intake。digest 不同是永久版本冲突，必须调查，不能覆盖或重建。

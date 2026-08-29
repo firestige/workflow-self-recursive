@@ -142,7 +142,7 @@ def _authority_tokens(text: str) -> set[str]:
             or token.startswith("https://api.github.com/repos/firestige/")
             or token.startswith("dsh-wsr")
             or token.startswith("wsr-")
-            or token == "@wsr/bi@0.0.0"
+            or token == "dsh-wsr-studio@0.0.0"
             or token in {"/wsr", "/workflow-execution", "workflow_execution_intake"}
         ):
             selected.add(token)

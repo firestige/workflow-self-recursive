@@ -75,7 +75,7 @@ Additional `execution` feature-card classifications in use: `delivery`, `observa
 ## 6. Package naming (npm / DSH plugin)
 
 - Namespace: `wsr-<system>`, **no npm scope**. Decided 2026-08-25.
-- Current: `wsr-execution` (execution system), `wsr-dsh-intake` (product-level entry; currently carries Execution capability).
+- Current: `wsr-execution` (execution system), `dsh-wsr-execution` (product-level entry; currently carries Execution capability).
 - Reserved: `wsr-evidence`, `wsr-evolution` (for the closed loop).
 - Rationale: DSH ecosystem convention (short unscoped names: `dsh-plugin`, `dsh-auto-update`, …); short install command; no npm org needed; consistent with "systems are first-class, DSH is the entry" organization decision.
 

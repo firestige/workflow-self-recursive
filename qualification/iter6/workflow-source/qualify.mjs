@@ -5,9 +5,9 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 export const EXPECTED_OWNER_REVISIONS = Object.freeze({
-  "workflow-package": "ff972d150438321bcb64e3442b99aad54bb38f56",
-  "execution-system": "244a9b18f7d3166f7ac60e7b9d5c6fd6ef90b7bc",
-  "evolution-system": "7de7250d0c0c4d70e4de44a960ab15b46f5f132c",
+  "workflow-package": "08d0a4e7d2862203107fde647c21a756734586c6",
+  "execution-system": "1cb19faa78aafa380eb93f1eda0cb9819ee1188e",
+  "evolution-system": "b302595942b2307514570a47be9ed87f26f8cf84",
 });
 
 export function assertPinnedOwners(actual) {
@@ -66,8 +66,8 @@ export async function qualifyExactPublicCache(repository) {
     });
     const source = new GitHubWorkflowPackageSource({
       kind: "github",
-      repository: "firestige/workflow-package",
-      releasesBaseUrl: "https://api.github.com/repos/firestige/workflow-package/releases",
+      repository: "firestige/wsr-workflow-package",
+      releasesBaseUrl: "https://api.github.com/repos/firestige/wsr-workflow-package/releases",
       assetPattern: "workflow-package-{name}-{version}.tar.gz",
     }, Object.freeze({
       request: async (url) => {
@@ -98,7 +98,7 @@ export async function qualifyExactPublicCache(repository) {
     return Object.freeze({
       schemaVersion: "wsr.workflow-source-qualification@1.0.0",
       owners,
-      source: "firestige/workflow-package",
+      source: "firestige/wsr-workflow-package",
       selector,
       packageDigest: first.value.packageDigest,
       workflowId: first.value.workflowId,

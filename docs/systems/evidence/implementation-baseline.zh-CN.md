@@ -5,7 +5,7 @@
 | 状态 | `APPROVED` |
 | 批准人 | `firestige`，2026-08-25 |
 | 生效范围 | Iteration 4 Wave 2 起 |
-| 组件 | `firestige/evidence-system` |
+| 组件 | `firestige/wsr-evidence` |
 | 产品版本 | `0.1.0` developer preview |
 | 变更控制 | runtime dependency、service、ownership、deployment、release shape 或 supported platform 的任何变化都需要用户批准 |
 

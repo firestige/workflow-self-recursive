@@ -47,7 +47,7 @@ workflow 进入默认分支后，仍可从 `release/next` 使用 `workflow_dispa
 
 ## GitHub App 身份
 
-批准的 App owner 是 `firestige`，slug 为 `wsr-release`。安装 allowlist 精确包含 `workflow-self-recursive`、`execution-system`、`evidence-system`、`evolution-system`、`system-contracts`、`workflow-package`。注册权限为 Contents 读写、Workflows 读写、Metadata 只读；每个 promotion workflow 进一步把本次 token 限到自身仓库和 `contents: write`。
+批准的 App owner 是 `firestige`，slug 为 `wsr-release`。安装 allowlist 精确包含 `workflow-self-recursive`、`wsr-execution`、`wsr-evidence`、`wsr-evolution`、`wsr-contracts`、`wsr-workflow-package`、`wsr-dsh`。注册权限为 Contents 读写、Workflows 读写、Metadata 只读；每个 promotion workflow 进一步把本次 token 限到自身仓库和 `contents: write`。
 
 App ID 存为 Actions variable `WSR_RELEASE_APP_ID`，PEM private key 存为 Actions secret `WSR_RELEASE_APP_PRIVATE_KEY`。build 与 qualification 步骤拿不到 private key 或 installation token。candidate workflow 只有在所有本地资格门禁通过后才生成短期 token，并仅用于 scoped RC Release 写入；stable workflow 只在 final stable GitHub Release 前重新生成 token。若所选 release target 相对默认分支改变了 `.github/workflows/`，mint 时必须同时请求 `contents: write` 与 `workflows: write`，否则即使 Contents 可写，GitHub 仍拒绝创建 Release。GitHub 说明 installation token 一小时过期，并可进一步限制仓库和权限（[workflow 认证](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow)、[installation token 范围](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app)、[Release target 权限规则](https://docs.github.com/en/rest/releases/releases#create-a-release)）。
 
@@ -57,7 +57,7 @@ Bootstrap 顺序：注册/安装 App；在四个 active 发布仓库分别配置
 
 ## npm trusted publishing
 
-Execution 选择 GitHub Actions OIDC trusted publishing，不使用长期 npm automation token。在 npmjs.com 为 `wsr-execution` 与 `wsr-dsh-intake` 分别配置：owner `firestige`、repository `execution-system`、workflow `release-promote.yml`，除非未来 workflow 使用 environment，否则 environment 留空。workflow 具有 `id-token: write`，会验证 npm 至少为 11.5，在 GitHub-hosted runner 上只按 core→intake 发布两个 qualified tgz，并且没有 `NODE_AUTH_TOKEN`。
+Execution 选择 GitHub Actions OIDC trusted publishing，不使用长期 npm automation token。在 npmjs.com 为 `wsr-execution` 与 `dsh-wsr-execution` 分别配置：owner `firestige`、repository `execution-system`、workflow `release-promote.yml`，除非未来 workflow 使用 environment，否则 environment 留空。workflow 具有 `id-token: write`，会验证 npm 至少为 11.5，在 GitHub-hosted runner 上只按 core→intake 发布两个 qualified tgz，并且没有 `NODE_AUTH_TOKEN`。
 
 npm 要求 npm CLI ≥11.5.1、Node ≥22.14、仓库/workflow 精确匹配以及 `id-token: write`；trusted publishing 使用短期凭据并生成 provenance（[npm trusted publishers](https://docs.npmjs.com/trusted-publishers/)）。若以后用 reusable workflow 包住 npm publish job，必须按 caller workflow 身份重新配置 npm，并让 caller/called 两侧都有 OIDC 权限。
 

@@ -100,6 +100,6 @@ Bootstrap 必须先完成 Execution recovery；失败则 application fail closed
 
 ## 8. 实施边界
 
-Wave5 本身不改产品，只批准本设计与实现级验收。Owner 已于 2026-08-26 显式修订 Iter4 plan、DAG 与 release baseline：[#102](https://github.com/firestige/workflow-self-recursive/issues/102) 获准在 Iter4 Wave11 实施，`wsr-execution` / `wsr-dsh-intake` 必须从不可变的外部 `0.1.2` 基线锁步升级到 `0.1.3`。Wave12 是统一发布窗口；Wave11 不得产生外部发布状态。
+Wave5 本身不改产品，只批准本设计与实现级验收。Owner 已于 2026-08-26 显式修订 Iter4 plan、DAG 与 release baseline：[#102](https://github.com/firestige/workflow-self-recursive/issues/102) 获准在 Iter4 Wave11 实施，`wsr-execution` / `dsh-wsr-execution` 必须从不可变的外部 `0.1.2` 基线锁步升级到 `0.1.3`。Wave12 是统一发布窗口；Wave11 不得产生外部发布状态。
 
 后续 owned paths：Intake `binding-repository.js`/`index.d.ts`/`plugin.js`；private invocation-authorization seam 的 `bootstrap/contracts.ts`/`production.ts` 与 `core/request.ts`/`execution-core.ts`；只在必要时触及 `delivery/manifest.ts`/`admission.ts`/`current-slot.ts`，不得改状态语义；配套 `test/intake/**`、`test/delivery/**`、`test/bootstrap/**` 与 DSH restart/product qualification。Runner 五模块、FROZEN contracts、Evidence、公开 application methods 与 Provider-native Session 类型均禁止修改。

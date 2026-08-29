@@ -76,7 +76,7 @@ Normal close first rejects new Intake, quiesces active application calls within 
 | `paths.intakeBindingStoreRoot` | absolute path | derived as `<stateRoot>/intake-bindings`; forbidden in input | path-sensitive | DSH Intake Adapter-private binding repository | excluded | derived at plugin start | `CONFIG_DERIVED_KEY_FORBIDDEN` |
 | `paths.credentialStorePath` | absolute readable file path | user-required | sensitive path | credential lease provider | excluded; reference binds separately | next bootstrap | `CONFIG_REQUIRED_VALUE` |
 | `workflowSource.kind` | `github` or `adapter` | product default `github` | public | Source factory | no | next bootstrap | `CONFIG_SOURCE_INVALID` |
-| `workflowSource.repository` | GitHub `owner/name` | default `firestige/workflow-package`; GitHub only | public | GitHub Adapter | no | next bootstrap | `CONFIG_SOURCE_INVALID` |
+| `workflowSource.repository` | GitHub `owner/name` | default `firestige/wsr-workflow-package`; GitHub only | public | GitHub Adapter | no | next bootstrap | `CONFIG_SOURCE_INVALID` |
 | `workflowSource.releasesBaseUrl` | HTTPS URL, no userinfo | product default GitHub API repository releases URL | public | GitHub Adapter | excluded | next bootstrap | `CONFIG_URL_INVALID` |
 | `workflowSource.assetPattern` | fixed pattern | product default `workflow-package-{name}-{version}.tar.gz` | public | GitHub Adapter | no | next bootstrap | `CONFIG_SOURCE_INVALID` |
 | `workflowSource.adapterKey` | registered key | user-required for adapter variant | public | alternate Source factory | no | next bootstrap | `CONFIG_SOURCE_ADAPTER_UNKNOWN` |
@@ -128,7 +128,7 @@ The Action-finish requirement is an approved bounded reopen. A RED fixture must 
 | Artifact | Exact coordinate / convention | Owner |
 | --- | --- | --- |
 | Host-neutral Execution package | `wsr-execution@0.1.0` | Execution Release |
-| DSH Intake package | `wsr-dsh-intake@0.1.0` | Execution Release |
+| DSH Intake package | `dsh-wsr-execution@0.1.0` | Execution Release |
 | DSH profile | built-in `web` (`dsh-base` + `dsh-web-app`) | user installation |
 | Cordis row ID | `workflow-execution` | DSH Intake package |
 | Execution config schema/defaults | `execution.config@1.0.0`; `config/defaults/execution.default.yaml` and `.json` | Execution Release |

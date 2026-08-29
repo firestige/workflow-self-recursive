@@ -41,13 +41,13 @@ def manifest(version: str = "0.1.0") -> dict[str, object]:
             },
             "evidence": {
                 "coordinate": f"ghcr.io/firestige/wsr-evidence:0.1.0@sha256:{SHA}",
-                "source": "https://github.com/firestige/evidence-system",
-                "provenance": "https://github.com/firestige/evidence-system/attestations",
+                "source": "https://github.com/firestige/wsr-evidence",
+                "provenance": "https://github.com/firestige/wsr-evidence/attestations",
             },
             "evolution": {
                 "coordinate": f"ghcr.io/firestige/wsr-evolution:0.1.0@sha256:{SHA}",
-                "source": "https://github.com/firestige/evolution-system",
-                "provenance": "https://github.com/firestige/evolution-system/attestations",
+                "source": "https://github.com/firestige/wsr-evolution",
+                "provenance": "https://github.com/firestige/wsr-evolution/attestations",
             },
         },
     }
@@ -111,7 +111,7 @@ class PublishedBundleTest(unittest.TestCase):
         self.assertEqual(release["schemaCompatibility"]["evidenceRevision"], "20260828_0004")
         self.assertEqual(
             release["images"]["evidence"]["provenance"],
-            "https://github.com/firestige/evidence-system/releases/download/0.1.0-rc.3/release-qualification.json",
+            "https://github.com/firestige/wsr-evidence/releases/download/0.1.0-rc.3/release-qualification.json",
         )
         self.assertEqual(
             release["images"]["evidence"]["qualificationSha256"],
@@ -119,11 +119,11 @@ class PublishedBundleTest(unittest.TestCase):
         )
         self.assertEqual(
             release["images"]["evidence"]["source"],
-            "https://github.com/firestige/evidence-system/tree/35d63469650e978d0fb795419df5d4a0ea5eafa7",
+            "https://github.com/firestige/wsr-evidence/tree/35d63469650e978d0fb795419df5d4a0ea5eafa7",
         )
         self.assertEqual(
             release["images"]["evolution"]["provenance"],
-            "https://github.com/firestige/evolution-system/releases/download/0.1.0-rc.1/release-qualification.json",
+            "https://github.com/firestige/wsr-evolution/releases/download/0.1.0-rc.1/release-qualification.json",
         )
         self.assertEqual(
             release["images"]["evolution"]["qualificationSha256"],
@@ -435,16 +435,16 @@ class PublishedBundleTest(unittest.TestCase):
             evidence_commit = "b" * 40
             evolution_commit = "c" * 40
             value["images"]["evidence"]["source"] = (  # type: ignore[index]
-                f"https://github.com/firestige/evidence-system/tree/{evidence_commit}"
+                f"https://github.com/firestige/wsr-evidence/tree/{evidence_commit}"
             )
             value["images"]["evidence"]["provenance"] = (  # type: ignore[index]
-                "https://github.com/firestige/evidence-system/releases/download/0.1.0/release-qualification.json"
+                "https://github.com/firestige/wsr-evidence/releases/download/0.1.0/release-qualification.json"
             )
             value["images"]["evolution"]["source"] = (  # type: ignore[index]
-                f"https://github.com/firestige/evolution-system/tree/{evolution_commit}"
+                f"https://github.com/firestige/wsr-evolution/tree/{evolution_commit}"
             )
             value["images"]["evolution"]["provenance"] = (  # type: ignore[index]
-                "https://github.com/firestige/evolution-system/releases/download/0.1.0/release-qualification.json"
+                "https://github.com/firestige/wsr-evolution/releases/download/0.1.0/release-qualification.json"
             )
             evidence = root / "evidence.json"
             evidence.write_text(

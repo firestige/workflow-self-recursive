@@ -39,7 +39,7 @@ dsh --help
 export WSR_VERSION="0.1.1"
 export WSR_RELEASE_DIR="$PWD/.wsr-release"
 mkdir -p "$WSR_RELEASE_DIR"
-gh release download "$WSR_VERSION" --repo firestige/execution-system --dir "$WSR_RELEASE_DIR"
+gh release download "$WSR_VERSION" --repo firestige/wsr-execution --dir "$WSR_RELEASE_DIR"
 ```
 
 只有 `0.1.1` 已经成为 non-prerelease GitHub Release 时才能继续。`release-metadata.json` 与 publication records 会把下载的 archive 绑定到 SHA-256、package version、inventory 和 compatibility tuple。
@@ -57,7 +57,7 @@ npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
   execution-config init "$WSR_CONFIG" yaml
 ```
 
-只替换 `__REQUIRED__`：`paths.repositoryRoot`、`paths.workspaceRoot`、对应的 `paths.allowedWorktreeRoots` 项、`paths.stateRoot`、`paths.credentialStorePath`，以及 `runner.provider.route/modelId/baseUrl/credentialRef`。除非 installation 明确选择 alternate Adapter，否则保留唯一默认 Source `firestige/workflow-package`。
+只替换 `__REQUIRED__`：`paths.repositoryRoot`、`paths.workspaceRoot`、对应的 `paths.allowedWorktreeRoots` 项、`paths.stateRoot`、`paths.credentialStorePath`，以及 `runner.provider.route/modelId/baseUrl/credentialRef`。除非 installation 明确选择 alternate Adapter，否则保留唯一默认 Source `firestige/wsr-workflow-package`。
 
 在 Execution config 外 provision 引用的 key：
 
@@ -84,7 +84,7 @@ npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
 ```sh
 dsh plugin --profile web config set --location=project --json allowBuilds '{"better-sqlite3":true}'
 dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/dsh-wsr-execution-0.1.1.tgz"
 ```
 
 编辑 `$DSH_HOME/profiles/web/cordis.patch.yml`，stable WSR row 只保留 absolute presentation path。`web` 是 DSH profile name；`workflow-execution` 仍是 plugin 的 stable Cordis row ID：
@@ -168,11 +168,11 @@ Action 等待输入时，普通答复仍属于该 Action 内部交互。只有�
 
 ```sh
 dsh plugin --profile web update --workspace-root wsr-execution@<new-exact-version>
-dsh plugin --profile web update --workspace-root wsr-dsh-intake@<new-exact-version>
-dsh plugin --profile web remove --workspace-root wsr-dsh-intake
+dsh plugin --profile web update --workspace-root dsh-wsr-execution@<new-exact-version>
+dsh plugin --profile web remove --workspace-root dsh-wsr-execution
 dsh plugin --profile web remove --workspace-root wsr-execution
 dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/dsh-wsr-execution-0.1.1.tgz"
 ```
 
 这些 package lifecycle operation 归 DSH。WSR 不增加 install/remove hook。Remove 保留外置 durable state；兼容版本 reinstall 后恢复相同 persisted Delivery binding。最后一个 durable boundary 之后的 interaction state 允许丢失。
