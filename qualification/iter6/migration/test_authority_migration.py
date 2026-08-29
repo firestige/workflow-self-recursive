@@ -90,6 +90,19 @@ class AuthorityMigrationManifestTest(unittest.TestCase):
             actual = {entry["id"] for entry in self.manifest["coordinates"][category]}
             self.assertTrue(ids <= actual, f"missing {category}: {sorted(ids - actual)}")
 
+        product = next(
+            entry
+            for entry in self.manifest["coordinates"]["repositories"]
+            if entry["id"] == "product"
+        )
+        self.assertEqual(product["current"], "firestige/workflow-self-recursive")
+        self.assertEqual(product["target"], "firestige/workflow-self-recursive")
+        self.assertEqual(product["operation"], "unchanged")
+        self.assertNotIn(
+            "rename-superproject-last",
+            {step["id"] for step in self.manifest["migration_steps"]},
+        )
+
         self.assertTrue(self.manifest["consumers"])
         self.assertTrue(self.manifest["publishers"])
         self.assertEqual(
