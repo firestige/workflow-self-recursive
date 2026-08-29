@@ -19,29 +19,17 @@ workflow-self-recursive 目前是以架构为先的开发者预览版，适用�
 
 工作流定义与资源位于版本化的 Workflow Package 中。共享契约定义两个系统之间的边界。Runner 是当前的 M02 module；其 Host 与 Provider substrate 是私有、可替换的实现选择。当前不存在 Runner-selection abstraction。
 
-## 获取源码
+## 开始使用
 
-克隆本仓库及其组件仓库：
+打包的最终用户发行版尚未完成资格验证。稳定顶层操作契约正在围绕 `setup`、`install`、
+`preflight`、`config`、`status`、`health`、`logs`、`start`、`stop`、`restart`、`upgrade`、
+`rollback` 与 `uninstall` 建立；当前 adapter 只支持 fixture，不能作为产品安装器。
 
-```sh
-git clone --recurse-submodules https://github.com/firestige/workflow-self-recursive.git
-cd workflow-self-recursive
-```
+用户旅程和当前发行状态见[快速开始](docs/guides/quickstart.zh-CN.md)。需要运行现有源码构建数据服务
+预览的贡献者，请使用单独的[源码构建指南](docs/contributing/source-build.zh-CN.md)。
 
-如果已经在未包含 submodule 的情况下克隆了本仓库，请执行：
-
-```sh
-git submodule update --init --recursive
-```
-
-在可信个人电脑上启动本地 Evidence、Evolution 与 BI 数据服务：
-
-```sh
-./deployment/start.sh
-```
-
-启动器会自动处理内部数据库初始化；无需创建用户账号或手工配置数据库口令。详见
-[快速开始](docs/guides/quickstart.zh-CN.md)，完整操作说明见[用户指南](docs/guides/user-guide.zh-CN.md)。
+正式安装与运维将解析 exact compatible artifacts，不要求构建内部源码仓库，也不选择 ambient
+`latest`。uninstall 默认保留用户 durable data。
 
 ## 文档
 
@@ -59,7 +47,7 @@ git submodule update --init --recursive
 - [Evidence System 设计](docs/systems/evidence/evidence-system.zh-CN.md)
 - [Execution–Evidence Contract](docs/contracts/execution-evidence/interaction-contract.zh-CN.md)
 
-源码拆分为五个 Git submodule：[Workflow Package](https://github.com/firestige/workflow-package)、[Execution System](https://github.com/firestige/execution-system)、[Evidence System](https://github.com/firestige/evidence-system)、[Evolution System](https://github.com/firestige/evolution-system) 与 [System Contracts](https://github.com/firestige/system-contracts)。这是源码组件的划分，并不代表产品包含五个系统。
+内部仓库拓扑记录在 contributor 源码构建指南中，不属于最终用户安装模型。
 
 ## License
 

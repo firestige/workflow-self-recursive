@@ -1,0 +1,20 @@
+{
+  "schema": "wsr.operations.config@1.0.0",
+  "repository": "/absolute/path/to/repository",
+  "workspace": "/absolute/path/to/repository",
+  "durableState": "/absolute/path/to/wsr-state",
+  "ports": {
+    "bi": 8080
+  },
+  "workflowSource": "github:firestige/workflow-package@0.0.0-fixture.1",
+  "roleBindings": {
+    "implementer": {
+      "provider": "copilot",
+      "model": "fixture-copilot-model"
+    },
+    "reviewer": {
+      "provider": "codex",
+      "model": "fixture-codex-model"
+    }
+  }
+}

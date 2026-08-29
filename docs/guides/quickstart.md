@@ -2,57 +2,39 @@
 
 English | [中文](quickstart.zh-CN.md)
 
-This guide starts Workflow Self Recursive's local data services and opens BI on one trusted personal
-computer. The current deployment includes PostgreSQL, Evidence, Evolution, and BI. This launcher does
-not start DeepSeek Harness (DSH) or Execution; they must be run separately.
+This guide describes the supported first-use journey on one trusted personal computer. The packaged
+product journey is not qualified yet: do not substitute a source checkout or the fixture operations
+adapter for a published release.
 
-## 1. Prepare
+## 1. Check release availability
 
-Install and start:
+The final journey will begin with the top-level `preflight` and `setup` operations. They will verify an
+exact compatibility manifest for the DSH bundle, Evidence/Evolution service images, Workflow source,
+and local Agent Providers before any installation effect.
 
-- Git;
-- OpenSSL;
-- Docker Desktop, or Docker Engine with Compose v2.
+The Iter6 command contract exists under `product-operations`, but currently accepts fixture adapters
+only. It is for automated qualification, not installation.
 
-Clone all source components:
+## 2. Install and configure
 
-```sh
-git clone --recurse-submodules https://github.com/firestige/workflow-self-recursive.git
-cd workflow-self-recursive
-```
+The stable product operations are `setup`, `install`, and `config`. Setup will collect the repository
+and workspace, durable-state location, loopback ports, exact Workflow source, and Role-to-Provider/model
+bindings. WSR reuses local DSH, Copilot, and Codex login state; configuration and diagnostics must not
+contain credentials.
 
-For an existing checkout without its component repositories, run:
+## 3. Start and inspect
 
-```sh
-git submodule update --init --recursive
-```
+The stable daily operations are `start`, `status`, `health`, `logs`, `stop`, and `restart`. Results map
+separately to DSH/Execution, Evidence/Evolution, Workflow source, and Provider layers so a partial
+failure remains diagnosable.
 
-## 2. Start with one command
+## 4. Upgrade or remove
 
-```sh
-./deployment/start.sh
-```
+`upgrade` and `rollback` will use explicit compatible versions and digests, never an ambient `latest`.
+`uninstall` preserves Delivery, checkpoints, bindings, Evidence, configuration, and other durable data
+by default. Any future data purge must be a separate explicit destructive operation.
 
-The first start downloads base images, builds the current source, and initializes the local database,
-so it normally takes longer than later starts. The launcher prints the URL after every service is
-healthy.
+## Source preview for contributors
 
-## 3. Open BI
-
-Open the address printed by the launcher, which defaults to <http://127.0.0.1:8080/evaluate>.
-
-When Evidence has no Tasks, the page shows an empty selection state. This means the services are ready
-but have not received Execution data; it is not a startup failure.
-
-## 4. Stop
-
-Stop the services while retaining Evidence data:
-
-```sh
-docker compose -f deployment/compose.yaml stop
-```
-
-Run `./deployment/start.sh` again to resume.
-
-Continue with the [user guide](user-guide.md) for Workflow sources, DSH/Execution, BI usage, logs, and
-data reset. Maintainers can read the [deployment implementation](../../deployment/README.md).
+Contributors who need the existing source-built data-service preview should follow the separate
+[source-build guide](../contributing/source-build.md). It is not the final clean-machine product path.

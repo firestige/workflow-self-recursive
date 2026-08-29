@@ -19,29 +19,19 @@ The product architecture separates two systems that are intended to remain indep
 
 Workflow definitions and resources live in versioned Workflow Packages. Shared contracts define the boundary between the systems. Runner is the current M02 module; its Host and Provider substrates are private replaceable selections. A Runner-selection abstraction does not exist today.
 
-## Get the source
+## Get started
 
-Clone this repository together with its component repositories:
+The packaged end-user release is not qualified yet. The stable top-level operations contract is being
+built around `setup`, `install`, `preflight`, `config`, `status`, `health`, `logs`, `start`, `stop`,
+`restart`, `upgrade`, `rollback`, and `uninstall`; its current adapter is fixture-only and must not be
+used as a product installer.
 
-```sh
-git clone --recurse-submodules https://github.com/firestige/workflow-self-recursive.git
-cd workflow-self-recursive
-```
+Follow the [quickstart](docs/guides/quickstart.md) for the user-facing journey and current release
+status. Contributors who need the existing source-built data-service preview should use the separate
+[source-build guide](docs/contributing/source-build.md).
 
-If you already cloned the repository without submodules, initialize them with:
-
-```sh
-git submodule update --init --recursive
-```
-
-Start the local Evidence, Evolution, and BI data services on a trusted personal computer:
-
-```sh
-./deployment/start.sh
-```
-
-The launcher handles internal database initialization; no user account or manually configured database
-password is required. See the [quickstart](docs/guides/quickstart.md) and [user guide](docs/guides/user-guide.md).
+Installation and operation will resolve exact compatible artifacts rather than build internal source
+repositories or select ambient `latest` versions. Uninstall preserves durable user data by default.
 
 ## Documentation
 
@@ -59,7 +49,8 @@ Start with the [conceptual architecture](docs/agent-architecture.md), then conti
 - [Evidence System design](docs/systems/evidence/evidence-system.md)
 - [Execution–Evidence contracts](docs/contracts/execution-evidence/interaction-contract.md)
 
-The source is split into five Git submodules: [Workflow Package](https://github.com/firestige/workflow-package), [Execution System](https://github.com/firestige/execution-system), [Evidence System](https://github.com/firestige/evidence-system), [Evolution System](https://github.com/firestige/evolution-system), and [System Contracts](https://github.com/firestige/system-contracts). These are repository workstreams, not five product systems.
+The internal repository topology is documented in the contributor source-build guide; it is not part of
+the end-user installation model.
 
 ## License
 
