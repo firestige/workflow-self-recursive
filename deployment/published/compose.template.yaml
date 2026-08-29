@@ -1,0 +1,99 @@
+name: wsr-services
+
+services:
+  database:
+    image: @POSTGRES_IMAGE@
+    environment:
+      POSTGRES_DB: wsr_evidence
+      POSTGRES_PASSWORD_FILE: /run/secrets/admin_password
+      POSTGRES_USER: wsr_evidence_admin
+      WSR_EVIDENCE_BACKUP_PASSWORD_FILE: /run/secrets/backup_password
+      WSR_EVIDENCE_RUNTIME_PASSWORD_FILE: /run/secrets/runtime_password
+    secrets: [admin_password, backup_password, runtime_password]
+    volumes:
+      - evidence-data:/var/lib/postgresql
+      - ./init-roles.sh:/docker-entrypoint-initdb.d/10-wsr-roles.sh:ro
+    networks: [evidence-db]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wsr_evidence_admin -d wsr_evidence"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  migrate:
+    image: @EVIDENCE_IMAGE@
+    command: ["/app/deployment/run-with-database-secret.sh", "uv", "run", "--no-sync", "alembic", "upgrade", "head"]
+    environment:
+      WSR_EVIDENCE_DATABASE_HOST: database
+      WSR_EVIDENCE_DATABASE_NAME: wsr_evidence
+      WSR_EVIDENCE_DATABASE_PASSWORD_FILE: /run/secrets/admin_password
+      WSR_EVIDENCE_DATABASE_USER: wsr_evidence_admin
+    secrets: [admin_password]
+    networks: [evidence-db]
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: "no"
+
+  evidence:
+    image: @EVIDENCE_IMAGE@
+    command: ["/app/deployment/run-with-database-secret.sh", "wsr-evidence"]
+    environment:
+      WSR_EVIDENCE_BIND_SCOPE: container
+      WSR_EVIDENCE_DATABASE_HOST: database
+      WSR_EVIDENCE_DATABASE_NAME: wsr_evidence
+      WSR_EVIDENCE_DATABASE_PASSWORD_FILE: /run/secrets/runtime_password
+      WSR_EVIDENCE_DATABASE_USER: wsr_evidence_runtime
+      WSR_EVIDENCE_HOST: 0.0.0.0
+      WSR_EVIDENCE_RETENTION_INTERVAL_SECONDS: ${WSR_EVIDENCE_RETENTION_INTERVAL_SECONDS:-60}
+    ports:
+      - "127.0.0.1:${WSR_EVIDENCE_PORT:-4318}:4318"
+    secrets: [runtime_password]
+    networks: [evidence-db, app-tier]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4318/healthz', timeout=2).read()"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  evolution:
+    image: @EVOLUTION_IMAGE@
+    environment:
+      WSR_EVOLUTION_CONFIG: /run/config/evolution.json
+    volumes:
+      - ./evolution.config.json:/run/config/evolution.json:ro
+    ports:
+      - "127.0.0.1:${WSR_EVOLUTION_PORT:-8000}:8000"
+    networks: [app-tier]
+    depends_on:
+      evidence:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).read()"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+secrets:
+  admin_password:
+    file: ${WSR_EVIDENCE_ADMIN_PASSWORD_FILE}
+  backup_password:
+    file: ${WSR_EVIDENCE_BACKUP_PASSWORD_FILE}
+  runtime_password:
+    file: ${WSR_EVIDENCE_RUNTIME_PASSWORD_FILE}
+
+volumes:
+  evidence-data:
+    name: ${WSR_EVIDENCE_VOLUME:-wsr-evidence-data}
+
+networks:
+  evidence-db:
+    internal: true
+  app-tier:
+    driver: bridge

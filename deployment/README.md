@@ -1,13 +1,16 @@
 # Local deployment
 
-`compose.yaml` builds Evidence, Evolution, and BI from the checked-out submodule sources. It runs
-four long-lived services plus the required one-shot Evidence migration job. Only BI is published to the
-host, at `127.0.0.1:8080` by default. PostgreSQL and Evidence share the internal `evidence-db` network;
+`compose.yaml` is the developer qualification fixture. It builds Evidence, Evolution, and BI from the
+checked-out submodule sources. It runs four long-lived services plus the required one-shot Evidence
+migration job. Only BI is published to the host, at `127.0.0.1:8080` by default. PostgreSQL and
+Evidence share the internal `evidence-db` network;
 Evidence, Evolution, and BI share `app-tier`. Evolution and BI therefore have neither a PostgreSQL
 network path nor database credentials.
 
-This file documents the deployment implementation for maintainers. Users should begin with the
-[quickstart](../docs/guides/quickstart.md) and continue with the [user guide](../docs/guides/user-guide.md).
+It is not the supported end-user installation path. Release maintainers use the separate tooling under
+`deployment/published/` to generate a versioned, immutable-image Compose bundle. That bundle remains
+unavailable to end users until its image and clean-machine qualification gates pass; see the current
+[quickstart status](../docs/guides/quickstart.md).
 
 ## Start
 
