@@ -8,7 +8,7 @@ import { assertPinnedOwners } from "./qualify.mjs";
 
 const expected = Object.freeze({
   "workflow-package": "ff972d150438321bcb64e3442b99aad54bb38f56",
-  "execution-system": "32ab972ae9d673b57599ecbd01461f982c41ac7c",
+  "execution-system": "17052b41df892093a2956c9fe1dbea36e67e47dd",
   "evolution-system": "7de7250d0c0c4d70e4de44a960ab15b46f5f132c",
 });
 
@@ -37,6 +37,12 @@ test("rejects missing, open, and extra owner coordinates", () => {
 test("canonical CI replays v2 assets and the public exact-content cache qualification", () => {
   const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
   const workflow = readFileSync(path.join(repository, ".github/workflows/iter3-execution-ci.yml"), "utf8");
+  const releaseAuthority = JSON.parse(readFileSync(
+    path.join(repository, "release/candidates/iter6-wave8.json"),
+    "utf8",
+  ));
+  assert.equal(releaseAuthority.execution.candidate_archive_commit, expected["execution-system"]);
+  assert.match(workflow, new RegExp(`HEAD:execution-system\\)" = ${expected["execution-system"]}`));
   assert.match(workflow, /node qualification\/iter6\/workflow-source\/qualify\.mjs/);
   assert.match(workflow, /release\/cli\/release\.cjs build/);
   assert.match(workflow, /release\/cli\/release\.cjs qualify/);
