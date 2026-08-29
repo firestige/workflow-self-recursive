@@ -1,0 +1,237 @@
+{
+  "schema_version": "1.0.0",
+  "manifest_id": "wsr-authority-migration/iter6/v1",
+  "authority_document": "docs/reference/wsr-authority-mapping.md",
+  "authority_commit": "6ed68756107423cc61548a5e57bc258f939413ab",
+  "mode": "preparation-only",
+  "remote_effects": "forbidden",
+  "effect_owner_issue": 124,
+  "cleanup_owner_issue": 125,
+  "owner": "firestige",
+  "coordinates": {
+    "repositories": [
+      {"id": "product", "current": "firestige/workflow-self-recursive", "target": "firestige/wsr", "owner": "firestige", "operation": "rename-in-wave11"},
+      {"id": "execution", "current": "firestige/execution-system", "target": "firestige/wsr-execution", "owner": "firestige", "operation": "rename-in-wave11"},
+      {"id": "evidence", "current": "firestige/evidence-system", "target": "firestige/wsr-evidence", "owner": "firestige", "operation": "rename-in-wave11"},
+      {"id": "evolution", "current": "firestige/evolution-system", "target": "firestige/wsr-evolution", "owner": "firestige", "operation": "rename-in-wave11"},
+      {"id": "contracts", "current": "firestige/system-contracts", "target": "firestige/wsr-contracts", "owner": "firestige", "operation": "rename-in-wave11"},
+      {"id": "workflow-package", "current": "firestige/workflow-package", "target": "firestige/wsr-workflow-package", "owner": "firestige", "operation": "rename-in-wave11"},
+      {"id": "dsh", "current": null, "target": "firestige/wsr-dsh", "owner": "firestige", "operation": "created-by-123"},
+      {"id": "standalone-ui", "current": "firestige/wsr-ui", "target": null, "owner": "firestige", "operation": "optional-archive-in-wave13"}
+    ],
+    "submodules": [
+      {"id": "execution", "current": {"path": "execution-system", "url": "https://github.com/firestige/execution-system.git"}, "target": {"path": "execution-system", "url": "https://github.com/firestige/wsr-execution.git"}, "owner": "firestige"},
+      {"id": "evidence", "current": {"path": "evidence-system", "url": "https://github.com/firestige/evidence-system.git"}, "target": {"path": "evidence-system", "url": "https://github.com/firestige/wsr-evidence.git"}, "owner": "firestige"},
+      {"id": "evolution", "current": {"path": "evolution-system", "url": "https://github.com/firestige/evolution-system.git"}, "target": {"path": "evolution-system", "url": "https://github.com/firestige/wsr-evolution.git"}, "owner": "firestige"},
+      {"id": "contracts", "current": {"path": "system-contracts", "url": "https://github.com/firestige/system-contracts.git"}, "target": {"path": "system-contracts", "url": "https://github.com/firestige/wsr-contracts.git"}, "owner": "firestige"},
+      {"id": "workflow-package", "current": {"path": "workflow-package", "url": "https://github.com/firestige/workflow-package.git"}, "target": {"path": "workflow-package", "url": "https://github.com/firestige/wsr-workflow-package.git"}, "owner": "firestige"},
+      {"id": "dsh", "current": null, "target": {"path": "wsr-dsh", "url": "https://github.com/firestige/wsr-dsh.git"}, "owner": "firestige"},
+      {"id": "standalone-ui", "current": {"path": "wsr-ui", "url": "https://github.com/firestige/wsr-ui.git"}, "target": null, "owner": "firestige"}
+    ],
+    "npm": [
+      {"id": "execution-runtime", "current": "wsr-execution", "target": "wsr-execution", "owner": "firestige", "publisher_current": "firestige/execution-system:.github/workflows/release-promote.yml", "publisher_target": "firestige/wsr-execution:.github/workflows/release-promote.yml", "compatibility": "identity-and-persisted-bindings-unchanged"},
+      {"id": "dsh-execution", "current": "wsr-dsh-intake@0.1.3", "target": "dsh-wsr-execution@QUALIFIED_STABLE", "owner": "firestige", "target_release_owner": "firestige/wsr-dsh/packages/execution", "publisher_current": "firestige/execution-system:.github/workflows/release-promote.yml", "publisher_target": "firestige/wsr-dsh:.github/workflows/release-promote.yml", "compatibility": "old-0.1.3-remains-installable-through-wave13"},
+      {"id": "dsh-studio", "current": "@wsr/bi@0.0.0", "target": "dsh-wsr-studio@QUALIFIED_STABLE", "owner": "firestige", "target_release_owner": "firestige/wsr-dsh/packages/studio", "migration_source": "wsr-dsh/packages/studio", "publisher_current": null, "publisher_target": "firestige/wsr-dsh:.github/workflows/release-promote.yml", "compatibility": "private-development-workspace-is-not-public-coordinate"},
+      {"id": "dsh-suite", "current": null, "target": "dsh-wsr@QUALIFIED_STABLE", "owner": "firestige", "target_release_owner": "firestige/wsr-dsh/packages/suite", "publisher_current": null, "publisher_target": "firestige/wsr-dsh:.github/workflows/release-promote.yml", "compatibility": "exact-execution-and-studio-pairing"},
+      {"id": "evidence-placeholder", "current": "wsr-evidence@0.0.1", "target": "wsr-evidence@0.0.1", "owner": "firestige", "publisher_current": "registry-metadata:firestige/evidence-system", "publisher_target": "registry-metadata:firestige/wsr-evidence", "compatibility": "inert-name-reservation-only"},
+      {"id": "evolution-placeholder", "current": "wsr-evolution@0.0.1", "target": "wsr-evolution@0.0.1", "owner": "firestige", "publisher_current": "registry-metadata:firestige/evolution-system", "publisher_target": "registry-metadata:firestige/wsr-evolution", "compatibility": "inert-name-reservation-only"}
+    ],
+    "images": [
+      {"id": "evidence", "current": "ghcr.io/firestige/wsr-evidence@sha256:3b0b6d290d9a7abf21a544f0110ef04f7398d0870a5f63e1a5a81e5274a7d403", "target": "ghcr.io/firestige/wsr-evidence@QUALIFIED_DIGEST", "owner": "firestige", "publisher_current": "firestige/evidence-system", "publisher_target": "firestige/wsr-evidence"},
+      {"id": "evolution", "current": null, "target": "ghcr.io/firestige/wsr-evolution@QUALIFIED_DIGEST", "owner": "firestige", "publisher_current": null, "publisher_target": "firestige/wsr-evolution", "deferred_owner_issue": 116}
+    ],
+    "releases": [
+      {"id": "execution-core", "current": "firestige/execution-system:wsr-execution-<version>.tgz", "target": "firestige/wsr-execution:wsr-execution-<version>.tgz", "owner": "firestige", "assets": ["wsr-execution-<version>.tgz", "wsr-execution-<version>.tgz.publication.json", "release-metadata.json", "release-notes.md", "release-qualification.json"]},
+      {"id": "dsh-bundles", "current": "firestige/execution-system:wsr-dsh-intake-<version>.tgz", "target": "firestige/wsr-dsh:dsh-wsr-{execution,studio,suite}-<version>.tgz", "owner": "firestige", "assets": ["dsh-wsr-execution-<version>.tgz", "dsh-wsr-execution-<version>.tgz.publication.json", "dsh-wsr-studio-<version>.tgz", "dsh-wsr-studio-<version>.tgz.publication.json", "dsh-wsr-<version>.tgz", "dsh-wsr-<version>.tgz.publication.json", "release-metadata.json", "release-qualification.json", "checksums.sha256", "sbom.spdx.json", "compatibility-matrix.json"]},
+      {"id": "evidence", "current": "firestige/evidence-system:wsr_evidence-<version>", "target": "firestige/wsr-evidence:wsr_evidence-<version>", "owner": "firestige", "assets": ["wsr_evidence-<version>-py3-none-any.whl", "wsr_evidence-<version>.tar.gz", "release-metadata.json", "release-qualification.json"]},
+      {"id": "evolution", "current": null, "target": "firestige/wsr-evolution:<version>", "owner": "firestige", "assets": ["release-metadata.json", "release-qualification.json", "compatibility-matrix.json"], "deferred_owner_issue": 116},
+      {"id": "contracts", "current": "firestige/system-contracts:evidence-query-<version>", "target": "firestige/wsr-contracts:evidence-query-<version>", "owner": "firestige", "assets": ["*-publication-*.json", "release-metadata.json", "release-qualification.json"]},
+      {"id": "workflow-packages", "current": "firestige/workflow-package:workflow-package-<name>-<version>", "target": "firestige/wsr-workflow-package:workflow-package-<name>-<version>", "owner": "firestige", "assets": ["workflow-package-<name>-<version>.tar.gz", "workflow-package-<name>-<version>.json", "workflow-package-<name>-<version>.tar.gz.sha256", "provenance.json"]}
+    ],
+    "configuration": [
+      {"id": "workflow-source-repository", "current": "firestige/workflow-package", "target": "firestige/wsr-workflow-package", "owner": "firestige", "binding": "new-effective-installations-only"},
+      {"id": "workflow-source-api", "current": "https://api.github.com/repos/firestige/workflow-package/releases", "target": "https://api.github.com/repos/firestige/wsr-workflow-package/releases", "owner": "firestige", "binding": "atomic-with-workflow-source-repository"},
+      {"id": "workflow-source-assets", "current": "workflow-package-{name}-{version}.tar.gz", "target": "workflow-package-{name}-{version}.tar.gz", "owner": "firestige", "binding": "unchanged"},
+      {"id": "execution-schema", "current": "execution.config@*", "target": "execution.config@*", "owner": "firestige", "binding": "unchanged"},
+      {"id": "dsh-command", "current": "/wsr", "target": "/wsr", "owner": "firestige", "binding": "unchanged"},
+      {"id": "dsh-plugin-id", "current": "workflow-execution", "target": "workflow-execution", "owner": "firestige", "binding": "unchanged"},
+      {"id": "dsh-skill", "current": "/workflow-execution", "target": "/workflow-execution", "owner": "firestige", "binding": "unchanged"},
+      {"id": "dsh-tool", "current": "workflow_execution_intake", "target": "workflow_execution_intake", "owner": "firestige", "binding": "unchanged"},
+      {"id": "telemetry-service", "current": "workflow-self-recursive-execution", "target": "workflow-self-recursive-execution", "owner": "firestige", "binding": "unchanged"},
+      {"id": "dsh-execution-display", "current": "wsr-dsh-intake / Intake", "target": "dsh-wsr-execution / WSR", "owner": "firestige", "binding": "package-migration-only"},
+      {"id": "dsh-studio-display", "current": "@wsr/bi@0.0.0 / private BI", "target": "dsh-wsr-studio / WSR Studio", "owner": "firestige", "binding": "new-formal-product-surface"},
+      {"id": "dsh-suite-display", "current": null, "target": "dsh-wsr / no additional top-level UI entry", "owner": "firestige", "binding": "exact-composition-only"}
+    ]
+  },
+  "forbidden_coordinates": [
+    {"value": "wsr-bi", "reason": "No standalone public Studio or BI package is introduced."}
+  ],
+  "consumers": [
+    {"id": "superproject-submodules", "kind": "submodule", "owner_repository": "firestige/workflow-self-recursive", "paths": [".gitmodules"], "coordinate_ids": ["repositories/*", "submodules/*"], "staged_target": "migration/iter6/v1/staged/.gitmodules"},
+    {"id": "superproject-actions", "kind": "actions", "owner_repository": "firestige/workflow-self-recursive", "paths": [".github/workflows/*.yml"], "coordinate_ids": ["repositories/*", "releases/*", "configuration/workflow-source-*"], "staged_target": "migration/iter6/v1/staged/consumer-targets.json#actions"},
+    {"id": "component-actions", "kind": "actions", "owner_repository": "firestige/*", "paths": ["*/.github/workflows/*.yml"], "coordinate_ids": ["repositories/*", "releases/*", "publishers/*"], "staged_target": "migration/iter6/v1/staged/consumer-targets.json#actions"},
+    {"id": "github-app-allowlist", "kind": "github-app", "owner_repository": "firestige/workflow-self-recursive", "paths": ["docs/guides/release-automation.md", "docs/guides/release-automation.zh-CN.md", "GitHub App wsr-release installation settings"], "coordinate_ids": ["repositories/*"], "staged_target": "migration/iter6/v1/staged/app-allowlist.json"},
+    {"id": "current-documentation", "kind": "documentation", "owner_repository": "firestige/*", "paths": ["README*.md", "docs/**/*.md", "*/README*.md", "*/docs/**/*.md"], "coordinate_ids": ["repositories/*", "npm/*", "images/*", "releases/*", "configuration/*"], "staged_target": "migration/iter6/v1/staged/consumer-targets.json#documentation"},
+    {"id": "workflow-source-defaults", "kind": "configuration", "owner_repository": "firestige/workflow-self-recursive", "paths": ["deployment/evolution.config.json", "execution-system/config/defaults/*", "execution-system/config/examples/*", "docs/systems/evolution/*", "docs/systems/execution/*"], "coordinate_ids": ["configuration/workflow-source-repository", "configuration/workflow-source-api"], "staged_target": "migration/iter6/v1/staged/consumer-targets.json#workflow_source"},
+    {"id": "compatibility-coordinates", "kind": "compatibility", "owner_repository": "firestige/*", "paths": ["release/**/*.json", "*/release/**/*.json", "*/package.json", "*/packages/*/package.json", "deployment/compose.yaml"], "coordinate_ids": ["npm/*", "images/*", "releases/*"], "staged_target": "migration/iter6/v1/staged/compatibility-matrix.template.json"},
+    {"id": "publisher-metadata", "kind": "publisher", "owner_repository": "firestige/*", "paths": ["*/.github/workflows/release-promote.yml", "npm trusted publisher settings", "GHCR package settings", "GitHub Release workflows"], "coordinate_ids": ["repositories/*", "npm/*", "images/*", "releases/*"], "staged_target": "migration/iter6/v1/staged/consumer-targets.json#publishers"},
+    {"id": "github-release-consumers", "kind": "release", "owner_repository": "firestige/*", "paths": [".github/workflows/*.yml", "*/.github/workflows/*.yml", "docs/**/*.md", "deployment/*.json"], "coordinate_ids": ["releases/*", "configuration/workflow-source-*"], "staged_target": "migration/iter6/v1/staged/consumer-targets.json#releases"},
+    {"id": "github-issue-links", "kind": "issue-history", "owner_repository": "firestige/workflow-self-recursive", "paths": ["docs/**/*.md", ".project/**/*.md"], "coordinate_ids": ["repositories/product"], "staged_target": "historical-or-current-doc-classification-required"}
+  ],
+  "publishers": [
+    {"id": "github-app-wsr-release", "channel": "github-app", "current": ["workflow-self-recursive", "execution-system", "evidence-system", "evolution-system", "system-contracts", "workflow-package"], "target": ["wsr", "wsr-execution", "wsr-evidence", "wsr-evolution", "wsr-contracts", "wsr-workflow-package", "wsr-dsh"], "cutover_owner": 124},
+    {"id": "npm-execution-runtime", "channel": "npm-oidc", "current": "firestige/execution-system:.github/workflows/release-promote.yml:wsr-execution", "target": "firestige/wsr-execution:.github/workflows/release-promote.yml:wsr-execution", "cutover_owner": 124},
+    {"id": "npm-dsh-bundles", "channel": "npm-oidc", "current": "firestige/execution-system:.github/workflows/release-promote.yml:wsr-dsh-intake", "target": "firestige/wsr-dsh:.github/workflows/release-promote.yml:dsh-wsr-execution,dsh-wsr-studio,dsh-wsr", "cutover_owner": 122},
+    {"id": "npm-evidence-reservation", "channel": "npm-registry-metadata", "current": "wsr-evidence@0.0.1:firestige/evidence-system", "target": "wsr-evidence@0.0.1:firestige/wsr-evidence", "cutover_owner": 124},
+    {"id": "npm-evolution-reservation", "channel": "npm-registry-metadata", "current": "wsr-evolution@0.0.1:firestige/evolution-system", "target": "wsr-evolution@0.0.1:firestige/wsr-evolution", "cutover_owner": 124},
+    {"id": "ghcr-evidence", "channel": "ghcr-actions", "current": "firestige/evidence-system:ghcr.io/firestige/wsr-evidence", "target": "firestige/wsr-evidence:ghcr.io/firestige/wsr-evidence", "cutover_owner": 124},
+    {"id": "ghcr-evolution", "channel": "ghcr-actions", "current": null, "target": "firestige/wsr-evolution:ghcr.io/firestige/wsr-evolution", "cutover_owner": 116},
+    {"id": "release-contracts", "channel": "github-release", "current": "firestige/system-contracts:.github/workflows/release-promote.yml", "target": "firestige/wsr-contracts:.github/workflows/release-promote.yml", "cutover_owner": 124},
+    {"id": "release-execution", "channel": "github-release", "current": "firestige/execution-system:.github/workflows/release-promote.yml", "target": "firestige/wsr-execution:.github/workflows/release-promote.yml", "cutover_owner": 124},
+    {"id": "release-evidence", "channel": "github-release", "current": "firestige/evidence-system:.github/workflows/release-promote.yml", "target": "firestige/wsr-evidence:.github/workflows/release-promote.yml", "cutover_owner": 124},
+    {"id": "release-evolution", "channel": "github-release", "current": null, "target": "firestige/wsr-evolution:.github/workflows/release-promote.yml", "cutover_owner": 116},
+    {"id": "release-workflow-packages", "channel": "github-release", "current": "firestige/workflow-package:.github/workflows/release-promote.yml", "target": "firestige/wsr-workflow-package:.github/workflows/release-promote.yml", "cutover_owner": 124},
+    {"id": "release-dsh-bundles", "channel": "github-release", "current": "firestige/execution-system:wsr-dsh-intake assets", "target": "firestige/wsr-dsh:dsh-wsr-execution,dsh-wsr-studio,dsh-wsr assets", "cutover_owner": 122}
+  ],
+  "deferred_coordinates": [
+    {"id": "compose-final-image-family", "owner_issue": 116, "reason": "Final service and image inventory is owned by #116."}
+  ],
+  "external_prerequisites": [
+    {
+      "id": "github-app-installation-admin",
+      "desired_state": "migration/iter6/v1/staged/app-allowlist.json",
+      "preflight_argv": ["gh", "api", "/user/installations"],
+      "current_observation": "HTTP 403: the active gh credential cannot enumerate GitHub App installations",
+      "resolution": "An installation administrator must apply and verify the staged wsr-release allowlist at the approved #124 cutover gate.",
+      "mapping_blocker": false,
+      "cutover_blocker": true
+    },
+    {
+      "id": "npm-trusted-publisher-admin",
+      "desired_state": "migration/iter6/v1/staged/consumer-targets.json#publishers",
+      "preflight_argv": ["npm", "view", "wsr-execution", "repository", "maintainers", "--json"],
+      "current_observation": "Registry metadata is readable, but npm trusted-publisher settings have no supported npm CLI read/write surface.",
+      "resolution": "The npm package owner must verify or update each trusted publisher in npm settings at the approved cutover gate, then verify by qualified OIDC promotion.",
+      "mapping_blocker": false,
+      "cutover_blocker": true
+    }
+  ],
+  "legacy_patterns": [
+    {"coordinate_id": "repositories/product", "value": "firestige/workflow-self-recursive", "replacement": "firestige/wsr"},
+    {"coordinate_id": "repositories/execution", "value": "firestige/execution-system", "replacement": "firestige/wsr-execution"},
+    {"coordinate_id": "repositories/evidence", "value": "firestige/evidence-system", "replacement": "firestige/wsr-evidence"},
+    {"coordinate_id": "repositories/evolution", "value": "firestige/evolution-system", "replacement": "firestige/wsr-evolution"},
+    {"coordinate_id": "repositories/contracts", "value": "firestige/system-contracts", "replacement": "firestige/wsr-contracts"},
+    {"coordinate_id": "repositories/workflow-package", "value": "firestige/workflow-package", "replacement": "firestige/wsr-workflow-package"},
+    {"coordinate_id": "repositories/standalone-ui", "value": "firestige/wsr-ui", "replacement": "approved-wave13-retirement", "rewrite": false},
+    {"coordinate_id": "npm/dsh-execution", "value": "wsr-dsh-intake", "replacement": "dsh-wsr-execution"},
+    {"coordinate_id": "npm/dsh-studio", "value": "@wsr/bi", "replacement": "dsh-wsr-studio"},
+    {"coordinate_id": "configuration/workflow-source-api", "value": "https://api.github.com/repos/firestige/workflow-package/releases", "replacement": "https://api.github.com/repos/firestige/wsr-workflow-package/releases"},
+    {"coordinate_id": "publishers/github-app-wsr-release", "value": "`workflow-self-recursive`, `execution-system`, `evidence-system`, `evolution-system`, `system-contracts`, and `workflow-package`", "replacement": "`wsr`, `wsr-execution`, `wsr-evidence`, `wsr-evolution`, `wsr-contracts`, `wsr-workflow-package`, and `wsr-dsh`", "path_globs": ["docs/guides/release-automation.md"]},
+    {"coordinate_id": "publishers/github-app-wsr-release", "value": "`workflow-self-recursive`、`execution-system`、`evidence-system`、`evolution-system`、`system-contracts`、`workflow-package`", "replacement": "`wsr`、`wsr-execution`、`wsr-evidence`、`wsr-evolution`、`wsr-contracts`、`wsr-workflow-package`、`wsr-dsh`", "path_globs": ["docs/guides/release-automation.zh-CN.md"]},
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: execution-system", "replacement": "repositories: wsr-execution", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: evidence-system", "replacement": "repositories: wsr-evidence", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: evolution-system", "replacement": "repositories: wsr-evolution", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: system-contracts", "replacement": "repositories: wsr-contracts", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: workflow-package", "replacement": "repositories: wsr-workflow-package", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]}
+  ],
+  "allowlists": [
+    {"id": "migration-rollback-inputs", "classification": "rollback", "path_globs": ["docs/reference/wsr-authority-mapping.md", "migration/iter6/v1/authority-migration.json", "migration/iter6/v1/staged/**"], "coordinate_ids": ["*"]},
+    {"id": "immutable-release-evidence", "classification": "historical", "path_globs": ["release/candidates/**", "release/publications/**", "*/release/candidates/**", "*/release/publications/**"], "coordinate_ids": ["*"]},
+    {"id": "published-implementation-history", "classification": "historical", "path_globs": ["CHANGELOG.md", "**/CHANGELOG.md", "docs/**/implementation-results/**", "docs/contracts/**/release-binding-*.json"], "coordinate_ids": ["*"]},
+    {"id": "closed-iteration-recovery-records", "classification": "historical", "path_globs": ["tmp/20260825/iter4-implementation-plan/**", "tmp/20260827/iter5-implementation-plan/**"], "coordinate_ids": ["*"]},
+    {"id": "scanner-fixtures", "classification": "fixture", "path_globs": ["qualification/iter6/migration/fixtures/**", "qualification/iter6/migration/test_*.py"], "coordinate_ids": ["*"]}
+  ],
+  "migration_steps": [
+    {
+      "id": "stage-local-consumers",
+      "depends_on": [],
+      "preflight": [
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "validate"], "effect": "read-only"},
+        {"argv": ["git", "diff", "--quiet"], "effect": "read-only"},
+        {"argv": ["git", "submodule", "foreach", "--recursive", "git diff --quiet"], "effect": "read-only"}
+      ],
+      "mechanical_replacement": [
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "."], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "execution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "evidence-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "evolution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "system-contracts", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "workflow-package", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "wsr-ui", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"}
+      ],
+      "postflight": [
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "scan", "--enforce-target"], "effect": "read-only"},
+        {"argv": ["git", "submodule", "foreach", "--recursive", "python3 ../qualification/iter6/migration/authority_migration.py scan --enforce-target --root . --manifest ../migration/iter6/v1/authority-migration.json --authority-document ../docs/reference/wsr-authority-mapping.md"], "effect": "read-only"},
+        {"argv": ["git", "diff", "--check"], "effect": "read-only"}
+      ],
+      "inverse": [
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "wsr-ui", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "workflow-package", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "system-contracts", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "evolution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "evidence-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "execution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "."], "effect": "local-worktree"}
+      ]
+    },
+    {
+      "id": "rename-contracts",
+      "depends_on": ["stage-local-consumers"],
+      "preflight": [{"argv": ["gh", "repo", "view", "firestige/system-contracts", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
+      "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr-contracts", "--repo", "firestige/system-contracts", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
+      "postflight": [{"argv": ["gh", "repo", "view", "firestige/wsr-contracts", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
+      "inverse": [{"argv": ["gh", "repo", "rename", "system-contracts", "--repo", "firestige/wsr-contracts", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
+    },
+    {
+      "id": "rename-workflow-package",
+      "depends_on": ["rename-contracts"],
+      "preflight": [{"argv": ["gh", "repo", "view", "firestige/workflow-package", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
+      "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr-workflow-package", "--repo", "firestige/workflow-package", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
+      "postflight": [{"argv": ["gh", "api", "repos/firestige/wsr-workflow-package/releases?per_page=1"], "effect": "read-only"}],
+      "inverse": [{"argv": ["gh", "repo", "rename", "workflow-package", "--repo", "firestige/wsr-workflow-package", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
+    },
+    {
+      "id": "rename-evidence",
+      "depends_on": ["rename-workflow-package"],
+      "preflight": [{"argv": ["gh", "repo", "view", "firestige/evidence-system", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
+      "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr-evidence", "--repo", "firestige/evidence-system", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
+      "postflight": [{"argv": ["docker", "buildx", "imagetools", "inspect", "ghcr.io/firestige/wsr-evidence@QUALIFIED_DIGEST"], "effect": "read-only"}],
+      "inverse": [{"argv": ["gh", "repo", "rename", "evidence-system", "--repo", "firestige/wsr-evidence", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
+    },
+    {
+      "id": "rename-evolution",
+      "depends_on": ["rename-evidence"],
+      "preflight": [{"argv": ["gh", "repo", "view", "firestige/evolution-system", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
+      "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr-evolution", "--repo", "firestige/evolution-system", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
+      "postflight": [{"argv": ["docker", "buildx", "imagetools", "inspect", "ghcr.io/firestige/wsr-evolution@QUALIFIED_DIGEST"], "effect": "read-only"}],
+      "inverse": [{"argv": ["gh", "repo", "rename", "evolution-system", "--repo", "firestige/wsr-evolution", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
+    },
+    {
+      "id": "rename-execution",
+      "depends_on": ["rename-evolution"],
+      "preflight": [{"argv": ["npm", "view", "wsr-execution@0.1.3", "dist.integrity", "--json"], "effect": "read-only"}],
+      "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr-execution", "--repo", "firestige/execution-system", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
+      "postflight": [{"argv": ["gh", "repo", "view", "firestige/wsr-execution", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
+      "inverse": [{"argv": ["gh", "repo", "rename", "execution-system", "--repo", "firestige/wsr-execution", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
+    },
+    {
+      "id": "rename-superproject-last",
+      "depends_on": ["rename-execution"],
+      "preflight": [{"argv": ["git", "submodule", "status", "--recursive"], "effect": "read-only"}],
+      "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr", "--repo", "firestige/workflow-self-recursive", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
+      "postflight": [{"argv": ["gh", "repo", "view", "firestige/wsr", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
+      "inverse": [{"argv": ["gh", "repo", "rename", "workflow-self-recursive", "--repo", "firestige/wsr", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
+    }
+  ],
+  "rollback_steps": [
+    {"id": "rename-superproject-back", "depends_on": []},
+    {"id": "rename-execution-back", "depends_on": ["rename-superproject-back"]},
+    {"id": "rename-evolution-back", "depends_on": ["rename-execution-back"]},
+    {"id": "rename-evidence-back", "depends_on": ["rename-evolution-back"]},
+    {"id": "rename-workflow-package-back", "depends_on": ["rename-evidence-back"]},
+    {"id": "restore-workflow-source-default", "depends_on": ["rename-workflow-package-back"]},
+    {"id": "rename-contracts-back", "depends_on": ["restore-workflow-source-default"]},
+    {"id": "restore-local-consumers", "depends_on": ["rename-contracts-back"]}
+  ]
+}

@@ -1,0 +1,18 @@
+[submodule "workflow-package"]
+	path = workflow-package
+	url = https://github.com/firestige/wsr-workflow-package.git
+[submodule "execution-system"]
+	path = execution-system
+	url = https://github.com/firestige/wsr-execution.git
+[submodule "evidence-system"]
+	path = evidence-system
+	url = https://github.com/firestige/wsr-evidence.git
+[submodule "evolution-system"]
+	path = evolution-system
+	url = https://github.com/firestige/wsr-evolution.git
+[submodule "system-contracts"]
+	path = system-contracts
+	url = https://github.com/firestige/wsr-contracts.git
+[submodule "wsr-dsh"]
+	path = wsr-dsh
+	url = https://github.com/firestige/wsr-dsh.git
