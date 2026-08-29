@@ -8,7 +8,7 @@ workflow-self-recursive 是一个开源的 Agent 工作流架构：它通过小�
 
 ## Developer preview
 
-workflow-self-recursive 目前是以架构为先的开发者预览版，适用于个人或小团队的可信本地环境。本仓库当前发布设计、契约与组件边界，尚未提供可供最终用户运行的发行版。**后续会有破坏兼容性的变更。**
+workflow-self-recursive 目前是以架构为先的开发者预览版，适用于个人或小团队的可信本地环境。本仓库尚未提供打包的最终用户发行版，但可以从源码启动本地数据服务预览。**后续会有破坏兼容性的变更。**
 
 ## 架构
 
@@ -33,6 +33,15 @@ cd workflow-self-recursive
 ```sh
 git submodule update --init --recursive
 ```
+
+在可信个人电脑上启动本地 Evidence、Evolution 与 BI 数据服务：
+
+```sh
+./deployment/start.sh
+```
+
+启动器会自动处理内部数据库初始化；无需创建用户账号或手工配置数据库口令。详见
+[快速开始](docs/guides/quickstart.zh-CN.md)，完整操作说明见[用户指南](docs/guides/user-guide.zh-CN.md)。
 
 ## 文档
 

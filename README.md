@@ -8,7 +8,7 @@ It binds each delivery to one resolved version and digest of a Workflow Package,
 
 ## Developer preview
 
-workflow-self-recursive is currently an architecture-first developer preview for trusted local use by individuals and small teams. This repository publishes the design, contracts, and component boundaries; it does not yet provide a runnable end-user release. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+workflow-self-recursive is currently an architecture-first developer preview for trusted local use by individuals and small teams. It does not yet provide a packaged end-user release, but its local data services can be started from source. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
 
 ## Architecture
 
@@ -33,6 +33,15 @@ If you already cloned the repository without submodules, initialize them with:
 ```sh
 git submodule update --init --recursive
 ```
+
+Start the local Evidence, Evolution, and BI data services on a trusted personal computer:
+
+```sh
+./deployment/start.sh
+```
+
+The launcher handles internal database initialization; no user account or manually configured database
+password is required. See the [quickstart](docs/guides/quickstart.md) and [user guide](docs/guides/user-guide.md).
 
 ## Documentation
 
