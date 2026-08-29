@@ -7,12 +7,21 @@ state_dir=${WSR_LOCAL_STATE_DIR:-"$bundle_dir/.local"}
 secret_dir="$state_dir/secrets"
 volume=${WSR_EVIDENCE_VOLUME:-wsr-evidence-data}
 wait_timeout=${WSR_READY_TIMEOUT_SECONDS:-120}
+evidence_port=${WSR_EVIDENCE_PORT:-4318}
+evolution_port=${WSR_EVOLUTION_PORT:-8000}
 action=${1:-start}
 
 case "$volume" in *[!A-Za-z0-9_.-]* | "") printf 'Invalid WSR_EVIDENCE_VOLUME.\n' >&2; exit 2;; esac
-for value in "${WSR_EVIDENCE_PORT:-4318}" "${WSR_EVOLUTION_PORT:-8000}" "$wait_timeout"; do
+for value in "$evidence_port" "$evolution_port" "$wait_timeout"; do
   case "$value" in *[!0-9]* | "") printf 'Ports and ready timeout must be integers.\n' >&2; exit 2;; esac
 done
+for port in "$evidence_port" "$evolution_port"; do
+  if test "$port" -lt 1 || test "$port" -gt 65535; then printf 'Ports must be in 1..65535.\n' >&2; exit 2; fi
+done
+if test "$wait_timeout" -lt 1 || test "$wait_timeout" -gt 3600; then
+  printf 'WSR_READY_TIMEOUT_SECONDS must be in 1..3600.\n' >&2
+  exit 2
+fi
 if ! command -v docker >/dev/null 2>&1; then printf 'Required command not found: docker\n' >&2; exit 1; fi
 if ! command -v openssl >/dev/null 2>&1; then printf 'Required command not found: openssl\n' >&2; exit 1; fi
 if ! docker compose version >/dev/null 2>&1; then printf 'Docker Compose v2 is required.\n' >&2; exit 1; fi
@@ -45,7 +54,7 @@ start_stack() {
     compose logs --no-color database migrate evidence evolution >&2 || true
     return "$status"
   fi
-  printf 'WSR services @BUNDLE_VERSION@ are ready at Evidence 127.0.0.1:%s and Evolution 127.0.0.1:%s.\n' "${WSR_EVIDENCE_PORT:-4318}" "${WSR_EVOLUTION_PORT:-8000}"
+  printf 'WSR services @BUNDLE_VERSION@ are ready at Evidence 127.0.0.1:%s and Evolution 127.0.0.1:%s.\n' "$evidence_port" "$evolution_port"
 }
 
 case "$action" in

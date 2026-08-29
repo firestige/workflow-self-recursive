@@ -170,6 +170,24 @@ class PublishedBundleTest(unittest.TestCase):
             self.assertEqual(completed.returncode, 19)
             self.assertIn("Published service stack did not become ready", completed.stderr)
 
+    def test_launcher_rejects_closed_port_and_timeout_bounds_before_docker(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            for variable, value in (
+                ("WSR_EVIDENCE_PORT", "0"),
+                ("WSR_EVOLUTION_PORT", "65536"),
+                ("WSR_READY_TIMEOUT_SECONDS", "0"),
+            ):
+                with self.subTest(variable=variable, value=value):
+                    completed = subprocess.run(
+                        [str(bundle / "wsr-compose"), "start"],
+                        env=os.environ | {variable: value},
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertEqual(completed.returncode, 2)
+
     def test_release_workflow_builds_and_rechecks_the_versioned_bundle(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "release-compose-bundle.yml").read_text(
             encoding="utf-8"
