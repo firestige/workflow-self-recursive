@@ -54,9 +54,9 @@
 
 面板不可见时，用下面这套命令手动跑周扫描：确定性部分用命令，判断部分仍是你。
 
-1. **待决队列**：`pctl req queue` —— 所有 `needs-decision` 的卡，逐张拍板。
-2. **门禁校验**：`gh issue list --repo <owner/repo> --label ready --state open --json number,title,labels` —— 逐张检查正文有验收标准、且有 `p0`–`p3` 与 `xs`–`l` 标签；缺失的加 `needs-decision` 并在评论里列出缺项。
-3. **僵尸检测**：`gh issue list --repo <owner/repo> --state open --json number,title,updatedAt` —— 超过 90 天未更新的加 `stale` 并评论「仍然相关吗？回复或留一条评论保留」；已 `stale` 又 30 天无互动的关闭并打 `retired` + 一行原因。豁免：当前里程碑、`in-progress`、`blocked`、创建不足 30 天。
-4. **同类 / 冲突**：凭判断力自查，拿不准的挂 `needs-decision` 等裁决。
+1. **待决队列**：`gh issue list --repo <owner/repo> --label needs-decision --state open` —— 所有 `needs-decision` 的卡，逐张拍板。
+2. **门禁校验**：`pctl req scan`（确定性部分自动列出缺失项）——逐张检查正文有验收标准、且有 `p0`–`p3` 与 `xs`–`l` 标签；缺失的加 `needs-decision` 并在评论里列出缺项。
+3. **僵尸检测**：`pctl req scan`（确定性部分自动列出候选）——超过 90 天未更新的加 `stale` 并评论「仍然相关吗？回复或留一条评论保留」；已 `stale` 又 30 天无互动的关闭并打 `retired` + 一行原因（`pctl req retire`）。豁免：当前里程碑、`in-progress`、`blocked`、创建不足 30 天。
+4. **同类 / 冲突**：凭判断力自查，拿不准的挂 `needs-decision` 等裁决（`pctl req flag`）。
 
 第 2、3 步是确定性的，可以包成一个 cron 脚本（GitHub Actions 定时工作流）自动跑——需要的话再扩展。
