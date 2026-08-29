@@ -19,7 +19,7 @@ This document is the single coordinate authority for the Iteration 6 WSR naming 
 
 | Domain | Current repository | Target repository | Superproject path | Target state and owner |
 |---|---|---|---|---|
-| Product superproject | `firestige/workflow-self-recursive` | `firestige/wsr` | repository root | Active product/integration authority |
+| Product superproject | `firestige/workflow-self-recursive` | unchanged: `firestige/workflow-self-recursive` | repository root | Active product/integration authority; Iteration 6 does not rename it |
 | Execution | `firestige/execution-system` | `firestige/wsr-execution` | `execution-system` | Active Execution domain and host-neutral npm authority |
 | Evidence | `firestige/evidence-system` | `firestige/wsr-evidence` | `evidence-system` | Active Evidence domain, image, and Release authority |
 | Evolution | `firestige/evolution-system` | `firestige/wsr-evolution` | `evolution-system` | Active Evolution domain, image, and Release authority |
@@ -86,7 +86,7 @@ No Release asset is deleted or rewritten by this migration. Old Release URLs rem
 2. **Prepare (#121/#124):** build the DSH monorepo and generate a versioned migration manifest containing every old/target coordinate, exact preflight, mechanical replacement, postflight, and inverse command. Stage the target `.gitmodules`, Actions, App allowlists, documentation, Workflow source defaults, image digests, publisher/workflow coordinates, and compatibility matrix in branches/fixtures. The stage has no repository rename, publisher switch, npm deprecation, archive, or active consumer effect.
 3. **Qualify owners (#105–#107/#111/#116/#118/#84/#85):** only accepted owner code and immutable artifacts may enter the migration window.
 4. **Approve cutover (#124):** record human approval as a durable comment on issue #124 that names the exact migration-manifest commit and digest, all target repositories/artifacts, preflight evidence, and rollback commands. Approval applies only to those bytes; any manifest change invalidates it.
-5. **Cut over (#124):** execute repository renames in this dependency order: `system-contracts` → `wsr-contracts`; `workflow-package` → `wsr-workflow-package`; `evidence-system` → `wsr-evidence`; `evolution-system` → `wsr-evolution`; `execution-system` → `wsr-execution`; finally `workflow-self-recursive` → `wsr`. After each rename, update and verify publishers, workflows, App allowlists, staged consumers, and redirects before proceeding. The superproject moves last.
+5. **Cut over (#124):** execute repository renames in this dependency order: `system-contracts` → `wsr-contracts`; `workflow-package` → `wsr-workflow-package`; `evidence-system` → `wsr-evidence`; `evolution-system` → `wsr-evolution`; `execution-system` → `wsr-execution`. The product superproject remains `firestige/workflow-self-recursive`. After each rename, update and verify publishers, workflows, App access, staged consumers, and redirects before proceeding.
 6. **Publish and qualify (#122/#117):** promote final DSH bundles and loopback assembly from target authorities; run clean-profile and exact-coordinate qualification.
 7. **Approve cleanup (#125):** record a second human approval as a durable comment on issue #125 that names the exact migration report and target-qualification artifact. Archiving `wsr-ui` is authorized only when that repository is explicitly listed in this approval; otherwise it remains available. Deletion is never authorized by this mapping.
 8. **Clean up (#125):** deprecate the old npm integration package with its exact replacement message, disable superseded active publishers, perform only the explicitly approved optional archive, and remove non-allowlisted active references. Preserve historical evidence and all durable data.
@@ -105,6 +105,17 @@ At every compatibility epoch there is one publisher for an exact coordinate: no 
 | `wsr-ui` | Remains available as a migration source until Studio and reusable owner packages pass acceptance and Wave 13 is approved | Do not archive, or unarchive and restore the previous submodule pin; `wsr-dsh` must not publish a competing fork |
 
 Rollback never deletes Delivery, checkpoint, binding, Evidence, configuration, Release artifact, or provenance. A failed step stops before the next remote effect and returns to the last row whose unique active authority was verified.
+
+## Operator involvement classification
+
+The cutover distinguishes approval gates from technical requirements for browser interaction:
+
+- **Automatable after approval:** the five system repository renames; local consumer rewrites; `.gitmodules`, Actions, documentation and Workflow source updates; repository secrets and variables; read-only repository/App/publisher smoke tests; rollback renames and inverse consumer rewrites. These use `gh`, Git and the checked-in migration tooling.
+- **Human approval required, but executable by the operator agent:** repository renames, active publisher/Release authority switches, stable promotion, npm deprecation and optional archival. The approval is a product/safety gate; it does not imply that a browser is technically required.
+- **Browser action required with the current credentials:** editing npm trusted-publisher records. npm CLI 11.6.2 exposes no trusted-publisher configuration command. Changing the selected repositories of the `wsr-release` GitHub App would also require browser action with the current `gh` OAuth token, because the installation repository API rejects that token. A repository rename retains the same repository object, so the cutover first verifies existing App access rather than editing the selection. Only the already-created `wsr-dsh` repository may need a selection change if the smoke test shows it is absent.
+- **Potential browser fallback:** GHCR “Manage Actions access” or repository linking is only needed if post-rename publish qualification proves the existing package association did not follow the repository object. It is verified first and is not assumed to be a mandatory manual step.
+
+Secrets already configured through repository settings remain attached to the renamed repository and are verified rather than recreated. No credential material is copied into the migration manifest.
 
 ## Historical-reference allowlist
 
