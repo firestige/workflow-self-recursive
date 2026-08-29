@@ -39,7 +39,7 @@ dsh --help
 export WSR_VERSION="0.1.1"
 export WSR_RELEASE_DIR="$PWD/.wsr-release"
 mkdir -p "$WSR_RELEASE_DIR"
-gh release download "$WSR_VERSION" --repo firestige/execution-system --dir "$WSR_RELEASE_DIR"
+gh release download "$WSR_VERSION" --repo firestige/wsr-execution --dir "$WSR_RELEASE_DIR"
 ```
 
 Continue only when `0.1.1` exists as a non-prerelease GitHub Release. `release-metadata.json` and the publication records bind the downloaded archives to their SHA-256, package version, inventory, and compatibility tuple.
@@ -57,7 +57,7 @@ npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
   execution-config init "$WSR_CONFIG" yaml
 ```
 
-Replace only the values marked `__REQUIRED__`: `paths.repositoryRoot`, `paths.workspaceRoot`, the matching `paths.allowedWorktreeRoots` item, `paths.stateRoot`, `paths.credentialStorePath`, and `runner.provider.route/modelId/baseUrl/credentialRef`. Keep the default single Source, `firestige/workflow-package`, unless this installation deliberately selects one alternate Adapter.
+Replace only the values marked `__REQUIRED__`: `paths.repositoryRoot`, `paths.workspaceRoot`, the matching `paths.allowedWorktreeRoots` item, `paths.stateRoot`, `paths.credentialStorePath`, and `runner.provider.route/modelId/baseUrl/credentialRef`. Keep the default single Source, `firestige/wsr-workflow-package`, unless this installation deliberately selects one alternate Adapter.
 
 Provision the referenced key outside the Execution config:
 
@@ -86,7 +86,7 @@ Use locked DSH's built-in `web` profile. It is the supported interactive assembl
 ```sh
 dsh plugin --profile web config set --location=project --json allowBuilds '{"better-sqlite3":true}'
 dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/dsh-wsr-execution-0.1.1.tgz"
 ```
 
 Edit `$DSH_HOME/profiles/web/cordis.patch.yml` so the stable WSR row contains only absolute presentation paths. `web` is the DSH profile name; `workflow-execution` remains the plugin's stable Cordis row ID:
@@ -170,11 +170,11 @@ For a later compatible exact version, update Core first and Intake second. To re
 
 ```sh
 dsh plugin --profile web update --workspace-root wsr-execution@<new-exact-version>
-dsh plugin --profile web update --workspace-root wsr-dsh-intake@<new-exact-version>
-dsh plugin --profile web remove --workspace-root wsr-dsh-intake
+dsh plugin --profile web update --workspace-root dsh-wsr-execution@<new-exact-version>
+dsh plugin --profile web remove --workspace-root dsh-wsr-execution
 dsh plugin --profile web remove --workspace-root wsr-execution
 dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/dsh-wsr-execution-0.1.1.tgz"
 ```
 
 DSH owns these package-lifecycle operations. WSR does not add install/remove hooks. Removal leaves external durable state untouched; a compatible reinstall resumes the same persisted Delivery binding. Interaction state written after the last durable boundary may be lost.

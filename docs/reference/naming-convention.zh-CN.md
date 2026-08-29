@@ -75,7 +75,7 @@ Feature 卡片在标题中使用同一规则，浅一层：`[type] owner.classif
 ## 6. 包命名（npm / DSH 插件）
 
 - 命名空间：`wsr-<系统>`，**无 npm scope**。2026-08-25 裁决。
-- 现状：`wsr-execution`（执行系统）、`wsr-dsh-intake`（产品级入口，当前承载 Execution 能力）。
+- 现状：`wsr-execution`（执行系统）、`dsh-wsr-execution`（产品级入口，当前承载 Execution 能力）。
 - 预留：`wsr-evidence`、`wsr-evolution`（闭环用）。
 - 理由：符合 DSH 生态惯例（无 scope 短名：`dsh-plugin`、`dsh-auto-update` 等）；安装命令简短；无需注册 npm 组织；与"系统为主体、DSH 为入口"的组织决策一致。
 

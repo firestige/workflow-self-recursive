@@ -1,6 +1,6 @@
 # Execution and DSH Intake release process
 
-This adapter releases `wsr-execution` and `wsr-dsh-intake` in lockstep. A stable tag is an output of qualification and component-first repinning, never a qualification trigger. The common identity and recovery rules are in the [release automation guide](release-automation.md).
+This adapter releases `wsr-execution` and `dsh-wsr-execution` in lockstep. A stable tag is an output of qualification and component-first repinning, never a qualification trigger. The common identity and recovery rules are in the [release automation guide](release-automation.md).
 
 ## Required order
 
@@ -57,6 +57,6 @@ After qualification, squash-merge the component candidate to `main`, update the 
 
 ## 4. Promote exact qualified bytes
 
-Configure npm trusted publishers for both packages to `firestige/execution-system` and `release-promote.yml`. Then dispatch promotion with the qualified RC and stable tag. The workflow revalidates the candidate commit, qualification evidence, manifest, release notes, and remote DSH install. With npm OIDC it publishes `wsr-execution` first and `wsr-dsh-intake` second, then verifies exact registry tarball digests, descriptions, version listings, and `latest`. Only after those checks does it mint the scoped GitHub App token and create the stable tag/Release as the final operation.
+Configure npm trusted publishers for both packages to `firestige/wsr-execution` and `release-promote.yml`. Then dispatch promotion with the qualified RC and stable tag. The workflow revalidates the candidate commit, qualification evidence, manifest, release notes, and remote DSH install. With npm OIDC it publishes `wsr-execution` first and `dsh-wsr-execution` second, then verifies exact registry tarball digests, descriptions, version listings, and `latest`. Only after those checks does it mint the scoped GitHub App token and create the stable tag/Release as the final operation.
 
 If core succeeds and intake fails, keep stable absent and rerun the same candidate. The publisher downloads the existing coordinate: it skips core only when its digest equals the immutable manifest, then publishes intake. A different digest is a permanent version collision and requires investigation, not overwrite or rebuild.

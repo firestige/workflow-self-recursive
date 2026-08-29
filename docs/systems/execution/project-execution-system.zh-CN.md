@@ -189,7 +189,7 @@ Implementation fact 保留 typed test summary，并按 coverage scope/tool/forma
 
 Configuration、factory 与 Bootstrap 支撑整个 Execution System。它们不是第四个 Module，也不归属 M01、M02、M03 或某个 Intake Adapter。`ExecutionBootstrap` 是唯一 production composition root。包括 DSH Intake plugin 在内的每种 embedding 都只向同一个 loader 提供一个 absolute config-file path。普通 caller 使用 public `ExecutionApplicationFactory`/application surface。DSH Intake adapter 还会得到一个 private Bootstrap control surface：在校验精确 live Agent、canonical registered workspace 与 session membership 后，issue #93 的过渡实现只能为一次调用授权该精确 workspace。Public surface 继续执行 configured worktree roots 校验。Issue #94 负责把临时 workspace-as-worktree 值替换为 Delivery 选择的 worktree。
 
-Host-neutral package 的 release coordinate 是 `wsr-execution@0.1.0`；public export 包含 Core request/result contract、`ExecutionApplicationFactory`、Bootstrap、configuration schema/type，以及 `start/execute/inspect/cancel/close/status` application surface。首个 Intake distribution 是 `execution-system/packages/dsh-intake` 下的 `wsr-dsh-intake@0.1.0`；它依赖 public host-neutral package，禁止 import private M01/M02/M03 source path。
+Host-neutral package 的 release coordinate 是 `wsr-execution@0.1.0`；public export 包含 Core request/result contract、`ExecutionApplicationFactory`、Bootstrap、configuration schema/type，以及 `start/execute/inspect/cancel/close/status` application surface。首个 Intake distribution 是 `execution-system/packages/dsh-intake` 下的 `dsh-wsr-execution@0.1.0`；它依赖 public host-neutral package，禁止 import private M01/M02/M03 source path。
 
 #### Scope 与 dependency graph
 
@@ -274,8 +274,8 @@ deliveryBindingIdentity = sha256("agentops.delivery-binding@1.0.0\n" + canonical
 | `paths.packageStoreRoot` | input omitted；derived `<stateRoot>/packages` | Store only；不 binding |
 | `paths.credentialStorePath` | required absolute readable file path | credential lease provider；Manifest 排除 location |
 | `workflowSource.kind` | closed `github`（default）或 `adapter` | exact-key Source factory；bootstrap-only |
-| `workflowSource.repository` | GitHub default `firestige/workflow-package`；`adapter` 禁止 | GitHub Adapter only；不进入 request/binding |
-| `workflowSource.releasesBaseUrl` | default `https://api.github.com/repos/firestige/workflow-package/releases`；HTTPS、无 userinfo | GitHub Adapter only |
+| `workflowSource.repository` | GitHub default `firestige/wsr-workflow-package`；`adapter` 禁止 | GitHub Adapter only；不进入 request/binding |
+| `workflowSource.releasesBaseUrl` | default `https://api.github.com/repos/firestige/wsr-workflow-package/releases`；HTTPS、无 userinfo | GitHub Adapter only |
 | `workflowSource.assetPattern` | default `workflow-package-{name}-{version}.tar.gz` | GitHub Adapter only |
 | `workflowSource.adapterKey` | `adapter` required exact key；`github` 禁止 | alternate factory selection |
 | `workflowSource.adapterConfigFile` | `adapter` required absolute path；`github` 禁止 | selected Adapter closed config loader |
@@ -319,9 +319,9 @@ Execution Release 只拥有 host-neutral package、configuration schema/default 
 | Item | Value |
 | --- | --- |
 | recommended profile | locked DSH 内置 `web` profile；它组合 `dsh-base` 与 `dsh-web-app` |
-| install/update/remove | `dsh plugin --profile web add|update|remove wsr-dsh-intake@0.1.0` |
+| install/update/remove | `dsh plugin --profile web add|update|remove dsh-wsr-execution@0.1.0` |
 | package bundle declaration | `dsh.bundle.patch = "./cordis.patch.yml"` |
-| stable Cordis row ID/name | `workflow-execution` / `wsr-dsh-intake` |
+| stable Cordis row ID/name | `workflow-execution` / `dsh-wsr-execution` |
 | profile override | row `workflow-execution`，完整 config `{ configFile: <absolute path>, bindingFile: <absolute path> }` |
 | user command surface | `/wsr list`；`/wsr create <selector>`；`/wsr recover [<delivery-id>]`；`/wsr status [<delivery-id>]`；`/wsr action finish`；`/wsr abandon <delivery-id>` |
 | create prompt | activation directive 后的 triggering chat turn 及其 attachments；不存在 `--intent` parameter |

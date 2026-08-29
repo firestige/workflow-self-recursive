@@ -176,7 +176,7 @@ test("setup owns a private editable config and repeated setup preserves it", asy
     workspace: "/work/repository",
     durableState: path.join(root, "durable"),
     ports: { bi: 8080 },
-    workflowSource: "github:firestige/workflow-package@1.0.0",
+    workflowSource: "github:firestige/wsr-workflow-package@1.0.0",
     roleBindings: {
       implementer: { provider: "copilot", model: "fixture-copilot" },
       reviewer: { provider: "codex", model: "fixture-codex" },
@@ -202,7 +202,7 @@ test("configuration rejects credential-bearing fields instead of persisting logi
     workspace: "/work/repository",
     durableState: path.join(root, "durable"),
     ports: { bi: 8080 },
-    workflowSource: "github:firestige/workflow-package@1.0.0",
+    workflowSource: "github:firestige/wsr-workflow-package@1.0.0",
     roleBindings: {
       implementer: { provider: "copilot", model: "fixture", token: "must-not-persist" },
     },
@@ -220,7 +220,7 @@ test("uninstall removes managed installation state but preserves config and dura
     workspace: "/work/repository",
     durableState,
     ports: { bi: 8080 },
-    workflowSource: "github:firestige/workflow-package@1.0.0",
+    workflowSource: "github:firestige/wsr-workflow-package@1.0.0",
     roleBindings: {},
   };
   await operations.writeConfig(config);

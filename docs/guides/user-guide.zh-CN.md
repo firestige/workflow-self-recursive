@@ -28,7 +28,7 @@ WSR_BI_PORT=18080 ./deployment/start.sh
 
 ## Workflow source
 
-默认配置包含官方 `firestige/workflow-package` source。只有当 Delivery 可能引用 fork 或其他 Workflow 仓库时，才需要在 [`deployment/evolution.config.json`](../../deployment/evolution.config.json) 中按优先顺序补充 `workflow_sources`。Evolution 依据 Package/Snapshot digest 精确匹配，第一个匹配源生效；仓库名称或版本字符串本身不构成匹配依据。
+默认配置包含官方 `firestige/wsr-workflow-package` source。只有当 Delivery 可能引用 fork 或其他 Workflow 仓库时，才需要在 [`deployment/evolution.config.json`](../../deployment/evolution.config.json) 中按优先顺序补充 `workflow_sources`。Evolution 依据 Package/Snapshot digest 精确匹配，第一个匹配源生效；仓库名称或版本字符串本身不构成匹配依据。
 
 也可以用其他配置文件启动：
 

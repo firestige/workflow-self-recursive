@@ -189,7 +189,7 @@ For ordinary and Recheck summaries, owner input with a nonnegative observed coun
 
 Configuration, factories, and Bootstrap support the entire Execution System. They are not a fourth Module and do not belong to M01, M02, M03, or an Intake Adapter. `ExecutionBootstrap` is the sole production composition root. Every embedding, including the DSH Intake plugin, supplies one absolute configuration-file path to the same loader. Ordinary callers use the public `ExecutionApplicationFactory`/application surface. The DSH Intake adapter also receives a private Bootstrap control surface: after it validates the exact live Agent, canonical registered workspace, and session membership, the issue #93 transition may authorize only that exact workspace for one invocation. The public surface continues to enforce configured worktree roots. Issue #94 owns replacement of the provisional workspace-as-worktree value with Delivery-selected worktrees.
 
-The release coordinate for the host-neutral package is `wsr-execution@0.1.0`; its public exports include the Core request/result contract, `ExecutionApplicationFactory`, Bootstrap, configuration schema/types, and the `start/execute/inspect/cancel/close/status` application surface. The first Intake distribution is `wsr-dsh-intake@0.1.0` under `execution-system/packages/dsh-intake`; it depends on the public host-neutral package and must not import private M01/M02/M03 source paths.
+The release coordinate for the host-neutral package is `wsr-execution@0.1.0`; its public exports include the Core request/result contract, `ExecutionApplicationFactory`, Bootstrap, configuration schema/types, and the `start/execute/inspect/cancel/close/status` application surface. The first Intake distribution is `dsh-wsr-execution@0.1.0` under `execution-system/packages/dsh-intake`; it depends on the public host-neutral package and must not import private M01/M02/M03 source paths.
 
 #### Scope and dependency graphs
 
@@ -274,8 +274,8 @@ deliveryBindingIdentity = sha256("agentops.delivery-binding@1.0.0\n" + canonical
 | `paths.packageStoreRoot` | omitted input; derived as `<stateRoot>/packages` | Store only; never binding |
 | `paths.credentialStorePath` | required absolute readable file path | credential lease provider; location excluded from Manifest |
 | `workflowSource.kind` | closed `github` (default) or `adapter` | exact-key Source factory; bootstrap-only |
-| `workflowSource.repository` | GitHub default `firestige/workflow-package`; forbidden for `adapter` | GitHub Adapter only; never request/binding |
-| `workflowSource.releasesBaseUrl` | default `https://api.github.com/repos/firestige/workflow-package/releases`; HTTPS, no userinfo | GitHub Adapter only |
+| `workflowSource.repository` | GitHub default `firestige/wsr-workflow-package`; forbidden for `adapter` | GitHub Adapter only; never request/binding |
+| `workflowSource.releasesBaseUrl` | default `https://api.github.com/repos/firestige/wsr-workflow-package/releases`; HTTPS, no userinfo | GitHub Adapter only |
 | `workflowSource.assetPattern` | default `workflow-package-{name}-{version}.tar.gz` | GitHub Adapter only |
 | `workflowSource.adapterKey` | required exact key for `adapter`; forbidden for `github` | alternate factory selection |
 | `workflowSource.adapterConfigFile` | required absolute path for `adapter`; forbidden for `github` | selected Adapter's closed config loader |
@@ -319,9 +319,9 @@ The exact first-release values are:
 | Item | Value |
 | --- | --- |
 | recommended profile | locked DSH built-in `web` profile; it composes `dsh-base` plus `dsh-web-app` |
-| install/update/remove | `dsh plugin --profile web add|update|remove wsr-dsh-intake@0.1.0` |
+| install/update/remove | `dsh plugin --profile web add|update|remove dsh-wsr-execution@0.1.0` |
 | package bundle declaration | `dsh.bundle.patch = "./cordis.patch.yml"` |
-| stable Cordis row ID/name | `workflow-execution` / `wsr-dsh-intake` |
+| stable Cordis row ID/name | `workflow-execution` / `dsh-wsr-execution` |
 | profile override | row `workflow-execution`, complete config `{ configFile: <absolute path>, bindingFile: <absolute path> }` |
 | user command surface | `/wsr list`; `/wsr create <selector>`; `/wsr recover [<delivery-id>]`; `/wsr status [<delivery-id>]`; `/wsr action finish`; `/wsr abandon <delivery-id>` |
 | create prompt | the triggering chat turn after the activation directive, plus its attachments; no `--intent` parameter |

@@ -7,12 +7,12 @@ import { fileURLToPath } from "node:url";
 import { assertPinnedOwners } from "./qualify.mjs";
 
 const expected = Object.freeze({
-  "workflow-package": "ff972d150438321bcb64e3442b99aad54bb38f56",
-  "execution-system": "244a9b18f7d3166f7ac60e7b9d5c6fd6ef90b7bc",
-  "evolution-system": "7de7250d0c0c4d70e4de44a960ab15b46f5f132c",
+  "workflow-package": "08d0a4e7d2862203107fde647c21a756734586c6",
+  "execution-system": "1cb19faa78aafa380eb93f1eda0cb9819ee1188e",
+  "evolution-system": "b302595942b2307514570a47be9ed87f26f8cf84",
 });
 
-test("accepts only the exact Wave 4 owner revisions", () => {
+test("accepts only the exact cutover owner revisions", () => {
   assert.deepEqual(assertPinnedOwners(expected), expected);
   assert.throws(
     () => assertPinnedOwners({ ...expected, "execution-system": "0".repeat(40) }),

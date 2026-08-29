@@ -24,8 +24,8 @@ Unchanged WSR paths, Workflow source, Observation settings, controls, Intake bou
   },
   "workflowSource": {
     "kind": "github",
-    "repository": "firestige/workflow-package",
-    "releasesBaseUrl": "https://api.github.com/repos/firestige/workflow-package/releases",
+    "repository": "firestige/wsr-workflow-package",
+    "releasesBaseUrl": "https://api.github.com/repos/firestige/wsr-workflow-package/releases",
     "assetPattern": "workflow-package-{name}-{version}.tar.gz"
   },
   "runner": {

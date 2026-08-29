@@ -35,7 +35,7 @@ Evolution deployment config 按用户顺序声明 1–8 个 source。每个 sour
 ```json
 {
   "workflow_sources": [
-    {"source_id": "official", "repository": "firestige/workflow-package"},
+    {"source_id": "official", "repository": "firestige/wsr-workflow-package"},
     {"source_id": "team-fork", "repository": "example/workflow-package"}
   ]
 }

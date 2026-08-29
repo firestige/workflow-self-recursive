@@ -5,7 +5,7 @@
 | Status | `APPROVED` |
 | Approved by | `firestige`, 2026-08-25 |
 | Applies from | Iteration 4 Wave 2 |
-| Component | `firestige/evidence-system` |
+| Component | `firestige/wsr-evidence` |
 | Product version | `0.1.0` developer preview |
 | Change control | Any runtime dependency, service, ownership, deployment, release-shape, or supported-platform change requires user approval |
 

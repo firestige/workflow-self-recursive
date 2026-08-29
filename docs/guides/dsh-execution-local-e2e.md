@@ -69,11 +69,11 @@ The following package-manager warnings can appear during reconciliation without 
 
 - `DEP0169` means DSH found an old pnpm CLI on `PATH`; use the optional Corepack upgrade above to remove it.
 - `prebuild-install@7.1.3` is a deprecated installer below `better-sqlite3`, reached through `@langchain/langgraph-checkpoint-sqlite`; it is not the installed Execution runtime version.
-- Core `declares no dsh.bundle` is expected. `wsr-execution` is deliberately installed as a host-neutral plain dependency, while `wsr-dsh-intake` supplies the DSH profile layer.
+- Core `declares no dsh.bundle` is expected. `wsr-execution` is deliberately installed as a host-neutral plain dependency, while `dsh-wsr-execution` supplies the DSH profile layer.
 
 ## 2. Add the credential
 
-The generated `execution.config@1.0.0` already points at this worktree, the sibling durable state directory, the public `firestige/workflow-package` Source, and the default DeepSeek route. Open `$WSR_CREDENTIALS` and replace only `replace-with-the-provider-key`:
+The generated `execution.config@1.0.0` already points at this worktree, the sibling durable state directory, the public `firestige/wsr-workflow-package` Source, and the default DeepSeek route. Open `$WSR_CREDENTIALS` and replace only `replace-with-the-provider-key`:
 
 ```yaml
 version: 1
@@ -180,11 +180,11 @@ For a later compatible exact version, update Core first and Intake second. To re
 
 ```sh
 dsh plugin --profile web update --workspace-root wsr-execution@<new-exact-version>
-dsh plugin --profile web update --workspace-root wsr-dsh-intake@<new-exact-version>
-dsh plugin --profile web remove --workspace-root wsr-dsh-intake
+dsh plugin --profile web update --workspace-root dsh-wsr-execution@<new-exact-version>
+dsh plugin --profile web remove --workspace-root dsh-wsr-execution
 dsh plugin --profile web remove --workspace-root wsr-execution
 dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/wsr-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/dsh-wsr-execution-0.1.1.tgz"
 ```
 
 DSH owns these package-lifecycle operations. WSR does not add install/remove hooks. Removal leaves external durable state untouched; a compatible reinstall resumes the same persisted Delivery binding. Interaction state written after the last durable boundary may be lost.

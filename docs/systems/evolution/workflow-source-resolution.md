@@ -43,7 +43,7 @@ Evolution's deployment configuration contains 1–8 sources in user-declared ord
 ```json
 {
   "workflow_sources": [
-    {"source_id": "official", "repository": "firestige/workflow-package"},
+    {"source_id": "official", "repository": "firestige/wsr-workflow-package"},
     {"source_id": "team-fork", "repository": "example/workflow-package"}
   ]
 }

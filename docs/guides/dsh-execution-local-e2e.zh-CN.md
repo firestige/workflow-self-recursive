@@ -69,11 +69,11 @@ pnpm --dir execution-system quickstart:prepare -- --reinstall-dsh-profile
 
 - `DEP0169` 表示 DSH 在 `PATH` 中找到了旧 pnpm CLI；可用上面的可选 Corepack 升级消除。
 - `prebuild-install@7.1.3` 是 `better-sqlite3` 下的 deprecated installer，由 `@langchain/langgraph-checkpoint-sqlite` 间接引入；它不是安装得到的 Execution runtime version。
-- Core `declares no dsh.bundle` 是预期输出。`wsr-execution` 按设计作为 host-neutral plain dependency 安装，`wsr-dsh-intake` 才提供 DSH profile layer。
+- Core `declares no dsh.bundle` 是预期输出。`wsr-execution` 按设计作为 host-neutral plain dependency 安装，`dsh-wsr-execution` 才提供 DSH profile layer。
 
 ## 2. 填写 credential
 
-生成的 `execution.config@1.0.0` 已经指向当前 worktree、外置 durable state、public `firestige/workflow-package` Source 和默认 DeepSeek route。打开 `$WSR_CREDENTIALS`，只替换 `replace-with-the-provider-key`：
+生成的 `execution.config@1.0.0` 已经指向当前 worktree、外置 durable state、public `firestige/wsr-workflow-package` Source 和默认 DeepSeek route。打开 `$WSR_CREDENTIALS`，只替换 `replace-with-the-provider-key`：
 
 ```yaml
 version: 1
@@ -180,11 +180,11 @@ Action 等待输入时，普通答复仍属于该 Action 内部交互。只有�
 
 ```sh
 dsh plugin --profile web update --workspace-root wsr-execution@<new-exact-version>
-dsh plugin --profile web update --workspace-root wsr-dsh-intake@<new-exact-version>
-dsh plugin --profile web remove --workspace-root wsr-dsh-intake
+dsh plugin --profile web update --workspace-root dsh-wsr-execution@<new-exact-version>
+dsh plugin --profile web remove --workspace-root dsh-wsr-execution
 dsh plugin --profile web remove --workspace-root wsr-execution
 dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/wsr-dsh-intake-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_RELEASE_DIR/dsh-wsr-execution-0.1.1.tgz"
 ```
 
 这些 package lifecycle operation 归 DSH。WSR 不增加 install/remove hook。Remove 保留外置 durable state；兼容版本 reinstall 后恢复相同 persisted Delivery binding。最后一个 durable boundary 之后的 interaction state 允许丢失。

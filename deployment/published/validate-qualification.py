@@ -11,6 +11,7 @@ from typing import Any
 
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 IMAGE = re.compile(r"^(?P<name>[a-z0-9./_-]+):(?P<tag>[A-Za-z0-9._-]+)@(?P<digest>sha256:[0-9a-f]{64})$")
+SOURCE_REPOSITORIES = {"evidence": "wsr-evidence", "evolution": "wsr-evolution"}
 
 
 def fail(message: str) -> None:
@@ -34,9 +35,12 @@ def validate(
     commit = qualification.get("commit")
     if not isinstance(commit, str) or COMMIT.fullmatch(commit) is None:
         fail(f"{name} qualification commit is not exact")
-    expected_source = f"https://github.com/firestige/{name}-system/tree/{commit}"
+    repository = SOURCE_REPOSITORIES.get(name)
+    if repository is None:
+        fail(f"{name} source repository is unsupported")
+    expected_source = f"https://github.com/firestige/{repository}/tree/{commit}"
     expected_evidence = (
-        f"https://github.com/firestige/{name}-system/releases/download/"
+        f"https://github.com/firestige/{repository}/releases/download/"
         f"{tag}/release-qualification.json"
     )
     expected_sha256 = image.get("qualificationSha256")

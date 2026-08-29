@@ -24,8 +24,8 @@ Serialized WSR config 之外的 installation composition 提供一个 closed `Ag
   },
   "workflowSource": {
     "kind": "github",
-    "repository": "firestige/workflow-package",
-    "releasesBaseUrl": "https://api.github.com/repos/firestige/workflow-package/releases",
+    "repository": "firestige/wsr-workflow-package",
+    "releasesBaseUrl": "https://api.github.com/repos/firestige/wsr-workflow-package/releases",
     "assetPattern": "workflow-package-{name}-{version}.tar.gz"
   },
   "runner": {
