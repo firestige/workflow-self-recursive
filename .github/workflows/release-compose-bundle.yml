@@ -40,6 +40,35 @@ jobs:
           case "$RELEASE_MANIFEST" in release/compose/*.json) ;; *) exit 1 ;; esac
           test -f "$RELEASE_MANIFEST"
 
+      - name: Verify exact first-party qualification evidence
+        env:
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
+        run: |
+          mkdir "$RUNNER_TEMP/compose-qualification"
+          for name in evidence evolution; do
+            URL="$(jq -er --arg name "$name" '.images[$name].provenance' "$RELEASE_MANIFEST")"
+            curl --proto '=https' --tlsv1.2 --fail --location --silent --show-error \
+              "$URL" --output "$RUNNER_TEMP/compose-qualification/$name.json"
+          done
+          deployment/published/validate-qualification.py "$RELEASE_MANIFEST" \
+            "$RUNNER_TEMP/compose-qualification/evidence.json" \
+            "$RUNNER_TEMP/compose-qualification/evolution.json"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Verify exact image platform matrix
+        env:
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
+        run: |
+          for name in postgres evidence evolution; do
+            IMAGE="$(jq -er --arg name "$name" '.images[$name].coordinate' "$RELEASE_MANIFEST")"
+            docker buildx imagetools inspect "$IMAGE" --format '{{json .Manifest}}' \
+              > "$RUNNER_TEMP/$name-manifest.json"
+            jq -e '[.manifests[] | select(.platform.os == "linux") | .platform.architecture] |
+              (index("amd64") != null and index("arm64") != null)' \
+              "$RUNNER_TEMP/$name-manifest.json" >/dev/null
+          done
+
       - name: Build versioned bundle
         env:
           RELEASE_MANIFEST: ${{ inputs.release_manifest }}
