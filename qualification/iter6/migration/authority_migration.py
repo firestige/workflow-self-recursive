@@ -209,7 +209,12 @@ def _pattern_applies(path: str, pattern: Mapping[str, object]) -> bool:
     )
 
 
-def scan_paths(root: Path, paths: Iterable[Path], manifest: Mapping[str, object]) -> list[Finding]:
+def scan_paths(
+    root: Path,
+    paths: Iterable[Path],
+    manifest: Mapping[str, object],
+    excluded_coordinate_ids: set[str] | frozenset[str] = frozenset(),
+) -> list[Finding]:
     patterns = manifest.get("legacy_patterns", [])
     if not isinstance(patterns, list):
         raise ManifestError("legacy_patterns must be a list")
@@ -230,6 +235,8 @@ def scan_paths(root: Path, paths: Iterable[Path], manifest: Mapping[str, object]
                 coordinate_id = pattern.get("coordinate_id")
                 replacement = pattern.get("replacement")
                 if not all(isinstance(item, str) for item in (value, coordinate_id, replacement)):
+                    continue
+                if coordinate_id in excluded_coordinate_ids:
                     continue
                 start = 0
                 while True:
@@ -258,6 +265,7 @@ def rewrite_paths(
     paths: Iterable[Path],
     manifest: Mapping[str, object],
     direction: str,
+    excluded_coordinate_ids: set[str] | frozenset[str] = frozenset(),
 ) -> list[str]:
     if direction not in {"forward", "reverse"}:
         raise ManifestError("rewrite direction must be forward or reverse")
@@ -274,6 +282,8 @@ def rewrite_paths(
         current = pattern.get("value")
         target = pattern.get("replacement")
         if not all(isinstance(value, str) and value for value in (coordinate_id, current, target)):
+            continue
+        if coordinate_id in excluded_coordinate_ids:
             continue
         source, destination = (current, target) if direction == "forward" else (target, current)
         replacements.append((coordinate_id, source, destination, pattern))
@@ -304,9 +314,20 @@ def rewrite_paths(
     return changed
 
 
-def rewrite_repository(root: Path, manifest: Mapping[str, object], direction: str) -> list[str]:
+def rewrite_repository(
+    root: Path,
+    manifest: Mapping[str, object],
+    direction: str,
+    excluded_coordinate_ids: set[str] | frozenset[str] = frozenset(),
+) -> list[str]:
     paths = tracked_paths(root)
-    changed = rewrite_paths(root, paths, manifest, direction)
+    changed = rewrite_paths(
+        root,
+        paths,
+        manifest,
+        direction,
+        excluded_coordinate_ids=excluded_coordinate_ids,
+    )
     staged = root / "migration/iter6/v1/staged"
     source = staged / (".gitmodules" if direction == "forward" else ".gitmodules.before")
     target = root / ".gitmodules"
@@ -338,12 +359,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--authority-document", type=Path)
     parser.add_argument("--enforce-target", action="store_true")
     parser.add_argument("--direction", choices=("forward", "reverse"))
+    parser.add_argument("--exclude-coordinate", action="append", default=[])
     args = parser.parse_args(argv)
 
     root = args.root.resolve()
     manifest_path = args.manifest or root / "migration/iter6/v1/authority-migration.json"
     authority_document = args.authority_document or root / "docs/reference/wsr-authority-mapping.md"
     manifest = load_manifest(manifest_path)
+    excluded_coordinate_ids = set(args.exclude_coordinate)
     validate_manifest(manifest)
     validate_authority_document_coverage(manifest, authority_document)
 
@@ -354,11 +377,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "rewrite":
         if args.direction is None:
             parser.error("rewrite requires --direction")
-        changed = rewrite_repository(root, manifest, args.direction)
+        changed = rewrite_repository(
+            root,
+            manifest,
+            args.direction,
+            excluded_coordinate_ids=excluded_coordinate_ids,
+        )
         print(json.dumps({"direction": args.direction, "changed": changed}, indent=2))
         return 0
 
-    findings = scan_paths(root, tracked_paths(root), manifest)
+    findings = scan_paths(
+        root,
+        tracked_paths(root),
+        manifest,
+        excluded_coordinate_ids=excluded_coordinate_ids,
+    )
     print(json.dumps([asdict(finding) for finding in findings], ensure_ascii=False, indent=2))
     active = [finding for finding in findings if finding.classification == "active"]
     if args.enforce_target and active:

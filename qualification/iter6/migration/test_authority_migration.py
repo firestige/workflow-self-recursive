@@ -20,6 +20,7 @@ ROOT = Path(__file__).parents[3]
 MANIFEST = ROOT / "migration/iter6/v1/authority-migration.json"
 AUTHORITY_DOCUMENT = ROOT / "docs/reference/wsr-authority-mapping.md"
 STAGED_GITMODULES = ROOT / "migration/iter6/v1/staged/.gitmodules"
+WAVE11_COORDINATES = ROOT / "migration/iter6/v1/staged/wave11-owner-coordinates.json"
 
 
 class AuthorityMigrationManifestTest(unittest.TestCase):
@@ -161,6 +162,18 @@ class AuthorityMigrationManifestTest(unittest.TestCase):
             rollback.index("restore-workflow-source-default"),
         )
 
+    def test_wave11_remote_steps_and_owner_coordinates_contain_no_unresolved_placeholders(self) -> None:
+        remote_steps = json.dumps(self.manifest["migration_steps"], sort_keys=True)
+        self.assertNotIn("QUALIFIED_", remote_steps)
+
+        coordinates = json.loads(WAVE11_COORDINATES.read_text(encoding="utf-8"))
+        self.assertEqual(coordinates["status"], "WAVE11_OWNER_QUALIFIED")
+        self.assertNotIn("QUALIFIED_", json.dumps(coordinates, sort_keys=True))
+        self.assertEqual(
+            coordinates["repositories"]["superproject"],
+            "firestige/workflow-self-recursive@fe7a5ebe8bf02814d9fe5da1017b766509dd763a",
+        )
+
 
 class OldCoordinateScannerTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -254,6 +267,31 @@ class OldCoordinateScannerTest(unittest.TestCase):
             self.assertEqual(len(findings), 1)
             self.assertEqual(changed, [])
             self.assertIn("firestige/wsr-ui", source.read_text(encoding="utf-8"))
+
+    def test_owner_exclusion_preserves_the_legacy_execution_dsh_package_authority(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            package = root / "packages/dsh-intake/package.json"
+            package.parent.mkdir(parents=True)
+            package.write_text('{"name":"wsr-dsh-intake"}\n', encoding="utf-8")
+
+            findings = scan_paths(
+                root,
+                [package],
+                self.manifest,
+                excluded_coordinate_ids={"npm/dsh-execution"},
+            )
+            changed = rewrite_paths(
+                root,
+                [package],
+                self.manifest,
+                direction="forward",
+                excluded_coordinate_ids={"npm/dsh-execution"},
+            )
+
+            self.assertEqual(findings, [])
+            self.assertEqual(changed, [])
+            self.assertEqual(package.read_text(encoding="utf-8"), '{"name":"wsr-dsh-intake"}\n')
 
     def test_validator_rejects_a_remote_command_without_an_approval_gate(self) -> None:
         invalid = json.loads(json.dumps(self.manifest))

@@ -37,8 +37,8 @@
       {"id": "evolution-placeholder", "current": "wsr-evolution@0.0.1", "target": "wsr-evolution@0.0.1", "owner": "firestige", "publisher_current": "registry-metadata:firestige/evolution-system", "publisher_target": "registry-metadata:firestige/wsr-evolution", "compatibility": "inert-name-reservation-only"}
     ],
     "images": [
-      {"id": "evidence", "current": "ghcr.io/firestige/wsr-evidence@sha256:3b0b6d290d9a7abf21a544f0110ef04f7398d0870a5f63e1a5a81e5274a7d403", "target": "ghcr.io/firestige/wsr-evidence@QUALIFIED_DIGEST", "owner": "firestige", "publisher_current": "firestige/evidence-system", "publisher_target": "firestige/wsr-evidence"},
-      {"id": "evolution", "current": null, "target": "ghcr.io/firestige/wsr-evolution@QUALIFIED_DIGEST", "owner": "firestige", "publisher_current": null, "publisher_target": "firestige/wsr-evolution", "deferred_owner_issue": 116}
+      {"id": "evidence", "current": "ghcr.io/firestige/wsr-evidence:0.1.0-rc.3@sha256:5ce1574260677b5fdfcecacae872a53f0e080092b0c375ddee1216479f18c542", "target": "ghcr.io/firestige/wsr-evidence:0.1.0-rc.3@sha256:5ce1574260677b5fdfcecacae872a53f0e080092b0c375ddee1216479f18c542", "owner": "firestige", "publisher_current": "firestige/evidence-system", "publisher_target": "firestige/wsr-evidence"},
+      {"id": "evolution", "current": "ghcr.io/firestige/wsr-evolution:0.1.0-rc.1@sha256:41e244d68f588d8b0a4789488a694c55e2034e36f4a152638e026c03dde1a14f", "target": "ghcr.io/firestige/wsr-evolution:0.1.0-rc.1@sha256:41e244d68f588d8b0a4789488a694c55e2034e36f4a152638e026c03dde1a14f", "owner": "firestige", "publisher_current": "firestige/evolution-system", "publisher_target": "firestige/wsr-evolution", "deferred_owner_issue": 116}
     ],
     "releases": [
       {"id": "execution-core", "current": "firestige/execution-system:wsr-execution-<version>.tgz", "target": "firestige/wsr-execution:wsr-execution-<version>.tgz", "owner": "firestige", "assets": ["wsr-execution-<version>.tgz", "wsr-execution-<version>.tgz.publication.json", "release-metadata.json", "release-notes.md", "release-qualification.json"]},
@@ -110,10 +110,10 @@
       "id": "npm-trusted-publisher-admin",
       "desired_state": "migration/iter6/v1/staged/consumer-targets.json#publishers",
       "preflight_argv": ["npm", "view", "wsr-execution", "repository", "maintainers", "--json"],
-      "current_observation": "Registry metadata is readable, but npm trusted-publisher settings have no supported npm CLI read/write surface.",
-      "resolution": "The npm package owner must verify or update each trusted publisher in npm settings at the approved cutover gate, then verify by qualified OIDC promotion.",
+      "current_observation": "The package owner reports the target trusted publishers were configured during Wave 1 bootstrap; registry metadata is readable but npm exposes no CLI readback for the trusted-publisher records.",
+      "resolution": "Do not request duplicate browser configuration. Verify the existing records with the first qualified OIDC publication from each target repository.",
       "mapping_blocker": false,
-      "cutover_blocker": true
+      "cutover_blocker": false
     }
   ],
   "legacy_patterns": [
@@ -128,15 +128,16 @@
     {"coordinate_id": "configuration/workflow-source-api", "value": "https://api.github.com/repos/firestige/workflow-package/releases", "replacement": "https://api.github.com/repos/firestige/wsr-workflow-package/releases"},
     {"coordinate_id": "publishers/github-app-wsr-release", "value": "`workflow-self-recursive`, `execution-system`, `evidence-system`, `evolution-system`, `system-contracts`, and `workflow-package`", "replacement": "`workflow-self-recursive`, `wsr-execution`, `wsr-evidence`, `wsr-evolution`, `wsr-contracts`, `wsr-workflow-package`, and `wsr-dsh`", "path_globs": ["docs/guides/release-automation.md"]},
     {"coordinate_id": "publishers/github-app-wsr-release", "value": "`workflow-self-recursive`、`execution-system`、`evidence-system`、`evolution-system`、`system-contracts`、`workflow-package`", "replacement": "`workflow-self-recursive`、`wsr-execution`、`wsr-evidence`、`wsr-evolution`、`wsr-contracts`、`wsr-workflow-package`、`wsr-dsh`", "path_globs": ["docs/guides/release-automation.zh-CN.md"]},
-    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: execution-system", "replacement": "repositories: wsr-execution", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
-    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: evidence-system", "replacement": "repositories: wsr-evidence", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
-    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: evolution-system", "replacement": "repositories: wsr-evolution", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
-    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: system-contracts", "replacement": "repositories: wsr-contracts", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
-    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: workflow-package", "replacement": "repositories: wsr-workflow-package", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]}
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: execution-system", "replacement": "repositories: wsr-execution", "path_globs": [".github/workflows/**", "**/.github/workflows/**", "test/**", "**/test/**"]},
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: evidence-system", "replacement": "repositories: wsr-evidence", "path_globs": [".github/workflows/**", "**/.github/workflows/**", "test/**", "**/test/**"]},
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: evolution-system", "replacement": "repositories: wsr-evolution", "path_globs": [".github/workflows/**", "**/.github/workflows/**", "test/**", "**/test/**"]},
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: system-contracts", "replacement": "repositories: wsr-contracts", "path_globs": [".github/workflows/**", "**/.github/workflows/**", "test/**", "**/test/**"]},
+    {"coordinate_id": "publishers/github-app-repository", "value": "repositories: workflow-package", "replacement": "repositories: wsr-workflow-package", "path_globs": [".github/workflows/**", "**/.github/workflows/**", "test/**", "**/test/**"]}
   ],
   "allowlists": [
     {"id": "migration-rollback-inputs", "classification": "rollback", "path_globs": ["docs/reference/wsr-authority-mapping.md", "migration/iter6/v1/authority-migration.json", "migration/iter6/v1/staged/**"], "coordinate_ids": ["*"]},
     {"id": "immutable-release-evidence", "classification": "historical", "path_globs": ["release/candidates/**", "release/publications/**", "*/release/candidates/**", "*/release/publications/**"], "coordinate_ids": ["*"]},
+    {"id": "immutable-contract-publications", "classification": "historical", "path_globs": ["evaluation-2-candidate/generated/**", "evaluation/schemas/**", "evidence-query/publication/**", "evidence-query/registries/**", "evidence-query/schemas/**", "observation/publication/**"], "coordinate_ids": ["repositories/contracts", "repositories/workflow-package"]},
     {"id": "published-implementation-history", "classification": "historical", "path_globs": ["CHANGELOG.md", "**/CHANGELOG.md", "docs/**/implementation-results/**", "docs/contracts/**/release-binding-*.json"], "coordinate_ids": ["*"]},
     {"id": "closed-iteration-recovery-records", "classification": "historical", "path_globs": ["tmp/20260825/iter4-implementation-plan/**", "tmp/20260827/iter5-implementation-plan/**"], "coordinate_ids": ["*"]},
     {"id": "scanner-fixtures", "classification": "fixture", "path_globs": ["qualification/iter6/migration/fixtures/**", "qualification/iter6/migration/test_*.py"], "coordinate_ids": ["*"]}
@@ -152,7 +153,7 @@
       ],
       "mechanical_replacement": [
         {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "."], "effect": "local-worktree"},
-        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "execution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "execution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md", "--exclude-coordinate", "npm/dsh-execution", "--exclude-coordinate", "npm/dsh-studio"], "effect": "local-worktree"},
         {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "evidence-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
         {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "evolution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
         {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "forward", "--root", "system-contracts", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
@@ -161,7 +162,11 @@
       ],
       "postflight": [
         {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "scan", "--enforce-target"], "effect": "read-only"},
-        {"argv": ["git", "submodule", "foreach", "--recursive", "python3 ../qualification/iter6/migration/authority_migration.py scan --enforce-target --root . --manifest ../migration/iter6/v1/authority-migration.json --authority-document ../docs/reference/wsr-authority-mapping.md"], "effect": "read-only"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "scan", "--enforce-target", "--root", "execution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md", "--exclude-coordinate", "npm/dsh-execution", "--exclude-coordinate", "npm/dsh-studio"], "effect": "read-only"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "scan", "--enforce-target", "--root", "evidence-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "read-only"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "scan", "--enforce-target", "--root", "evolution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "read-only"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "scan", "--enforce-target", "--root", "system-contracts", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "read-only"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "scan", "--enforce-target", "--root", "workflow-package", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "read-only"},
         {"argv": ["git", "diff", "--check"], "effect": "read-only"}
       ],
       "inverse": [
@@ -170,7 +175,7 @@
         {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "system-contracts", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
         {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "evolution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
         {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "evidence-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
-        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "execution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md"], "effect": "local-worktree"},
+        {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "execution-system", "--manifest", "migration/iter6/v1/authority-migration.json", "--authority-document", "docs/reference/wsr-authority-mapping.md", "--exclude-coordinate", "npm/dsh-execution", "--exclude-coordinate", "npm/dsh-studio"], "effect": "local-worktree"},
         {"argv": ["python3", "qualification/iter6/migration/authority_migration.py", "rewrite", "--direction", "reverse", "--root", "."], "effect": "local-worktree"}
       ]
     },
@@ -195,7 +200,7 @@
       "depends_on": ["rename-workflow-package"],
       "preflight": [{"argv": ["gh", "repo", "view", "firestige/evidence-system", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
       "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr-evidence", "--repo", "firestige/evidence-system", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
-      "postflight": [{"argv": ["docker", "buildx", "imagetools", "inspect", "ghcr.io/firestige/wsr-evidence@QUALIFIED_DIGEST"], "effect": "read-only"}],
+      "postflight": [{"argv": ["docker", "buildx", "imagetools", "inspect", "ghcr.io/firestige/wsr-evidence@sha256:5ce1574260677b5fdfcecacae872a53f0e080092b0c375ddee1216479f18c542"], "effect": "read-only"}],
       "inverse": [{"argv": ["gh", "repo", "rename", "evidence-system", "--repo", "firestige/wsr-evidence", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
     },
     {
@@ -203,7 +208,7 @@
       "depends_on": ["rename-evidence"],
       "preflight": [{"argv": ["gh", "repo", "view", "firestige/evolution-system", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
       "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr-evolution", "--repo", "firestige/evolution-system", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
-      "postflight": [{"argv": ["docker", "buildx", "imagetools", "inspect", "ghcr.io/firestige/wsr-evolution@QUALIFIED_DIGEST"], "effect": "read-only"}],
+      "postflight": [{"argv": ["docker", "buildx", "imagetools", "inspect", "ghcr.io/firestige/wsr-evolution@sha256:41e244d68f588d8b0a4789488a694c55e2034e36f4a152638e026c03dde1a14f"], "effect": "read-only"}],
       "inverse": [{"argv": ["gh", "repo", "rename", "evolution-system", "--repo", "firestige/wsr-evolution", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
     },
     {
