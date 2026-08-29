@@ -14,6 +14,8 @@
 | Parent design | [Execution System](../../project-execution-system.md) |
 | Traceability | [Runner traceability and implementation record](traceability.md) |
 
+> **Historical boundary:** The configured Provider keys/runtime creation below is the published 1.x/Iteration 2 path. New 2.0 Deliveries follow the [Role-to-Provider binding candidate](../../repository-role-model-binding.md): exact Role descriptors are frozen in the Manifest, installation composition supplies one owner-factory registry, only Providers actually used by that Manifest receive realms, and runtime/session/recovery exact-match without credentials, priority, fallback, or rebinding.
+
 This document calibrates the prior design to the issue-authoritative Iteration 2 structure. Runner is Execution module M02, not a product System, subsystem, implementation behind another M02 module, or fourth Execution module. Its five internal units are submodules: Interpreter, Lifecycle Coordinator, Workflow Host, Managed Agent Invocation, and Custody. `ExecutionRuntimeAdapter` is the current Core-to-Runner type name, not an already-promoted polymorphic Runner abstraction. Only if multiple Runner implementations become necessary may M02 be promoted into such an abstraction, and each concrete implementation must receive a distinct name. The [traceability companion](traceability.md) indexes design IDs and evidence without creating another behavior owner.
 
 ## 2. Identity and purpose

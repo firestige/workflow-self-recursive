@@ -37,24 +37,24 @@ Authority order 为：已确认用户意图；上列当前结构 issue；规范 
 
 受保护的 `system-design` 与 `implementation` Workflow Package 是初始已验证分发内容和 conformance fixture；除下方已批准的 R6 correction 外，不是重新设计目标。理解本文不需要任何 disposable workspace artifact；以上 identity 只表示 provenance。
 
-### Iteration 5 Role/model 与 Manifest rebaseline 候选
+### Iteration 6 Role/Provider 与 Manifest rebaseline 候选
 
-2026-08-28 owner 决策只改变目标 Contract 与后续 Delivery；更早 publication evidence 只适用于更早字节与 `agentops.workflow-dsl@1.1.0` behavior。候选链为：
+2026-08-29 owner 决策只改变 2.0 target Contract 与后续 Delivery；更早 publication evidence 只适用于更早字节与 `agentops.workflow-dsl@1.1.0` behavior。候选链为：
 
 - [`workflow-definition-dsl-2.0.0-candidate.md`](../../contracts/workflow/workflow-definition-dsl-2.0.0-candidate.md) 删除 generic Agent-definition 与 Workflow-owned model resource；
-- [`repository-role-model-binding.zh-CN.md`](repository-role-model-binding.zh-CN.md) 把 canonical worktree repository 定为最小 model-policy scope，并定义 `repository[role] ?? execution.default_model_selection`；
-- [`execution-configuration-2.0.0-candidate.zh-CN.md`](execution-configuration-2.0.0-candidate.zh-CN.md) 从 WSR config 删除 Provider-native credential/endpoint，并定义新的 global default-model-selection input；
-- [`delivery-manifest-2.0.0-candidate.zh-CN.md`](delivery-manifest-2.0.0-candidate.zh-CN.md) 冻结 exact Workflow Snapshot 与 resolved Role/Agent-Provider/LLM-route/model bindings，同时保留历史 1.x recovery；
+- [`repository-role-model-binding.zh-CN.md`](repository-role-model-binding.zh-CN.md) 把 canonical worktree repository 定为最小 Provider/model-policy scope，并要求每个 Agent-action Role 绑定 exact Provider identity/version 与 Provider-owned model coordinate；
+- [`execution-configuration-2.0.0-candidate.zh-CN.md`](execution-configuration-2.0.0-candidate.zh-CN.md) 从 WSR config 删除全部 Provider selection/default/credential/endpoint；installation composition 提供 closed owner-factory registry；
+- [`delivery-manifest-2.0.0-candidate.zh-CN.md`](delivery-manifest-2.0.0-candidate.zh-CN.md) 冻结 exact Workflow Snapshot 与完整 Role/Provider-descriptor/model bindings，同时保留历史 1.x recovery；
 - [`delivery-manifest-projection.zh-CN.md`](../evidence/delivery-manifest-projection.zh-CN.md) 定义由同一 Task-binding owner record 携带的 portable Manifest reading；
 - 每个 Execution installation 仍只配置一个 Workflow source。Delivery admission 绑定该 exact source result；request/Workflow data 不得选择另一 source 或 source list。
 
-对于新 Contract Delivery，M01 在 Runner effect 前验证 exact Workflow Package/Snapshot，读取 optional `<canonical-worktree>/.wsr/model-bindings.json`，解析 exact Snapshot 中被 Agent Action 引用的每个 distinct Role，且不依赖后续 Route/path selection，并持久化新版 Manifest。Manifest 冻结 exact Package/Snapshot identities、repository binding-document state/digest 与完整 resolved Role→Agent-Provider/LLM-route/model map。Recovery 只消费 persisted Manifest，绝不重读当前 repository/global configuration。
+对于 2.0 Delivery，M01 验证 exact Workflow Package/Snapshot 并读取 `<canonical-worktree>/.wsr/role-provider-bindings.json`；只要 Snapshot 有 Agent-action Role，该 document 就 required。每个 distinct Agent-action Role 显式命名 exact Agent Provider identity/version 与 Provider-owned model coordinate。M01 通过 installation-supplied closed `AgentProviderFactoryRegistry` 解析它，从 exact Snapshot 派生 Role required-capability union，并在 Manifest/Runner effect 前拒绝 missing、unknown、version-mismatched 或 capability-incompatible binding。不存在 installation Provider/model default、priority、fallback 或 runtime rebinding。
 
-Agent identity 是 admitted exact Role snapshot 加 installation 的唯一 Agent Provider identity 与 exact LLM provider-route/model identity。Route selection 再加入 Action prompt、Skills、tools、Driver、access 与 session policy，但不能改变该 selection。对 2.0 而言，DSH profile/composition 启动 installation-scoped DSH-owned bridge/realm factory 并把该 factory 提供给 Execution。Manifest persistence 后，Runner 请求一个 isolated Delivery-scoped DSH-E realm；DSH factory 拥有 construction，Runner 拥有 Delivery lifecycle lease/disposal。Recovery 只通过同一 frozen Agent Provider identity 重复该请求。Execution 不加载 DSH profile/settings/credential、不构造 LLM adapter，也不共享 DSH-I services。Provider-native authentication、credentials、endpoints 与 session mechanics 保持 Provider-owned，并从 Workflow、repository binding、Manifest 和 Observation content 排除。Current DSH-owned config 可为 frozen identities 提供 connectivity/credential，但不是 binding authority，不能重新绑定 Delivery。下方历史 Provider factory registry/key 与 per-Delivery construction 段落只描述 1.x path；其中“Runner-owned DSH-E”对 2.0 只表示 lifecycle ownership，不能把 configuration/construction authority 交还 Execution。
+Manifest 与 Observation-safe projection 冻结 Role prompt identity/digest、Provider identity/version/adapter key/descriptor digest、sorted required capabilities、Provider-owned model coordinate 与 `resolutionSource=REPOSITORY`。Runtime dispatch、session create/resume 与 recovery 要求 exact persisted descriptor/model match。Current repository/registry 变化不能重绑 Delivery，mismatch 也绝不选择 alternative。Manifest persistence 后，Runner 只为该 Manifest 实际使用的 distinct Providers 启动 realm；各 owner factory 拥有 native construction 与 Provider config，Runner 拥有 bounded Delivery lease/disposal。Registered unused Provider 不启动。Credential/login state、endpoint 与 native session mechanics 保持 Provider-owned，不进入 Workflow、repository binding、WSR config、Manifest、Observation 或 WSR session SPI。
 
 Manifest/current-slot persistence 之后、Runner launch 之前，M01 直接从 persisted Manifest 生成一条 `task.binding` owner Fact。同一 record 携带 evidence-safe Manifest projection；Workflow-ID prefix、Event timestamp、arrival order 或 ambient lookup 均不能决定是否发射。Observation delivery 仍不控制 Delivery outcome，但缺少 accepted record 时，Task/Manifest-dependent BI metrics 只能 unavailable，不能重建。
 
-只有对应 machine revision 通过 lifecycle gates 后，这些段落才成为 Iteration 5 implementation candidate 的设计 authority。下方当前 `agentops.delivery-admission@1.0.0` 段落准确描述历史实现，不能被解读为已经实现 rebaseline。
+只有对应 machine revision 通过 lifecycle gates 后，这些段落才成为 Iteration 6 implementation candidate 的设计 authority。下方 `agentops.delivery-admission@1.0.0` 与 `execution.config@1.0.0` section 显式属于历史 1.x；其中单 Provider/config 陈述不得应用于 2.0。
 
 ### Runner delivery-admission 与 Core projection
 

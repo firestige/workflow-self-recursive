@@ -11,6 +11,8 @@
 | Implementation evidence | `execution-system/src/invocation` |
 | Companion | [Chinese non-normative companion](managed-agent-invocation.zh-CN.md) |
 
+> **Historical boundary:** The credential-lease, configured-factory, and single DSH Adapter behavior below documents the published 1.x/Iteration 2 path. New 2.0 Deliveries follow the [Role-to-Provider binding candidate](../../repository-role-model-binding.md): repository Roles bind exact Provider descriptors/models, installation composition supplies the owner-factory registry, only used realms start, and the Provider-owned session SPI carries no credentials or runtime rebinding.
+
 Managed Agent Invocation owns one admitted Agent Action's Provider effects, native session lifecycle, credential lease, structured completion and durable Invocation Journal. It is the only Runner submodule that understands Provider-private state.
 
 ## 2. Creation boundary

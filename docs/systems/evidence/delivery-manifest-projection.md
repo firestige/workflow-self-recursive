@@ -1,10 +1,10 @@
 # Evidence Delivery Manifest Projection — Design Candidate
 
-> **Status:** Iteration 5 cross-system Contract candidate, 2026-08-28. It extends the Profile 2 Task-binding and Evidence Query candidates; it does not modify the published Profile 1.0 or Evidence Query 0.1 Contracts. Chinese tracking companion: [`delivery-manifest-projection.zh-CN.md`](delivery-manifest-projection.zh-CN.md).
+> **Status:** Iteration 6 cross-system Contract candidate, 2026-08-29. It extends the Profile 2 Task-binding and Evidence Query candidates; it does not modify the published Profile 1.0 or Evidence Query 0.1 Contracts. Chinese tracking companion: [`delivery-manifest-projection.zh-CN.md`](delivery-manifest-projection.zh-CN.md).
 
 ## 1. Purpose and authority chain
 
-Evolution needs a portable historical reading that identifies the exact Workflow Package/Snapshot and admitted Role-to-model-selection bindings for each Delivery. Execution's persisted Delivery Manifest remains admission authority. Evidence stores an evidence-safe projection of that Manifest from the same M01-owned `task.binding` record that declares Task membership.
+Evolution needs a portable historical reading that identifies the exact Workflow Package/Snapshot and admitted Role-to-Provider-descriptor/model bindings for each Delivery. Execution's persisted Delivery Manifest remains admission authority. Evidence stores an evidence-safe projection of that Manifest from the same M01-owned `task.binding` record that declares Task membership.
 
 ```mermaid
 flowchart LR
@@ -61,6 +61,10 @@ The canonical projection is at most 64 KiB UTF-8 and contains at most 128 Role e
       "role_prompt_identity": "prompt.role.architecture-reviewer",
       "role_prompt_digest": "<sha256>",
       "agent_provider_id": "provider.dsh",
+      "agent_provider_version": "2.0.0",
+      "agent_provider_adapter_key": "dsh-headless",
+      "agent_provider_descriptor_digest": "<sha256>",
+      "required_capabilities": ["capability.interaction", "capability.tools"],
       "model_provider_id": "deepseek-official",
       "model_id": "deepseek-reasoner",
       "resolution_source": "REPOSITORY"
@@ -73,13 +77,14 @@ Rules:
 
 - `delivery_id`, `task_id`, and `manifest_digest` exactly equal C01, C02, and C07;
 - Package, Workflow, Snapshot, Role, prompt, Agent Provider, LLM provider-route, and model identities are exact admitted identities, never display labels;
-- `document_state` is `ABSENT` or `PRESENT`; the document digest is absent only for `ABSENT`;
-- `resolution_source` is exactly `REPOSITORY` or `EXECUTION_DEFAULT`;
+- `document_state` is `PRESENT` whenever any Agent-action Role exists; `ABSENT` is valid only for an empty Role set; `resolution_source` is exactly `REPOSITORY`;
+- Provider identity/version/adapter key/descriptor digest/capabilities and the Provider-owned model coordinate equal the values frozen at admission;
+- capabilities are non-empty, unique, and canonically sorted;
 - Role entries are unique and bytewise sorted by `role_id`; the set equals all Agent-action Roles admitted for this Workflow Snapshot;
-- credentials, credential references, endpoint, source URL, local path, Task prompt/attachments, tool content, and Provider-native configuration are prohibited;
+- credentials/login state, credential references, endpoint, source URL, local path, Task prompt/attachments, tool content, native session identity, and Provider-native configuration are prohibited;
 - `manifest_digest` identifies the full persisted Manifest; `manifest_projection_digest` identifies this portable projection. They are distinct and cannot substitute for each other.
 
-On every Manifest read, Evolution validates the closed Agent Provider/LLM-route/model entry shape and recomputes `resolved_map_digest` from the Manifest entries alone; failure is an internal projection incompatibility. When external Workflow content is available, Evolution may compare only the exact Role set and Role-prompt identity/digest as an enrichment-integrity check. That external mismatch is recorded as a bounded source diagnostic and cannot change a settled Metric Result. External content is not a second authority over this immutable Evidence projection. An internal projection shape/digest conflict or a projection-to-membership identity conflict makes the dependent reading `INCOMPATIBLE`.
+On every Manifest read, Evolution validates the complete closed Provider-descriptor/model entry and recomputes `resolved_map_digest` from the Manifest entries alone; failure is an internal projection incompatibility. When external Workflow content is available, Evolution may compare only the exact Role set and Role-prompt identity/digest as an enrichment-integrity check. That external mismatch is recorded as a bounded source diagnostic and cannot change a settled Metric Result. External content is not a second authority over this immutable Evidence projection. An internal projection shape/digest conflict or a projection-to-membership identity conflict makes the dependent reading `INCOMPATIBLE`.
 
 ## 4. Atomic Evidence projection
 
@@ -129,4 +134,4 @@ The Manifest projection itself supplies the immutable event-time Role-template c
 
 ## 8. Required conformance
 
-Fixtures must prove atomic success/rejection, exact canonical digest, deterministic C09 retry/recovery, duplicate/conflict behavior, C01/C02/C07 equality, direct C01 association for every Profile 2 record, absent/present repository state, role sort/uniqueness/Snapshot cross-check, secret/path/endpoint rejection, oversize rejection, exporter byte-bound splitting with a near-limit single record, active-only exact Task/Manifest queries, atomic Delivery deletion, Task display-name immutability/fallback, and no Workflow-prefix or timestamp inference.
+Fixtures must prove atomic success/rejection, exact canonical digest, deterministic C09 retry/recovery, duplicate/conflict behavior, C01/C02/C07 equality, direct C01 association for every Profile 2 record, required repository state, complete Provider descriptor/capability/model projection, role sort/uniqueness/Snapshot cross-check, secret/path/endpoint rejection, oversize rejection, exporter byte-bound splitting with a near-limit single record, active-only exact Task/Manifest queries, atomic Delivery deletion, Task display-name immutability/fallback, and no Workflow-prefix or timestamp inference.
