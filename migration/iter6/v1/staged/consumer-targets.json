@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "actions": {
-    "checkout_repositories": ["firestige/wsr", "firestige/wsr-contracts", "firestige/wsr-evidence", "firestige/wsr-evolution", "firestige/wsr-execution", "firestige/wsr-workflow-package", "firestige/wsr-dsh"],
+    "checkout_repositories": ["firestige/workflow-self-recursive", "firestige/wsr-contracts", "firestige/wsr-evidence", "firestige/wsr-evolution", "firestige/wsr-execution", "firestige/wsr-workflow-package", "firestige/wsr-dsh"],
     "promotion_workflow": ".github/workflows/release-promote.yml"
   },
   "publishers": {
@@ -23,7 +23,7 @@
     "dshBundles": "firestige/wsr-dsh"
   },
   "documentation": {
-    "clone": "git clone --recurse-submodules https://github.com/firestige/wsr.git",
+    "clone": "git clone --recurse-submodules https://github.com/firestige/workflow-self-recursive.git",
     "product_first_reference": "Workflow Self-Recursive (WSR)",
     "product_subsequent_reference": "WSR"
   }

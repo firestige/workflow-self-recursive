@@ -3,7 +3,7 @@
   "app_slug": "wsr-release",
   "owner": "firestige",
   "repositories": [
-    "wsr",
+    "workflow-self-recursive",
     "wsr-contracts",
     "wsr-dsh",
     "wsr-evidence",

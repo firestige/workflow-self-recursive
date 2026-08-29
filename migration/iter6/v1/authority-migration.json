@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "manifest_id": "wsr-authority-migration/iter6/v1",
   "authority_document": "docs/reference/wsr-authority-mapping.md",
-  "authority_commit": "6ed68756107423cc61548a5e57bc258f939413ab",
+  "authority_commit": "6c72c99450aef560193bb7b0b0c3018dfb127446",
   "mode": "preparation-only",
   "remote_effects": "forbidden",
   "effect_owner_issue": 124,
@@ -10,7 +10,7 @@
   "owner": "firestige",
   "coordinates": {
     "repositories": [
-      {"id": "product", "current": "firestige/workflow-self-recursive", "target": "firestige/wsr", "owner": "firestige", "operation": "rename-in-wave11"},
+      {"id": "product", "current": "firestige/workflow-self-recursive", "target": "firestige/workflow-self-recursive", "owner": "firestige", "operation": "unchanged"},
       {"id": "execution", "current": "firestige/execution-system", "target": "firestige/wsr-execution", "owner": "firestige", "operation": "rename-in-wave11"},
       {"id": "evidence", "current": "firestige/evidence-system", "target": "firestige/wsr-evidence", "owner": "firestige", "operation": "rename-in-wave11"},
       {"id": "evolution", "current": "firestige/evolution-system", "target": "firestige/wsr-evolution", "owner": "firestige", "operation": "rename-in-wave11"},
@@ -79,7 +79,7 @@
     {"id": "github-issue-links", "kind": "issue-history", "owner_repository": "firestige/workflow-self-recursive", "paths": ["docs/**/*.md", ".project/**/*.md"], "coordinate_ids": ["repositories/product"], "staged_target": "historical-or-current-doc-classification-required"}
   ],
   "publishers": [
-    {"id": "github-app-wsr-release", "channel": "github-app", "current": ["workflow-self-recursive", "execution-system", "evidence-system", "evolution-system", "system-contracts", "workflow-package"], "target": ["wsr", "wsr-execution", "wsr-evidence", "wsr-evolution", "wsr-contracts", "wsr-workflow-package", "wsr-dsh"], "cutover_owner": 124},
+    {"id": "github-app-wsr-release", "channel": "github-app", "current": ["workflow-self-recursive", "execution-system", "evidence-system", "evolution-system", "system-contracts", "workflow-package"], "target": ["workflow-self-recursive", "wsr-execution", "wsr-evidence", "wsr-evolution", "wsr-contracts", "wsr-workflow-package", "wsr-dsh"], "cutover_owner": 124},
     {"id": "npm-execution-runtime", "channel": "npm-oidc", "current": "firestige/execution-system:.github/workflows/release-promote.yml:wsr-execution", "target": "firestige/wsr-execution:.github/workflows/release-promote.yml:wsr-execution", "cutover_owner": 124},
     {"id": "npm-dsh-bundles", "channel": "npm-oidc", "current": "firestige/execution-system:.github/workflows/release-promote.yml:wsr-dsh-intake", "target": "firestige/wsr-dsh:.github/workflows/release-promote.yml:dsh-wsr-execution,dsh-wsr-studio,dsh-wsr", "cutover_owner": 122},
     {"id": "npm-evidence-reservation", "channel": "npm-registry-metadata", "current": "wsr-evidence@0.0.1:firestige/evidence-system", "target": "wsr-evidence@0.0.1:firestige/wsr-evidence", "cutover_owner": 124},
@@ -102,7 +102,7 @@
       "desired_state": "migration/iter6/v1/staged/app-allowlist.json",
       "preflight_argv": ["gh", "api", "/user/installations"],
       "current_observation": "HTTP 403: the active gh credential cannot enumerate GitHub App installations",
-      "resolution": "An installation administrator must apply and verify the staged wsr-release allowlist at the approved #124 cutover gate.",
+      "resolution": "Repository renames retain the repository object, so first verify App-backed release access after each rename. Only if the already-created wsr-dsh repository is not selected must an installation administrator add it in GitHub settings or supply a compatible classic PAT.",
       "mapping_blocker": false,
       "cutover_blocker": true
     },
@@ -117,7 +117,6 @@
     }
   ],
   "legacy_patterns": [
-    {"coordinate_id": "repositories/product", "value": "firestige/workflow-self-recursive", "replacement": "firestige/wsr"},
     {"coordinate_id": "repositories/execution", "value": "firestige/execution-system", "replacement": "firestige/wsr-execution"},
     {"coordinate_id": "repositories/evidence", "value": "firestige/evidence-system", "replacement": "firestige/wsr-evidence"},
     {"coordinate_id": "repositories/evolution", "value": "firestige/evolution-system", "replacement": "firestige/wsr-evolution"},
@@ -127,8 +126,8 @@
     {"coordinate_id": "npm/dsh-execution", "value": "wsr-dsh-intake", "replacement": "dsh-wsr-execution"},
     {"coordinate_id": "npm/dsh-studio", "value": "@wsr/bi", "replacement": "dsh-wsr-studio"},
     {"coordinate_id": "configuration/workflow-source-api", "value": "https://api.github.com/repos/firestige/workflow-package/releases", "replacement": "https://api.github.com/repos/firestige/wsr-workflow-package/releases"},
-    {"coordinate_id": "publishers/github-app-wsr-release", "value": "`workflow-self-recursive`, `execution-system`, `evidence-system`, `evolution-system`, `system-contracts`, and `workflow-package`", "replacement": "`wsr`, `wsr-execution`, `wsr-evidence`, `wsr-evolution`, `wsr-contracts`, `wsr-workflow-package`, and `wsr-dsh`", "path_globs": ["docs/guides/release-automation.md"]},
-    {"coordinate_id": "publishers/github-app-wsr-release", "value": "`workflow-self-recursive`、`execution-system`、`evidence-system`、`evolution-system`、`system-contracts`、`workflow-package`", "replacement": "`wsr`、`wsr-execution`、`wsr-evidence`、`wsr-evolution`、`wsr-contracts`、`wsr-workflow-package`、`wsr-dsh`", "path_globs": ["docs/guides/release-automation.zh-CN.md"]},
+    {"coordinate_id": "publishers/github-app-wsr-release", "value": "`workflow-self-recursive`, `execution-system`, `evidence-system`, `evolution-system`, `system-contracts`, and `workflow-package`", "replacement": "`workflow-self-recursive`, `wsr-execution`, `wsr-evidence`, `wsr-evolution`, `wsr-contracts`, `wsr-workflow-package`, and `wsr-dsh`", "path_globs": ["docs/guides/release-automation.md"]},
+    {"coordinate_id": "publishers/github-app-wsr-release", "value": "`workflow-self-recursive`、`execution-system`、`evidence-system`、`evolution-system`、`system-contracts`、`workflow-package`", "replacement": "`workflow-self-recursive`、`wsr-execution`、`wsr-evidence`、`wsr-evolution`、`wsr-contracts`、`wsr-workflow-package`、`wsr-dsh`", "path_globs": ["docs/guides/release-automation.zh-CN.md"]},
     {"coordinate_id": "publishers/github-app-repository", "value": "repositories: execution-system", "replacement": "repositories: wsr-execution", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
     {"coordinate_id": "publishers/github-app-repository", "value": "repositories: evidence-system", "replacement": "repositories: wsr-evidence", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
     {"coordinate_id": "publishers/github-app-repository", "value": "repositories: evolution-system", "replacement": "repositories: wsr-evolution", "path_globs": [".github/workflows/**", "**/.github/workflows/**"]},
@@ -214,19 +213,10 @@
       "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr-execution", "--repo", "firestige/execution-system", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
       "postflight": [{"argv": ["gh", "repo", "view", "firestige/wsr-execution", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
       "inverse": [{"argv": ["gh", "repo", "rename", "execution-system", "--repo", "firestige/wsr-execution", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
-    },
-    {
-      "id": "rename-superproject-last",
-      "depends_on": ["rename-execution"],
-      "preflight": [{"argv": ["git", "submodule", "status", "--recursive"], "effect": "read-only"}],
-      "mechanical_replacement": [{"argv": ["gh", "repo", "rename", "wsr", "--repo", "firestige/workflow-self-recursive", "--yes"], "effect": "remote-gated", "requires_human_approval": true}],
-      "postflight": [{"argv": ["gh", "repo", "view", "firestige/wsr", "--json", "nameWithOwner,defaultBranchRef,url"], "effect": "read-only"}],
-      "inverse": [{"argv": ["gh", "repo", "rename", "workflow-self-recursive", "--repo", "firestige/wsr", "--yes"], "effect": "remote-gated", "requires_human_approval": true}]
     }
   ],
   "rollback_steps": [
-    {"id": "rename-superproject-back", "depends_on": []},
-    {"id": "rename-execution-back", "depends_on": ["rename-superproject-back"]},
+    {"id": "rename-execution-back", "depends_on": []},
     {"id": "rename-evolution-back", "depends_on": ["rename-execution-back"]},
     {"id": "rename-evidence-back", "depends_on": ["rename-evolution-back"]},
     {"id": "rename-workflow-package-back", "depends_on": ["rename-evidence-back"]},

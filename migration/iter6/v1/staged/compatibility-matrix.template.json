@@ -3,7 +3,7 @@
   "status": "UNQUALIFIED_TEMPLATE",
   "must_replace_placeholders_before_cutover": true,
   "repositories": {
-    "superproject": "firestige/wsr@QUALIFIED_COMMIT",
+    "superproject": "firestige/workflow-self-recursive@QUALIFIED_COMMIT",
     "contracts": "firestige/wsr-contracts@QUALIFIED_COMMIT",
     "execution": "firestige/wsr-execution@QUALIFIED_COMMIT",
     "evidence": "firestige/wsr-evidence@QUALIFIED_COMMIT",
