@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "status": "UNQUALIFIED_TEMPLATE",
+  "must_replace_placeholders_before_cutover": true,
+  "repositories": {
+    "superproject": "firestige/wsr@QUALIFIED_COMMIT",
+    "contracts": "firestige/wsr-contracts@QUALIFIED_COMMIT",
+    "execution": "firestige/wsr-execution@QUALIFIED_COMMIT",
+    "evidence": "firestige/wsr-evidence@QUALIFIED_COMMIT",
+    "evolution": "firestige/wsr-evolution@QUALIFIED_COMMIT",
+    "workflowPackage": "firestige/wsr-workflow-package@QUALIFIED_COMMIT",
+    "dsh": "firestige/wsr-dsh@QUALIFIED_COMMIT"
+  },
+  "npm": {
+    "execution": "wsr-execution@QUALIFIED_VERSION",
+    "dshExecution": "dsh-wsr-execution@QUALIFIED_VERSION",
+    "dshStudio": "dsh-wsr-studio@QUALIFIED_VERSION",
+    "dshSuite": "dsh-wsr@QUALIFIED_VERSION"
+  },
+  "images": {
+    "evidence": "ghcr.io/firestige/wsr-evidence@QUALIFIED_DIGEST",
+    "evolution": "ghcr.io/firestige/wsr-evolution@QUALIFIED_DIGEST"
+  },
+  "workflowSource": {
+    "repository": "firestige/wsr-workflow-package",
+    "asset": "workflow-package-QUALIFIED_NAME-QUALIFIED_VERSION.tar.gz",
+    "sha256": "QUALIFIED_SHA256"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "actions": {
+    "checkout_repositories": ["firestige/wsr", "firestige/wsr-contracts", "firestige/wsr-evidence", "firestige/wsr-evolution", "firestige/wsr-execution", "firestige/wsr-workflow-package", "firestige/wsr-dsh"],
+    "promotion_workflow": ".github/workflows/release-promote.yml"
+  },
+  "publishers": {
+    "npm": ["firestige/wsr-execution", "firestige/wsr-dsh"],
+    "ghcr": ["firestige/wsr-evidence", "firestige/wsr-evolution"],
+    "releases": ["firestige/wsr-contracts", "firestige/wsr-evidence", "firestige/wsr-evolution", "firestige/wsr-execution", "firestige/wsr-workflow-package", "firestige/wsr-dsh"]
+  },
+  "workflow_source": {
+    "repository": "firestige/wsr-workflow-package",
+    "releasesBaseUrl": "https://api.github.com/repos/firestige/wsr-workflow-package/releases",
+    "assetPattern": "workflow-package-{name}-{version}.tar.gz"
+  },
+  "releases": {
+    "execution": "firestige/wsr-execution",
+    "contracts": "firestige/wsr-contracts",
+    "evidence": "firestige/wsr-evidence",
+    "evolution": "firestige/wsr-evolution",
+    "workflowPackages": "firestige/wsr-workflow-package",
+    "dshBundles": "firestige/wsr-dsh"
+  },
+  "documentation": {
+    "clone": "git clone --recurse-submodules https://github.com/firestige/wsr.git",
+    "product_first_reference": "Workflow Self-Recursive (WSR)",
+    "product_subsequent_reference": "WSR"
+  }
+}
