@@ -66,6 +66,7 @@ class PublishedBundleTest(unittest.TestCase):
             self.assertNotIn("workflow-builder", compose)
             self.assertIn('127.0.0.1:${WSR_EVIDENCE_PORT:-4318}:4318', compose)
             self.assertIn('127.0.0.1:${WSR_EVOLUTION_PORT:-8000}:8000', compose)
+            self.assertIn("${WSR_EVOLUTION_CONFIG_FILE:-./evolution.config.json}", compose)
 
     def test_generator_rejects_tags_without_digest_and_incompatible_schema(self) -> None:
         for mutate in ("tag", "schema"):
@@ -211,6 +212,20 @@ class PublishedBundleTest(unittest.TestCase):
                 },
             )
             self.assertEqual(completed.returncode, 0)
+
+    def test_launcher_rejects_missing_workflow_source_configuration_before_docker(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "start"],
+                env=os.environ
+                | {"WSR_EVOLUTION_CONFIG_FILE": str(temporary_root / "does-not-exist.json")},
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(completed.returncode, 2)
+            self.assertIn("WSR_EVOLUTION_CONFIG_FILE", completed.stderr)
 
     def test_release_workflow_builds_and_rechecks_the_versioned_bundle(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "release-compose-bundle.yml").read_text(

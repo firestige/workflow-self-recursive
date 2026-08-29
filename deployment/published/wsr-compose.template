@@ -9,6 +9,7 @@ volume=${WSR_EVIDENCE_VOLUME:-wsr-evidence-data}
 wait_timeout=${WSR_READY_TIMEOUT_SECONDS:-120}
 evidence_port=${WSR_EVIDENCE_PORT:-4318}
 evolution_port=${WSR_EVOLUTION_PORT:-8000}
+evolution_config=${WSR_EVOLUTION_CONFIG_FILE:-"$bundle_dir/evolution.config.json"}
 action=${1:-start}
 
 case "$volume" in *[!A-Za-z0-9_.-]* | "") printf 'Invalid WSR_EVIDENCE_VOLUME.\n' >&2; exit 2;; esac
@@ -22,6 +23,12 @@ if test "$wait_timeout" -lt 1 || test "$wait_timeout" -gt 3600; then
   printf 'WSR_READY_TIMEOUT_SECONDS must be in 1..3600.\n' >&2
   exit 2
 fi
+if ! test -f "$evolution_config" || ! test -r "$evolution_config"; then
+  printf 'WSR_EVOLUTION_CONFIG_FILE must name a readable file.\n' >&2
+  exit 2
+fi
+config_parent=$(CDPATH= cd -- "$(dirname "$evolution_config")" && pwd)
+evolution_config="$config_parent/$(basename "$evolution_config")"
 if ! command -v docker >/dev/null 2>&1; then printf 'Required command not found: docker\n' >&2; exit 1; fi
 if ! command -v openssl >/dev/null 2>&1; then printf 'Required command not found: openssl\n' >&2; exit 1; fi
 if ! docker compose version >/dev/null 2>&1; then printf 'Docker Compose v2 is required.\n' >&2; exit 1; fi
@@ -40,6 +47,7 @@ export WSR_EVIDENCE_ADMIN_PASSWORD_FILE="$secret_dir/admin-password"
 export WSR_EVIDENCE_BACKUP_PASSWORD_FILE="$secret_dir/backup-password"
 export WSR_EVIDENCE_RUNTIME_PASSWORD_FILE="$secret_dir/runtime-password"
 export WSR_EVIDENCE_VOLUME="$volume"
+export WSR_EVOLUTION_CONFIG_FILE="$evolution_config"
 compose() { docker compose -f "$compose_file" "$@"; }
 
 wait_stack() {

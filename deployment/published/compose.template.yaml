@@ -66,7 +66,10 @@ services:
     environment:
       WSR_EVOLUTION_CONFIG: /run/config/evolution.json
     volumes:
-      - ./evolution.config.json:/run/config/evolution.json:ro
+      - type: bind
+        source: ${WSR_EVOLUTION_CONFIG_FILE:-./evolution.config.json}
+        target: /run/config/evolution.json
+        read_only: true
     ports:
       - "127.0.0.1:${WSR_EVOLUTION_PORT:-8000}:8000"
     networks: [app-tier]
