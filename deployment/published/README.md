@@ -17,6 +17,12 @@ start the exact current bundle against the stable `wsr-evidence-data` volume, so
 older qualified bundle selects the version. A manifest is rejected unless its declared Evidence schema
 revision remains readable by that bundle.
 
+`./wsr-compose preflight` checks the two effective ports and the closed
+loopback/Contract fixture without starting Docker. `./wsr-compose host-config`
+prints the exact credential-free JSON consumed by the DSH Host and reused as
+Execution's Observation base. See [loopback-host.md](loopback-host.md) for
+endpoint ownership and degradation boundaries.
+
 `purge` is the only data-deleting operation and requires
 `WSR_CONFIRM_PURGE=DELETE_EVIDENCE_DATA`. Generated database role secrets are reused across ordinary
 operations. Override the loopback ports with `WSR_EVIDENCE_PORT` and `WSR_EVOLUTION_PORT`, the durable

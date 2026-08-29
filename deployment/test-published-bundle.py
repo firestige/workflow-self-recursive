@@ -27,6 +27,12 @@ def manifest(version: str = "0.1.0") -> dict[str, object]:
             "evidenceRevision": "20260826_0003",
             "reads": ["20260826_0003"],
         },
+        "hostIntegration": {
+            "schemaVersion": "wsr.loopback-host@1.0.0",
+            "evidenceQueryRevision": "0.1.0",
+            "evidenceTaskQueryRevision": "1.0.0",
+            "evolutionComputeRevision": "1",
+        },
         "images": {
             "postgres": {
                 "coordinate": f"postgres:18.4-bookworm@sha256:{SHA}",
@@ -69,6 +75,22 @@ class PublishedBundleTest(unittest.TestCase):
             self.assertIn('127.0.0.1:${WSR_EVIDENCE_PORT:-4318}:4318', compose)
             self.assertIn('127.0.0.1:${WSR_EVOLUTION_PORT:-8000}:8000', compose)
             self.assertIn("${WSR_EVOLUTION_CONFIG_FILE:-./evolution.config.json}", compose)
+            self.assertTrue((bundle / "wsr-host-preflight.mjs").is_file())
+            endpoint_template = json.loads(
+                (bundle / "host-endpoints.template.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(endpoint_template["schemaVersion"], "wsr.loopback-host@1.0.0")
+            self.assertEqual(
+                endpoint_template["services"]["evidence"]["contracts"],
+                [
+                    {"name": "evidence.query", "revision": "0.1.0", "operations": ["facts/read", "traces/read"]},
+                    {"name": "evidence.query", "revision": "1.0.0", "operations": ["tasks/list"]},
+                ],
+            )
+            self.assertEqual(
+                endpoint_template["services"]["evolution"]["contracts"],
+                [{"name": "evolution.compute", "revision": "1", "operations": ["evaluations/compute"]}],
+            )
 
     def test_final_release_manifest_binds_the_qualified_image_set(self) -> None:
         release = json.loads(FINAL_MANIFEST.read_text(encoding="utf-8"))
@@ -80,20 +102,24 @@ class PublishedBundleTest(unittest.TestCase):
         )
         self.assertEqual(
             release["images"]["evidence"]["coordinate"],
-            "ghcr.io/firestige/wsr-evidence:0.1.0-rc.2@sha256:ad9f66b9203850d4111ac627f66de5a9bbf2037537f7fd6265b2f5f410f711c4",
+            "ghcr.io/firestige/wsr-evidence:0.1.0-rc.3@sha256:5ce1574260677b5fdfcecacae872a53f0e080092b0c375ddee1216479f18c542",
         )
         self.assertEqual(
             release["images"]["evolution"]["coordinate"],
             "ghcr.io/firestige/wsr-evolution:0.1.0-rc.1@sha256:41e244d68f588d8b0a4789488a694c55e2034e36f4a152638e026c03dde1a14f",
         )
-        self.assertEqual(release["schemaCompatibility"]["evidenceRevision"], "20260826_0003")
+        self.assertEqual(release["schemaCompatibility"]["evidenceRevision"], "20260828_0004")
         self.assertEqual(
             release["images"]["evidence"]["provenance"],
-            "https://github.com/firestige/evidence-system/releases/download/0.1.0-rc.2/release-qualification.json",
+            "https://github.com/firestige/evidence-system/releases/download/0.1.0-rc.3/release-qualification.json",
         )
         self.assertEqual(
             release["images"]["evidence"]["qualificationSha256"],
-            "sha256:41d65d028fd08f1c3a717bede21fe61cf7ba73076cd576a9732bbeba7d651425",
+            "sha256:003d79bd8ea1a67eeff455b39067620bdeceaa2a198343c85eb7e8d9e371135b",
+        )
+        self.assertEqual(
+            release["images"]["evidence"]["source"],
+            "https://github.com/firestige/evidence-system/tree/35d63469650e978d0fb795419df5d4a0ea5eafa7",
         )
         self.assertEqual(
             release["images"]["evolution"]["provenance"],
@@ -121,15 +147,17 @@ class PublishedBundleTest(unittest.TestCase):
         self.assertNotIn("down --volumes", launcher)
 
     def test_generator_rejects_tags_without_digest_and_incompatible_schema(self) -> None:
-        for mutate in ("tag", "schema"):
+        for mutate in ("tag", "schema", "host-contract"):
             with self.subTest(mutate=mutate), tempfile.TemporaryDirectory() as temporary:
                 value = manifest()
                 if mutate == "tag":
                     value["images"]["evolution"]["coordinate"] = (  # type: ignore[index]
                         "ghcr.io/firestige/wsr-evolution:0.1.0"
                     )
-                else:
+                elif mutate == "schema":
                     value["schemaCompatibility"]["reads"] = ["other"]  # type: ignore[index]
+                else:
+                    value["hostIntegration"]["evidenceQueryRevision"] = "2.0.0"  # type: ignore[index]
                 source = Path(temporary) / "release.json"
                 source.write_text(json.dumps(value), encoding="utf-8")
                 completed = subprocess.run(
@@ -156,6 +184,10 @@ class PublishedBundleTest(unittest.TestCase):
             self.assertEqual(set(services["evolution"]["networks"]), {"app-tier"})
             self.assertNotIn("secrets", services["evolution"])
             self.assertNotRegex(compose.split("  evolution:\n", 1)[1], r"WSR_EVIDENCE_DATABASE|POSTGRES")
+            self.assertNotIn("ports", services["database"])
+            self.assertNotIn("ports", services["migrate"])
+            for name in ("evidence", "evolution"):
+                self.assertEqual(services[name]["ports"][0]["host_ip"], "127.0.0.1")
 
     def test_launcher_preserves_secrets_and_volume_and_purge_is_explicit(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -242,6 +274,108 @@ class PublishedBundleTest(unittest.TestCase):
                     )
                     self.assertEqual(completed.returncode, 2)
 
+    def test_host_config_uses_one_loopback_endpoint_for_studio_and_observation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "host-config"],
+                env=os.environ | {
+                    "WSR_EVIDENCE_PORT": "14318",
+                    "WSR_EVOLUTION_PORT": "18000",
+                },
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            value = json.loads(completed.stdout)
+            self.assertEqual(value["services"]["evidence"]["baseUrl"], "http://127.0.0.1:14318")
+            self.assertEqual(value["services"]["evolution"]["baseUrl"], "http://127.0.0.1:18000")
+            self.assertEqual(value["observation"]["baseUrl"], value["services"]["evidence"]["baseUrl"])
+            self.assertNotIn("credential", completed.stdout.lower())
+
+    def test_preflight_rejects_non_loopback_override_and_port_conflict_before_docker(self) -> None:
+        import socket
+
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            marker = temporary_root / "docker-called"
+            docker = fake_bin / "docker"
+            docker.write_text(
+                "#!/bin/sh\ncase \"$*\" in *' pull'|*' up '*|*' restart '*) "
+                "touch \"$WSR_TEST_DOCKER_MARKER\";; esac\nexit 0\n",
+                encoding="utf-8",
+            )
+            docker.chmod(0o755)
+            base_environment = os.environ | {
+                "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                "WSR_TEST_DOCKER_MARKER": str(marker),
+                "WSR_PREFLIGHT_PORT_WAIT_MS": "100",
+            }
+            remote = subprocess.run(
+                [str(bundle / "wsr-compose"), "start"],
+                env=base_environment | {"WSR_EVIDENCE_HOST": "0.0.0.0"},
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(remote.returncode, 2)
+            self.assertIn("LOOPBACK_HOST_REQUIRED", remote.stderr)
+            self.assertFalse(marker.exists())
+
+            with socket.socket() as listener:
+                listener.bind(("127.0.0.1", 0))
+                listener.listen()
+                port = str(listener.getsockname()[1])
+                conflict = subprocess.run(
+                    [str(bundle / "wsr-compose"), "start"],
+                    env=base_environment | {"WSR_EVIDENCE_PORT": port},
+                    capture_output=True,
+                    text=True,
+                )
+            self.assertEqual(conflict.returncode, 2)
+            self.assertIn("LOOPBACK_PORT_IN_USE", conflict.stderr)
+            self.assertFalse(marker.exists())
+
+    def test_preflight_bounds_a_transient_restart_listener_window(self) -> None:
+        import socket
+        import threading
+        import time
+
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            docker = fake_bin / "docker"
+            docker.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            docker.chmod(0o755)
+            listener = socket.socket()
+            listener.bind(("127.0.0.1", 0))
+            listener.listen()
+            port = str(listener.getsockname()[1])
+
+            def release() -> None:
+                time.sleep(0.2)
+                listener.close()
+
+            closer = threading.Thread(target=release)
+            closer.start()
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "start"],
+                env=os.environ | {
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "WSR_EVIDENCE_PORT": port,
+                    "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
+                },
+                capture_output=True,
+                text=True,
+            )
+            closer.join()
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+
     def test_logs_without_service_does_not_pass_an_empty_service_name(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             temporary_root = Path(temporary)
@@ -290,6 +424,8 @@ class PublishedBundleTest(unittest.TestCase):
         self.assertIn('index("amd64") != null and index("arm64") != null', workflow)
         self.assertIn("sha256sum --check SHA256SUMS", workflow)
         self.assertIn("docker compose -f compose.yaml config --quiet", workflow)
+        self.assertIn("./wsr-compose host-config", workflow)
+        self.assertIn("./wsr-compose preflight", workflow)
         self.assertIn("actions/upload-artifact@", workflow)
 
     def test_first_party_qualification_must_match_manifest_identity(self) -> None:

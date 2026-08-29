@@ -52,7 +52,7 @@ export WSR_EVIDENCE_RUNTIME_PASSWORD_FILE="$WSR_LOCAL_STATE_DIR/secrets/runtime-
 export WSR_EVOLUTION_CONFIG_FILE="$bundle/evolution.config.json"
 schema=$(docker compose -f compose.yaml exec -T database \
   psql -U wsr_evidence_admin -d wsr_evidence -Atc 'select version_num from alembic_version')
-test "$schema" = 20260826_0003
+test "$schema" = 20260828_0004
 
 password_before=$(sha256sum "$WSR_EVIDENCE_RUNTIME_PASSWORD_FILE" | cut -d' ' -f1)
 "$bundle/wsr-compose" restart
@@ -60,7 +60,7 @@ password_before=$(sha256sum "$WSR_EVIDENCE_RUNTIME_PASSWORD_FILE" | cut -d' ' -f
 "$bundle/wsr-compose" rollback
 password_after=$(sha256sum "$WSR_EVIDENCE_RUNTIME_PASSWORD_FILE" | cut -d' ' -f1)
 test "$password_before" = "$password_after"
-test "$(docker compose -f compose.yaml exec -T database psql -U wsr_evidence_admin -d wsr_evidence -Atc 'select version_num from alembic_version')" = 20260826_0003
+test "$(docker compose -f compose.yaml exec -T database psql -U wsr_evidence_admin -d wsr_evidence -Atc 'select version_num from alembic_version')" = 20260828_0004
 
 bad_config="$temporary/invalid-evolution.json"
 printf '{}\n' > "$bad_config"
