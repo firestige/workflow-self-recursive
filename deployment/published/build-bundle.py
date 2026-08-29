@@ -34,6 +34,14 @@ def load_manifest(path: Path) -> dict[str, Any]:
     reads = compatibility.get("reads")
     if not isinstance(revision, str) or not isinstance(reads, list) or revision not in reads:
         fail("Evidence migration revision is not rollback-readable")
+    host = value.get("hostIntegration")
+    if not isinstance(host, dict) or host != {
+        "schemaVersion": "wsr.loopback-host@1.0.0",
+        "evidenceQueryRevision": "0.1.0",
+        "evidenceTaskQueryRevision": "1.0.0",
+        "evolutionComputeRevision": "1",
+    }:
+        fail("loopback Host Contract revisions are incompatible")
     images = value.get("images")
     if not isinstance(images, dict) or set(images) != {"postgres", "evidence", "evolution"}:
         fail("images must be exactly postgres, evidence, and evolution")
@@ -82,11 +90,19 @@ def main() -> None:
         "evolution.config.json": (ROOT / "evolution.config.json").read_text(encoding="utf-8"),
         "init-roles.sh": (ROOT / "init-roles.sh").read_text(encoding="utf-8"),
         "README.md": (ROOT / "README.md").read_text(encoding="utf-8"),
+        "loopback-host.md": (ROOT / "loopback-host.md").read_text(encoding="utf-8"),
+        "host-endpoints.template.json": (
+            ROOT / "host-endpoints.template.json"
+        ).read_text(encoding="utf-8"),
+        "wsr-host-preflight.mjs": (
+            ROOT / "wsr-host-preflight.mjs"
+        ).read_text(encoding="utf-8"),
     }
     for name, content in files.items():
         (output / name).write_text(content, encoding="utf-8")
     (output / "wsr-compose").chmod(0o755)
     (output / "init-roles.sh").chmod(0o755)
+    (output / "wsr-host-preflight.mjs").chmod(0o755)
     checksums = []
     for name in sorted(files):
         digest = hashlib.sha256((output / name).read_bytes()).hexdigest()

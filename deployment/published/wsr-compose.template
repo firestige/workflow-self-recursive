@@ -29,10 +29,27 @@ if ! test -f "$evolution_config" || ! test -r "$evolution_config"; then
 fi
 config_parent=$(CDPATH= cd -- "$(dirname "$evolution_config")" && pwd)
 evolution_config="$config_parent/$(basename "$evolution_config")"
+if ! command -v node >/dev/null 2>&1; then printf 'Required command not found: node\n' >&2; exit 1; fi
+case "$action" in
+  host-config) exec node "$bundle_dir/wsr-host-preflight.mjs" config;;
+  preflight) exec node "$bundle_dir/wsr-host-preflight.mjs" check;;
+esac
 if ! command -v docker >/dev/null 2>&1; then printf 'Required command not found: docker\n' >&2; exit 1; fi
 if ! command -v openssl >/dev/null 2>&1; then printf 'Required command not found: openssl\n' >&2; exit 1; fi
 if ! docker compose version >/dev/null 2>&1; then printf 'Docker Compose v2 is required.\n' >&2; exit 1; fi
 if ! docker info >/dev/null 2>&1; then printf 'Docker daemon is unavailable.\n' >&2; exit 1; fi
+if test "$action" = start; then
+  project=${COMPOSE_PROJECT_NAME:-wsr-services}
+  owned=
+  for service in evidence evolution; do
+    if test -n "$(docker ps -q \
+      --filter "label=com.docker.compose.project=$project" \
+      --filter "label=com.docker.compose.service=$service")"; then
+      if test -n "$owned"; then owned="$owned,$service"; else owned=$service; fi
+    fi
+  done
+  node "$bundle_dir/wsr-host-preflight.mjs" check "$owned"
+fi
 
 umask 077
 mkdir -p "$secret_dir"
@@ -73,7 +90,7 @@ case "$action" in
   start | upgrade | rollback) start_stack;;
   restart) compose restart database evidence evolution && wait_stack;;
   stop) compose stop;;
-  down) compose down;;
+  down) compose down --remove-orphans;;
   status) compose ps;;
   logs)
     if test "$#" -gt 1; then compose logs --no-color "$2"; else compose logs --no-color; fi
@@ -86,5 +103,5 @@ case "$action" in
     compose down
     docker volume rm "$volume"
     ;;
-  *) printf 'usage: %s {start|stop|restart|down|status|logs|upgrade|rollback|purge}\n' "$0" >&2; exit 2;;
+  *) printf 'usage: %s {host-config|preflight|start|stop|restart|down|status|logs|upgrade|rollback|purge}\n' "$0" >&2; exit 2;;
 esac

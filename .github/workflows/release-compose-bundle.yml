@@ -82,6 +82,11 @@ jobs:
           cd "$BUNDLE"
           sha256sum --check SHA256SUMS
           docker compose -f compose.yaml config --quiet
+          ./wsr-compose host-config > "$RUNNER_TEMP/loopback-host.json"
+          ./wsr-compose preflight
+          jq -e '.schemaVersion == "wsr.loopback-host@1.0.0" and
+            .observation.baseUrl == .services.evidence.baseUrl' \
+            "$RUNNER_TEMP/loopback-host.json" >/dev/null
           test "$(grep -c '@sha256:' compose.yaml)" = 4
           test -z "$(grep -E '(^|[[:space:]])build:|\.\./(evidence|evolution)-system|bi-app|workflow-builder' compose.yaml || true)"
 
