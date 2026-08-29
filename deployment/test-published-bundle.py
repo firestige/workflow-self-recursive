@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -12,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 PUBLISHED = ROOT / "deployment" / "published"
 GENERATOR = PUBLISHED / "build-bundle.py"
+FINAL_MANIFEST = ROOT / "release" / "compose" / "0.1.0-rc.1.json"
 
 SHA = "a" * 64
 
@@ -67,6 +69,56 @@ class PublishedBundleTest(unittest.TestCase):
             self.assertIn('127.0.0.1:${WSR_EVIDENCE_PORT:-4318}:4318', compose)
             self.assertIn('127.0.0.1:${WSR_EVOLUTION_PORT:-8000}:8000', compose)
             self.assertIn("${WSR_EVOLUTION_CONFIG_FILE:-./evolution.config.json}", compose)
+
+    def test_final_release_manifest_binds_the_qualified_image_set(self) -> None:
+        release = json.loads(FINAL_MANIFEST.read_text(encoding="utf-8"))
+
+        self.assertEqual(release["version"], "0.1.0-rc.1")
+        self.assertEqual(
+            release["images"]["postgres"]["coordinate"],
+            "postgres:18.4-bookworm@sha256:882236b897e39051d2368c5ccc6cda944904723506b2dfc97f2a8f5bc9afa382",
+        )
+        self.assertEqual(
+            release["images"]["evidence"]["coordinate"],
+            "ghcr.io/firestige/wsr-evidence:0.1.0-rc.2@sha256:ad9f66b9203850d4111ac627f66de5a9bbf2037537f7fd6265b2f5f410f711c4",
+        )
+        self.assertEqual(
+            release["images"]["evolution"]["coordinate"],
+            "ghcr.io/firestige/wsr-evolution:0.1.0-rc.1@sha256:41e244d68f588d8b0a4789488a694c55e2034e36f4a152638e026c03dde1a14f",
+        )
+        self.assertEqual(release["schemaCompatibility"]["evidenceRevision"], "20260826_0003")
+        self.assertEqual(
+            release["images"]["evidence"]["provenance"],
+            "https://github.com/firestige/evidence-system/releases/download/0.1.0-rc.2/release-qualification.json",
+        )
+        self.assertEqual(
+            release["images"]["evidence"]["qualificationSha256"],
+            "sha256:41d65d028fd08f1c3a717bede21fe61cf7ba73076cd576a9732bbeba7d651425",
+        )
+        self.assertEqual(
+            release["images"]["evolution"]["provenance"],
+            "https://github.com/firestige/evolution-system/releases/download/0.1.0-rc.1/release-qualification.json",
+        )
+        self.assertEqual(
+            release["images"]["evolution"]["qualificationSha256"],
+            "sha256:d8ca8329e5daed92fbab442305ccb3de9c0444edba2147a38027e867b46c642b",
+        )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            bundle = self.build(Path(temporary), release)
+            compose = (bundle / "compose.yaml").read_text(encoding="utf-8")
+            launcher = (bundle / "wsr-compose").read_text(encoding="utf-8")
+
+        self.assertEqual(compose.count("@sha256:"), 4)
+        self.assertNotIn("build:", compose)
+        self.assertNotIn("../evidence-system", compose)
+        self.assertNotIn("../evolution-system", compose)
+        self.assertIn("condition: service_completed_successfully", compose)
+        self.assertIn("condition: service_healthy", compose)
+        start_stack = launcher.split("start_stack() {", 1)[1].split("}", 1)[0]
+        self.assertLess(start_stack.index("compose pull"), start_stack.index("wait_stack"))
+        self.assertIn("start | upgrade | rollback) start_stack", launcher)
+        self.assertNotIn("down --volumes", launcher)
 
     def test_generator_rejects_tags_without_digest_and_incompatible_schema(self) -> None:
         for mutate in ("tag", "schema"):
@@ -233,9 +285,95 @@ class PublishedBundleTest(unittest.TestCase):
         )
 
         self.assertIn("deployment/published/build-bundle.py", workflow)
+        self.assertIn("deployment/published/validate-qualification.py", workflow)
+        self.assertIn("docker buildx imagetools inspect", workflow)
+        self.assertIn('index("amd64") != null and index("arm64") != null', workflow)
         self.assertIn("sha256sum --check SHA256SUMS", workflow)
         self.assertIn("docker compose -f compose.yaml config --quiet", workflow)
         self.assertIn("actions/upload-artifact@", workflow)
+
+    def test_first_party_qualification_must_match_manifest_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = manifest()
+            evidence_commit = "b" * 40
+            evolution_commit = "c" * 40
+            value["images"]["evidence"]["source"] = (  # type: ignore[index]
+                f"https://github.com/firestige/evidence-system/tree/{evidence_commit}"
+            )
+            value["images"]["evidence"]["provenance"] = (  # type: ignore[index]
+                "https://github.com/firestige/evidence-system/releases/download/0.1.0/release-qualification.json"
+            )
+            value["images"]["evolution"]["source"] = (  # type: ignore[index]
+                f"https://github.com/firestige/evolution-system/tree/{evolution_commit}"
+            )
+            value["images"]["evolution"]["provenance"] = (  # type: ignore[index]
+                "https://github.com/firestige/evolution-system/releases/download/0.1.0/release-qualification.json"
+            )
+            evidence = root / "evidence.json"
+            evidence.write_text(
+                json.dumps(
+                    {
+                        "schemaVersion": "wsr.release-qualification@1.0.0",
+                        "candidateTag": "0.1.0",
+                        "commit": evidence_commit,
+                        "ociDigest": f"sha256:{SHA}",
+                        "localAcceptance": {"status": "PASS"},
+                        "remoteQualification": {"status": "PASS"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            evolution = root / "evolution.json"
+            evolution.write_text(
+                json.dumps(
+                    {
+                        "schemaVersion": "wsr.evolution-image-qualification@1.0.0",
+                        "candidateTag": "0.1.0",
+                        "commit": evolution_commit,
+                        "ociDigest": f"sha256:{SHA}",
+                        "platforms": ["linux/amd64", "linux/arm64"],
+                        "provenance": {"mode": "max", "status": "PASS"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            for name, path in (("evidence", evidence), ("evolution", evolution)):
+                digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                value["images"][name]["qualificationSha256"] = f"sha256:{digest}"  # type: ignore[index]
+            release = root / "release.json"
+            release.write_text(json.dumps(value), encoding="utf-8")
+            command = [
+                str(PUBLISHED / "validate-qualification.py"),
+                str(release),
+                str(evidence),
+                str(evolution),
+            ]
+
+            subprocess.run(command, check=True)
+            original = evolution.read_text(encoding="utf-8")
+            evolution.write_text(original + "\n", encoding="utf-8")
+            self.assertNotEqual(subprocess.run(command).returncode, 0)
+            evolution.write_text(original, encoding="utf-8")
+            broken = json.loads(evolution.read_text(encoding="utf-8"))
+            broken["ociDigest"] = f"sha256:{'d' * 64}"
+            evolution.write_text(json.dumps(broken), encoding="utf-8")
+            self.assertNotEqual(subprocess.run(command).returncode, 0)
+
+    def test_published_image_e2e_covers_real_lifecycle_without_user_data(self) -> None:
+        e2e = (ROOT / "deployment" / "test-published-e2e.sh").read_text(encoding="utf-8")
+
+        self.assertIn("WSR_RUN_PUBLISHED_E2E", e2e)
+        self.assertIn("release/compose/0.1.0-rc.1.json", e2e)
+        self.assertIn("build-bundle.py", e2e)
+        self.assertIn('"$bundle/wsr-compose" start', e2e)
+        self.assertIn('"$bundle/wsr-compose" restart', e2e)
+        self.assertIn('"$bundle/wsr-compose" upgrade', e2e)
+        self.assertIn('"$bundle/wsr-compose" rollback', e2e)
+        self.assertIn("select version_num from alembic_version", e2e)
+        self.assertIn("Published service stack did not become ready", e2e)
+        self.assertIn('"$bundle/wsr-compose" purge', e2e)
+        self.assertIn("wsr-published-e2e-", e2e)
 
 
 if __name__ == "__main__":

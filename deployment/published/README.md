@@ -5,6 +5,11 @@ self-contained, checksummed Compose bundle. The generated `compose.yaml` contain
 immutable digest coordinates for PostgreSQL, Evidence (also used by the migration job), and Evolution.
 It contains no source checkout, build context, BI, Workflow Builder, or improvement-loop container.
 
+The Iter 6 candidate manifest is staged at `release/compose/0.1.0-rc.1.json`. The existing
+`release-compose-bundle.yml` flow downloads the first-party qualification records, binds their tags,
+product commits, OCI digests, platform gates, and provenance gates to that manifest, verifies the
+three remote amd64/arm64 indexes, and only then generates the bundle artifact.
+
 In a generated bundle, run `./wsr-compose start`. It pulls the pinned images, runs the Evidence
 migration before Evidence readiness, waits for Evidence before Evolution, and binds both APIs only to
 loopback. `stop`, `down`, `restart`, `status`, and `logs` are non-destructive. `upgrade` and `rollback`
@@ -18,3 +23,14 @@ operations. Override the loopback ports with `WSR_EVIDENCE_PORT` and `WSR_EVOLUT
 volume with `WSR_EVIDENCE_VOLUME`, and the ready bound with `WSR_READY_TIMEOUT_SECONDS`.
 
 The existing parent `deployment/compose.yaml` remains the source-build developer qualification fixture.
+
+Maintainers can run the real published-image lifecycle in an isolated project and randomly named test
+volume with:
+
+```sh
+WSR_RUN_PUBLISHED_E2E=1 deployment/test-published-e2e.sh
+```
+
+The E2E covers pull, migration, readiness, schema identity, restart, upgrade, rollback, a partial
+Evolution failure, retained secrets/data, and refusal of an unconfirmed purge. Its cleanup accepts only
+the `wsr-published-e2e-*` fixture-volume namespace.
