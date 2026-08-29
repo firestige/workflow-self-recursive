@@ -1,10 +1,10 @@
 # Evidence Delivery Manifest Projection — 设计候选
 
-> **状态：** Iteration 5 cross-system Contract 候选，2026-08-28。它扩展 Profile 2 Task-binding 与 Evidence Query 候选，不修改已发布 Profile 1.0 或 Evidence Query 0.1 Contract。英文跟踪正文见 [`delivery-manifest-projection.md`](delivery-manifest-projection.md)。
+> **状态：** Iteration 6 cross-system Contract 候选，2026-08-29。它扩展 Profile 2 Task-binding 与 Evidence Query 候选，不修改已发布 Profile 1.0 或 Evidence Query 0.1 Contract。英文跟踪正文见 [`delivery-manifest-projection.md`](delivery-manifest-projection.md)。
 
 ## 1. 目的与 authority chain
 
-Evolution 需要 portable historical reading，以识别每个 Delivery 的 exact Workflow Package/Snapshot 与 admitted Role→model-selection bindings。Execution persisted Delivery Manifest 仍是 admission authority。Evidence 从声明 Task membership 的同一条 M01-owned `task.binding` record 保存其 evidence-safe projection。
+Evolution 需要 portable historical reading，以识别每个 Delivery 的 exact Workflow Package/Snapshot 与 admitted Role→Provider-descriptor/model bindings。Execution persisted Delivery Manifest 仍是 admission authority。Evidence 从声明 Task membership 的同一条 M01-owned `task.binding` record 保存其 evidence-safe projection。
 
 ```mermaid
 flowchart LR
@@ -61,6 +61,10 @@ Canonical projection 最大 64 KiB UTF-8、最多 128 个 Role entries，与 can
       "role_prompt_identity": "prompt.role.architecture-reviewer",
       "role_prompt_digest": "<sha256>",
       "agent_provider_id": "provider.dsh",
+      "agent_provider_version": "2.0.0",
+      "agent_provider_adapter_key": "dsh-headless",
+      "agent_provider_descriptor_digest": "<sha256>",
+      "required_capabilities": ["capability.interaction", "capability.tools"],
       "model_provider_id": "deepseek-official",
       "model_id": "deepseek-reasoner",
       "resolution_source": "REPOSITORY"
@@ -73,13 +77,14 @@ Canonical projection 最大 64 KiB UTF-8、最多 128 个 Role entries，与 can
 
 - `delivery_id`、`task_id`、`manifest_digest` exact 等于 C01、C02、C07；
 - Package、Workflow、Snapshot、Role、prompt、Agent Provider、LLM provider-route 与 model 使用 exact admitted identity，而非 display label；
-- `document_state` 只可为 `ABSENT` 或 `PRESENT`；仅 `ABSENT` 时没有 document digest；
-- `resolution_source` 只可为 `REPOSITORY` 或 `EXECUTION_DEFAULT`；
+- 只要存在 Agent-action Role，`document_state` 就必须为 `PRESENT`；仅 empty Role set 可为 `ABSENT`；`resolution_source` 恰为 `REPOSITORY`；
+- Provider identity/version/adapter key/descriptor digest/capabilities 与 Provider-owned model coordinate 等于 admission 时 frozen values；
+- capabilities non-empty、unique 且 canonically sorted；
 - Role entries 按 `role_id` bytewise sorted 且 unique；该集合等于本 Workflow Snapshot admitted 的所有 Agent-action Roles；
-- 禁止 credentials、credential references、endpoint、source URL、local path、Task prompt/attachments、tool content 与 Provider-native configuration；
+- 禁止 credential/login state、credential references、endpoint、source URL、local path、Task prompt/attachments、tool content、native session identity 与 Provider-native configuration；
 - `manifest_digest` 识别 full persisted Manifest，`manifest_projection_digest` 识别 portable projection；二者不能互相替代。
 
-每次读取 Manifest 时，Evolution 都无条件校验 closed Agent Provider/LLM-route/model entry shape，并只从 Manifest entries 重算 `resolved_map_digest`；失败属于 internal projection incompatibility。当 external Workflow content 可得时，Evolution 只比较 exact Role set 与 Role-prompt identity/digest，作为 enrichment-integrity check。该 external mismatch 记录为 bounded source diagnostic，不能改变 settled Metric Result。External content 不是此 immutable Evidence projection 的第二 authority。Projection 内部 shape/digest conflict 或 projection-to-membership identity conflict 会使 dependent reading `INCOMPATIBLE`。
+每次读取 Manifest 时，Evolution 都无条件校验完整 closed Provider-descriptor/model entry，并只从 Manifest entries 重算 `resolved_map_digest`；失败属于 internal projection incompatibility。当 external Workflow content 可得时，Evolution 只比较 exact Role set 与 Role-prompt identity/digest，作为 enrichment-integrity check。该 external mismatch 记录为 bounded source diagnostic，不能改变 settled Metric Result。External content 不是此 immutable Evidence projection 的第二 authority。Projection 内部 shape/digest conflict 或 projection-to-membership identity conflict 会使 dependent reading `INCOMPATIBLE`。
 
 ## 4. Atomic Evidence projection
 
@@ -129,4 +134,4 @@ Manifest projection 自身提供 immutable event-time Role-template cohort coord
 
 ## 8. Required conformance
 
-Fixtures 必须证明 atomic success/rejection、exact canonical digest、deterministic C09 retry/recovery、duplicate/conflict、C01/C02/C07 equality、每个 Profile 2 record 的 direct C01 association、absent/present repository state、Role sort/uniqueness/Snapshot cross-check、secret/path/endpoint rejection、oversize rejection、exporter byte-bound split 与 near-limit single-record acceptance、active-only exact Task/Manifest query、atomic Delivery deletion、Task display-name immutability/fallback，以及不做 Workflow-prefix/timestamp inference。
+Fixtures 必须证明 atomic success/rejection、exact canonical digest、deterministic C09 retry/recovery、duplicate/conflict、C01/C02/C07 equality、每个 Profile 2 record 的 direct C01 association、required repository state、完整 Provider descriptor/capability/model projection、Role sort/uniqueness/Snapshot cross-check、secret/path/endpoint rejection、oversize rejection、exporter byte-bound split 与 near-limit single-record acceptance、active-only exact Task/Manifest query、atomic Delivery deletion、Task display-name immutability/fallback，以及不做 Workflow-prefix/timestamp inference。

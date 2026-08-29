@@ -11,6 +11,8 @@
 | 实现证据 | `execution-system/src/invocation` |
 | Companion | [英文规范原文](managed-agent-invocation.md)；本文是 non-normative 中文 companion |
 
+> **历史边界：** 下方 credential-lease、configured-factory 与单 DSH Adapter behavior 描述已发布 1.x/Iteration 2 path。新的 2.0 Delivery 遵循 [Role-to-Provider binding candidate](../../repository-role-model-binding.zh-CN.md)：repository Role 绑定 exact Provider descriptor/model，installation composition 提供 owner-factory registry，只启动 used realms，且 Provider-owned session SPI 不携带 credential 或 runtime rebinding。
+
 Managed Agent Invocation 拥有 admitted Agent Action 的 Provider effect、native session lifecycle、credential lease、structured completion 和 durable Invocation Journal。它是唯一理解 Provider-private state 的 Runner submodule。
 
 ## 2. 创建边界

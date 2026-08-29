@@ -14,6 +14,8 @@
 | 上层设计 | [Execution System](../../project-execution-system.zh-CN.md) |
 | 追踪资料 | [Runner 追踪与实现记录](traceability.zh-CN.md) |
 
+> **历史边界：** 下方 configured Provider key/runtime creation 描述已发布 1.x/Iteration 2 path。新的 2.0 Delivery 遵循 [Role-to-Provider binding candidate](../../repository-role-model-binding.zh-CN.md)：exact Role descriptor 冻结在 Manifest，installation composition 提供一个 owner-factory registry，只有该 Manifest 实际使用的 Provider 获得 realm，runtime/session/recovery 必须 exact-match，且不存在 credential、priority、fallback 或 rebinding。
+
 本文把旧设计校准到 issue-authoritative Iteration 2 结构。Runner 是 Execution module M02，不是产品 System、subsystem、另一 M02 module 后面的实现，也不是第四个 Execution module。内部五个单元是 Interpreter、Lifecycle Coordinator、Workflow Host、Managed Agent Invocation 与 Custody submodule。`ExecutionRuntimeAdapter` 是当前 Core-to-Runner 类型名，不代表已经提升出的多态 Runner 抽象。只有未来确实需要多个 Runner 实现时，才可以把 M02 提升成该抽象，并且每个具体实现必须使用不同名称。[追踪 companion](traceability.zh-CN.md)只索引设计 ID 与证据，不形成另一 behavior owner。
 
 ## 2. 身份与目的

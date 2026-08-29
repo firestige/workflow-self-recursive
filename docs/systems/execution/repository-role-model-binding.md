@@ -1,130 +1,92 @@
-# Repository Role-to-Model Binding — Design Candidate
+# Repository Role-to-Provider Binding — Design Candidate
 
-> **Status:** Iteration 5 contract-change candidate, 2026-08-28. This document supersedes the single-model portions of the Iteration 3 Execution design only after the corresponding Workflow DSL, Delivery Manifest, Observation, and Evidence Query revisions pass their own lifecycle gates. The Chinese tracking companion is [`repository-role-model-binding.zh-CN.md`](repository-role-model-binding.zh-CN.md).
+> **Status:** Iteration 6 contract-change candidate, 2026-08-29. This document supersedes the Iteration 5 single-installation-Provider/default-model proposal for new 2.0 Deliveries. Published 1.x behavior remains historical and exact-version dispatched. Chinese tracking companion: [`repository-role-model-binding.zh-CN.md`](repository-role-model-binding.zh-CN.md).
 
 ## 1. Decision
 
-The repository is the smallest model-policy scope. One Execution installation selects exactly one Agent Provider identity. A repository may bind Workflow Role identities to exact model selections understood by that Agent Provider. For DSH, one selection is the closed pair `{provider, model}`: the registered DSH LLM-route identity plus the route-scoped model identity. When the repository has no binding for a Role, Execution uses its installation-wide default model selection. Repository data never selects or changes the Agent Provider and never configures an LLM route.
+The repository is the minimum Provider/model-policy scope. Every Workflow Agent-action Role must have one explicit closed binding:
 
 ```text
-effective_model_selection(role) = repository.bindings[role] ?? execution.default_model_selection
+repository.bindings[role]
+  = exact Agent Provider identity + version
+  + exact Provider-owned model coordinate {provider, model}
 ```
 
-The first release deliberately does not support Workflow-, Route-, Action-, Agent-definition-, branch-selector-, Task-, Delivery-, or user-specific overrides. Admission reads the policy file from the selected canonical worktree and freezes that content snapshot; different worktrees may contain different file bytes, but there is no branch matcher or post-admission rebinding mechanism. A Role receives the same physical model for every Route and Action admitted from that worktree policy.
+There is no installation default Provider or model, priority order, fallback chain, ambient discovery, request override, or post-admission rebinding. A missing Role binding is an admission error. Different Roles in one Workflow may bind different Providers.
 
-## 2. Agent model
+Route and Action selection may add prompts, Skills, tools, Driver, access, and session policy, but cannot alter the Role's Provider/model selection. Admission derives and freezes the Role's complete required-capability union before any runtime Route is selected.
 
-The Workflow model uses these distinct concepts:
+## 2. Agent and Provider model
 
 - **Role** owns stable responsibility, authority, prohibitions, write custody, and the exact Role prompt.
-- **Agent identity** is the admitted combination of the exact Role snapshot, Agent Provider identity, and exact LLM provider-route/model identity.
-- **Agent execution binding** adds the selected Route's Action prompt, Skills, tools, Driver, access intent, and session policy.
-- **Agent Provider** owns provider-native configuration, endpoint selection, authentication, credentials, and native session mechanics. Those values are not WSR configuration or Manifest fields.
+- **Agent identity** is the admitted exact Role snapshot plus the exact Provider descriptor and Provider-owned model coordinate.
+- **Agent execution binding** adds the selected Route's Action prompt, Skills, tools, Driver, access intent, session policy, and the union of capabilities required by every Agent Action that may use the Role.
+- **Agent Provider factory descriptor** is the closed tuple `identity`, semantic `version`, `adapterKey`, and canonical sorted `capabilities`, with a canonical descriptor digest.
+- **Agent Provider** owns provider-native configuration, endpoints, authentication, credentials/login state, transport, and native sessions. None of those values is repository, Manifest, Observation, or WSR configuration data.
 
-An independently authored generic `agent-definition` resource is not part of this model. It previously duplicated Role and Route responsibilities while the production projector did not consume its bytes. Workflow DSL `1.1.0` remains historical; removing that required resource is a `2.0.0` Contract change.
-
-`agent.md` is not a portable authority object produced by concatenating a model identifier into Markdown. When a Provider or Driver needs a native agent document, the Driver projects it from the admitted Role prompt and keeps the model binding as separate structured data.
+An independently authored generic `agent-definition` resource is not part of the 2.0 model. Workflow DSL `1.1.0` remains historical; its required resource and activation projection are not retroactively changed.
 
 ## 3. Repository document
 
-The conventional path is `<canonical-worktree>/.wsr/model-bindings.json`. Absence is valid and means every Role uses the Execution default. Presence is closed and versioned:
+The required path for a 2.0 Delivery is `<canonical-worktree>/.wsr/role-provider-bindings.json`:
 
 ```json
 {
-  "schemaVersion": "execution.repository-model-bindings@1.0.0",
+  "schemaVersion": "execution.repository-role-provider-bindings@1.0.0",
   "bindings": {
-    "role.architecture-reviewer": {"provider": "deepseek-official", "model": "deepseek-reasoner"},
-    "role.evidence-scout": {"provider": "deepseek-official", "model": "deepseek-chat"}
+    "role.architecture-reviewer": {
+      "agentProvider": {"identity": "provider.dsh", "version": "2.0.0"},
+      "model": {"provider": "deepseek-official", "model": "deepseek-reasoner"}
+    },
+    "role.evidence-scout": {
+      "agentProvider": {"identity": "provider.copilot", "version": "1.3.0"},
+      "model": {"provider": "github-copilot", "model": "gpt-5"}
+    }
   }
 }
 ```
 
 Rules:
 
-- the UTF-8 file is at most 64 KiB and `bindings` has at most 1,024 members, allowing one repository policy to cover several bounded Workflows;
-- Role keys and both `provider`/`model` values match `^[A-Za-z][A-Za-z0-9._-]{0,127}$`; keys are exact Workflow Role identities, `provider` is an exact LLM route already registered by the one installed Agent Provider, and `model` is exact within that route;
-- an empty map is valid and equivalent to all-default resolution;
-- unknown fields, duplicate JSON members, malformed identities, symlinks escaping the canonical worktree, unreadable files, or unsupported revisions fail Delivery admission;
-- bindings for Roles absent from the selected Workflow are retained in the repository document but do not enter the Delivery Manifest; this allows one repository policy to cover several Workflows;
-- every binding value contains exactly `provider` and `model`; no field carries a secret, credential reference, endpoint, LLM-route configuration, Agent Provider selector, alias, or fallback chain.
+- the UTF-8 file is at most 64 KiB and `bindings` has at most 1,024 members;
+- Role, Provider, and model identities match `^[A-Za-z][A-Za-z0-9._-]{0,127}$`; Provider version is exact SemVer;
+- each binding contains exactly `agentProvider` and `model`; no alias, priority, fallback, adapter selector, capability override, endpoint, credential, login state, or native session setting is accepted;
+- unknown fields, duplicate JSON members, malformed identities/versions, unreadable files, escaping symlinks, or unsupported revisions fail admission;
+- bindings for Roles outside the selected Workflow may remain in the repository document but do not enter that Delivery's resolved map;
+- document absence is valid only when the admitted Snapshot has no Agent-action Role; otherwise absence, an empty map, or a missing used Role binding fails before Manifest persistence and Runner effect.
 
-Canonical JSON and `canonical_digest` use Workflow DSL 1.1 §3.1 exactly: parsed JSON, UTF-16 code-unit object-key ordering, ECMAScript `JSON.stringify` scalar serialization, no whitespace, then `"sha256:" + lowercase_hex(SHA-256(UTF-8(bytes)))`. The repository document digest is `canonical_digest(full_document)`, including `schemaVersion`; no extra coordinate framing is prepended. File absence is represented explicitly as `ABSENT`, not as the digest of an invented empty document.
+Canonical JSON and `canonical_digest` use Workflow DSL 2.0 canonicalization. The document digest covers the complete document including `schemaVersion`. The resolved array is bytewise sorted by `roleId` and `resolvedMapDigest = canonical_digest(resolvedRoles)`.
 
-The resolved binding array is bytewise sorted by `roleId`; every entry contains exactly `roleId`, `rolePromptIdentity`, `rolePromptDigest`, `agentProviderId`, `modelProviderId`, `modelId`, and `resolutionSource`. `resolvedMapDigest = canonical_digest(resolved_binding_array)` and therefore covers the Agent Provider, exact LLM route/model pair, and fallback source. The map contains every distinct Agent-action Role in the exact Workflow Snapshot and no Runtime-only deterministic Action.
+## 4. Admission, registry, and recovery
 
-## 4. Admission and recovery
+Installation composition supplies one closed `AgentProviderFactoryRegistry` containing owner factories. Registration rejects duplicate/conflicting descriptors. The registry is composition capability, not selection policy: repository bytes select an exact Provider identity/version, and the registered descriptor supplies the immutable `adapterKey`, capability set, and descriptor digest.
 
-Resolution occurs after one exact Workflow Package has been validated and before the Delivery Manifest is persisted:
+For every distinct Agent-action Role in the exact Workflow Snapshot, admission:
 
-```mermaid
-sequenceDiagram
-    participant Core
-    participant Source as Required Workflow Source
-    participant Repo as Repository binding document
-    participant M01 as Delivery admission
-    participant Manifest
-    participant Runner
+1. requires its repository binding;
+2. resolves the exact registered Provider identity/version;
+3. derives the Role's required-capability union from the exact Snapshot Routes/Actions;
+4. rejects an unknown Provider, version mismatch, or capability incompatibility;
+5. freezes `roleId`, Role-prompt identity/digest, Provider identity/version/adapter key/descriptor digest, sorted required capabilities, Provider-owned model coordinate, and `resolutionSource=REPOSITORY`.
 
-    Core->>Source: resolve exact Workflow selector
-    Source-->>M01: validated Package + Workflow Snapshot
-    M01->>Repo: read optional .wsr/model-bindings.json
-    M01->>M01: resolve every Snapshot Agent-action Role
-    M01->>Manifest: persist Package/Snapshot + resolved Role/Agent-Provider/LLM-route/model map
-    Manifest-->>Runner: immutable admitted execution binding
-    Note over Manifest,Runner: recovery never rereads Repo or current global config
-```
+The Manifest and its Observation-safe projection freeze those exact values. Runtime, session creation/resume, and recovery must exact-match the persisted descriptor and model coordinate. Current repository content or registry composition cannot rebind a persisted Delivery, and no mismatch may select another Provider/model.
 
-For every distinct Agent-action Role in the exact Workflow Snapshot, admission freezes:
+After Manifest persistence, Runner starts realms only for the distinct Providers actually used by that Manifest. Each owner factory constructs its own realm; Runner owns the bounded Delivery lease/disposal. An unused registered Provider is not started. Partial startup is rolled back, and a reused or mismatched realm lease fails closed.
 
-- exact Role identity and Role-prompt content identity;
-- exact Agent Provider identity and exact LLM provider-route/model identity;
-- resolution source: `REPOSITORY` or `EXECUTION_DEFAULT`;
-- repository binding document state and content identity;
-- the resolved Role/Agent-Provider/LLM-route/model map's canonical identity.
-
-Changing the repository file or Execution default affects only subsequently admitted Deliveries. Recovery consumes the persisted Manifest for binding authority and cannot rebind an existing Delivery. Current DSH-owned profile/settings may supply credentials/connectivity for the frozen Agent Provider and LLM-route identities; missing or incompatible DSH-E capability causes explicit recovery failure, never fallback or rebinding. Execution never loads those Provider files.
-
-## 5. Delivery Manifest
-
-The next Delivery Manifest revision must bind:
-
-- exact Workflow Package name, version, digest, and Workflow identity;
-- exact Workflow Snapshot identity and digest;
-- repository binding document state/digest;
-- exact resolved Role/Agent-Provider/LLM-route/model entries for all Snapshot Agent-action Roles;
-- the existing Task, Delivery, prompt snapshot, worktree, and non-model control bindings.
-
-The Manifest excludes Provider credentials, credential references, endpoint configuration, mutable source configuration, and repository file paths other than the conventional relative binding-document identity. The Delivery binding digest covers every new field.
-
-## 6. Observation and metric consequences
-
-Observation continues to record actual calls:
-
-- C30 is the exact Workflow Role;
-- C57 is the provider-scoped canonical model identity;
-- `gen_ai.provider.name` and C06 complete the operational attribution tuple.
-
-No model-assignment Event is introduced. The Manifest supplies admitted configuration; model-call Spans supply actual use. Evolution's Role/Model metrics use actual C30/C57 tuples. Role-template metrics resolve the Role prompt and Route resources through the Manifest-bound Workflow Snapshot.
-
-## 7. Failure semantics
+## 5. Failure semantics
 
 | Condition | Result |
 | --- | --- |
-| repository file absent | use Execution default for every Role |
-| Role absent from repository map | use Execution default for that Role |
-| default model selection missing or malformed | configuration startup fails |
-| repository document malformed/unsupported | Delivery admission fails before Manifest |
-| model selection has malformed/empty coordinates | Delivery admission fails before Runner effect |
-| configured capability has a different Agent Provider identity | Delivery admission fails before Runner effect |
-| exact DSH LLM route/model cannot execute | Provider returns a typed runtime failure; admission never invents a local catalog or performs a network probe |
-| repository file changes after Manifest | no effect on admitted Delivery |
-| Manifest resolved map conflicts with Snapshot Roles | recovery/admission validation fails closed |
+| document absent with no Agent-action Role | valid empty resolved map; no Provider realm starts |
+| document or used Role binding absent while an Agent-action Role exists | Delivery admission fails before Manifest/Runner effect |
+| Provider unknown, duplicate, or exact version differs | startup/admission fails closed; no alternative is tried |
+| Provider capabilities do not cover the Role requirement union | admission fails before Runner effect |
+| Provider-owned model coordinate malformed | admission fails before Runner effect |
+| exact model cannot execute | selected Provider returns a typed runtime failure; no catalog probe or fallback is invented |
+| repository/registry changes after Manifest | no effect on the admitted Delivery |
+| persisted descriptor/model differs at session or recovery time | fail before new Provider/session effect |
+| Provider credentials/login unavailable | Provider-owned typed failure; credentials never enter WSR binding data |
 
-## 8. Superseded directions
+## 6. Historical boundary
 
-- one global model applied unconditionally to every Role;
-- per-Route or ordered matcher rules in the first release;
-- a separate generic Agent-definition resource that duplicates Role/Route configuration;
-- repository-owned Provider credentials, endpoint, or credential references;
-- re-reading repository configuration during recovery;
-- inferring admitted model assignment from Observation timestamps or arrival order.
+The Iteration 5 proposal used optional `.wsr/model-bindings.json`, one installation Agent Provider, `repository[role] ?? execution.default_model_selection`, and `REPOSITORY|EXECUTION_DEFAULT`. Those statements describe an unshipped 2.0 proposal and are superseded here. Published 1.x configuration, activation, Manifest, and recovery paths remain historical, exact-version behavior and are not rewritten into this registry/binding model.
