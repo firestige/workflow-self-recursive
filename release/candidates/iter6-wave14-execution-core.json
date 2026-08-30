@@ -6,7 +6,7 @@
     "repository": "firestige/wsr-execution",
     "input_commit": "2984884cb1eb307bdfc3edf5af56a7505ba8a312",
     "build_input_commit": "2984884cb1eb307bdfc3edf5af56a7505ba8a312",
-    "candidate_archive_commit": "5f672012c5ab9623578418367d148b2187fee2d0",
+    "candidate_archive_commit": "d4fa9607e5e3153b969e186866ddd7697a119c81",
     "metadata": {
       "path": "execution-system/release/candidates/iter6-wave14-core/release-metadata.json",
       "sha256": "sha256:895e77989b9536645dda5b1ce392404213d21284da8e201758dbdabaf7d445c2"
