@@ -17,7 +17,7 @@ Executed: 2026-08-30
   its obsolete cross-repository DSH documentation gate, PR #21 synchronized
   the generated changelog, and PR #22 recorded the core-only `0.1.4` release
   plus its qualification-policy fix. The final pin
-  `116f7a4430d71304447a47ff9491ad2c601cff4c` makes the active Execution
+  `4b1ca9d23da5ce1fc21f01ec0be87390eac83077` makes the active Execution
   publisher core-only. The retained `packages/dsh-intake` tree is private,
   compatibility-only source and is absent from active package scripts and
   release workflows.

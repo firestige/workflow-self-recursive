@@ -29,7 +29,7 @@ jobs:
         run: |
           git submodule status --recursive
           test "$(git rev-parse HEAD:workflow-package)" = 08d0a4e7d2862203107fde647c21a756734586c6
-          test "$(git rev-parse HEAD:execution-system)" = 116f7a4430d71304447a47ff9491ad2c601cff4c
+          test "$(git rev-parse HEAD:execution-system)" = 4b1ca9d23da5ce1fc21f01ec0be87390eac83077
           test "$(git rev-parse HEAD:evidence-system)" = 5065cf8aede5191c3a702f3516e2f8db8af36002
           test "$(git rev-parse HEAD:evolution-system)" = b302595942b2307514570a47be9ed87f26f8cf84
           test "$(git rev-parse HEAD:system-contracts)" = 352f5c771ff0abd11acb80c58dc7ea528a729dca
