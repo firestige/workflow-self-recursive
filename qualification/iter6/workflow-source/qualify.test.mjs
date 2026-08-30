@@ -7,8 +7,8 @@ import { fileURLToPath } from "node:url";
 import { assertPinnedOwners } from "./qualify.mjs";
 
 const expected = Object.freeze({
-  "workflow-package": "08d0a4e7d2862203107fde647c21a756734586c6",
-  "execution-system": "4b1ca9d23da5ce1fc21f01ec0be87390eac83077",
+  "workflow-package": "4f77fcc25c26d85cba170ba6aa859d05eee3b298",
+  "execution-system": "5d03924df88e1afda3b7ffb5ecf182482cc8d1d5",
   "evolution-system": "b302595942b2307514570a47be9ed87f26f8cf84",
 });
 

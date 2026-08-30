@@ -28,8 +28,8 @@ jobs:
       - name: Verify pinned component worktrees
         run: |
           git submodule status --recursive
-          test "$(git rev-parse HEAD:workflow-package)" = 08d0a4e7d2862203107fde647c21a756734586c6
-          test "$(git rev-parse HEAD:execution-system)" = 4b1ca9d23da5ce1fc21f01ec0be87390eac83077
+          test "$(git rev-parse HEAD:workflow-package)" = 4f77fcc25c26d85cba170ba6aa859d05eee3b298
+          test "$(git rev-parse HEAD:execution-system)" = 5d03924df88e1afda3b7ffb5ecf182482cc8d1d5
           test "$(git rev-parse HEAD:evidence-system)" = 5065cf8aede5191c3a702f3516e2f8db8af36002
           test "$(git rev-parse HEAD:evolution-system)" = b302595942b2307514570a47be9ed87f26f8cf84
           test "$(git rev-parse HEAD:system-contracts)" = 352f5c771ff0abd11acb80c58dc7ea528a729dca
@@ -109,10 +109,10 @@ jobs:
           npm --prefix system-contracts/evaluation run check:example
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/system-design/definition
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/implementation/definition
-          node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/hello-world-workflow/definition
+          node system-contracts/workflow-dsl-2-candidate/tools/check-example.cjs workflow-package/hello-world-workflow/definition
           node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/system-design/definition
           node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/implementation/definition
-          node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/hello-world-workflow/definition
+          node system-contracts/workflow-dsl-2-candidate/tools/run-conformance.cjs workflow-package/hello-world-workflow/definition
           node system-contracts/workflow-dsl/tools/test-wave6-contract.cjs
           npm --prefix workflow-package/implementation/cli test
           npm --prefix workflow-package/implementation/cli run check
