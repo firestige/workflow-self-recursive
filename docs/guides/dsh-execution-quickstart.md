@@ -4,7 +4,7 @@ This guide installs a qualified final Execution Release in a trusted local envir
 
 ## 0. Check the host prerequisites
 
-Use Node `>=24.12.0 <25` and DSH `0.1.1-rc.2`. DSH's `plugin` subcommand requires pnpm, but it does not declare an exact pnpm version. The download example also uses GitHub CLI.
+Use Node `24.12.0` and DSH `0.1.1-rc.2`. DSH's `plugin` subcommand requires pnpm, but it does not declare an exact pnpm version.
 
 First, inspect the installed versions:
 
@@ -33,16 +33,15 @@ Finally, inspect the launcher help:
 dsh --help
 ```
 
-## 1. Download the qualified final Release
+## 1. Bind the qualified published coordinates
 
 ```sh
-export WSR_VERSION="0.1.1"
-export WSR_RELEASE_DIR="$PWD/.wsr-release"
-mkdir -p "$WSR_RELEASE_DIR"
-gh release download "$WSR_VERSION" --repo firestige/wsr-execution --dir "$WSR_RELEASE_DIR"
+export WSR_DSH_VERSION="0.1.0"
+export WSR_EXECUTION_VERSION="0.1.4"
+export WSR_EXECUTION_ASSET="https://github.com/firestige/wsr-execution/releases/download/0.1.4-rc.1/wsr-execution-0.1.4.tgz"
 ```
 
-Continue only when `0.1.1` exists as a non-prerelease GitHub Release. `release-metadata.json` and the publication records bind the downloaded archives to their SHA-256, package version, inventory, and compatibility tuple.
+`dsh-wsr-execution@0.1.0` is the qualified stable DSH bundle. Its immutable metadata binds the exact `wsr-execution@0.1.4` owner asset above (SHA-256 `4407239534795f528b3ca597583a682636dd539516f567434a128d5437345e4d`); do not substitute a branch, `latest`, or local checkout.
 
 ## 2. Initialize the canonical configuration
 
@@ -53,7 +52,7 @@ export WSR_CONFIG="$PWD/../wsr-local/execution.yaml"
 export WSR_STATE="$PWD/../wsr-local/state"
 export WSR_CREDENTIALS="$PWD/../wsr-local/credentials.yml"
 mkdir -p "$(dirname "$WSR_CONFIG")" "$WSR_STATE"
-npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
+npm exec --yes --package="$WSR_EXECUTION_ASSET" -- \
   execution-config init "$WSR_CONFIG" yaml
 ```
 
@@ -71,9 +70,9 @@ Set the credential file to owner-only access, then validate and inspect the reda
 
 ```sh
 chmod 600 "$WSR_CREDENTIALS"
-npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
+npm exec --yes --package="$WSR_EXECUTION_ASSET" -- \
   execution-config validate "$WSR_CONFIG"
-npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
+npm exec --yes --package="$WSR_EXECUTION_ASSET" -- \
   execution-config dump-effective "$WSR_CONFIG"
 ```
 
@@ -85,8 +84,8 @@ Use locked DSH's built-in `web` profile. It is the supported interactive assembl
 
 ```sh
 dsh plugin --profile web config set --location=project --json allowBuilds '{"better-sqlite3":true}'
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/dsh-wsr-execution-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_EXECUTION_ASSET"
+dsh plugin --profile web add --workspace-root "dsh-wsr-execution@$WSR_DSH_VERSION"
 ```
 
 Edit `$DSH_HOME/profiles/web/cordis.patch.yml` so the stable WSR row contains only absolute presentation paths. `web` is the DSH profile name; `workflow-execution` remains the plugin's stable Cordis row ID:
@@ -173,8 +172,8 @@ dsh plugin --profile web update --workspace-root wsr-execution@<new-exact-versio
 dsh plugin --profile web update --workspace-root dsh-wsr-execution@<new-exact-version>
 dsh plugin --profile web remove --workspace-root dsh-wsr-execution
 dsh plugin --profile web remove --workspace-root wsr-execution
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/dsh-wsr-execution-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_EXECUTION_ASSET"
+dsh plugin --profile web add --workspace-root "dsh-wsr-execution@$WSR_DSH_VERSION"
 ```
 
 DSH owns these package-lifecycle operations. WSR does not add install/remove hooks. Removal leaves external durable state untouched; a compatible reinstall resumes the same persisted Delivery binding. Interaction state written after the last durable boundary may be lost.

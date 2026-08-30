@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 export const EXPECTED_OWNER_REVISIONS = Object.freeze({
   "workflow-package": "08d0a4e7d2862203107fde647c21a756734586c6",
-  "execution-system": "1cb19faa78aafa380eb93f1eda0cb9819ee1188e",
+  "execution-system": "2984884cb1eb307bdfc3edf5af56a7505ba8a312",
   "evolution-system": "b302595942b2307514570a47be9ed87f26f8cf84",
 });
 

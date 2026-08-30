@@ -4,7 +4,7 @@
 
 ## 0. 检查宿主前置项
 
-使用 Node `>=24.12.0 <25` 与 DSH `0.1.1-rc.2`。DSH 的 `plugin` 子命令要求 pnpm，但 DSH 没有声明 pnpm 的准确版本。下载示例还使用 GitHub CLI。
+使用 Node `24.12.0` 与 DSH `0.1.1-rc.2`。DSH 的 `plugin` 子命令要求 pnpm，但 DSH 没有声明 pnpm 的准确版本。
 
 先查看已经安装的版本：
 
@@ -33,16 +33,15 @@ npm install --global @deepseek-ai/dsh@0.1.1-rc.2
 dsh --help
 ```
 
-## 1. 下载完成 qualification 的 final Release
+## 1. 绑定已验证的发布坐标
 
 ```sh
-export WSR_VERSION="0.1.1"
-export WSR_RELEASE_DIR="$PWD/.wsr-release"
-mkdir -p "$WSR_RELEASE_DIR"
-gh release download "$WSR_VERSION" --repo firestige/wsr-execution --dir "$WSR_RELEASE_DIR"
+export WSR_DSH_VERSION="0.1.0"
+export WSR_EXECUTION_VERSION="0.1.4"
+export WSR_EXECUTION_ASSET="https://github.com/firestige/wsr-execution/releases/download/0.1.4-rc.1/wsr-execution-0.1.4.tgz"
 ```
 
-只有 `0.1.1` 已经成为 non-prerelease GitHub Release 时才能继续。`release-metadata.json` 与 publication records 会把下载的 archive 绑定到 SHA-256、package version、inventory 和 compatibility tuple。
+`dsh-wsr-execution@0.1.0` 是已完成 qualification 的 stable DSH bundle。其 immutable metadata 绑定上面的精确 `wsr-execution@0.1.4` owner asset（SHA-256 `4407239534795f528b3ca597583a682636dd539516f567434a128d5437345e4d`）；不得替换为 branch、`latest` 或本地 checkout。
 
 ## 2. 初始化唯一配置
 
@@ -53,7 +52,7 @@ export WSR_CONFIG="$PWD/../wsr-local/execution.yaml"
 export WSR_STATE="$PWD/../wsr-local/state"
 export WSR_CREDENTIALS="$PWD/../wsr-local/credentials.yml"
 mkdir -p "$(dirname "$WSR_CONFIG")" "$WSR_STATE"
-npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
+npm exec --yes --package="$WSR_EXECUTION_ASSET" -- \
   execution-config init "$WSR_CONFIG" yaml
 ```
 
@@ -69,9 +68,9 @@ refs:
 
 ```sh
 chmod 600 "$WSR_CREDENTIALS"
-npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
+npm exec --yes --package="$WSR_EXECUTION_ASSET" -- \
   execution-config validate "$WSR_CONFIG"
-npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
+npm exec --yes --package="$WSR_EXECUTION_ASSET" -- \
   execution-config dump-effective "$WSR_CONFIG"
 ```
 
@@ -83,8 +82,8 @@ npm exec --yes --package="$PWD/.wsr-release/wsr-execution-0.1.1.tgz" -- \
 
 ```sh
 dsh plugin --profile web config set --location=project --json allowBuilds '{"better-sqlite3":true}'
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/dsh-wsr-execution-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_EXECUTION_ASSET"
+dsh plugin --profile web add --workspace-root "dsh-wsr-execution@$WSR_DSH_VERSION"
 ```
 
 编辑 `$DSH_HOME/profiles/web/cordis.patch.yml`，stable WSR row 只保留 absolute presentation path。`web` 是 DSH profile name；`workflow-execution` 仍是 plugin 的 stable Cordis row ID：
@@ -171,8 +170,8 @@ dsh plugin --profile web update --workspace-root wsr-execution@<new-exact-versio
 dsh plugin --profile web update --workspace-root dsh-wsr-execution@<new-exact-version>
 dsh plugin --profile web remove --workspace-root dsh-wsr-execution
 dsh plugin --profile web remove --workspace-root wsr-execution
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/wsr-execution-0.1.1.tgz"
-dsh plugin --profile web add --workspace-root "$PWD/.wsr-release/dsh-wsr-execution-0.1.1.tgz"
+dsh plugin --profile web add --workspace-root "$WSR_EXECUTION_ASSET"
+dsh plugin --profile web add --workspace-root "dsh-wsr-execution@$WSR_DSH_VERSION"
 ```
 
 这些 package lifecycle operation 归 DSH。WSR 不增加 install/remove hook。Remove 保留外置 durable state；兼容版本 reinstall 后恢复相同 persisted Delivery binding。最后一个 durable boundary 之后的 interaction state 允许丢失。

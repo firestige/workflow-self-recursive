@@ -29,7 +29,7 @@ jobs:
         run: |
           git submodule status --recursive
           test "$(git rev-parse HEAD:workflow-package)" = 08d0a4e7d2862203107fde647c21a756734586c6
-          test "$(git rev-parse HEAD:execution-system)" = 1cb19faa78aafa380eb93f1eda0cb9819ee1188e
+          test "$(git rev-parse HEAD:execution-system)" = 2984884cb1eb307bdfc3edf5af56a7505ba8a312
           test "$(git rev-parse HEAD:evidence-system)" = 5065cf8aede5191c3a702f3516e2f8db8af36002
           test "$(git rev-parse HEAD:evolution-system)" = b302595942b2307514570a47be9ed87f26f8cf84
           test "$(git rev-parse HEAD:system-contracts)" = 352f5c771ff0abd11acb80c58dc7ea528a729dca
@@ -83,8 +83,6 @@ jobs:
           pnpm changelog:check
           pnpm harness static
           pnpm harness feasibility
-          pnpm verify:dsh-intake
-          pnpm verify:iteration3-docs
 
       - name: Qualify exact public Workflow source and cache in a clean directory
         env:

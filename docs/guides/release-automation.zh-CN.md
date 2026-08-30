@@ -14,7 +14,8 @@ Iter4 把发布设施做到 implementation-ready。Wave12 会在所需批准门�
 
 | 组件 | 资产与 publisher adapter | 本轮状态 |
 |---|---|---|
-| Execution | npm 双包 + DSH install + GitHub Release | active |
+| Execution | 单个 npm core package + GitHub Release | active |
+| DSH bundles | npm 三包集合 + DSH clean-profile + GitHub Release | active（`firestige/wsr-dsh`）|
 | Evidence | Python wheel/sdist + GHCR OCI + GitHub Release | active |
 | system-contracts | publication records + GitHub Release | active |
 | workflow-package | deterministic workflow assets + GitHub Release | active |
@@ -42,7 +43,7 @@ workflow 进入默认分支后，仍可从 `release/next` 使用 `workflow_dispa
 | 下载 digest 不一致 | 否 | 保留 URL/digest 调查；不得替换 RC assets |
 | 权限拒绝 | 否 | 修复 App/registry 配置；对同一不可变 candidate 重跑 |
 | squash 后 candidate 与组件 `main` 不同 | repin 后可以 | 这是预期状态；stable 仍指向 qualified candidate commit |
-| Execution core 已发布、intake 失败 | 暂不可 stable | 对同一 manifest 恢复；仅当 registry 字节一致时跳过 core，再发 intake |
+| DSH 集合中前一包已发布、后一包失败 | 暂不可创建 stable DSH Release | 对同一 `wsr-dsh` manifest 恢复；仅跳过 registry 字节精确一致的包，再继续有序集合 |
 | stable 操作失败 | 不得重建 | 从 qualified manifest 与 candidate commit 重试；不得转移 tag |
 
 ## GitHub App 身份
@@ -57,12 +58,12 @@ Bootstrap 顺序：注册/安装 App；在四个 active 发布仓库分别配置
 
 ## npm trusted publishing
 
-Execution 选择 GitHub Actions OIDC trusted publishing，不使用长期 npm automation token。在 npmjs.com 为 `wsr-execution` 与 `dsh-wsr-execution` 分别配置：owner `firestige`、repository `execution-system`、workflow `release-promote.yml`，除非未来 workflow 使用 environment，否则 environment 留空。workflow 具有 `id-token: write`，会验证 npm 至少为 11.5，在 GitHub-hosted runner 上只按 core→intake 发布两个 qualified tgz，并且没有 `NODE_AUTH_TOKEN`。
+Execution 选择 GitHub Actions OIDC trusted publishing，不使用长期 npm automation token。为 `wsr-execution` 配置 owner `firestige`、repository `wsr-execution`、workflow `release-promote.yml`；三个独立版本的 `dsh-wsr-*` 包则绑定 `firestige/wsr-dsh` 的 promotion workflow。两条 workflow 都具有 `id-token: write`，要求 npm 至少为 11.5，只在 GitHub-hosted runner 上发布 immutable qualified tgz，并且没有 `NODE_AUTH_TOKEN`。
 
 npm 要求 npm CLI ≥11.5.1、Node ≥22.14、仓库/workflow 精确匹配以及 `id-token: write`；trusted publishing 使用短期凭据并生成 provenance（[npm trusted publishers](https://docs.npmjs.com/trusted-publishers/)）。若以后用 reusable workflow 包住 npm publish job，必须按 caller workflow 身份重新配置 npm，并让 caller/called 两侧都有 OIDC 权限。
 
-发布后 adapter 会核对两包 tgz 精确 digest、非空 description、versions 与 `latest`。直接对源码运行 `npm pack`/`npm publish` 会 fail closed；只有 verified artifact builder 可打包，promotion 也只接受其 immutable manifest。
+发布后，各 owner adapter 会核对自身 tgz 精确 digest、非空 description、versions 与 `latest`。直接对源码运行 `npm pack`/`npm publish` 会 fail closed；只有对应 verified artifact builder 可打包，promotion 也只接受其 immutable manifest。
 
 ## 发布节奏与版本
 
-不做日历强制发布；review 后的变更及其生态 qualification 就绪时再发。遵循 SemVer：向后兼容修复、元数据或自动化修正用 PATCH；向后兼容能力用 MINOR；不兼容的公开契约或安装变化才用 MAJOR。Execution 两包保持 lockstep；其他组件按实际产物独立版本化。
+不做日历强制发布；review 后的变更及其生态 qualification 就绪时再发。遵循 SemVer：向后兼容修复、元数据或自动化修正用 PATCH；向后兼容能力用 MINOR；不兼容的公开契约或安装变化才用 MAJOR。Execution core 与 DSH bundle set 独立版本；各 release manifest 绑定跨 owner 的精确兼容坐标。
