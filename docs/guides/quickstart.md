@@ -2,22 +2,30 @@
 
 English | [中文](quickstart.zh-CN.md)
 
-This guide rebuilds the Iter6 reference assembly on one trusted personal computer. It consumes only
-the stable coordinates in `release/product/0.2.0.json`; owner source checkouts and builds are not part
-of the product path.
+This guide rebuilds the Iter6 reference assembly on one trusted personal computer. It installs the
+top-level operations bundle from the `product-0.2.0` GitHub Release and consumes only that bundle's
+stable compatibility manifest. No WSR source checkout or owner build is part of the product path.
 
 ## 1. Prepare configuration
 
 Prerequisites are DSH `0.1.1-rc.2`, Node `24.12.0`, npm `11.6.2`, Docker with Compose, Codex CLI
-`0.144.5` logged in locally, and an available local GitHub Copilot login. Copy
-`product-operations/fixtures/config.json`, set `workspace` to a canonical Git worktree root, choose
-an absolute `durableState` path, and select an unused loopback `ports.dsh` port. The example binds
-`role.greeter` to Copilot and `role.reviewer` to Codex.
+`0.144.5` logged in locally, and an available local GitHub Copilot login. Install the exact operations
+asset and download its editable configuration example:
 
 ```sh
-node product-operations/bin/wsr.mjs setup --config-input /absolute/config.json
-node product-operations/bin/wsr.mjs install
-node product-operations/bin/wsr.mjs preflight
+npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.2.0/wsr-product-operations-0.2.0.tgz
+curl --proto '=https' --tlsv1.2 --fail --location --remote-name \
+  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.2.0/wsr-product-0.2.0.config.example.json
+```
+
+Set `workspace` in the example to a canonical Git worktree root, choose an absolute `durableState`
+path, and select unused loopback ports. The example binds `role.greeter` to Copilot and
+`role.reviewer` to Codex.
+
+```sh
+wsr setup --config-input /absolute/config.json
+wsr install
+wsr preflight
 ```
 
 `preflight` fails before Delivery admission when the workspace is not the exact Git root or has
@@ -27,7 +35,7 @@ configuration.
 ## 2. Start and create a Delivery
 
 ```sh
-node product-operations/bin/wsr.mjs start
+wsr start
 ```
 
 Open the DSH web profile, register the exact configured workspace, create a Session there, and submit

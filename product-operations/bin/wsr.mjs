@@ -41,7 +41,7 @@ let exitCode = 0;
 let output;
 try {
   const { command, options } = parseArguments(process.argv.slice(2));
-  const manifestPath = path.resolve(options.manifest ?? path.join(packageRoot, "..", "release", "product", "0.2.0.json"));
+  const manifestPath = path.resolve(options.manifest ?? path.join(packageRoot, "manifests", "product-0.2.0.json"));
   const fixturePath = options.fixture ? path.resolve(options.fixture) : null;
   const manifest = await loadCompatibilityManifest(manifestPath);
   const stateDirectory = path.resolve(options["state-dir"] ?? ".wsr/operations");

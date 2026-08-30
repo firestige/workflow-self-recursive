@@ -2,21 +2,29 @@
 
 [English](quickstart.md) | 中文
 
-本指南描述在一台可信个人电脑上重建 Iter6 reference assembly 的正式旅程。产品路径只消费
-`release/product/0.2.0.json` 中的稳定坐标，不需要各 owner 的源码 checkout 或 build。
+本指南描述在一台可信个人电脑上重建 Iter6 reference assembly 的正式旅程。顶层 operations 从
+`product-0.2.0` GitHub Release 安装，并只消费包内的稳定 compatibility manifest；产品路径不需要
+任何 WSR 源码 checkout 或 owner build。
 
 ## 1. 准备配置
 
 前置条件为 DSH `0.1.1-rc.2`、Node `24.12.0`、npm `11.6.2`、Docker Compose、已在本机登录的
-Codex CLI `0.144.5`，以及可用的本机 GitHub Copilot 登录。复制
-`product-operations/fixtures/config.json`，把 `workspace` 改为 canonical Git worktree 根目录，并设置
-绝对的 `durableState` 路径，再为 `ports.dsh` 选择一个未占用的 loopback 端口。示例把
-`role.greeter` 绑定到 Copilot、`role.reviewer` 绑定到 Codex。
+Codex CLI `0.144.5`，以及可用的本机 GitHub Copilot 登录。安装精确的 operations 资产并下载可编辑
+配置示例：
 
 ```sh
-node product-operations/bin/wsr.mjs setup --config-input /absolute/config.json
-node product-operations/bin/wsr.mjs install
-node product-operations/bin/wsr.mjs preflight
+npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.2.0/wsr-product-operations-0.2.0.tgz
+curl --proto '=https' --tlsv1.2 --fail --location --remote-name \
+  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.2.0/wsr-product-0.2.0.config.example.json
+```
+
+把示例中的 `workspace` 改为 canonical Git worktree 根目录，设置绝对的 `durableState` 路径，并为
+各 loopback port 选择未占用端口。示例把 `role.greeter` 绑定到 Copilot、`role.reviewer` 绑定到 Codex。
+
+```sh
+wsr setup --config-input /absolute/config.json
+wsr install
+wsr preflight
 ```
 
 若 workspace 不是精确 Git 根目录或有未提交变化，`preflight` 会在 Delivery admission 前阻止执行；
@@ -25,7 +33,7 @@ node product-operations/bin/wsr.mjs preflight
 ## 2. 启动并创建 Delivery
 
 ```sh
-node product-operations/bin/wsr.mjs start
+wsr start
 ```
 
 打开 DSH web profile，注册配置中的精确 workspace，在其中创建 Session，然后把 selector 放在第一行、

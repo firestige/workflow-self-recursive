@@ -8,7 +8,7 @@ It binds each delivery to one resolved version and digest of a Workflow Package,
 
 ## Developer preview
 
-workflow-self-recursive is currently an architecture-first developer preview for trusted local use by individuals and small teams. It does not yet provide a packaged end-user release, but its local data services can be started from source. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+workflow-self-recursive is currently an architecture-first packaged developer preview for trusted local use by individuals and small teams. The reference assembly is distributed through exact GitHub Release assets. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
 
 ## Architecture
 

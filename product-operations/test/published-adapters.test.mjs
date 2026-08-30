@@ -9,6 +9,7 @@ import { createPublishedAdapters } from "../src/published-adapters.mjs";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const manifestPath = path.join(root, "release/product/0.2.0.json");
+const packagedManifestPath = path.join(root, "product-operations/manifests/product-0.2.0.json");
 
 async function configFixture(directory, overrides = {}) {
   const configPath = path.join(directory, "config.json");
@@ -30,6 +31,7 @@ async function configFixture(directory, overrides = {}) {
 }
 
 test("final product manifest binds only stable published artifacts", async () => {
+  assert.equal(await readFile(packagedManifestPath, "utf8"), await readFile(manifestPath, "utf8"));
   const manifest = await loadCompatibilityManifest(manifestPath);
   assert.equal(manifest.release, "0.2.0");
   assert.deepEqual(manifest.components.map(({ id }) => id), [

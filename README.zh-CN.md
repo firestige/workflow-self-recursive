@@ -8,7 +8,7 @@ workflow-self-recursive 是一个开源的 Agent 工作流架构：它通过小�
 
 ## Developer preview
 
-workflow-self-recursive 目前是以架构为先的开发者预览版，适用于个人或小团队的可信本地环境。本仓库尚未提供打包的最终用户发行版，但可以从源码启动本地数据服务预览。**后续会有破坏兼容性的变更。**
+workflow-self-recursive 目前是以架构为先的打包开发者预览版，适用于个人或小团队的可信本地环境。Reference assembly 通过精确的 GitHub Release 资产分发。**后续会有破坏兼容性的变更。**
 
 ## 架构
 
