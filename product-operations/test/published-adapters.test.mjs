@@ -244,6 +244,52 @@ test("published DSH start fails closed when the launched process exits during st
   await assert.rejects(readFile(path.join(stateDirectory, "run/dsh.json"), "utf8"), /ENOENT/u);
 });
 
+test("published DSH uninstall treats an already-collapsed transitive owner root as absent", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const removals = [];
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory: path.join(directory, "state"),
+    run: async (command, args) => {
+      if (command === "dsh" && args.includes("remove")) {
+        removals.push(args.at(-1));
+        return args.at(-1) === "wsr-execution"
+          ? { status: 1, stdout: "[ERR_PNPM_CANNOT_REMOVE_MISSING_DEPS] dependency is absent", stderr: "" }
+          : { status: 0, stdout: "", stderr: "" };
+      }
+      return { status: 0, stdout: "", stderr: "" };
+    },
+  });
+
+  const result = await adapters.get("dsh-bundle").apply("uninstall");
+  assert.equal(result.status, "succeeded");
+  assert.deepEqual(removals, ["dsh-wsr", "wsr-execution"]);
+});
+
+test("published DSH rollback reconciles the stable package instead of removing roots", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const commands = [];
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory: path.join(directory, "state"),
+    run: async (command, args) => {
+      commands.push([command, ...args]);
+      return { status: 0, stdout: "", stderr: "" };
+    },
+  });
+
+  const result = await adapters.get("dsh-bundle").apply("rollback");
+  assert.equal(result.status, "succeeded");
+  assert.ok(commands.some((command) => command.includes("add") && command.at(-1) === "dsh-wsr@0.2.1"));
+  assert.ok(commands.every((command) => !command.includes("remove")));
+});
+
 test("published provider preflight uses Codex read-only login status and never persists credentials", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
   const configPath = await configFixture(directory);

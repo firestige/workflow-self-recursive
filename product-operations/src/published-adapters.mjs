@@ -147,6 +147,15 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
     return succeeded({ running: false, logFile });
   }
 
+  async function removeWorkspaceRoot(profile, packageName) {
+    const result = await run("dsh", ["plugin", "--profile", profile, "remove", "--workspace-root", packageName]);
+    if (result.status === 0) return succeeded({ packageName, removed: true });
+    if (`${result.stdout}\n${result.stderr}`.includes("ERR_PNPM_CANNOT_REMOVE_MISSING_DEPS")) {
+      return succeeded({ packageName, removed: false });
+    }
+    return blocked("DSH_REMOVE_FAILED", `dsh failed with status ${result.status}`);
+  }
+
   async function setup() {
     const config = await loadConfig(configPath);
     const executionStateRoot = path.join(config.durableState, "execution");
@@ -281,7 +290,7 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
       const config = await loadConfig(configPath);
       const profile = config.installation.dshProfile;
       const selected = component.compatibility.packages[config.installation.dshMode];
-      if (["install", "upgrade"].includes(command)) {
+      if (["install", "upgrade", "rollback"].includes(command)) {
         const policy = await invoke(run, "dsh", ["plugin", "--profile", profile, "config", "set", "--location=project", "--json", "allowBuilds", '{"better-sqlite3":true}'], {}, "DSH_POLICY_FAILED");
         if (policy.status !== "succeeded") return policy;
         return invoke(run, "dsh", [
@@ -290,12 +299,12 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
           selected,
         ], {}, "DSH_INSTALL_FAILED");
       }
-      if (["rollback", "uninstall"].includes(command)) {
-        if (command === "uninstall") await stop();
+      if (command === "uninstall") {
+        await stop();
         const packageName = selected.split("@")[0];
-        const removed = await invoke(run, "dsh", ["plugin", "--profile", profile, "remove", "--workspace-root", packageName], {}, "DSH_REMOVE_FAILED");
+        const removed = await removeWorkspaceRoot(profile, packageName);
         if (removed.status !== "succeeded") return removed;
-        return invoke(run, "dsh", ["plugin", "--profile", profile, "remove", "--workspace-root", "wsr-execution"], {}, "DSH_REMOVE_FAILED");
+        return removeWorkspaceRoot(profile, "wsr-execution");
       }
       return succeeded();
     },
