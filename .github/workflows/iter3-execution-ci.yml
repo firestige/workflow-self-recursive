@@ -102,10 +102,9 @@ jobs:
           npm --prefix system-contracts/evaluation run check:example
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/system-design/definition
           node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/implementation/definition
-          node system-contracts/workflow-dsl-2-candidate/tools/check-example.cjs workflow-package/hello-world-workflow/definition
+          node system-contracts/workflow-dsl-2-candidate/generated/tools/check-example.cjs workflow-package/hello-world-workflow/definition
           node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/system-design/definition
           node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/implementation/definition
-          node system-contracts/workflow-dsl-2-candidate/tools/run-conformance.cjs workflow-package/hello-world-workflow/definition
           node system-contracts/workflow-dsl/tools/test-wave6-contract.cjs
           npm --prefix workflow-package/implementation/cli test
           npm --prefix workflow-package/implementation/cli run check
