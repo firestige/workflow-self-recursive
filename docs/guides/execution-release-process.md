@@ -1,62 +1,76 @@
-# Execution and DSH Intake release process
+# Execution core release process
 
-This adapter releases `wsr-execution` and `dsh-wsr-execution` in lockstep. A stable tag is an output of qualification and component-first repinning, never a qualification trigger. The common identity and recovery rules are in the [release automation guide](release-automation.md).
+This adapter releases only the host-neutral `wsr-execution` package. DSH
+Execution, Studio, and suite bundles are independently versioned and released
+from [`firestige/wsr-dsh`](https://github.com/firestige/wsr-dsh). A stable tag
+is the output of qualification and component-first repinning, never a
+qualification trigger. Common identity and recovery rules are in the
+[release automation guide](release-automation.md).
 
 ## Required order
 
 ```mermaid
 flowchart LR
   A[Candidate on release/next] --> B[Acceptance and coordinate gates]
-  B --> C[Build manifest-bound tgz pair and release notes]
-  C --> D[Local clean-install DSH E2E plus manual evidence]
-  D --> E[Create x.y.z-rc.N prerelease]
-  E --> F[Redownload and verify exact assets]
-  F --> G[Remote clean-install DSH E2E]
-  G --> H[Attach qualification evidence]
-  H --> I[Squash component to main and repin superproject]
-  I --> J[Publish exact tgz: core then intake]
-  J --> K[Registry digest, description, versions and latest smoke]
-  K --> L[Create stable tag and Release last]
+  B --> C[Materialize one manifest-bound core tgz]
+  C --> D[Create x.y.z-rc.N prerelease]
+  D --> E[Redownload and verify exact assets]
+  E --> F[Attach qualification evidence]
+  F --> G[Squash component to main and repin superproject]
+  G --> H[Publish exact wsr-execution tgz]
+  H --> I[Verify registry digest and metadata]
+  I --> J[Create stable tag and Release last]
 ```
 
-Changed bytes require a new `-rc.N`; an RC is never overwritten. Stable promotion targets the qualified RC commit and reuses its assets even though the component main branch has a squash commit.
+Changed bytes require a new `-rc.N`; an RC is never overwritten. Stable
+promotion targets the qualified RC commit and reuses its assets even when the
+component main branch contains the squash commit.
 
 ## 1. Prepare and qualify locally
-
-Keep all five coordinates equal: root version, intake version, intake dependency on `wsr-execution`, intake DSH compatibility coordinate, and dynamically derived workflow tgz names.
 
 ```sh
 pnpm release:check-coordinates
 pnpm release:artifacts <release-directory>
 pnpm release:verify <release-directory>
-pnpm release:publish-npm <release-directory> # dry recovery plan; does not publish
+pnpm release:publish-npm <release-directory> # dry recovery plan
 ```
 
-The builder alone may invoke `npm pack`; direct source packing or publishing fails closed. It generates two tgz files, publication records, `release-notes.md`, and `release-metadata.json`. Release notes take What's new from generated CHANGELOG content, copy compatibility from the manifest, include an upgrade guide, and are digest-bound by the manifest.
-
-Follow the [local pre-release E2E guide](dsh-execution-local-e2e.md). Also run the credentialed DSH Web path: create a Workflow from chat text and attachments, observe it in the same conversation, exercise multi-turn input when offered, finish with `/wsr action finish`, and record the replayable evidence in a GitHub issue/comment. No tag or Release is created locally.
+The verified builder produces one `wsr-execution-<version>.tgz`, its
+publication record, `release-notes.md`, and `release-metadata.json`. Direct
+source publication remains fail-closed. DSH clean-profile, lifecycle, browser,
+and bundle-composition qualification belongs to the `wsr-dsh` release flow.
 
 ## 2. Publish and qualify an RC
 
-Create `release/next` from the exact component candidate, add the immutable request below as `release/request.json`, and push that commit. The push is the first-publication trigger because `workflow_dispatch` is unavailable until the workflow exists on the default branch.
+Create `release/next` from the exact component candidate and commit this
+immutable request as `release/request.json`:
 
 ```json
 {
-  "candidate_tag": "0.1.3-rc.1",
+  "candidate_tag": "0.1.5-rc.1",
   "authority_ref": "<superproject-ref-pinning-this-candidate>",
-  "authority_manifest": "release/candidates/iter4-wave11.json",
-  "local_manual_e2e_evidence": "<github-issue-or-comment-url>"
+  "authority_manifest": "release/candidates/<candidate>.json"
 }
 ```
 
-After this workflow reaches the default branch, an equivalent manual recovery dispatch from `release/next` may supply the same four fields. The workflow verifies the superproject Execution pin equals the workflow commit, reruns all gates, and materializes the already-tracked tgz pair named by the immutable unified manifest. It verifies every bound digest, locally qualifies those exact bytes, creates or exactly resumes the prerelease, redownloads the assets into a clean directory, verifies their digests and manifest, reruns remote-install DSH E2E, and attaches or verifies `release-qualification.json`. It never repacks source after Wave11 qualification. Candidate publication uses only the repository `GITHUB_TOKEN`; it never receives the release App key.
+The workflow verifies the superproject Execution pin, reruns the component
+gates, materializes only the exact core artifact bound by the unified manifest,
+creates or exactly resumes the prerelease, redownloads its assets into a clean
+directory, verifies them, and attaches `release-qualification.json`. It never
+rebuilds candidate bytes after qualification.
 
 ## 3. Merge and repin before promotion
 
-After qualification, squash-merge the component candidate to `main`, update the superproject submodule to that component main commit, and merge the repin. Preserve the RC URL, candidate SHA, squash SHA, superproject repin SHA, and manifest digest. Do not move or rebuild the RC.
+Squash-merge the component candidate to `main`, update the superproject
+submodule to that main commit, and merge the repin. Preserve the RC URL,
+candidate SHA, squash SHA, superproject repin SHA, and manifest digest.
 
 ## 4. Promote exact qualified bytes
 
-Configure npm trusted publishers for both packages to `firestige/wsr-execution` and `release-promote.yml`. Then dispatch promotion with the qualified RC and stable tag. The workflow revalidates the candidate commit, qualification evidence, manifest, release notes, and remote DSH install. With npm OIDC it publishes `wsr-execution` first and `dsh-wsr-execution` second, then verifies exact registry tarball digests, descriptions, version listings, and `latest`. Only after those checks does it mint the scoped GitHub App token and create the stable tag/Release as the final operation.
-
-If core succeeds and intake fails, keep stable absent and rerun the same candidate. The publisher downloads the existing coordinate: it skips core only when its digest equals the immutable manifest, then publishes intake. A different digest is a permanent version collision and requires investigation, not overwrite or rebuild.
+Configure the `wsr-execution` npm trusted publisher for
+`firestige/wsr-execution` and `release-promote.yml`. Promotion verifies the
+candidate commit, qualification record, manifest, and release notes; publishes
+the one exact tgz through OIDC; verifies registry digest, description, versions,
+and `latest`; then creates the stable GitHub tag and Release as the last
+operation. An existing version is skipped only when its registry bytes match
+the immutable manifest; a different digest is a permanent collision.

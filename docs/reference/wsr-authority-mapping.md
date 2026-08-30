@@ -5,6 +5,11 @@ Owner issue: [#123](https://github.com/firestige/workflow-self-recursive/issues/
 Remote-effect owner: [#124](https://github.com/firestige/workflow-self-recursive/issues/124)  
 Legacy cleanup owner: [#125](https://github.com/firestige/workflow-self-recursive/issues/125)
 
+Wave 13 execution note (2026-08-30): the five repository cutovers and target
+DSH `0.1.0` promotion are complete; `wsr-ui` is archived; the legacy Execution
+DSH publisher is retired. The frozen old coordinates below remain as rollback
+inputs and historical provenance, not active configuration.
+
 This document is the single coordinate authority for the Iteration 6 WSR naming migration. It freezes targets and execution order; it does not itself authorize a repository rename, publisher switch, deprecation, archive, or deletion. Those remote effects require the explicit gates recorded below.
 
 ## Naming rules
@@ -98,11 +103,11 @@ At every compatibility epoch there is one publisher for an exact coordinate: no 
 | Boundary | Compatibility window | Rollback point |
 |---|---|---|
 | Repository rename | GitHub redirects remain available throughout Iteration 6, but are removed from active configuration by Wave 13 | Rename back before another repository claims the old slug; then restore the previous `.gitmodules`/consumer commit, publisher workflow, and App allowlist |
-| DSH npm migration | `wsr-dsh-intake@0.1.3` remains installable during target qualification and the Iteration 6 rollback window; it is not deleted | Repoint installation/compatibility manifest to the exact old version and keep its publisher active until the target clean-machine journey passes |
+| DSH npm migration | `wsr-dsh-intake@0.1.3` remains installable during the Iteration 6 rollback window but receives no new releases; deprecation points to `dsh-wsr-execution` | Reinstall the exact old artifact only for emergency compatibility; reactivating a publisher requires a new explicit decision and a new version because published bytes are immutable |
 | DSH target packages | `0.0.1` is inert; the first qualified stable version becomes the supported baseline | Before stable promotion, remove no old authority; after promotion, roll consumers back to the last exact qualified bundle set |
 | Images | Previous exact digests remain pullable through the rollback window; no tag movement is treated as identity | Restore the prior Compose compatibility manifest/digests and prior repository publisher while investigating |
 | Workflow Package source | Existing Delivery/Manifest bindings retain exact version/digest and remain resolvable; new defaults use the target repository after cutover | First rename `wsr-workflow-package` back to `workflow-package`, verify the old Release API, and only then restore the previous source default for new admissions; never rewrite an existing Delivery binding or rely on a redirect as the rollback target |
-| `wsr-ui` | Remains available as a migration source until Studio and reusable owner packages pass acceptance and Wave 13 is approved | Do not archive, or unarchive and restore the previous submodule pin; `wsr-dsh` must not publish a competing fork |
+| `wsr-ui` | Archived on 2026-08-30 after Studio and reusable owner packages passed acceptance and Wave 13 archival was approved; repository contents remain readable | Unarchive and restore the previous submodule pin if source recovery is required; `wsr-dsh` remains the sole active Studio publisher |
 
 Rollback never deletes Delivery, checkpoint, binding, Evidence, configuration, Release artifact, or provenance. A failed step stops before the next remote effect and returns to the last row whose unique active authority was verified.
 

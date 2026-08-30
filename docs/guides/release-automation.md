@@ -14,7 +14,8 @@ Create `release/next` from the exact component candidate and include an immutabl
 
 | Component | Asset and publisher adapter | Release status |
 |---|---|---|
-| Execution | npm pair + DSH install + GitHub Release | active |
+| Execution | one npm core package + GitHub Release | active |
+| DSH bundles | three-package npm set + DSH clean-profile + GitHub Release | active (`firestige/wsr-dsh`) |
 | Evidence | Python wheel/sdist + GHCR OCI + GitHub Release | active |
 | system-contracts | publication records + GitHub Release | active |
 | workflow-package | deterministic workflow assets + GitHub Release | active |
@@ -42,7 +43,7 @@ After the workflow has reached the default branch, `workflow_dispatch` from `rel
 | Downloaded digest mismatch | no | preserve URLs/digests for investigation; never replace the RC assets |
 | Permission denial | no | repair App/registry configuration; rerun the same immutable candidate |
 | Candidate differs from component `main` after squash | yes, after repin | expected; stable still targets the qualified candidate commit |
-| Execution core published, intake failed | no stable yet | rerun the same manifest; skip core only if registry bytes match, then publish intake |
+| One package in the DSH set published, a later package failed | no stable DSH Release yet | rerun the same `wsr-dsh` manifest; skip only exact registry-byte matches, then continue the ordered set |
 | Stable operation fails | no new build | retry from the qualified manifest and candidate commit; never retarget a tag |
 
 ## GitHub App identity
@@ -62,12 +63,12 @@ Rotate by generating a second App private key, replacing the Actions secret, run
 
 ## npm trusted publishing
 
-Execution chooses npm trusted publishing through GitHub Actions OIDC, not a long-lived automation token. Configure both `wsr-execution` and `dsh-wsr-execution` on npmjs.com with organization/user `firestige`, repository `execution-system`, workflow `release-promote.yml`, and no environment unless the workflow is later changed to use one. The workflow has `id-token: write`, verifies npm is at least 11.5, runs on a GitHub-hosted runner, publishes only the two qualified tgz files in core-then-intake order, and carries no `NODE_AUTH_TOKEN`.
+Execution chooses npm trusted publishing through GitHub Actions OIDC, not a long-lived automation token. Configure `wsr-execution` for organization/user `firestige`, repository `wsr-execution`, workflow `release-promote.yml`, and no environment unless the workflow later uses one. Configure the three independently versioned `dsh-wsr-*` packages against the separate `firestige/wsr-dsh` promotion workflow. Both workflows have `id-token: write`, require npm 11.5 or newer, run on GitHub-hosted runners, publish only immutable qualified tgz files, and carry no `NODE_AUTH_TOKEN`.
 
 npm requires npm CLI 11.5.1 or newer, Node 22.14 or newer, an exact repository/workflow match, and `id-token: write`; trusted publishing provides short-lived credentials and provenance ([npm trusted publishers](https://docs.npmjs.com/trusted-publishers/)). If a reusable workflow is introduced around the npm publish job, reconfigure npm for the caller workflow identity and give OIDC permission to both caller and called workflow.
 
-After a successful publish, the adapter verifies both exact tarball digests, non-empty descriptions, the version list, and `latest`. Direct source `npm pack`/`npm publish` fails closed. A source build is allowed only through the verified artifact builder, and promotion accepts only its immutable manifest.
+After a successful publish, each owner adapter verifies its exact tarball digests, non-empty descriptions, version list, and `latest`. Direct source `npm pack`/`npm publish` fails closed. A source build is allowed only through the relevant verified artifact builder, and promotion accepts only its immutable manifest.
 
 ## Release cadence and versioning
 
-There is no calendar-forced release. Publish when a reviewed change and its ecosystem-specific qualification are ready. Use SemVer: PATCH for backward-compatible fixes or metadata/automation corrections, MINOR for backward-compatible capabilities, and MAJOR for incompatible public contract or installation changes. The two Execution packages remain lockstep; other components version independently according to their actual artifacts.
+There is no calendar-forced release. Publish when a reviewed change and its ecosystem-specific qualification are ready. Use SemVer: PATCH for backward-compatible fixes or metadata/automation corrections, MINOR for backward-compatible capabilities, and MAJOR for incompatible public contract or installation changes. Execution core and the DSH bundle set are independently versioned; each release manifest binds the exact compatible cross-owner coordinates.

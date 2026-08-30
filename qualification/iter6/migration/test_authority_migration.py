@@ -268,30 +268,34 @@ class OldCoordinateScannerTest(unittest.TestCase):
             self.assertEqual(changed, [])
             self.assertIn("firestige/wsr-ui", source.read_text(encoding="utf-8"))
 
-    def test_owner_exclusion_preserves_the_legacy_execution_dsh_package_authority(self) -> None:
+    def test_retired_execution_dsh_source_is_explicit_rollback_input(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             package = root / "packages/dsh-intake/package.json"
             package.parent.mkdir(parents=True)
             package.write_text('{"name":"wsr-dsh-intake"}\n', encoding="utf-8")
 
-            findings = scan_paths(
-                root,
-                [package],
-                self.manifest,
-                excluded_coordinate_ids={"npm/dsh-execution"},
-            )
-            changed = rewrite_paths(
-                root,
-                [package],
-                self.manifest,
-                direction="forward",
-                excluded_coordinate_ids={"npm/dsh-execution"},
-            )
+            findings = scan_paths(root, [package], self.manifest)
+            changed = rewrite_paths(root, [package], self.manifest, direction="forward")
 
-            self.assertEqual(findings, [])
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0].classification, "rollback")
+            self.assertEqual(findings[0].allowlist_id, "retired-execution-dsh-source")
             self.assertEqual(changed, [])
             self.assertEqual(package.read_text(encoding="utf-8"), '{"name":"wsr-dsh-intake"}\n')
+
+    def test_migrated_dsh_source_attribution_is_historical(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            notice = root / "packages/execution/NOTICE.md"
+            notice.parent.mkdir(parents=True)
+            notice.write_text("Source: wsr-dsh-intake\n", encoding="utf-8")
+
+            findings = scan_paths(root, [notice], self.manifest)
+
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0].classification, "historical")
+            self.assertEqual(findings[0].allowlist_id, "migrated-dsh-source-attribution")
 
     def test_validator_rejects_a_remote_command_without_an_approval_gate(self) -> None:
         invalid = json.loads(json.dumps(self.manifest))
