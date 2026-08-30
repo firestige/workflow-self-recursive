@@ -1,6 +1,6 @@
 # Iteration 6 WSR migration report
 
-Status: **PENDING ONE npm 2FA GATE**  
+Status: **COMPLETE**
 Owners: [#120](https://github.com/firestige/workflow-self-recursive/issues/120), [#125](https://github.com/firestige/workflow-self-recursive/issues/125)  
 Executed: 2026-08-30
 
@@ -13,16 +13,20 @@ Executed: 2026-08-30
 - `firestige/wsr-dsh` is the sole DSH Marketplace publisher. Stable
   `dsh-wsr-execution@0.1.0`, `dsh-wsr-studio@0.1.0`, and `dsh-wsr@0.1.0`
   are published with the registry integrities recorded by its `0.1.0` Release.
-- `firestige/wsr-execution` PR #19 (merge
-  `2984884cb1eb307bdfc3edf5af56a7505ba8a312`) makes the active Execution
+- `firestige/wsr-execution` PR #19 retired the legacy publisher, PR #20 retired
+  its obsolete cross-repository DSH documentation gate, and PR #21 synchronized
+  the generated changelog. The final pin
+  `2984884cb1eb307bdfc3edf5af56a7505ba8a312` makes the active Execution
   publisher core-only. The retained `packages/dsh-intake` tree is private,
   compatibility-only source and is absent from active package scripts and
   release workflows.
 - `firestige/wsr-ui` was archived at `2026-08-30T00:45:47Z`. Its code and
   history remain readable; unarchive is the recovery operation.
-- Deprecating all published `wsr-dsh-intake` versions is the only incomplete
-  remote effect. npm authentication is valid, but the account's
-  `auth-and-writes` 2FA policy requires a fresh OTP for this write.
+- npm marks every published `wsr-dsh-intake` version (`0.0.1`, `0.1.1`,
+  `0.1.2`, and `0.1.3`) deprecated with the exact replacement message:
+  `This package has moved to dsh-wsr-execution. Install
+  dsh-wsr-execution@0.1.0 or dsh-wsr@0.1.0.` The write used npm's interactive
+  WebAuthn flow; no credential was persisted in the report or repository.
 
 ## Old-coordinate scan
 
@@ -56,7 +60,7 @@ The remaining allowlist is deliberately narrow:
 
 ## Qualification evidence
 
-- Execution from the new pin: 83 test files, 701 tests PASS; coverage gates
+- Execution from the final pin: 82 test files, 696 tests PASS; coverage gates
   PASS (90% statements, 85.95% branches, 93.81% functions, 95.19% lines);
   typecheck, build, generated-contract check, static harness, and feasibility
   harness PASS.
@@ -93,6 +97,7 @@ artifacts and never moves a tag or overwrites a version. Reactivating the old
 publisher is not automatic: it requires a new explicit decision and a new npm
 version. `wsr-ui` can be unarchived without changing repository identity.
 
-Wave 13 can be declared complete and #125/#120 closed only after npm confirms
-the exact deprecation message on versions `0.0.1`, `0.1.1`, `0.1.2`, and
-`0.1.3`.
+Wave 13 is complete: the exact deprecation message is confirmed on versions
+`0.0.1`, `0.1.1`, `0.1.2`, and `0.1.3`; all owner and superproject gates pass;
+the remaining old-coordinate references are classified historical, rollback,
+or fixture evidence rather than active authority.
