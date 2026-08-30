@@ -1,0 +1,46 @@
+{
+  "schema_version": "wsr.iter4-unified-candidate@1.0.0",
+  "status": "IMMUTABLE_RELEASE_CANDIDATE",
+  "created_at": "2026-08-30",
+  "execution": {
+    "repository": "firestige/wsr-execution",
+    "input_commit": "dad8fd66da22511317832260c2f1b965437c01a5",
+    "build_input_commit": "dad8fd66da22511317832260c2f1b965437c01a5",
+    "candidate_archive_commit": "5d03924df88e1afda3b7ffb5ecf182482cc8d1d5",
+    "metadata": {
+      "path": "execution-system/release/candidates/iter6-wave14-product/release-metadata.json",
+      "sha256": "sha256:4e145c0a597d9d92eb29068fed7b1012abba269185cd541b46cd87e278092985"
+    },
+    "release_notes": {
+      "path": "execution-system/release/candidates/iter6-wave14-product/release-notes.md",
+      "sha256": "sha256:ad16a346a5405243904d571274ced70f8793c83573dad2acdc8fa9c690a36b0d"
+    },
+    "artifacts": [
+      {
+        "package": "wsr-execution",
+        "version": "0.2.0",
+        "path": "execution-system/release/candidates/iter6-wave14-product/wsr-execution-0.2.0.tgz",
+        "bytes": 218537,
+        "sha256": "sha256:4f7879edcd55018954aaf0cd226afb75428b04a90c588a654425d4a1afe52309"
+      }
+    ]
+  },
+  "workflow_package": {
+    "repository": "firestige/wsr-workflow-package",
+    "commit": "4f77fcc25c26d85cba170ba6aa859d05eee3b298",
+    "hello_world": "hello-world-workflow@0.2.0",
+    "contract": "agentops.workflow-dsl@2.0.0"
+  },
+  "qualification": {
+    "execution_ci": "PASS_RUN_33294303852",
+    "execution_artifact_rebuild": "BYTE_EXACT",
+    "workflow_package_ci": "PASS_PR_8",
+    "dual_provider_product_path": "PASS_PUBLISHED_FORMAT_E2E"
+  },
+  "non_claims": [
+    "NO_EXECUTION_TAG_OR_NPM_PUBLICATION_CREATED",
+    "NO_WORKFLOW_PACKAGE_0.2.0_RELEASE_CREATED",
+    "NO_DSH_0.2.0_RELEASE_CREATED",
+    "NO_MVP_CLEAN_MACHINE_CLAIM"
+  ]
+}
