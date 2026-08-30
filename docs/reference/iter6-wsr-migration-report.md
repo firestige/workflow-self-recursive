@@ -14,9 +14,10 @@ Executed: 2026-08-30
   `dsh-wsr-execution@0.1.0`, `dsh-wsr-studio@0.1.0`, and `dsh-wsr@0.1.0`
   are published with the registry integrities recorded by its `0.1.0` Release.
 - `firestige/wsr-execution` PR #19 retired the legacy publisher, PR #20 retired
-  its obsolete cross-repository DSH documentation gate, and PR #21 synchronized
-  the generated changelog. The final pin
-  `2984884cb1eb307bdfc3edf5af56a7505ba8a312` makes the active Execution
+  its obsolete cross-repository DSH documentation gate, PR #21 synchronized
+  the generated changelog, and PR #22 recorded the core-only `0.1.4` release
+  plus its qualification-policy fix. The final pin
+  `4b1ca9d23da5ce1fc21f01ec0be87390eac83077` makes the active Execution
   publisher core-only. The retained `packages/dsh-intake` tree is private,
   compatibility-only source and is absent from active package scripts and
   release workflows.
@@ -64,9 +65,11 @@ The remaining allowlist is deliberately narrow:
   PASS (90% statements, 85.95% branches, 93.81% functions, 95.19% lines);
   typecheck, build, generated-contract check, static harness, and feasibility
   harness PASS.
-- Core-only publisher: a real `0.1.4` release directory contains exactly one
-  tgz and publication record; verification reports `artifactCount: 1`; the dry
-  npm plan contains only `wsr-execution`.
+- Core-only publisher: stable `wsr-execution@0.1.4` is published from the exact
+  qualified tarball with npm provenance; `latest` resolves to `0.1.4`. The
+  stable GitHub Release contains exactly one tgz and publication record;
+  verification reports `artifactCount: 1`, and `wsr-dsh-intake@0.1.4` does not
+  exist.
 - DSH new names: Execution-only, Studio-only, and suite clean profiles PASS.
   Lifecycle reports add/upgrade/rollback/remove PASS for the independent
   bundles and single-to-suite/reconcile/suite-to-single PASS with no duplicate
