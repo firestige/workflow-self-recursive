@@ -6,6 +6,14 @@ workflow-self-recursive 是一个开源的 Agent 工作流架构：它通过小�
 
 它将每次交付（Delivery）绑定到 Workflow Package 的一个确定版本与摘要，保持运行时结果的权威性，并可通过 OpenTelemetry 记录最小必要范围的事实。Runner 是 Execution module M02；LangGraph 是当前可替换 Workflow Host substrate，[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 是当前 concrete Agent Provider。
 
+## 总纲
+
+workflow-self-recursive 遵循**[递归语义编译](docs/recursive-semantic-compilation.zh-CN.md)**：LLM 把未结构化的意图、上下文与证据提升为类型化语义表示；确定性系统负责校验、绑定、降级、执行，并将这些语义纳入权威 Runtime State。已提交的执行产生有界事实，这些事实作为独立 Evidence 被保留，并可用于合成和资格评定下一版本 Workflow。
+
+> **语义上提，确定性下沉，证据驱动版本递归。**
+
+概率性工作只存在于显式语义边界。Proposal 只有经过确定性校验和提交才能进入权威 Runtime State；演进通过创建新的不可变版本发生，而不修改 active Delivery。同一种结构递归出现在三个尺度：意图成为 Workflow，Action 上下文成为类型化结果或 Artifact，Evidence 成为 Workflow 变更候选。
+
 ## Developer preview
 
 workflow-self-recursive 目前是以架构为先的打包开发者预览版，适用于个人或小团队的可信本地环境。Reference assembly 通过精确的 GitHub Release 资产分发。**后续会有破坏兼容性的变更。**
@@ -35,6 +43,7 @@ Iter6 reference assembly 使用稳定顶层操作 `setup`、`install`、`preflig
 
 建议从[概念架构](docs/agent-architecture.zh-CN.md)开始，然后继续阅读：
 
+- [递归语义编译](docs/recursive-semantic-compilation.zh-CN.md)
 - [Workflow 组合模型](docs/workflow-composition-model.md)
 - [Execution System 设计](docs/systems/execution/project-execution-system.zh-CN.md)
   - [Runner 模块设计](docs/systems/execution/modules/runner/runner.zh-CN.md)

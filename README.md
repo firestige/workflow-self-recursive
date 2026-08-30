@@ -6,6 +6,14 @@ workflow-self-recursive is an open-source architecture for running agent workflo
 
 It binds each delivery to one resolved version and digest of a Workflow Package, keeps runtime results authoritative, and can record a minimal set of facts through OpenTelemetry. Runner is Execution module M02; LangGraph is its current replaceable Workflow Host substrate and [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) is its current concrete Agent Provider.
 
+## Foundational principle
+
+workflow-self-recursive follows **[recursive semantic compilation](docs/recursive-semantic-compilation.md)**: LLMs lift unstructured intent, context, and evidence into typed semantic representations; deterministic systems validate, bind, lower, execute, and admit those semantics into authoritative runtime state. Committed execution emits bounded facts that are retained as independent Evidence and may guide synthesis and qualification of the next Workflow version.
+
+> **Lift semantics, push determinism downward, and let evidence drive recursion across versions.**
+
+Probabilistic work is contained at explicit semantic boundaries. A proposal enters authoritative runtime state only through deterministic validation and commit, and evolution creates a new immutable version rather than mutating an active Delivery. The same pattern recurs at three scales: intent becomes a Workflow, Action context becomes a typed result or Artifact, and Evidence becomes a candidate Workflow change.
+
 ## Developer preview
 
 workflow-self-recursive is currently an architecture-first packaged developer preview for trusted local use by individuals and small teams. The reference assembly is distributed through exact GitHub Release assets. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
@@ -37,6 +45,7 @@ repositories or select ambient `latest` versions. Uninstall preserves durable us
 
 Start with the [conceptual architecture](docs/agent-architecture.md), then continue with:
 
+- [Recursive semantic compilation](docs/recursive-semantic-compilation.md)
 - [Workflow composition model](docs/workflow-composition-model.md)
 - [Execution System design](docs/systems/execution/project-execution-system.md)
   - [Runner module design](docs/systems/execution/modules/runner/runner.md)
