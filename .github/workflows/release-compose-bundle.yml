@@ -168,6 +168,10 @@ jobs:
           cmp "$RELEASE_MANIFEST" "product-operations/manifests/product-$VERSION.json"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.12.0
+
       - name: Test and package product operations
         run: |
           npm --prefix product-operations test
