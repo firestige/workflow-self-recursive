@@ -21,7 +21,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-qualify:
@@ -74,8 +74,10 @@ jobs:
           RELEASE_MANIFEST: ${{ inputs.release_manifest }}
         run: |
           VERSION="$(python3 -c 'import json,os; print(json.load(open(os.environ["RELEASE_MANIFEST"]))["version"])')"
+          test "$VERSION" = "${VERSION%%-*}"
           deployment/published/build-bundle.py "$RELEASE_MANIFEST" "$RUNNER_TEMP/wsr-services-$VERSION"
           echo "BUNDLE=$RUNNER_TEMP/wsr-services-$VERSION" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Requalify generated bundle
         run: |
@@ -90,9 +92,43 @@ jobs:
           test "$(grep -c '@sha256:' compose.yaml)" = 4
           test -z "$(grep -E '(^|[[:space:]])build:|\.\./(evidence|evolution)-system|bi-app|workflow-builder' compose.yaml || true)"
 
+      - name: Archive exact qualified bundle
+        env:
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
+        run: |
+          ARCHIVE="$RUNNER_TEMP/wsr-services-$VERSION.tar.gz"
+          CHECKSUM="$ARCHIVE.sha256"
+          RELEASE_ASSET_MANIFEST="$RUNNER_TEMP/wsr-services-$VERSION.release.json"
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+            -czf "$ARCHIVE" -C "$RUNNER_TEMP" "wsr-services-$VERSION"
+          cd "$RUNNER_TEMP"
+          sha256sum "$(basename "$ARCHIVE")" > "$CHECKSUM"
+          cp "$GITHUB_WORKSPACE/$RELEASE_MANIFEST" "$RELEASE_ASSET_MANIFEST"
+          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+          echo "CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
+          echo "RELEASE_ASSET_MANIFEST=$RELEASE_ASSET_MANIFEST" >> "$GITHUB_ENV"
+
       - uses: actions/upload-artifact@v7
         with:
           name: published-image-compose-bundle
-          path: ${{ env.BUNDLE }}
+          path: |
+            ${{ env.ARCHIVE }}
+            ${{ env.CHECKSUM }}
+            ${{ env.RELEASE_ASSET_MANIFEST }}
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish stable Compose bundle Release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "compose-$VERSION" >/dev/null 2>&1; then
+            echo "Compose release already exists: compose-$VERSION" >&2
+            exit 1
+          fi
+          gh release create "compose-$VERSION" \
+            "$ARCHIVE" "$CHECKSUM" "$RELEASE_ASSET_MANIFEST" \
+            --target "$(git rev-parse HEAD)" \
+            --title "WSR Docker Compose bundle $VERSION" \
+            --notes "Exact-digest Docker Compose bundle for WSR Evidence and Evolution."
