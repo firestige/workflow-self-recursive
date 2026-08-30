@@ -88,7 +88,7 @@ jobs:
             "$(git rev-parse HEAD:system-contracts)"
           node workflow-package/release/cli/release.cjs qualify \
             "$RUNNER_TEMP/workflow-v2-assets" \
-            system-contracts/workflow-dsl
+            system-contracts
           node qualification/iter6/workflow-source/qualify.mjs
           uv run --project evolution-system --python 3.14 \
             pytest -q evolution-system/tests/unit/workflow_sources
