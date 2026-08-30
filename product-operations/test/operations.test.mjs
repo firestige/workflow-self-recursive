@@ -27,6 +27,20 @@ const manifestDocument = (components = [exactComponent("execution")]) => ({
   components,
 });
 
+const productConfig = (root, overrides = {}) => ({
+  schema: "wsr.operations.config@1.0.0",
+  workspace: "/work/workspace",
+  durableState: path.join(root, "durable"),
+  installation: { dshMode: "suite", dshProfile: "web" },
+  ports: { dsh: 18081, evidence: 4318, evolution: 8000 },
+  workflowSource: "hello-world-workflow@0.2.0",
+  roleBindings: {
+    "role.greeter": { provider: "copilot", model: "fixture-copilot" },
+    "role.reviewer": { provider: "codex", model: "fixture-codex" },
+  },
+  ...overrides,
+});
+
 async function harness({ manifest = manifestDocument(), fixture = {} } = {}) {
   const root = await mkdtemp(path.join(os.tmpdir(), "wsr-operations-"));
   const manifestPath = path.join(root, "compatibility.json");
@@ -170,18 +184,7 @@ test("rollback after interruption unwinds only completed components in reverse o
 
 test("setup owns a private editable config and repeated setup preserves it", async () => {
   const { operations, root } = await harness();
-  const config = {
-    schema: "wsr.operations.config@1.0.0",
-    repository: "/work/repository",
-    workspace: "/work/repository",
-    durableState: path.join(root, "durable"),
-    ports: { bi: 8080 },
-    workflowSource: "github:firestige/wsr-workflow-package@1.0.0",
-    roleBindings: {
-      implementer: { provider: "copilot", model: "fixture-copilot" },
-      reviewer: { provider: "codex", model: "fixture-codex" },
-    },
-  };
+  const config = productConfig(root);
 
   const first = await operations.writeConfig(config);
   assert.equal(first.status, "succeeded");
@@ -196,17 +199,11 @@ test("setup owns a private editable config and repeated setup preserves it", asy
 
 test("configuration rejects credential-bearing fields instead of persisting login material", async () => {
   const { operations, root } = await harness();
-  const config = {
-    schema: "wsr.operations.config@1.0.0",
-    repository: "/work/repository",
-    workspace: "/work/repository",
-    durableState: path.join(root, "durable"),
-    ports: { bi: 8080 },
-    workflowSource: "github:firestige/wsr-workflow-package@1.0.0",
+  const config = productConfig(root, {
     roleBindings: {
-      implementer: { provider: "copilot", model: "fixture", token: "must-not-persist" },
+      "role.greeter": { provider: "copilot", model: "fixture", token: "must-not-persist" },
     },
-  };
+  });
 
   await assert.rejects(operations.writeConfig(config), /unknown field.*token/i);
 });
@@ -214,15 +211,7 @@ test("configuration rejects credential-bearing fields instead of persisting logi
 test("uninstall removes managed installation state but preserves config and durable data", async () => {
   const { operations, root } = await harness();
   const durableState = path.join(root, "durable");
-  const config = {
-    schema: "wsr.operations.config@1.0.0",
-    repository: "/work/repository",
-    workspace: "/work/repository",
-    durableState,
-    ports: { bi: 8080 },
-    workflowSource: "github:firestige/wsr-workflow-package@1.0.0",
-    roleBindings: {},
-  };
+  const config = productConfig(root, { durableState, roleBindings: {} });
   await operations.writeConfig(config);
   await writeFile(path.join(durableState, "delivery.json"), "durable delivery\n");
   assert.equal((await operations.run("install")).status, "succeeded");
@@ -247,6 +236,23 @@ test("install can reconcile again after uninstall without treating stale complet
     "uninstall:execution",
     "install:execution",
   ]);
+});
+
+test("configuration has no repository selector and rejects repository as an unknown field", async () => {
+  const { operations, root } = await harness();
+  await assert.rejects(
+    operations.writeConfig({ ...productConfig(root), repository: "/work/repository" }),
+    /unknown field repository/i,
+  );
+});
+
+test("configuration requires exact workspace, service ports, workflow, and DSH installation mode", async () => {
+  const { operations, root } = await harness();
+  await assert.rejects(operations.writeConfig(productConfig(root, { workspace: "relative" })), /workspace.*absolute/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { installation: { dshMode: "all", dshProfile: "web" } })), /dshMode/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { ports: { dsh: 0, evidence: 4318, evolution: 8000 } })), /ports\.dsh/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { ports: { dsh: 18081, evidence: 0, evolution: 8000 } })), /ports\.evidence/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { workflowSource: "latest" })), /workflowSource/i);
 });
 
 test("start can apply again after a completed stop", async () => {
@@ -287,7 +293,9 @@ test("the stable command set always returns the versioned result envelope", asyn
 test("CLI emits one machine-readable typed result using the fixture boundary", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "wsr-cli-"));
   const manifestPath = path.join(root, "compatibility.json");
+  const fixturePath = path.join(root, "fixture.json");
   await writeFile(manifestPath, `${JSON.stringify(manifestDocument())}\n`);
+  await writeFile(fixturePath, "{}\n");
 
   const { stdout, stderr } = await execFileAsync(
     process.execPath,
@@ -300,6 +308,8 @@ test("CLI emits one machine-readable typed result using the fixture boundary", a
       path.join(root, "state"),
       "--config",
       path.join(root, "config.json"),
+      "--fixture",
+      fixturePath,
     ],
   );
 

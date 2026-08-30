@@ -1,18 +1,23 @@
 {
   "schema": "wsr.operations.config@1.0.0",
-  "repository": "/absolute/path/to/repository",
-  "workspace": "/absolute/path/to/repository",
+  "workspace": "/absolute/path/to/workspace",
   "durableState": "/absolute/path/to/wsr-state",
-  "ports": {
-    "bi": 8080
+  "installation": {
+    "dshMode": "suite",
+    "dshProfile": "web"
   },
-  "workflowSource": "github:firestige/wsr-workflow-package@0.0.0-fixture.1",
+  "ports": {
+    "dsh": 3080,
+    "evidence": 4318,
+    "evolution": 8000
+  },
+  "workflowSource": "hello-world-workflow@0.2.0",
   "roleBindings": {
-    "implementer": {
+    "role.greeter": {
       "provider": "copilot",
       "model": "fixture-copilot-model"
     },
-    "reviewer": {
+    "role.reviewer": {
       "provider": "codex",
       "model": "fixture-codex-model"
     }

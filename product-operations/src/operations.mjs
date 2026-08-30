@@ -72,9 +72,9 @@ function validateConfig(config) {
   if (config?.schema !== CONFIG_SCHEMA) throw new Error(`config schema must be ${CONFIG_SCHEMA}`);
   const allowedTopLevel = new Set([
     "schema",
-    "repository",
     "workspace",
     "durableState",
+    "installation",
     "ports",
     "workflowSource",
     "roleBindings",
@@ -82,13 +82,40 @@ function validateConfig(config) {
   for (const field of Object.keys(config)) {
     if (!allowedTopLevel.has(field)) throw new Error(`config contains unknown field ${field}`);
   }
-  for (const field of ["repository", "workspace", "durableState", "workflowSource"]) {
+  for (const field of ["workspace", "durableState", "workflowSource"]) {
     if (typeof config[field] !== "string" || config[field].length === 0) {
       throw new Error(`config ${field} is required`);
     }
   }
-  if (!Number.isInteger(config.ports?.bi) || config.ports.bi < 1 || config.ports.bi > 65535) {
-    throw new Error("config ports.bi must be an integer from 1 to 65535");
+  for (const field of ["workspace", "durableState"]) {
+    if (!path.isAbsolute(config[field])) throw new Error(`config ${field} must be absolute`);
+  }
+  if (!/^[a-z][a-z0-9-]*@\d+\.\d+\.\d+$/u.test(config.workflowSource)) {
+    throw new Error("config workflowSource must be an exact name@version");
+  }
+  if (config.installation === null || typeof config.installation !== "object") {
+    throw new Error("config installation is required");
+  }
+  for (const field of Object.keys(config.installation)) {
+    if (field !== "dshMode" && field !== "dshProfile") {
+      throw new Error(`config installation contains unknown field ${field}`);
+    }
+  }
+  if (!["execution", "studio", "suite"].includes(config.installation.dshMode)) {
+    throw new Error("config installation.dshMode must be execution, studio, or suite");
+  }
+  if (typeof config.installation.dshProfile !== "string" || !/^[a-z][a-z0-9-]*$/u.test(config.installation.dshProfile)) {
+    throw new Error("config installation.dshProfile is invalid");
+  }
+  for (const field of Object.keys(config.ports ?? {})) {
+    if (!["dsh", "evidence", "evolution"].includes(field)) {
+      throw new Error(`config ports contains unknown field ${field}`);
+    }
+  }
+  for (const field of ["dsh", "evidence", "evolution"]) {
+    if (!Number.isInteger(config.ports?.[field]) || config.ports[field] < 1 || config.ports[field] > 65535) {
+      throw new Error(`config ports.${field} must be an integer from 1 to 65535`);
+    }
   }
   if (config.roleBindings === null || typeof config.roleBindings !== "object") {
     throw new Error("config roleBindings must be an object");

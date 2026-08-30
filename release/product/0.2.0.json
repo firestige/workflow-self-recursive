@@ -1,0 +1,70 @@
+{
+  "schema": "wsr.compatibility@1.0.0",
+  "release": "0.2.0",
+  "components": [
+    {
+      "id": "dsh-bundle",
+      "layer": "DSH/Execution",
+      "coordinate": "github-release://firestige/wsr-dsh/0.2.2/compatibility-matrix.json",
+      "version": "0.2.2",
+      "digest": "sha256:c4fbb644ace3a352d50377dc95b96f2d05c84bb671bb138f732192e029cc3f3c",
+      "compatibility": {
+        "dsh": "0.1.1-rc.2",
+        "node": "24.12.0",
+        "npm": "11.6.2",
+        "executionOwner": {
+          "package": "wsr-execution",
+          "version": "0.2.1",
+          "release": "0.2.1",
+          "coordinate": "https://github.com/firestige/wsr-execution/releases/download/0.2.1/wsr-execution-0.2.1.tgz",
+          "digest": "sha256:9375714297ea0af221ad9634f08c1b205d985649ae51db2964d46e6a9e4accf4"
+        },
+        "packages": {
+          "execution": "dsh-wsr-execution@0.2.1",
+          "studio": "dsh-wsr-studio@0.1.1",
+          "suite": "dsh-wsr@0.2.1"
+        }
+      }
+    },
+    {
+      "id": "services",
+      "layer": "Evidence/Evolution",
+      "coordinate": "github-release://firestige/workflow-self-recursive/compose-0.1.0/wsr-services-0.1.0.tar.gz",
+      "downloadUrl": "https://github.com/firestige/workflow-self-recursive/releases/download/compose-0.1.0/wsr-services-0.1.0.tar.gz",
+      "version": "0.1.0",
+      "digest": "sha256:d59972441937c93b7454acf9b1c96d5bdd5150cfae7e8467e421f36de61cd131"
+    },
+    {
+      "id": "workflow-source",
+      "layer": "Workflow source",
+      "coordinate": "github-release://firestige/wsr-workflow-package/workflow-package/hello-world-workflow/v0.2.0/workflow-package-hello-world-workflow-0.2.0.tar.gz",
+      "downloadUrl": "https://github.com/firestige/wsr-workflow-package/releases/download/workflow-package/hello-world-workflow/v0.2.0/workflow-package-hello-world-workflow-0.2.0.tar.gz",
+      "name": "hello-world-workflow",
+      "version": "0.2.0",
+      "digest": "sha256:de838f4661a9c321c786cafee4fbe888695420c81ac8b6f8a7a41ed0fd029d0d"
+    },
+    {
+      "id": "providers",
+      "layer": "Provider",
+      "coordinate": "github-release://firestige/wsr-execution/0.2.1/release-qualification.json",
+      "version": "0.2.1",
+      "digest": "sha256:4583cdf1bc4d1498312d2f585f6bba32dd614d9756b238063974e5c5b5fc0d27",
+      "compatibility": {
+        "copilot": "1.0.78",
+        "codex": "0.144.5",
+        "bindings": {
+          "copilot": {
+            "identity": "provider.copilot",
+            "version": "1.0.78",
+            "modelProvider": "github-copilot"
+          },
+          "codex": {
+            "identity": "provider.codex",
+            "version": "0.144.5",
+            "modelProvider": "openai"
+          }
+        }
+      }
+    }
+  ]
+}

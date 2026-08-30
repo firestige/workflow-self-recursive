@@ -1,18 +1,30 @@
-name: Build published-image Compose bundle
+name: Publish WSR bundles
 
 on:
   workflow_dispatch:
     inputs:
+      bundle_kind:
+        description: Bundle to publish
+        required: true
+        default: compose
+        type: choice
+        options:
+          - compose
+          - product
       authority_ref:
-        description: Immutable superproject ref containing the qualified image manifest
+        description: Immutable superproject ref containing the qualified manifest
         required: true
         type: string
       release_manifest:
-        description: Superproject-relative release/compose manifest path
+        description: Superproject-relative release manifest path
         required: true
         type: string
   workflow_call:
     inputs:
+      bundle_kind:
+        required: false
+        default: compose
+        type: string
       authority_ref:
         required: true
         type: string
@@ -24,7 +36,8 @@ permissions:
   contents: write
 
 jobs:
-  build-and-qualify:
+  build-and-qualify-compose:
+    if: inputs.bundle_kind == 'compose'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -132,3 +145,90 @@ jobs:
             --target "$(git rev-parse HEAD)" \
             --title "WSR Docker Compose bundle $VERSION" \
             --notes "Exact-digest Docker Compose bundle for WSR Evidence and Evolution."
+
+  build-and-qualify-product:
+    if: inputs.bundle_kind == 'product'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.authority_ref }}
+          fetch-depth: 0
+
+      - name: Validate immutable product manifest
+        env:
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
+        run: |
+          case "$RELEASE_MANIFEST" in release/product/*.json) ;; *) exit 1 ;; esac
+          test -f "$RELEASE_MANIFEST"
+          VERSION="$(jq -er '.release' "$RELEASE_MANIFEST")"
+          test "$VERSION" = "${VERSION%%-*}"
+          test "$(jq -er '.version' product-operations/package.json)" = "$VERSION"
+          cmp "$RELEASE_MANIFEST" "product-operations/manifests/product-$VERSION.json"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Test and package product operations
+        run: |
+          npm --prefix product-operations test
+          mkdir "$RUNNER_TEMP/product-release"
+          npm pack ./product-operations --pack-destination "$RUNNER_TEMP/product-release"
+          ARCHIVE="$RUNNER_TEMP/product-release/wsr-product-operations-$VERSION.tgz"
+          test -f "$ARCHIVE"
+          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+
+      - name: Requalify clean installed package
+        run: |
+          mkdir "$RUNNER_TEMP/product-consumer"
+          npm install --prefix "$RUNNER_TEMP/product-consumer" --ignore-scripts "$ARCHIVE"
+          "$RUNNER_TEMP/product-consumer/node_modules/.bin/wsr" config \
+            --state-dir "$RUNNER_TEMP/product-state" \
+            --config "$RUNNER_TEMP/product-config.json" \
+            > "$RUNNER_TEMP/product-result.json"
+          jq -e '.schema == "wsr.operations.result@1.0.0" and
+            .command == "config" and .status == "succeeded"' \
+            "$RUNNER_TEMP/product-result.json" >/dev/null
+          tar -xOf "$ARCHIVE" "package/manifests/product-$VERSION.json" \
+            > "$RUNNER_TEMP/installed-product-manifest.json"
+          cmp release/product/$VERSION.json "$RUNNER_TEMP/installed-product-manifest.json"
+
+      - name: Bind checksum and release manifest
+        env:
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
+        run: |
+          CHECKSUM="$ARCHIVE.sha256"
+          RELEASE_ASSET_MANIFEST="$RUNNER_TEMP/product-release/wsr-product-$VERSION.release.json"
+          CONFIG_EXAMPLE="$RUNNER_TEMP/product-release/wsr-product-$VERSION.config.example.json"
+          cd "$(dirname "$ARCHIVE")"
+          sha256sum "$(basename "$ARCHIVE")" > "$CHECKSUM"
+          cp "$GITHUB_WORKSPACE/$RELEASE_MANIFEST" "$RELEASE_ASSET_MANIFEST"
+          cp "$GITHUB_WORKSPACE/product-operations/fixtures/config.json" "$CONFIG_EXAMPLE"
+          echo "CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
+          echo "RELEASE_ASSET_MANIFEST=$RELEASE_ASSET_MANIFEST" >> "$GITHUB_ENV"
+          echo "CONFIG_EXAMPLE=$CONFIG_EXAMPLE" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: product-operations-bundle
+          path: |
+            ${{ env.ARCHIVE }}
+            ${{ env.CHECKSUM }}
+            ${{ env.RELEASE_ASSET_MANIFEST }}
+            ${{ env.CONFIG_EXAMPLE }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish stable product Release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "product-$VERSION" >/dev/null 2>&1; then
+            echo "Product release already exists: product-$VERSION" >&2
+            exit 1
+          fi
+          gh release create "product-$VERSION" \
+            "$ARCHIVE" "$CHECKSUM" "$RELEASE_ASSET_MANIFEST" "$CONFIG_EXAMPLE" \
+            --target "$(git rev-parse HEAD)" \
+            --title "WSR product operations $VERSION" \
+            --notes "Installable top-level operations bundle for the exact WSR $VERSION compatibility manifest."

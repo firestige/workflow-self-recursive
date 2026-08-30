@@ -2,27 +2,55 @@
 
 [English](quickstart.md) | 中文
 
-本指南描述在一台可信个人电脑上的正式首次使用旅程。当前打包产品尚未完成资格验证；不得用源码
-checkout 或 fixture operations adapter 冒充已经发布的产品。
+本指南描述在一台可信个人电脑上重建 Iter6 reference assembly 的正式旅程。顶层 operations 从
+`product-0.2.0` GitHub Release 安装，并只消费包内的稳定 compatibility manifest；产品路径不需要
+任何 WSR 源码 checkout 或 owner build。
 
-## 1. 检查发行版
+## 1. 准备配置
 
-最终旅程将从顶层 `preflight` 和 `setup` 开始，在产生任何安装 effect 前，校验 DSH bundle、
-Evidence/Evolution 服务镜像、Workflow source 与本机 Agent Provider 的 exact compatibility manifest。
+前置条件为 DSH `0.1.1-rc.2`、Node `24.12.0`、npm `11.6.2`、Docker Compose、已在本机登录的
+Codex CLI `0.144.5`，以及可用的本机 GitHub Copilot 登录。安装精确的 operations 资产并下载可编辑
+配置示例：
 
-Iter6 命令契约已经位于 `product-operations`，但目前只接受 fixture adapter，仅用于自动资格验证，
-不能用于正式安装。
+```sh
+npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.2.0/wsr-product-operations-0.2.0.tgz
+curl --proto '=https' --tlsv1.2 --fail --location --remote-name \
+  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.2.0/wsr-product-0.2.0.config.example.json
+```
 
-## 2. 安装与配置
+把示例中的 `workspace` 改为 canonical Git worktree 根目录，设置绝对的 `durableState` 路径，并为
+各 loopback port 选择未占用端口。示例把 `role.greeter` 绑定到 Copilot、`role.reviewer` 绑定到 Codex。
 
-稳定产品操作为 `setup`、`install` 和 `config`。setup 将收集 repository/workspace、durable state
-位置、loopback port、exact Workflow source 与 Role→Provider/model binding。WSR 只复用本机 DSH、
-Copilot 与 Codex 登录状态；配置和诊断不得包含 credential。
+```sh
+wsr setup --config-input /absolute/config.json
+wsr install
+wsr preflight
+```
 
-## 3. 启动与检查
+若 workspace 不是精确 Git 根目录或有未提交变化，`preflight` 会在 Delivery admission 前阻止执行；
+提交或 stash 后重试即可。WSR 不复制 token 或 credential 到产品配置。
 
-稳定日常操作为 `start`、`status`、`health`、`logs`、`stop` 和 `restart`。结果分别映射到
-DSH/Execution、Evidence/Evolution、Workflow source 与 Provider 层，使部分故障仍可定位。
+## 2. 启动并创建 Delivery
+
+```sh
+wsr start
+```
+
+打开 DSH web profile，注册配置中的精确 workspace，在其中创建 Session，然后把 selector 放在第一行、
+Task 指令放在后续行：
+
+```text
+/wsr create hello-world-workflow@0.2.0
+Return a concise greeting and review it.
+```
+
+Delivery 卡片和 Session Delivery 视图展示持久状态与最终结果。Studio 通过配置的 loopback 服务读取
+Evidence/Evolution，不按 repository 选择或过滤。
+
+## 3. 检查与恢复
+
+使用 `status`、`health` 和 `logs` 查看分层诊断。`restart` 会重启 Compose 与 DSH；Execution 从
+durable state 重建 Delivery、checkpoint 和 Session binding。
 
 ## 4. 升级或移除
 
@@ -32,5 +60,5 @@ DSH/Execution、Evidence/Evolution、Workflow source 与 Provider 层，使部�
 
 ## Contributor 源码预览
 
-需要运行现有源码构建数据服务预览的贡献者，请使用单独的[源码构建指南](../contributing/source-build.zh-CN.md)。
-它不是最终 clean-machine 产品路径。
+需要运行源码构建数据服务预览的贡献者，请使用单独的
+[源码构建指南](../contributing/source-build.zh-CN.md)。它不是 clean-machine 产品路径。
