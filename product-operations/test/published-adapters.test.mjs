@@ -41,9 +41,9 @@ test("final product manifest binds only stable published artifacts", async () =>
   assert.ok(manifest.components.every(({ coordinate }) => !coordinate.startsWith("fixture://")));
 
   const [dsh, services, workflow, providers] = manifest.components;
-  assert.equal(dsh.version, "0.2.1");
-  assert.equal(dsh.compatibility.executionOwner.version, "0.2.0");
-  assert.equal(dsh.compatibility.executionOwner.release, "0.2.0");
+  assert.equal(dsh.version, "0.2.2");
+  assert.equal(dsh.compatibility.executionOwner.version, "0.2.1");
+  assert.equal(dsh.compatibility.executionOwner.release, "0.2.1");
   assert.equal(services.version, "0.1.0");
   assert.match(services.coordinate, /compose-0\.1\.0\/wsr-services-0\.1\.0\.tar\.gz$/u);
   assert.equal(workflow.version, "0.2.0");

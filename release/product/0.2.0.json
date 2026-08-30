@@ -5,22 +5,22 @@
     {
       "id": "dsh-bundle",
       "layer": "DSH/Execution",
-      "coordinate": "github-release://firestige/wsr-dsh/0.2.1/compatibility-matrix.json",
-      "version": "0.2.1",
-      "digest": "sha256:6e93bb981dc7093dba5761f805a43ca7df7d0961d82830e2cffee2f6512c698f",
+      "coordinate": "github-release://firestige/wsr-dsh/0.2.2/compatibility-matrix.json",
+      "version": "0.2.2",
+      "digest": "sha256:c4fbb644ace3a352d50377dc95b96f2d05c84bb671bb138f732192e029cc3f3c",
       "compatibility": {
         "dsh": "0.1.1-rc.2",
         "node": "24.12.0",
         "npm": "11.6.2",
         "executionOwner": {
           "package": "wsr-execution",
-          "version": "0.2.0",
-          "release": "0.2.0",
-          "coordinate": "https://github.com/firestige/wsr-execution/releases/download/0.2.0/wsr-execution-0.2.0.tgz",
-          "digest": "sha256:4f7879edcd55018954aaf0cd226afb75428b04a90c588a654425d4a1afe52309"
+          "version": "0.2.1",
+          "release": "0.2.1",
+          "coordinate": "https://github.com/firestige/wsr-execution/releases/download/0.2.1/wsr-execution-0.2.1.tgz",
+          "digest": "sha256:9375714297ea0af221ad9634f08c1b205d985649ae51db2964d46e6a9e4accf4"
         },
         "packages": {
-          "execution": "dsh-wsr-execution@0.2.0",
+          "execution": "dsh-wsr-execution@0.2.1",
           "studio": "dsh-wsr-studio@0.1.1",
           "suite": "dsh-wsr@0.2.1"
         }
@@ -46,9 +46,9 @@
     {
       "id": "providers",
       "layer": "Provider",
-      "coordinate": "github-release://firestige/wsr-execution/0.2.0/release-qualification.json",
-      "version": "0.2.0",
-      "digest": "sha256:dec3c3fb1fb3cc999677b9e55fe6f3be3bd2766062ef00be1f010998949a5239",
+      "coordinate": "github-release://firestige/wsr-execution/0.2.1/release-qualification.json",
+      "version": "0.2.1",
+      "digest": "sha256:4583cdf1bc4d1498312d2f585f6bba32dd614d9756b238063974e5c5b5fc0d27",
       "compatibility": {
         "copilot": "1.0.78",
         "codex": "0.144.5",
