@@ -8,7 +8,7 @@ import { assertPinnedOwners } from "./qualify.mjs";
 
 const expected = Object.freeze({
   "workflow-package": "08d0a4e7d2862203107fde647c21a756734586c6",
-  "execution-system": "8099322bc1a9756ea65177a9710b417d248915cc",
+  "execution-system": "2984884cb1eb307bdfc3edf5af56a7505ba8a312",
   "evolution-system": "b302595942b2307514570a47be9ed87f26f8cf84",
 });
 
@@ -50,5 +50,6 @@ test("canonical CI replays v2 assets and the public exact-content cache qualific
   assert.match(workflow, /release\/cli\/release\.cjs build/);
   assert.match(workflow, /release\/cli\/release\.cjs qualify/);
   assert.match(workflow, /uv run --project evolution-system --python 3\.14 \\\n\s+pytest -q evolution-system\/tests\/unit\/workflow_sources/);
+  assert.doesNotMatch(workflow, /pnpm verify:(?:dsh-intake|iteration3-docs)/);
   assert.doesNotMatch(workflow, /workflow-source.*(?:latest|branch|local fallback)/i);
 });

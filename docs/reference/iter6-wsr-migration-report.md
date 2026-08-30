@@ -14,7 +14,7 @@ Executed: 2026-08-30
   `dsh-wsr-execution@0.1.0`, `dsh-wsr-studio@0.1.0`, and `dsh-wsr@0.1.0`
   are published with the registry integrities recorded by its `0.1.0` Release.
 - `firestige/wsr-execution` PR #19 (merge
-  `8099322bc1a9756ea65177a9710b417d248915cc`) makes the active Execution
+  `2984884cb1eb307bdfc3edf5af56a7505ba8a312`) makes the active Execution
   publisher core-only. The retained `packages/dsh-intake` tree is private,
   compatibility-only source and is absent from active package scripts and
   release workflows.
