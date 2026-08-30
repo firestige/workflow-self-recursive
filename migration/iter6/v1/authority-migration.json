@@ -143,6 +143,7 @@
     {"id": "retired-execution-dsh-source", "classification": "rollback", "path_globs": ["packages/dsh-intake/**", "scripts/prepare-local-e2e.ts", "scripts/qualify-dsh-interactive-intake.ts", "scripts/qualify-dsh-product-e2e.ts", "scripts/qualify-dsh-package-lifecycle.ts", "scripts/verify-dsh-intake-distribution.ts", "scripts/verify-iteration-3-documentation.ts"], "coordinate_ids": ["npm/dsh-execution"]},
     {"id": "retired-execution-dsh-tests", "classification": "fixture", "path_globs": ["test/intake/**", "test/tooling/dsh-intake-distribution-verifier.test.ts", "test/tooling/dsh-package-lifecycle-qualification.test.ts", "test/tooling/legacy-publisher-retirement.test.ts", "test/tooling/local-e2e-dsh-reconciliation.test.ts", "test/tooling/local-e2e-preparation.test.ts"], "coordinate_ids": ["npm/dsh-execution"]},
     {"id": "migrated-dsh-source-attribution", "classification": "historical", "path_globs": ["packages/execution/NOTICE.md", "packages/studio/NOTICE.md", "packages/studio/src/client/UPSTREAM.md"], "coordinate_ids": ["npm/dsh-execution", "repositories/standalone-ui"]},
+    {"id": "wave13-final-migration-report", "classification": "historical", "path_globs": ["docs/reference/iter6-wsr-migration-report.md"], "coordinate_ids": ["*"]},
     {"id": "scanner-fixtures", "classification": "fixture", "path_globs": ["qualification/iter6/migration/fixtures/**", "qualification/iter6/migration/test_*.py"], "coordinate_ids": ["*"]}
   ],
   "migration_steps": [

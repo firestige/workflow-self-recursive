@@ -297,6 +297,19 @@ class OldCoordinateScannerTest(unittest.TestCase):
             self.assertEqual(findings[0].classification, "historical")
             self.assertEqual(findings[0].allowlist_id, "migrated-dsh-source-attribution")
 
+    def test_final_migration_report_can_name_retired_coordinates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = root / "docs/reference/iter6-wsr-migration-report.md"
+            report.parent.mkdir(parents=True)
+            report.write_text("Retired: wsr-dsh-intake\n", encoding="utf-8")
+
+            findings = scan_paths(root, [report], self.manifest)
+
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0].classification, "historical")
+            self.assertEqual(findings[0].allowlist_id, "wave13-final-migration-report")
+
     def test_validator_rejects_a_remote_command_without_an_approval_gate(self) -> None:
         invalid = json.loads(json.dumps(self.manifest))
         invalid["migration_steps"][0]["mechanical_replacement"][0] = {

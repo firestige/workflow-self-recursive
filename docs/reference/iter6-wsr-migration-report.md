@@ -31,7 +31,7 @@ the superproject and every owner repository.
 
 | Scan root | Active | Historical | Rollback | Fixture |
 |---|---:|---:|---:|---:|
-| superproject tracked files | 0 | 124 | 86 | 17 |
+| superproject tracked files | 0 | 127 | 86 | 18 |
 | `wsr-execution` | 0 | 8 | 22 | 9 |
 | `wsr-dsh` | 0 | 3 | 0 | 0 |
 | `wsr-contracts` | 0 | 16 | 0 | 0 |
@@ -79,6 +79,9 @@ The remaining allowlist is deliberately narrow:
   then replays the exact READY cache with the network disabled.
 - Repository redirect checks resolve all five old GitHub slugs to their target
   repository objects. No runtime configuration relies on those redirects.
+- A fresh recursive clone of the Wave 13 branch initialized all six submodules
+  exclusively from `firestige/wsr-*` URLs at their exact pins; its own
+  enforce-target scan reports zero active findings.
 
 ## Compatibility and rollback
 
