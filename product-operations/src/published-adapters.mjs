@@ -372,8 +372,28 @@ function servicesAdapter({ component, configPath, stateDirectory, bundleDirector
       return succeeded();
     },
     async inspect(command) {
-      const action = command === "health" ? "preflight" : command;
-      return invoke(run, executable, [action], { env: await environment() }, "SERVICES_INSPECT_FAILED");
+      if (command === "health") {
+        const config = await loadConfig(configPath);
+        const endpoints = [
+          `http://127.0.0.1:${config.ports.evidence}/healthz`,
+          `http://127.0.0.1:${config.ports.evolution}/healthz`,
+        ];
+        try {
+          const [evidence, evolution] = await Promise.all(endpoints.map((url) => fetchImpl(url, {
+            signal: AbortSignal.timeout(3000),
+          })));
+          if (!evidence.ok || !evolution.ok) throw new Error("health endpoint returned a non-success status");
+          const evidenceBody = await evidence.json();
+          const evolutionBody = (await evolution.text()).trim();
+          if (evidenceBody?.status !== "ok" || evolutionBody !== "ok") {
+            throw new Error("health endpoint returned an incompatible body");
+          }
+          return succeeded({ endpoints });
+        } catch (error) {
+          return blocked("SERVICES_HEALTH_FAILED", error.message);
+        }
+      }
+      return invoke(run, executable, [command], { env: await environment() }, "SERVICES_INSPECT_FAILED");
     },
   });
 }

@@ -163,6 +163,29 @@ test("published services adapter delegates lifecycle to the exact released wsr-c
   assert.equal(commands[0].options.env.WSR_EVOLUTION_PORT, "8000");
 });
 
+test("published services health reads the running loopback endpoints instead of installation preflight", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const urls = [];
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory: path.join(directory, "state"),
+    run: async () => { throw new Error("health must not invoke wsr-compose preflight"); },
+    fetchImpl: async (url) => {
+      urls.push(url);
+      return url.endsWith(":4318/healthz")
+        ? new Response('{"status":"ok"}', { status: 200 })
+        : new Response("ok", { status: 200 });
+    },
+  });
+
+  const result = await adapters.get("services").inspect("health");
+  assert.equal(result.status, "succeeded");
+  assert.deepEqual(urls, ["http://127.0.0.1:4318/healthz", "http://127.0.0.1:8000/healthz"]);
+});
+
 test("published DSH lifecycle launches the configured profile and retains only pid and logs", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
   const stateDirectory = path.join(directory, "state");
