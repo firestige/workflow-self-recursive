@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 PUBLISHED = ROOT / "deployment" / "published"
 GENERATOR = PUBLISHED / "build-bundle.py"
-FINAL_MANIFEST = ROOT / "release" / "compose" / "0.1.0-rc.1.json"
+FINAL_MANIFEST = ROOT / "release" / "compose" / "0.1.0.json"
 
 SHA = "a" * 64
 
@@ -95,7 +95,7 @@ class PublishedBundleTest(unittest.TestCase):
     def test_final_release_manifest_binds_the_qualified_image_set(self) -> None:
         release = json.loads(FINAL_MANIFEST.read_text(encoding="utf-8"))
 
-        self.assertEqual(release["version"], "0.1.0-rc.1")
+        self.assertEqual(release["version"], "0.1.0")
         self.assertEqual(
             release["images"]["postgres"]["coordinate"],
             "postgres:18.4-bookworm@sha256:882236b897e39051d2368c5ccc6cda944904723506b2dfc97f2a8f5bc9afa382",
@@ -427,6 +427,25 @@ class PublishedBundleTest(unittest.TestCase):
         self.assertIn("./wsr-compose host-config", workflow)
         self.assertIn("./wsr-compose preflight", workflow)
         self.assertIn("actions/upload-artifact@", workflow)
+        self.assertIn("contents: write", workflow)
+        self.assertIn('test "$VERSION" = "${VERSION%%-*}"', workflow)
+        self.assertIn('wsr-services-$VERSION.tar.gz', workflow)
+        self.assertIn('sha256sum "$(basename "$ARCHIVE")"', workflow)
+        self.assertIn('gh release create "compose-$VERSION"', workflow)
+        self.assertIn('--target "$(git rev-parse HEAD)"', workflow)
+        self.assertIn("github.event_name == 'workflow_dispatch'", workflow)
+
+    def test_stable_manifest_reuses_the_qualified_rc_image_digests(self) -> None:
+        stable = json.loads(FINAL_MANIFEST.read_text(encoding="utf-8"))
+        candidate = json.loads(
+            (ROOT / "release" / "compose" / "0.1.0-rc.1.json").read_text(encoding="utf-8")
+        )
+
+        self.assertEqual(stable["version"], "0.1.0")
+        self.assertEqual(candidate["version"], "0.1.0-rc.1")
+        self.assertEqual(stable["images"], candidate["images"])
+        self.assertEqual(stable["schemaCompatibility"], candidate["schemaCompatibility"])
+        self.assertEqual(stable["hostIntegration"], candidate["hostIntegration"])
 
     def test_first_party_qualification_must_match_manifest_identity(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -500,7 +519,7 @@ class PublishedBundleTest(unittest.TestCase):
         e2e = (ROOT / "deployment" / "test-published-e2e.sh").read_text(encoding="utf-8")
 
         self.assertIn("WSR_RUN_PUBLISHED_E2E", e2e)
-        self.assertIn("release/compose/0.1.0-rc.1.json", e2e)
+        self.assertIn("release/compose/0.1.0.json", e2e)
         self.assertIn("build-bundle.py", e2e)
         self.assertIn('"$bundle/wsr-compose" start', e2e)
         self.assertIn('"$bundle/wsr-compose" restart', e2e)

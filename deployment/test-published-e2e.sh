@@ -7,7 +7,7 @@ if test "${WSR_RUN_PUBLISHED_E2E:-}" != 1; then
 fi
 
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-manifest=${WSR_PUBLISHED_E2E_MANIFEST:-"$root/release/compose/0.1.0-rc.1.json"}
+manifest=${WSR_PUBLISHED_E2E_MANIFEST:-"$root/release/compose/0.1.0.json"}
 temporary=$(mktemp -d "${TMPDIR:-/tmp}/wsr-published-e2e.XXXXXX")
 bundle="$temporary/bundle"
 suffix=$(openssl rand -hex 6)

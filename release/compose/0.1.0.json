@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "wsr.compose-release@1.0.0",
+  "version": "0.1.0",
+  "supportedPlatforms": [
+    "linux/amd64",
+    "linux/arm64"
+  ],
+  "schemaCompatibility": {
+    "evidenceRevision": "20260828_0004",
+    "reads": [
+      "20260828_0004"
+    ]
+  },
+  "hostIntegration": {
+    "schemaVersion": "wsr.loopback-host@1.0.0",
+    "evidenceQueryRevision": "0.1.0",
+    "evidenceTaskQueryRevision": "1.0.0",
+    "evolutionComputeRevision": "1"
+  },
+  "images": {
+    "postgres": {
+      "coordinate": "postgres:18.4-bookworm@sha256:882236b897e39051d2368c5ccc6cda944904723506b2dfc97f2a8f5bc9afa382",
+      "source": "https://github.com/docker-library/postgres/tree/master/18/bookworm",
+      "provenance": "https://hub.docker.com/_/postgres/tags?name=18.4-bookworm"
+    },
+    "evidence": {
+      "coordinate": "ghcr.io/firestige/wsr-evidence:0.1.0-rc.3@sha256:5ce1574260677b5fdfcecacae872a53f0e080092b0c375ddee1216479f18c542",
+      "source": "https://github.com/firestige/wsr-evidence/tree/35d63469650e978d0fb795419df5d4a0ea5eafa7",
+      "provenance": "https://github.com/firestige/wsr-evidence/releases/download/0.1.0-rc.3/release-qualification.json",
+      "qualificationSha256": "sha256:003d79bd8ea1a67eeff455b39067620bdeceaa2a198343c85eb7e8d9e371135b"
+    },
+    "evolution": {
+      "coordinate": "ghcr.io/firestige/wsr-evolution:0.1.0-rc.1@sha256:41e244d68f588d8b0a4789488a694c55e2034e36f4a152638e026c03dde1a14f",
+      "source": "https://github.com/firestige/wsr-evolution/tree/b33bb503e95c3853a87e53b4b32183d34fd55b70",
+      "provenance": "https://github.com/firestige/wsr-evolution/releases/download/0.1.0-rc.1/release-qualification.json",
+      "qualificationSha256": "sha256:d8ca8329e5daed92fbab442305ccb3de9c0444edba2147a38027e867b46c642b"
+    }
+  }
+}
