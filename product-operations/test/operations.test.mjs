@@ -27,16 +27,13 @@ const manifestDocument = (components = [exactComponent("execution")]) => ({
   components,
 });
 
-const productConfig = (root, overrides = {}) => ({
-  schema: "wsr.operations.config@1.0.0",
-  workspace: "/work/workspace",
-  durableState: path.join(root, "durable"),
+const productConfig = (_root, overrides = {}) => ({
+  schemaVersion: "wsr.global-config@1.0.0",
   installation: { dshMode: "suite", dshProfile: "web" },
-  ports: { dsh: 18081, evidence: 4318, evolution: 8000 },
-  workflowSource: "hello-world-workflow@0.2.0",
-  roleBindings: {
-    "role.greeter": { provider: "copilot", model: "fixture-copilot" },
-    "role.reviewer": { provider: "codex", model: "fixture-codex" },
+  services: { ports: { dsh: 18081, evidence: 4318, evolution: 8000 } },
+  workflowSource: {
+    kind: "github",
+    repository: "firestige/wsr-workflow-package",
   },
   ...overrides,
 });
@@ -200,29 +197,31 @@ test("setup owns a private editable config and repeated setup preserves it", asy
 test("configuration rejects credential-bearing fields instead of persisting login material", async () => {
   const { operations, root } = await harness();
   const config = productConfig(root, {
-    roleBindings: {
-      "role.greeter": { provider: "copilot", model: "fixture", token: "must-not-persist" },
+    workflowSource: {
+      kind: "github",
+      repository: "firestige/wsr-workflow-package",
+      token: "must-not-persist",
     },
   });
 
   await assert.rejects(operations.writeConfig(config), /unknown field.*token/i);
 });
 
-test("uninstall removes managed installation state but preserves config and durable data", async () => {
+test("uninstall removes managed installation state but preserves config and product state", async () => {
   const { operations, root } = await harness();
-  const durableState = path.join(root, "durable");
-  const config = productConfig(root, { durableState, roleBindings: {} });
+  const config = productConfig(root);
   await operations.writeConfig(config);
-  await writeFile(path.join(durableState, "delivery.json"), "durable delivery\n");
   assert.equal((await operations.run("install")).status, "succeeded");
+  const retainedManifest = path.join(root, "state", "releases", "fixture-1", "compatibility.json");
+  assert.deepEqual(JSON.parse(await readFile(retainedManifest, "utf8")), manifestDocument());
 
   const result = await operations.run("uninstall");
 
   assert.equal(result.status, "succeeded");
   assert.equal(result.data.preserved.config, true);
   assert.equal(result.data.preserved.durableData, true);
-  assert.equal(await readFile(path.join(durableState, "delivery.json"), "utf8"), "durable delivery\n");
-  assert.equal(JSON.parse(await readFile(result.data.configPath, "utf8")).durableState, durableState);
+  assert.deepEqual(JSON.parse(await readFile(retainedManifest, "utf8")), manifestDocument());
+  assert.deepEqual(JSON.parse(await readFile(result.data.configPath, "utf8")), config);
 });
 
 test("install can reconcile again after uninstall without treating stale completion as current", async () => {
@@ -246,13 +245,39 @@ test("configuration has no repository selector and rejects repository as an unkn
   );
 });
 
-test("configuration requires exact workspace, service ports, workflow, and DSH installation mode", async () => {
+test("global configuration rejects repository-scoped fields and workflow selectors", async () => {
   const { operations, root } = await harness();
-  await assert.rejects(operations.writeConfig(productConfig(root, { workspace: "relative" })), /workspace.*absolute/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { workspace: "/work/repository" })), /unknown field workspace/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { roleBindings: {} })), /unknown field roleBindings/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { workflowSource: "hello-world-workflow@0.2.0" })), /workflowSource.*object/i);
+});
+
+test("global configuration validates GitHub source and allows omitted service defaults", async () => {
+  const { operations, root } = await harness();
+  await assert.doesNotReject(operations.writeConfig(productConfig(root, { services: undefined })));
   await assert.rejects(operations.writeConfig(productConfig(root, { installation: { dshMode: "all", dshProfile: "web" } })), /dshMode/i);
-  await assert.rejects(operations.writeConfig(productConfig(root, { ports: { dsh: 0, evidence: 4318, evolution: 8000 } })), /ports\.dsh/i);
-  await assert.rejects(operations.writeConfig(productConfig(root, { ports: { dsh: 18081, evidence: 0, evolution: 8000 } })), /ports\.evidence/i);
-  await assert.rejects(operations.writeConfig(productConfig(root, { workflowSource: "latest" })), /workflowSource/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { services: { ports: { dsh: 0 } } })), /services\.ports\.dsh/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { workflowSource: { kind: "github", repository: "not-a-repository" } })), /workflowSource\.repository/i);
+});
+
+test("successful install records the verified compatibility manifest and active release", async () => {
+  const { operations, root } = await harness();
+
+  assert.equal((await operations.run("install")).status, "succeeded");
+
+  assert.deepEqual(
+    JSON.parse(await readFile(path.join(root, "state", "releases", "fixture-1", "compatibility.json"), "utf8")),
+    manifestDocument(),
+  );
+  assert.deepEqual(
+    JSON.parse(await readFile(path.join(root, "state", "active-release.json"), "utf8")),
+    {
+      schemaVersion: "wsr.active-release@1.0.0",
+      release: "fixture-1",
+      manifestDigest: (await loadCompatibilityManifest(path.join(root, "compatibility.json"))).digest,
+      manifest: "releases/fixture-1/compatibility.json",
+    },
+  );
 });
 
 test("start can apply again after a completed stop", async () => {

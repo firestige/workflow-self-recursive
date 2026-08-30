@@ -1,7 +1,7 @@
 # Product operations
 
 This package owns the top-level orchestration contract for WSR's independently released delivery
-carriers. By default the CLI uses its packaged `manifests/product-0.2.0.json` and installs the stable DSH, Compose,
+carriers. By default the CLI uses its packaged `manifests/product-0.3.0.json` and installs the stable DSH, Compose,
 Workflow Package, Copilot and Codex coordinates recorded there. No owner source checkout or build is
 required. The fixture adapter remains available only when `--fixture` is supplied explicitly.
 
@@ -12,8 +12,9 @@ The stable command set is `setup`, `install`, `preflight`, `config`, `status`, `
 `wsr.operations.result@1.0.0` JSON result to standard output. Exit code `0` means succeeded, `3` means
 blocked/recoverable, and `2` means failed or invalid input.
 
-Create a private configuration from the Release's `wsr-product-0.2.0.config.example.json`, replacing
-its workspace and durable-state paths and choosing unused loopback ports, then run the installed CLI:
+Create a private configuration from the Release's `wsr-product-0.3.0.config.example.json`. It selects
+the GitHub Workflow repository and may choose unused loopback ports; it does not select a workspace,
+Task, Workflow version, or repository Role Provider binding. Then run the installed CLI from any directory:
 
 ```sh
 wsr setup --config-input /absolute/config.json
@@ -22,12 +23,20 @@ wsr preflight
 wsr start
 ```
 
-The default state and config are `.wsr/operations` and `.wsr/config.json`. Product operations writes
-configuration as mode `0600` and state directories as mode `0700`. Set `DSH_HOME` before every command
-when a non-default DSH profile home is required.
+The default config/state locations are `~/Library/Application Support/WSR/config.json` and its `state`
+directory on macOS, `${XDG_CONFIG_HOME:-~/.config}/wsr/config.json` and
+`${XDG_STATE_HOME:-~/.local/state}/wsr` on Linux, and `%APPDATA%\WSR\config.json` plus
+`%LOCALAPPDATA%\WSR\state` on Windows. `--config` and `--state-dir` override them; an absolute
+`state.root` in the global config overrides only the default state directory. Product operations writes
+configuration as mode `0600` and state directories as mode `0700`.
+
+The active DSH Session supplies the runtime workspace. Each repository owns its optional
+`.wsr/role-provider-bindings.json`; product setup never creates or overwrites it. Set `DSH_HOME` before
+every command when a non-default DSH profile home is required.
 
 Mutable commands run preflight for every component before the first adapter effect. An interrupted
 operation records the exact manifest digest and completed component set; only that command with that
 manifest may resume. Repeated completion is a no-op. `uninstall` removes only adapter-owned managed
 installation state and reports that user configuration and durable data remain preserved. There is no
-purge command.
+purge command. Each successfully applied manifest is retained under `state/releases/<release>/`, with
+`state/active-release.json` pointing at the active verified snapshot.

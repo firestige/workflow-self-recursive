@@ -2,8 +2,9 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, rename, chmod, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import { normalizeGlobalConfig } from "./global-config.mjs";
+
 const RESULT_SCHEMA = "wsr.operations.result@1.0.0";
-const CONFIG_SCHEMA = "wsr.operations.config@1.0.0";
 const COMMANDS = new Set([
   "setup",
   "install",
@@ -68,78 +69,21 @@ async function writeJsonAtomic(target, value, mode = 0o600) {
   await rename(temporary, target);
 }
 
-function validateConfig(config) {
-  if (config?.schema !== CONFIG_SCHEMA) throw new Error(`config schema must be ${CONFIG_SCHEMA}`);
-  const allowedTopLevel = new Set([
-    "schema",
-    "workspace",
-    "durableState",
-    "installation",
-    "ports",
-    "workflowSource",
-    "roleBindings",
-  ]);
-  for (const field of Object.keys(config)) {
-    if (!allowedTopLevel.has(field)) throw new Error(`config contains unknown field ${field}`);
-  }
-  for (const field of ["workspace", "durableState", "workflowSource"]) {
-    if (typeof config[field] !== "string" || config[field].length === 0) {
-      throw new Error(`config ${field} is required`);
-    }
-  }
-  for (const field of ["workspace", "durableState"]) {
-    if (!path.isAbsolute(config[field])) throw new Error(`config ${field} must be absolute`);
-  }
-  if (!/^[a-z][a-z0-9-]*@\d+\.\d+\.\d+$/u.test(config.workflowSource)) {
-    throw new Error("config workflowSource must be an exact name@version");
-  }
-  if (config.installation === null || typeof config.installation !== "object") {
-    throw new Error("config installation is required");
-  }
-  for (const field of Object.keys(config.installation)) {
-    if (field !== "dshMode" && field !== "dshProfile") {
-      throw new Error(`config installation contains unknown field ${field}`);
-    }
-  }
-  if (!["execution", "studio", "suite"].includes(config.installation.dshMode)) {
-    throw new Error("config installation.dshMode must be execution, studio, or suite");
-  }
-  if (typeof config.installation.dshProfile !== "string" || !/^[a-z][a-z0-9-]*$/u.test(config.installation.dshProfile)) {
-    throw new Error("config installation.dshProfile is invalid");
-  }
-  for (const field of Object.keys(config.ports ?? {})) {
-    if (!["dsh", "evidence", "evolution"].includes(field)) {
-      throw new Error(`config ports contains unknown field ${field}`);
-    }
-  }
-  for (const field of ["dsh", "evidence", "evolution"]) {
-    if (!Number.isInteger(config.ports?.[field]) || config.ports[field] < 1 || config.ports[field] > 65535) {
-      throw new Error(`config ports.${field} must be an integer from 1 to 65535`);
-    }
-  }
-  if (config.roleBindings === null || typeof config.roleBindings !== "object") {
-    throw new Error("config roleBindings must be an object");
-  }
-  for (const [role, binding] of Object.entries(config.roleBindings)) {
-    if (binding === null || typeof binding !== "object") {
-      throw new Error(`config roleBindings.${role} must be an object`);
-    }
-    for (const field of Object.keys(binding)) {
-      if (field !== "provider" && field !== "model") {
-        throw new Error(`config roleBindings.${role} contains unknown field ${field}`);
-      }
-    }
-    if (typeof binding.provider !== "string" || binding.provider.length === 0) {
-      throw new Error(`config roleBindings.${role}.provider is required`);
-    }
-    if (typeof binding.model !== "string" || binding.model.length === 0) {
-      throw new Error(`config roleBindings.${role}.model is required`);
-    }
-  }
-}
-
 export function createOperations({ manifest, adapters, stateDirectory, configPath }) {
   const statePath = path.join(stateDirectory, "operations-state.json");
+
+  async function retainAppliedManifest() {
+    const releaseName = encodeURIComponent(manifest.release);
+    const relativeManifestPath = path.posix.join("releases", releaseName, "compatibility.json");
+    const { digest: _digest, ...document } = manifest;
+    await writeJsonAtomic(path.join(stateDirectory, relativeManifestPath), document);
+    await writeJsonAtomic(path.join(stateDirectory, "active-release.json"), {
+      schemaVersion: "wsr.active-release@1.0.0",
+      release: manifest.release,
+      manifestDigest: manifest.digest,
+      manifest: relativeManifestPath,
+    });
+  }
 
   async function preflight(command, id) {
     const components = [];
@@ -206,6 +150,7 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
 
     const key = `${command}:${manifest.digest}`;
     if (state.completed[key]) {
+      if (["install", "upgrade", "rollback"].includes(command)) await retainAppliedManifest();
       const data = command === "uninstall"
         ? { preserved: { config: true, durableData: true }, configPath }
         : undefined;
@@ -284,6 +229,7 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
     state.completed[key] = { operationId: id, completedAt: new Date().toISOString() };
     state.active = null;
     await writeJsonAtomic(statePath, state);
+    if (["install", "upgrade", "rollback"].includes(command)) await retainAppliedManifest();
     const data = command === "uninstall"
       ? { preserved: { config: true, durableData: true }, configPath }
       : undefined;
@@ -304,14 +250,14 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
     },
 
     async writeConfig(config) {
-      validateConfig(config);
+      normalizeGlobalConfig(config);
       let changed = true;
       try {
         changed = (await readFile(configPath, "utf8")).trim() !== JSON.stringify(config, null, 2);
       } catch (error) {
         if (error.code !== "ENOENT") throw error;
       }
-      await mkdir(config.durableState, { recursive: true, mode: 0o700 });
+      await mkdir(stateDirectory, { recursive: true, mode: 0o700 });
       if (changed) await writeJsonAtomic(configPath, config);
       else await chmod(configPath, 0o600);
       return envelope("setup", operationId("setup", manifest.digest), "succeeded", {

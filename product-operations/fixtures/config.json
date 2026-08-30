@@ -1,25 +1,18 @@
 {
-  "schema": "wsr.operations.config@1.0.0",
-  "workspace": "/absolute/path/to/workspace",
-  "durableState": "/absolute/path/to/wsr-state",
+  "schemaVersion": "wsr.global-config@1.0.0",
   "installation": {
     "dshMode": "suite",
     "dshProfile": "web"
   },
-  "ports": {
-    "dsh": 3080,
-    "evidence": 4318,
-    "evolution": 8000
-  },
-  "workflowSource": "hello-world-workflow@0.2.0",
-  "roleBindings": {
-    "role.greeter": {
-      "provider": "copilot",
-      "model": "fixture-copilot-model"
-    },
-    "role.reviewer": {
-      "provider": "codex",
-      "model": "fixture-codex-model"
+  "services": {
+    "ports": {
+      "dsh": 3080,
+      "evidence": 4318,
+      "evolution": 8000
     }
+  },
+  "workflowSource": {
+    "kind": "github",
+    "repository": "firestige/wsr-workflow-package"
   }
 }

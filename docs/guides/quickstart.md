@@ -3,7 +3,7 @@
 English | [中文](quickstart.zh-CN.md)
 
 This guide rebuilds the Iter6 reference assembly on one trusted personal computer. It installs the
-top-level operations bundle from the `product-0.2.0` GitHub Release and consumes only that bundle's
+top-level operations bundle from the `product-0.3.0` GitHub Release and consumes only that bundle's
 stable compatibility manifest. No WSR source checkout or owner build is part of the product path.
 
 ## 1. Prepare configuration
@@ -13,14 +13,14 @@ Prerequisites are DSH `0.1.1-rc.2`, Node `24.12.0`, npm `11.6.2`, Docker with Co
 asset and download its editable configuration example:
 
 ```sh
-npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.2.0/wsr-product-operations-0.2.0.tgz
+npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.0/wsr-product-operations-0.3.0.tgz
 curl --proto '=https' --tlsv1.2 --fail --location --remote-name \
-  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.2.0/wsr-product-0.2.0.config.example.json
+  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.0/wsr-product-0.3.0.config.example.json
 ```
 
-Set `workspace` in the example to a canonical Git worktree root, choose an absolute `durableState`
-path, and select unused loopback ports. The example binds `role.greeter` to Copilot and
-`role.reviewer` to Codex.
+The example selects the GitHub repository that publishes Workflow Packages. Service ports are optional;
+the shown values are the defaults. It contains no workspace, Workflow selector, Task, repository filter,
+Role binding, or credential. To override the OS-level state location, add an absolute `state.root`.
 
 ```sh
 wsr setup --config-input /absolute/config.json
@@ -28,8 +28,8 @@ wsr install
 wsr preflight
 ```
 
-`preflight` fails before Delivery admission when the workspace is not the exact Git root or has
-uncommitted changes. Commit or stash them, then repeat it. No token or credential is copied into WSR
+The CLI stores global config and state in stable OS-level user directories documented in the package
+README, so every command can run from any current directory. No token or credential is copied into WSR
 configuration.
 
 ## 2. Start and create a Delivery
@@ -38,7 +38,7 @@ configuration.
 wsr start
 ```
 
-Open the DSH web profile, register the exact configured workspace, create a Session there, and submit
+Open the DSH web profile, register a workspace, create a Session there, and submit
 the selector on the first line with the Task directive on following lines:
 
 ```text
@@ -48,7 +48,8 @@ Return a concise greeting and review it.
 
 The Delivery card and Session Delivery view expose the durable status and final result. Studio reads
 Evidence and Evolution through the configured loopback services; it does not select or filter by a
-repository.
+repository. The active Session supplies the runtime workspace. If the Workflow declares Roles, place
+their bindings in that repository's `.wsr/role-provider-bindings.json`.
 
 ## 3. Inspect and recover
 

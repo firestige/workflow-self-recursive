@@ -8,21 +8,18 @@ import { loadCompatibilityManifest } from "../src/compatibility-manifest.mjs";
 import { createPublishedAdapters } from "../src/published-adapters.mjs";
 
 const root = path.resolve(import.meta.dirname, "../..");
-const manifestPath = path.join(root, "release/product/0.2.0.json");
-const packagedManifestPath = path.join(root, "product-operations/manifests/product-0.2.0.json");
+const manifestPath = path.join(root, "release/product/0.3.0.json");
+const packagedManifestPath = path.join(root, "product-operations/manifests/product-0.3.0.json");
 
 async function configFixture(directory, overrides = {}) {
   const configPath = path.join(directory, "config.json");
   const config = {
-    schema: "wsr.operations.config@1.0.0",
-    workspace: directory,
-    durableState: path.join(directory, "durable"),
+    schemaVersion: "wsr.global-config@1.0.0",
     installation: { dshMode: "suite", dshProfile: "web" },
-    ports: { dsh: 18081, evidence: 4318, evolution: 8000 },
-    workflowSource: "hello-world-workflow@0.2.0",
-    roleBindings: {
-      "role.greeter": { provider: "copilot", model: "gpt-5.3-codex" },
-      "role.reviewer": { provider: "codex", model: "gpt-5.6-sol" },
+    services: { ports: { dsh: 18081, evidence: 4318, evolution: 8000 } },
+    workflowSource: {
+      kind: "github",
+      repository: "firestige/wsr-workflow-package",
     },
     ...overrides,
   };
@@ -33,7 +30,7 @@ async function configFixture(directory, overrides = {}) {
 test("final product manifest binds only stable published artifacts", async () => {
   assert.equal(await readFile(packagedManifestPath, "utf8"), await readFile(manifestPath, "utf8"));
   const manifest = await loadCompatibilityManifest(manifestPath);
-  assert.equal(manifest.release, "0.2.0");
+  assert.equal(manifest.release, "0.3.0");
   assert.deepEqual(manifest.components.map(({ id }) => id), [
     "dsh-bundle",
     "services",
@@ -76,7 +73,7 @@ test("published DSH preflight fails closed on an inexact local DSH runtime", asy
   assert.deepEqual(commands[0], ["dsh", "--version"]);
 });
 
-test("explicit product preflight rejects a dirty workspace before custody admission", async () => {
+test("product preflight does not inspect a business workspace", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
   const configPath = await configFixture(directory);
   const manifest = await loadCompatibilityManifest(manifestPath);
@@ -87,19 +84,16 @@ test("explicit product preflight rejects a dirty workspace before custody admiss
     run: async (command, args) => {
       if (command === "dsh") return { status: 0, stdout: "0.1.1-rc.2\n", stderr: "" };
       if (command === "npm") return { status: 0, stdout: "11.6.2\n", stderr: "" };
-      if (command === "git" && args.includes("--show-toplevel")) return { status: 0, stdout: `${directory}\n`, stderr: "" };
-      if (command === "git") return { status: 0, stdout: " M product.txt\n", stderr: "" };
+      if (command === "git") throw new Error("global product preflight must not inspect a repository");
       return { status: 0, stdout: "", stderr: "" };
     },
   });
 
   const result = await adapters.get("dsh-bundle").preflight(manifest.components[0], { command: "preflight" });
-  assert.equal(result.status, "blocked");
-  assert.equal(result.code, "WORKSPACE_DIRTY");
-  assert.doesNotMatch(result.message, /product\.txt/u);
+  assert.equal(result.status, "succeeded");
 });
 
-test("DSH setup materializes the v2 product config and exact repository Role Provider bindings", async () => {
+test("DSH setup uses an installation root and leaves repository Role Provider bindings per-repo", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
   const stateDirectory = path.join(directory, "state");
   const configPath = await configFixture(directory);
@@ -116,24 +110,15 @@ test("DSH setup materializes the v2 product config and exact repository Role Pro
   const execution = JSON.parse(await readFile(path.join(stateDirectory, "managed/dsh/execution-config.json"), "utf8"));
   assert.equal(execution.schemaVersion, "execution.config@2.0.0");
   assert.equal(execution.runner.implementationKey, "runner.v2");
-  assert.equal(execution.paths.repositoryRoot, directory);
+  const installationRoot = path.join(stateDirectory, "managed/workspace-root");
+  assert.equal(execution.paths.repositoryRoot, installationRoot);
+  assert.equal(execution.paths.workspaceRoot, installationRoot);
+  assert.deepEqual(execution.paths.allowedWorktreeRoots, [installationRoot]);
+  assert.equal(execution.paths.stateRoot, path.join(stateDirectory, "durable/execution"));
   assert.equal(execution.workflowSource.repository, "firestige/wsr-workflow-package");
+  assert.equal(execution.workflowSource.releasesBaseUrl, "https://api.github.com/repos/firestige/wsr-workflow-package/releases");
   assert.equal("provider" in execution.runner, false);
-
-  const bindings = JSON.parse(await readFile(path.join(directory, ".wsr/role-provider-bindings.json"), "utf8"));
-  assert.deepEqual(bindings, {
-    schemaVersion: "execution.repository-role-provider-bindings@1.0.0",
-    bindings: {
-      "role.greeter": {
-        agentProvider: { identity: "provider.copilot", version: "1.0.78" },
-        model: { provider: "github-copilot", model: "gpt-5.3-codex" },
-      },
-      "role.reviewer": {
-        agentProvider: { identity: "provider.codex", version: "0.144.5" },
-        model: { provider: "openai", model: "gpt-5.6-sol" },
-      },
-    },
-  });
+  await assert.rejects(readFile(path.join(directory, ".wsr/role-provider-bindings.json"), "utf8"), /ENOENT/u);
   const overlay = await readFile(path.join(stateDirectory, "managed/dsh/product.patch.yml"), "utf8");
   assert.match(overlay, /id: wsr-execution[\s\S]*execution-config\.json[\s\S]*id: wsr-studio[\s\S]*loopback-host\.json/u);
   assert.doesNotMatch(overlay, /__REQUIRED__/u);
@@ -163,6 +148,51 @@ test("published services adapter delegates lifecycle to the exact released wsr-c
   assert.deepEqual(commands[0].args, ["start"]);
   assert.equal(commands[0].options.env.WSR_EVIDENCE_PORT, "4318");
   assert.equal(commands[0].options.env.WSR_EVOLUTION_PORT, "8000");
+});
+
+test("published adapters apply product defaults when optional service settings are omitted", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
+  const configPath = await configFixture(directory, { services: undefined });
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const commands = [];
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory: path.join(directory, "state"),
+    bundleDirectory: path.join(directory, "bundle"),
+    run: async (command, args, options) => {
+      commands.push({ command, args, options });
+      return { status: 0, stdout: "ready\n", stderr: "" };
+    },
+  });
+
+  assert.equal((await adapters.get("services").apply("start", manifest.components[1])).status, "succeeded");
+  assert.equal(commands[0].options.env.WSR_EVIDENCE_PORT, "4318");
+  assert.equal(commands[0].options.env.WSR_EVOLUTION_PORT, "8000");
+});
+
+test("workflow source selects a GitHub repository rather than a package version", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const acceptedConfig = await configFixture(directory);
+  const accepted = createPublishedAdapters({
+    manifest,
+    configPath: acceptedConfig,
+    stateDirectory: path.join(directory, "state-a"),
+  });
+  assert.equal((await accepted.get("workflow-source").preflight()).status, "succeeded");
+
+  const alternateConfig = await configFixture(directory, {
+    workflowSource: { kind: "github", repository: "another/workflows" },
+  });
+  const alternate = createPublishedAdapters({
+    manifest,
+    configPath: alternateConfig,
+    stateDirectory: path.join(directory, "state-b"),
+  });
+  const result = await alternate.get("workflow-source").preflight();
+  assert.equal(result.status, "succeeded");
+  assert.equal(result.data.repository, "another/workflows");
 });
 
 test("published services health reads the running loopback endpoints instead of installation preflight", async () => {
