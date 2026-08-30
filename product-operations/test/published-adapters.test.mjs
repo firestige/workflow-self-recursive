@@ -17,7 +17,7 @@ async function configFixture(directory, overrides = {}) {
     workspace: directory,
     durableState: path.join(directory, "durable"),
     installation: { dshMode: "suite", dshProfile: "web" },
-    ports: { evidence: 4318, evolution: 8000 },
+    ports: { dsh: 18081, evidence: 4318, evolution: 8000 },
     workflowSource: "hello-world-workflow@0.2.0",
     roleBindings: {
       "role.greeter": { provider: "copilot", model: "gpt-5.3-codex" },
@@ -191,12 +191,34 @@ test("published DSH lifecycle launches the configured profile and retains only p
   assert.equal(started.status, "succeeded");
   assert.equal(launches[0].command, "dsh");
   assert.deepEqual(launches[0].args.slice(0, 4), ["web", "--patch", path.join(stateDirectory, "managed/dsh/product.patch.yml"), "--no-open"]);
+  assert.deepEqual(launches[0].args.slice(4), ["--host", "127.0.0.1", "--port", "18081"]);
   assert.equal(launches[0].options.logFile, path.join(stateDirectory, "logs/dsh.log"));
   assert.deepEqual(JSON.parse(await readFile(path.join(stateDirectory, "run/dsh.json"), "utf8")), { pid: 4242 });
 
   const stopped = await dsh.apply("stop");
   assert.equal(stopped.status, "succeeded");
   assert.deepEqual(signals, [4242]);
+});
+
+test("published DSH start fails closed when the launched process exits during startup", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
+  const stateDirectory = path.join(directory, "state");
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory,
+    run: async () => ({ status: 0, stdout: "", stderr: "" }),
+    launch: async () => 4242,
+    processControl: { alive: () => false, stop: () => {} },
+    startupProbeDelayMs: 0,
+  });
+
+  const result = await adapters.get("dsh-bundle").apply("start");
+  assert.equal(result.status, "blocked");
+  assert.equal(result.code, "DSH_START_FAILED");
+  await assert.rejects(readFile(path.join(stateDirectory, "run/dsh.json"), "utf8"), /ENOENT/u);
 });
 
 test("published provider preflight uses Codex read-only login status and never persists credentials", async () => {

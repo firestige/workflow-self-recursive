@@ -7,6 +7,7 @@
     "dshProfile": "web"
   },
   "ports": {
+    "dsh": 3080,
     "evidence": 4318,
     "evolution": 8000
   },

@@ -32,7 +32,7 @@ const productConfig = (root, overrides = {}) => ({
   workspace: "/work/workspace",
   durableState: path.join(root, "durable"),
   installation: { dshMode: "suite", dshProfile: "web" },
-  ports: { evidence: 4318, evolution: 8000 },
+  ports: { dsh: 18081, evidence: 4318, evolution: 8000 },
   workflowSource: "hello-world-workflow@0.2.0",
   roleBindings: {
     "role.greeter": { provider: "copilot", model: "fixture-copilot" },
@@ -250,7 +250,8 @@ test("configuration requires exact workspace, service ports, workflow, and DSH i
   const { operations, root } = await harness();
   await assert.rejects(operations.writeConfig(productConfig(root, { workspace: "relative" })), /workspace.*absolute/i);
   await assert.rejects(operations.writeConfig(productConfig(root, { installation: { dshMode: "all", dshProfile: "web" } })), /dshMode/i);
-  await assert.rejects(operations.writeConfig(productConfig(root, { ports: { evidence: 0, evolution: 8000 } })), /ports\.evidence/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { ports: { dsh: 0, evidence: 4318, evolution: 8000 } })), /ports\.dsh/i);
+  await assert.rejects(operations.writeConfig(productConfig(root, { ports: { dsh: 18081, evidence: 0, evolution: 8000 } })), /ports\.evidence/i);
   await assert.rejects(operations.writeConfig(productConfig(root, { workflowSource: "latest" })), /workflowSource/i);
 });
 

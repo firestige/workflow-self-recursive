@@ -107,7 +107,12 @@ function validateConfig(config) {
   if (typeof config.installation.dshProfile !== "string" || !/^[a-z][a-z0-9-]*$/u.test(config.installation.dshProfile)) {
     throw new Error("config installation.dshProfile is invalid");
   }
-  for (const field of ["evidence", "evolution"]) {
+  for (const field of Object.keys(config.ports ?? {})) {
+    if (!["dsh", "evidence", "evolution"].includes(field)) {
+      throw new Error(`config ports contains unknown field ${field}`);
+    }
+  }
+  for (const field of ["dsh", "evidence", "evolution"]) {
     if (!Number.isInteger(config.ports?.[field]) || config.ports[field] < 1 || config.ports[field] > 65535) {
       throw new Error(`config ports.${field} must be an integer from 1 to 65535`);
     }

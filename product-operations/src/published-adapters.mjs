@@ -97,7 +97,7 @@ function productBinding(binding, providers) {
   };
 }
 
-function dshAdapter({ component, providers, configPath, stateDirectory, run, launch, processControl }) {
+function dshAdapter({ component, providers, configPath, stateDirectory, run, launch, processControl, startupProbeDelayMs }) {
   const managed = path.join(stateDirectory, "managed", "dsh");
   const executionConfigFile = path.join(managed, "execution-config.json");
   const intakeBindingFile = path.join(managed, "intake-bindings.json");
@@ -127,7 +127,14 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
       config.installation.dshProfile,
       "--patch", overlayFile,
       "--no-open",
+      "--host", "127.0.0.1",
+      "--port", String(config.ports.dsh),
     ], { logFile });
+    await new Promise((resolve) => setTimeout(resolve, startupProbeDelayMs));
+    if (!processControl.alive(pid)) {
+      await rm(processFile, { force: true });
+      return blocked("DSH_START_FAILED", `DSH exited during startup; inspect ${logFile}`);
+    }
     await writeJson(processFile, { pid });
     return succeeded({ pid, running: true, logFile });
   }
@@ -435,6 +442,7 @@ export function createPublishedAdapters({
   run = defaultRun,
   launch = defaultLaunch,
   processControl = defaultProcessControl,
+  startupProbeDelayMs = 500,
   fetchImpl = globalThis.fetch,
 }) {
   if (typeof fetchImpl !== "function") throw new TypeError("fetch implementation is required");
@@ -448,6 +456,7 @@ export function createPublishedAdapters({
       run,
       launch,
       processControl,
+      startupProbeDelayMs,
     })],
     ["services", servicesAdapter({ component: components.get("services"), configPath, stateDirectory, bundleDirectory, run, fetchImpl })],
     ["workflow-source", workflowAdapter({ component: components.get("workflow-source"), configPath, stateDirectory, fetchImpl })],

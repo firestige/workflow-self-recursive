@@ -10,7 +10,8 @@
 前置条件为 DSH `0.1.1-rc.2`、Node `24.12.0`、npm `11.6.2`、Docker Compose、已在本机登录的
 Codex CLI `0.144.5`，以及可用的本机 GitHub Copilot 登录。复制
 `product-operations/fixtures/config.json`，把 `workspace` 改为 canonical Git worktree 根目录，并设置
-绝对的 `durableState` 路径。示例把 `role.greeter` 绑定到 Copilot、`role.reviewer` 绑定到 Codex。
+绝对的 `durableState` 路径，再为 `ports.dsh` 选择一个未占用的 loopback 端口。示例把
+`role.greeter` 绑定到 Copilot、`role.reviewer` 绑定到 Codex。
 
 ```sh
 node product-operations/bin/wsr.mjs setup --config-input /absolute/config.json

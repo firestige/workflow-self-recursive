@@ -13,7 +13,7 @@ The stable command set is `setup`, `install`, `preflight`, `config`, `status`, `
 blocked/recoverable, and `2` means failed or invalid input.
 
 Create a private configuration from `fixtures/config.json`, replacing its workspace and durable-state
-paths, then run the published journey from the repository root:
+paths and choosing an unused loopback `ports.dsh`, then run the published journey from the repository root:
 
 ```sh
 node ./product-operations/bin/wsr.mjs setup --config-input /absolute/config.json

@@ -10,9 +10,9 @@ of the product path.
 
 Prerequisites are DSH `0.1.1-rc.2`, Node `24.12.0`, npm `11.6.2`, Docker with Compose, Codex CLI
 `0.144.5` logged in locally, and an available local GitHub Copilot login. Copy
-`product-operations/fixtures/config.json`, set `workspace` to a canonical Git worktree root and choose
-an absolute `durableState` path. The example binds `role.greeter` to Copilot and `role.reviewer` to
-Codex.
+`product-operations/fixtures/config.json`, set `workspace` to a canonical Git worktree root, choose
+an absolute `durableState` path, and select an unused loopback `ports.dsh` port. The example binds
+`role.greeter` to Copilot and `role.reviewer` to Codex.
 
 ```sh
 node product-operations/bin/wsr.mjs setup --config-input /absolute/config.json
