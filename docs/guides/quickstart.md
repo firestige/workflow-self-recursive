@@ -2,39 +2,58 @@
 
 English | [中文](quickstart.zh-CN.md)
 
-This guide describes the supported first-use journey on one trusted personal computer. The packaged
-product journey is not qualified yet: do not substitute a source checkout or the fixture operations
-adapter for a published release.
+This guide rebuilds the Iter6 reference assembly on one trusted personal computer. It consumes only
+the stable coordinates in `release/product/0.2.0.json`; owner source checkouts and builds are not part
+of the product path.
 
-## 1. Check release availability
+## 1. Prepare configuration
 
-The final journey will begin with the top-level `preflight` and `setup` operations. They will verify an
-exact compatibility manifest for the DSH bundle, Evidence/Evolution service images, Workflow source,
-and local Agent Providers before any installation effect.
+Prerequisites are DSH `0.1.1-rc.2`, Node `24.12.0`, npm `11.6.2`, Docker with Compose, Codex CLI
+`0.144.5` logged in locally, and an available local GitHub Copilot login. Copy
+`product-operations/fixtures/config.json`, set `workspace` to a canonical Git worktree root and choose
+an absolute `durableState` path. The example binds `role.greeter` to Copilot and `role.reviewer` to
+Codex.
 
-The Iter6 command contract exists under `product-operations`, but currently accepts fixture adapters
-only. It is for automated qualification, not installation.
+```sh
+node product-operations/bin/wsr.mjs setup --config-input /absolute/config.json
+node product-operations/bin/wsr.mjs install
+node product-operations/bin/wsr.mjs preflight
+```
 
-## 2. Install and configure
+`preflight` fails before Delivery admission when the workspace is not the exact Git root or has
+uncommitted changes. Commit or stash them, then repeat it. No token or credential is copied into WSR
+configuration.
 
-The stable product operations are `setup`, `install`, and `config`. Setup will collect the repository
-and workspace, durable-state location, loopback ports, exact Workflow source, and Role-to-Provider/model
-bindings. WSR reuses local DSH, Copilot, and Codex login state; configuration and diagnostics must not
-contain credentials.
+## 2. Start and create a Delivery
 
-## 3. Start and inspect
+```sh
+node product-operations/bin/wsr.mjs start
+```
 
-The stable daily operations are `start`, `status`, `health`, `logs`, `stop`, and `restart`. Results map
-separately to DSH/Execution, Evidence/Evolution, Workflow source, and Provider layers so a partial
-failure remains diagnosable.
+Open the DSH web profile, register the exact configured workspace, create a Session there, and submit
+the selector on the first line with the Task directive on following lines:
+
+```text
+/wsr create hello-world-workflow@0.2.0
+Return a concise greeting and review it.
+```
+
+The Delivery card and Session Delivery view expose the durable status and final result. Studio reads
+Evidence and Evolution through the configured loopback services; it does not select or filter by a
+repository.
+
+## 3. Inspect and recover
+
+Use `status`, `health`, and `logs` for layer-specific diagnostics. `restart` restarts Compose and DSH;
+Execution reconstructs Delivery, checkpoint and Session bindings from durable state.
 
 ## 4. Upgrade or remove
 
-`upgrade` and `rollback` will use explicit compatible versions and digests, never an ambient `latest`.
+`upgrade` and `rollback` use explicit compatible versions and digests, never an ambient `latest`.
 `uninstall` preserves Delivery, checkpoints, bindings, Evidence, configuration, and other durable data
 by default. Any future data purge must be a separate explicit destructive operation.
 
-## Source preview for contributors
+## Contributor source preview
 
-Contributors who need the existing source-built data-service preview should follow the separate
-[source-build guide](../contributing/source-build.md). It is not the final clean-machine product path.
+Contributors who need the source-built data-service preview should follow the separate
+[source-build guide](../contributing/source-build.md). It is not the clean-machine product path.

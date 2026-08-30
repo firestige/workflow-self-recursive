@@ -21,16 +21,16 @@ Workflow definitions and resources live in versioned Workflow Packages. Shared c
 
 ## Get started
 
-The packaged end-user release is not qualified yet. The stable top-level operations contract is being
-built around `setup`, `install`, `preflight`, `config`, `status`, `health`, `logs`, `start`, `stop`,
-`restart`, `upgrade`, `rollback`, and `uninstall`; its current adapter is fixture-only and must not be
-used as a product installer.
+The Iter6 reference assembly uses the stable top-level `setup`, `install`, `preflight`, `config`,
+`status`, `health`, `logs`, `start`, `stop`, `restart`, `upgrade`, `rollback`, and `uninstall`
+operations. The default adapter consumes the published compatibility manifest; fixture mode is
+explicit and test-only.
 
 Follow the [quickstart](docs/guides/quickstart.md) for the user-facing journey and current release
 status. Contributors who need the existing source-built data-service preview should use the separate
 [source-build guide](docs/contributing/source-build.md).
 
-Installation and operation will resolve exact compatible artifacts rather than build internal source
+Installation and operation resolve exact compatible artifacts rather than build internal source
 repositories or select ambient `latest` versions. Uninstall preserves durable user data by default.
 
 ## Documentation

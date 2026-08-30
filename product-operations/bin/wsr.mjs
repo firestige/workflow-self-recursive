@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { loadCompatibilityManifest } from "../src/compatibility-manifest.mjs";
 import { createFixtureAdapter } from "../src/fixture-adapter.mjs";
 import { createOperations } from "../src/operations.mjs";
+import { createPublishedAdapters } from "../src/published-adapters.mjs";
 
 const packageRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -40,16 +41,22 @@ let exitCode = 0;
 let output;
 try {
   const { command, options } = parseArguments(process.argv.slice(2));
-  const manifestPath = path.resolve(options.manifest ?? path.join(packageRoot, "fixtures", "compatibility.json"));
+  const manifestPath = path.resolve(options.manifest ?? path.join(packageRoot, "..", "release", "product", "0.2.0.json"));
   const fixturePath = options.fixture ? path.resolve(options.fixture) : null;
   const manifest = await loadCompatibilityManifest(manifestPath);
-  const fixture = fixturePath ? JSON.parse(await readFile(fixturePath, "utf8")) : {};
-  const adapter = createFixtureAdapter(fixture);
   const stateDirectory = path.resolve(options["state-dir"] ?? ".wsr/operations");
   const configPath = path.resolve(options.config ?? ".wsr/config.json");
+  let adapters;
+  if (fixturePath) {
+    const fixture = JSON.parse(await readFile(fixturePath, "utf8"));
+    const adapter = createFixtureAdapter(fixture);
+    adapters = new Map(manifest.components.map((component) => [component.id, adapter]));
+  } else {
+    adapters = createPublishedAdapters({ manifest, stateDirectory, configPath });
+  }
   const operations = createOperations({
     manifest,
-    adapters: new Map(manifest.components.map((component) => [component.id, adapter])),
+    adapters,
     stateDirectory,
     configPath,
   });

@@ -21,14 +21,14 @@ workflow-self-recursive 目前是以架构为先的开发者预览版，适用�
 
 ## 开始使用
 
-打包的最终用户发行版尚未完成资格验证。稳定顶层操作契约正在围绕 `setup`、`install`、
-`preflight`、`config`、`status`、`health`、`logs`、`start`、`stop`、`restart`、`upgrade`、
-`rollback` 与 `uninstall` 建立；当前 adapter 只支持 fixture，不能作为产品安装器。
+Iter6 reference assembly 使用稳定顶层操作 `setup`、`install`、`preflight`、`config`、`status`、
+`health`、`logs`、`start`、`stop`、`restart`、`upgrade`、`rollback` 与 `uninstall`。默认 adapter
+消费已发布 compatibility manifest；fixture 模式必须显式启用且只用于测试。
 
 用户旅程和当前发行状态见[快速开始](docs/guides/quickstart.zh-CN.md)。需要运行现有源码构建数据服务
 预览的贡献者，请使用单独的[源码构建指南](docs/contributing/source-build.zh-CN.md)。
 
-正式安装与运维将解析 exact compatible artifacts，不要求构建内部源码仓库，也不选择 ambient
+正式安装与运维解析 exact compatible artifacts，不要求构建内部源码仓库，也不选择 ambient
 `latest`。uninstall 默认保留用户 durable data。
 
 ## 文档
