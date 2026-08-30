@@ -1,0 +1,46 @@
+{
+  "schema_version": "wsr.iter4-unified-candidate@1.0.0",
+  "status": "IMMUTABLE_RELEASE_CANDIDATE",
+  "created_at": "2026-08-30",
+  "execution": {
+    "repository": "firestige/wsr-execution",
+    "input_commit": "2984884cb1eb307bdfc3edf5af56a7505ba8a312",
+    "build_input_commit": "2984884cb1eb307bdfc3edf5af56a7505ba8a312",
+    "candidate_archive_commit": "5f672012c5ab9623578418367d148b2187fee2d0",
+    "metadata": {
+      "path": "execution-system/release/candidates/iter6-wave14-core/release-metadata.json",
+      "sha256": "sha256:895e77989b9536645dda5b1ce392404213d21284da8e201758dbdabaf7d445c2"
+    },
+    "release_notes": {
+      "path": "execution-system/release/candidates/iter6-wave14-core/release-notes.md",
+      "sha256": "sha256:10673d388e3d49740f9329cde60db736be4bde5a52558b5bb12228dd5620e6c3"
+    },
+    "artifacts": [
+      {
+        "package": "wsr-execution",
+        "version": "0.1.4",
+        "path": "execution-system/release/candidates/iter6-wave14-core/wsr-execution-0.1.4.tgz",
+        "bytes": 213912,
+        "sha256": "sha256:0b889b707b5fdc84d934e6c807ce101b4edaa356409253a1f48d6ffca7f53420"
+      }
+    ]
+  },
+  "qualification": {
+    "execution_full_test": "PASS_696",
+    "execution_coverage": {
+      "statements": "90.00%",
+      "branches": "85.95%",
+      "functions": "93.81%",
+      "lines": "95.19%"
+    },
+    "execution_type_build_generated_distribution": "PASS",
+    "execution_static_and_feasibility_harness": "PASS",
+    "execution_core_only_artifact_set": "PASS_ONE_ARTIFACT",
+    "execution_old_dsh_publisher": "RETIRED"
+  },
+  "non_claims": [
+    "NO_TAG_OR_GITHUB_RELEASE_CREATED",
+    "NO_NPM_PUBLICATION_CREATED",
+    "NO_STABLE_COMPONENT_OR_SUPERPROJECT_PUBLICATION_CREATED"
+  ]
+}
