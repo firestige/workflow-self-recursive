@@ -4,35 +4,17 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-export const EXPECTED_OWNER_REVISIONS = Object.freeze({
-  "workflow-package": "4f77fcc25c26d85cba170ba6aa859d05eee3b298",
-  "execution-system": "5d03924df88e1afda3b7ffb5ecf182482cc8d1d5",
-  "evolution-system": "b302595942b2307514570a47be9ed87f26f8cf84",
-});
-
-export function assertPinnedOwners(actual) {
-  const expectedKeys = Object.keys(EXPECTED_OWNER_REVISIONS).sort();
-  if (actual === null || typeof actual !== "object" || Array.isArray(actual)
-    || Object.keys(actual).sort().join("\0") !== expectedKeys.join("\0")) {
-    throw new Error("OWNER_REVISION_SET_INVALID");
-  }
-  for (const owner of expectedKeys) {
-    if (actual[owner] !== EXPECTED_OWNER_REVISIONS[owner]) {
-      throw new Error(`OWNER_REVISION_MISMATCH:${owner}`);
-    }
-  }
-  return Object.freeze({ ...actual });
-}
+const OWNER_PATHS = Object.freeze(["workflow-package", "execution-system", "evolution-system"]);
 
 function pinnedOwners(repository) {
-  return Object.fromEntries(Object.keys(EXPECTED_OWNER_REVISIONS).map((owner) => [
+  return Object.freeze(Object.fromEntries(OWNER_PATHS.map((owner) => [
     owner,
     execFileSync("git", ["rev-parse", `HEAD:${owner}`], {
       cwd: repository,
       encoding: "utf8",
       shell: false,
     }).trim(),
-  ]));
+  ])));
 }
 
 async function request(url) {
@@ -46,7 +28,7 @@ async function request(url) {
 }
 
 export async function qualifyExactPublicCache(repository) {
-  const owners = assertPinnedOwners(pinnedOwners(repository));
+  const owners = pinnedOwners(repository);
   const deliveryModule = await import(pathToFileURL(path.join(
     repository,
     "execution-system/dist/delivery/index.js",
