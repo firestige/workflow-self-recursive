@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { loadCompatibilityManifest } from "../src/compatibility-manifest.mjs";
 import { createFixtureAdapter } from "../src/fixture-adapter.mjs";
 import { createOperations } from "../src/operations.mjs";
+import { resolveConfiguredStateDirectory, resolveProductPaths } from "../src/platform-paths.mjs";
 import { createPublishedAdapters } from "../src/published-adapters.mjs";
 
 const packageRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -41,11 +42,28 @@ let exitCode = 0;
 let output;
 try {
   const { command, options } = parseArguments(process.argv.slice(2));
-  const manifestPath = path.resolve(options.manifest ?? path.join(packageRoot, "manifests", "product-0.2.0.json"));
+  const defaults = resolveProductPaths();
+  const manifestPath = path.resolve(options.manifest ?? path.join(packageRoot, "manifests", "product-0.3.0.json"));
   const fixturePath = options.fixture ? path.resolve(options.fixture) : null;
   const manifest = await loadCompatibilityManifest(manifestPath);
-  const stateDirectory = path.resolve(options["state-dir"] ?? ".wsr/operations");
-  const configPath = path.resolve(options.config ?? ".wsr/config.json");
+  const configPath = path.resolve(options.config ?? defaults.configPath);
+  let configInput;
+  if (command === "setup" && options["config-input"]) {
+    configInput = JSON.parse(await readFile(path.resolve(options["config-input"]), "utf8"));
+  }
+  let configuredStateDirectory = configInput?.state?.root;
+  if (configuredStateDirectory === undefined) {
+    try {
+      configuredStateDirectory = JSON.parse(await readFile(configPath, "utf8"))?.state?.root;
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+  }
+  const stateDirectory = path.resolve(resolveConfiguredStateDirectory({
+    cliStateDirectory: options["state-dir"],
+    configuredStateDirectory,
+    defaultStateDirectory: defaults.stateDirectory,
+  }));
   let adapters;
   if (fixturePath) {
     const fixture = JSON.parse(await readFile(fixturePath, "utf8"));
@@ -61,8 +79,8 @@ try {
     configPath,
   });
 
-  if (command === "setup" && options["config-input"]) {
-    await operations.writeConfig(JSON.parse(await readFile(path.resolve(options["config-input"]), "utf8")));
+  if (configInput !== undefined) {
+    await operations.writeConfig(configInput);
   }
   output = await operations.run(command);
   exitCode = output.status === "succeeded" ? 0 : output.status === "blocked" ? 3 : 2;

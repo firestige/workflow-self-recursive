@@ -5,6 +5,8 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
+import { normalizeGlobalConfig } from "./global-config.mjs";
+
 const execFileAsync = promisify(execFile);
 
 async function defaultRun(command, args, options = {}) {
@@ -51,7 +53,7 @@ const defaultProcessControl = Object.freeze({
 });
 
 async function loadConfig(configPath) {
-  return JSON.parse(await readFile(configPath, "utf8"));
+  return normalizeGlobalConfig(JSON.parse(await readFile(configPath, "utf8")));
 }
 
 async function writeJson(target, value) {
@@ -88,16 +90,7 @@ async function downloadExact(url, target, digest, fetchImpl) {
   await rename(temporary, target);
 }
 
-function productBinding(binding, providers) {
-  const provider = providers.compatibility.bindings?.[binding.provider];
-  if (provider === undefined) throw new Error(`PROVIDER_BINDING_UNSUPPORTED: ${binding.provider}`);
-  return {
-    agentProvider: { identity: provider.identity, version: provider.version },
-    model: { provider: provider.modelProvider, model: binding.model },
-  };
-}
-
-function dshAdapter({ component, providers, configPath, stateDirectory, run, launch, processControl, startupProbeDelayMs }) {
+function dshAdapter({ component, configPath, stateDirectory, run, launch, processControl, startupProbeDelayMs }) {
   const managed = path.join(stateDirectory, "managed", "dsh");
   const executionConfigFile = path.join(managed, "execution-config.json");
   const intakeBindingFile = path.join(managed, "intake-bindings.json");
@@ -128,7 +121,7 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
       "--patch", overlayFile,
       "--no-open",
       "--host", "127.0.0.1",
-      "--port", String(config.ports.dsh),
+      "--port", String(config.services.ports.dsh),
     ], { logFile });
     await new Promise((resolve) => setTimeout(resolve, startupProbeDelayMs));
     if (!processControl.alive(pid)) {
@@ -158,27 +151,27 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
 
   async function setup() {
     const config = await loadConfig(configPath);
-    const executionStateRoot = path.join(config.durableState, "execution");
-    const bindings = Object.fromEntries(Object.entries(config.roleBindings)
-      .map(([role, binding]) => [role, productBinding(binding, providers)]));
+    const installationRoot = path.join(stateDirectory, "managed", "workspace-root");
+    const executionStateRoot = path.join(stateDirectory, "durable", "execution");
+    const repository = config.workflowSource.repository;
     const executionConfig = {
       schemaVersion: "execution.config@2.0.0",
       paths: {
-        repositoryRoot: config.workspace,
-        workspaceRoot: config.workspace,
-        allowedWorktreeRoots: [config.workspace],
+        repositoryRoot: installationRoot,
+        workspaceRoot: installationRoot,
+        allowedWorktreeRoots: [installationRoot],
         stateRoot: executionStateRoot,
       },
       workflowSource: {
         kind: "github",
-        repository: "firestige/wsr-workflow-package",
-        releasesBaseUrl: "https://api.github.com/repos/firestige/wsr-workflow-package/releases",
+        repository,
+        releasesBaseUrl: `https://api.github.com/repos/${repository}/releases`,
         assetPattern: "workflow-package-{name}-{version}.tar.gz",
       },
       runner: { implementationKey: "runner.v2", host: { engine: "langgraph" }, maxParallelToolCalls: 2 },
       observation: {
         enabled: true,
-        endpoint: `http://127.0.0.1:${config.ports.evidence}`,
+        endpoint: `http://127.0.0.1:${config.services.ports.evidence}`,
         timeoutMs: 1000,
         maxBatchRecords: 64,
         maxBatchBytes: 262144,
@@ -200,7 +193,7 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
       schemaVersion: "wsr.loopback-host@1.0.0",
       services: {
         evidence: {
-          baseUrl: `http://127.0.0.1:${config.ports.evidence}`,
+          baseUrl: `http://127.0.0.1:${config.services.ports.evidence}`,
           healthPath: "/healthz",
           healthKind: "json-status-ok",
           contracts: [
@@ -209,13 +202,13 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
           ],
         },
         evolution: {
-          baseUrl: `http://127.0.0.1:${config.ports.evolution}`,
+          baseUrl: `http://127.0.0.1:${config.services.ports.evolution}`,
           healthPath: "/healthz",
           healthKind: "plain-ok",
           contracts: [{ name: "evolution.compute", revision: "1", operations: ["evaluations/compute"] }],
         },
       },
-      observation: { baseUrl: `http://127.0.0.1:${config.ports.evidence}` },
+      observation: { baseUrl: `http://127.0.0.1:${config.services.ports.evidence}` },
     };
     const overlay = [];
     if (config.installation.dshMode !== "studio") {
@@ -233,14 +226,13 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
         `    hostConfigFile: ${JSON.stringify(hostConfigFile)}`,
       );
     }
-    await mkdir(executionStateRoot, { recursive: true, mode: 0o700 });
+    await Promise.all([
+      mkdir(installationRoot, { recursive: true, mode: 0o700 }),
+      mkdir(executionStateRoot, { recursive: true, mode: 0o700 }),
+    ]);
     await Promise.all([
       writeJson(executionConfigFile, executionConfig),
       writeJson(hostConfigFile, hostConfig),
-      writeJson(path.join(config.workspace, ".wsr", "role-provider-bindings.json"), {
-        schemaVersion: "execution.repository-role-provider-bindings@1.0.0",
-        bindings,
-      }),
     ]);
     await mkdir(path.dirname(overlayFile), { recursive: true, mode: 0o700 });
     await writeFile(overlayFile, `${overlay.join("\n")}\n`, { mode: 0o600 });
@@ -260,18 +252,6 @@ function dshAdapter({ component, providers, configPath, stateDirectory, run, lau
       }
       if (process.version.slice(1) !== component.compatibility.node) {
         return blocked("NODE_VERSION_MISMATCH", `Node must be ${component.compatibility.node}`);
-      }
-      if (context.command === "preflight") {
-        const config = await loadConfig(configPath);
-        const root = await run("git", ["rev-parse", "--show-toplevel"], { cwd: config.workspace });
-        if (root.status !== 0 || path.resolve(root.stdout.trim()) !== path.resolve(config.workspace)) {
-          return blocked("WORKSPACE_NOT_GIT_ROOT", "Workspace must be the canonical Git worktree root");
-        }
-        const status = await run("git", ["status", "--porcelain=v1", "--untracked-files=normal"], { cwd: config.workspace });
-        if (status.status !== 0) return blocked("WORKSPACE_GIT_UNAVAILABLE", "Workspace Git status is unavailable");
-        if (status.stdout.trim() !== "") {
-          return blocked("WORKSPACE_DIRTY", "Workspace has uncommitted changes; commit or stash them before creating a new Delivery");
-        }
       }
       return succeeded({ dsh: version.stdout.trim(), node: process.version.slice(1), npm: npm.stdout.trim() });
     },
@@ -337,9 +317,9 @@ function servicesAdapter({ component, configPath, stateDirectory, bundleDirector
   async function environment() {
     const config = await loadConfig(configPath);
     return {
-      WSR_EVIDENCE_PORT: String(config.ports.evidence),
-      WSR_EVOLUTION_PORT: String(config.ports.evolution),
-      WSR_LOCAL_STATE_DIR: path.join(config.durableState, "services"),
+      WSR_EVIDENCE_PORT: String(config.services.ports.evidence),
+      WSR_EVOLUTION_PORT: String(config.services.ports.evolution),
+      WSR_LOCAL_STATE_DIR: path.join(stateDirectory, "durable", "services"),
     };
   }
 
@@ -384,8 +364,8 @@ function servicesAdapter({ component, configPath, stateDirectory, bundleDirector
       if (command === "health") {
         const config = await loadConfig(configPath);
         const endpoints = [
-          `http://127.0.0.1:${config.ports.evidence}/healthz`,
-          `http://127.0.0.1:${config.ports.evolution}/healthz`,
+          `http://127.0.0.1:${config.services.ports.evidence}/healthz`,
+          `http://127.0.0.1:${config.services.ports.evolution}/healthz`,
         ];
         try {
           const [evidence, evolution] = await Promise.all(endpoints.map((url) => fetchImpl(url, {
@@ -412,9 +392,7 @@ function workflowAdapter({ component, configPath, stateDirectory, fetchImpl }) {
   return Object.freeze({
     async preflight() {
       const config = await loadConfig(configPath);
-      return config.workflowSource === `${component.name}@${component.version}`
-        ? succeeded({ workflow: config.workflowSource })
-        : blocked("WORKFLOW_SOURCE_MISMATCH", `Workflow source must be ${component.name}@${component.version}`);
+      return succeeded({ repository: config.workflowSource.repository });
     },
     async apply(command) {
       if (["install", "upgrade"].includes(command)) {
@@ -479,7 +457,6 @@ export function createPublishedAdapters({
   return new Map([
     ["dsh-bundle", dshAdapter({
       component: components.get("dsh-bundle"),
-      providers: components.get("providers"),
       configPath,
       stateDirectory,
       run,
