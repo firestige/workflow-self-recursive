@@ -71,11 +71,56 @@ function blocked(code, message) {
   return { status: "blocked", code, message };
 }
 
+function boundedTail(value, maxBytes) {
+  const bytes = Buffer.from(value ?? "", "utf8");
+  return bytes.length <= maxBytes ? bytes.toString("utf8") : bytes.subarray(bytes.length - maxBytes).toString("utf8");
+}
+
+function redactDiagnostic(value) {
+  return String(value ?? "")
+    .replace(/\x1b\[[0-?]*[ -/]*[@-~]/gu, "")
+    .replace(/(authorization\s*:\s*bearer\s+)\S+/giu, "$1[REDACTED]")
+    .replace(/((?:password|token|secret|api[_-]?key)\s*[=:]\s*)\S+/giu, "$1[REDACTED]")
+    .replace(/:\/\/([^\s/:@]+):([^\s/@]+)@/gu, "://$1:[REDACTED]@");
+}
+
+function resultOutput(result, maxBytes) {
+  return boundedTail(redactDiagnostic([result.stdout, result.stderr].filter(Boolean).join("\n").trim()), maxBytes);
+}
+
 async function invoke(run, command, args, options, code) {
   const result = await run(command, args, options);
-  return result.status === 0
-    ? succeeded({ command: path.basename(command), output: result.stdout.trim().slice(0, 4096) })
-    : blocked(code, `${path.basename(command)} failed with status ${result.status}`);
+  if (result.status === 0) return succeeded({ command: path.basename(command), output: resultOutput(result, 16_384) });
+  const prefix = `${path.basename(command)} failed with status ${result.status}`;
+  const detail = resultOutput(result, Math.max(0, 4096 - Buffer.byteLength(prefix, "utf8") - 2));
+  return blocked(code, `${prefix}${detail.length === 0 ? "" : `: ${detail}`}`);
+}
+
+function composeRows(output) {
+  const source = String(output ?? "").trim();
+  if (source.length === 0) return [];
+  try {
+    const parsed = JSON.parse(source);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch {
+    return source.split("\n").filter(Boolean).map((line) => JSON.parse(line));
+  }
+}
+
+function composeReadiness(output) {
+  let rows;
+  try { rows = composeRows(output); }
+  catch { return blocked("SERVICES_STATUS_INVALID", "wsr-compose returned an unreadable service status"); }
+  const byService = new Map(rows.map((row) => [row.Service, row]));
+  const ready = (name) => {
+    const row = byService.get(name);
+    if (name === "migrate") return row !== undefined && String(row.State).toLowerCase() === "exited" && Number(row.ExitCode) === 0;
+    return row !== undefined && String(row.State).toLowerCase() === "running" && String(row.Health).toLowerCase() === "healthy";
+  };
+  const unavailable = ["database", "migrate", "evidence", "evolution"].filter((name) => !ready(name));
+  return unavailable.length === 0
+    ? succeeded({ services: rows })
+    : blocked("SERVICES_NOT_READY", `Compose services not ready: ${unavailable.join(", ")}`);
 }
 
 async function downloadExact(url, target, digest, fetchImpl) {
@@ -381,6 +426,15 @@ function servicesAdapter({ component, configPath, stateDirectory, bundleDirector
         } catch (error) {
           return blocked("SERVICES_HEALTH_FAILED", error.message);
         }
+      }
+      if (command === "status") {
+        const result = await run(executable, [command], { env: await environment() });
+        if (result.status !== 0) {
+          const prefix = `${path.basename(executable)} failed with status ${result.status}`;
+          const detail = resultOutput(result, Math.max(0, 4096 - Buffer.byteLength(prefix, "utf8") - 2));
+          return blocked("SERVICES_INSPECT_FAILED", `${prefix}${detail.length === 0 ? "" : `: ${detail}`}`);
+        }
+        return composeReadiness(result.stdout);
       }
       return invoke(run, executable, [command], { env: await environment() }, "SERVICES_INSPECT_FAILED");
     },

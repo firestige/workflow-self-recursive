@@ -7,8 +7,10 @@ services:
       POSTGRES_DB: wsr_evidence
       POSTGRES_PASSWORD_FILE: /run/secrets/admin_password
       POSTGRES_USER: wsr_evidence_admin
+      WSR_EVIDENCE_ADMIN_PASSWORD_FILE: /run/secrets/admin_password
       WSR_EVIDENCE_BACKUP_PASSWORD_FILE: /run/secrets/backup_password
       WSR_EVIDENCE_RUNTIME_PASSWORD_FILE: /run/secrets/runtime_password
+      WSR_EVIDENCE_STATE_IDENTITY: ${WSR_EVIDENCE_STATE_IDENTITY:-unconfigured}
     secrets: [admin_password, backup_password, runtime_password]
     volumes:
       - evidence-data:/var/lib/postgresql

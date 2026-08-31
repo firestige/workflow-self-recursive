@@ -23,6 +23,12 @@ wsr preflight
 wsr start
 ```
 
+`start` owns Compose startup as part of the product operation; no separate `docker compose up` is
+required. It reconciles managed database credentials against a retained volume before migrations and
+starts DSH only after the service adapter succeeds. Failed subprocess diagnostics retain a bounded,
+redacted stderr tail. `health` is blocked when any component is unhealthy, while `status` verifies the
+required Compose services rather than treating a successful `compose ps` invocation as readiness.
+
 The default config/state locations are `~/Library/Application Support/WSR/config.json` and its `state`
 directory on macOS, `${XDG_CONFIG_HOME:-~/.config}/wsr/config.json` and
 `${XDG_STATE_HOME:-~/.local/state}/wsr` on Linux, and `%APPDATA%\WSR\config.json` plus

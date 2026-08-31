@@ -315,6 +315,34 @@ test("the stable command set always returns the versioned result envelope", asyn
   }
 });
 
+test("health aggregates blocked components and preserves their actionable diagnostics", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "wsr-health-"));
+  const manifestPath = path.join(root, "compatibility.json");
+  await writeFile(manifestPath, `${JSON.stringify(manifestDocument([
+    exactComponent("execution"), exactComponent("services"),
+  ]))}\n`);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const adapters = new Map([
+    ["execution", { inspect: async () => ({ status: "succeeded", data: { running: true } }) }],
+    ["services", { inspect: async () => ({
+      status: "blocked", code: "SERVICES_HEALTH_FAILED", message: "Evidence is not ready",
+    }) }],
+  ]);
+  const operations = createOperations({
+    manifest, adapters, stateDirectory: path.join(root, "state"), configPath: path.join(root, "config.json"),
+  });
+
+  const result = await operations.run("health");
+
+  assert.equal(result.status, "blocked");
+  assert.deepEqual(result.components.map(({ id, status }) => [id, status]), [
+    ["execution", "succeeded"], ["services", "blocked"],
+  ]);
+  assert.deepEqual(result.diagnostics, [{
+    code: "SERVICES_HEALTH_FAILED", component: "services", message: "Evidence is not ready",
+  }]);
+});
+
 test("CLI emits one machine-readable typed result using the fixture boundary", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "wsr-cli-"));
   const manifestPath = path.join(root, "compatibility.json");

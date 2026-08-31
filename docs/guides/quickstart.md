@@ -38,6 +38,11 @@ configuration.
 wsr start
 ```
 
+`start` starts the published Docker Compose stack itself, waits for PostgreSQL, reconciles the managed
+database roles without deleting Evidence, runs migrations, waits for Evidence and Evolution, and then
+starts DSH. Do not start Compose separately. A blocked result includes the bounded, redacted stderr;
+use `wsr status`, `wsr health`, and `wsr logs` for the complete layer checks.
+
 Open the DSH web profile, register a workspace, create a Session there, and submit
 the selector on the first line with the Task directive on following lines:
 
@@ -46,7 +51,8 @@ the selector on the first line with the Task directive on following lines:
 Return a concise greeting and review it.
 ```
 
-The Delivery card and Session Delivery view expose the durable status and final result. Studio reads
+The Delivery card and Session Delivery view expose the durable status and final result. `WSR Studio`
+is the conversation tab immediately after `Delivery`; it does not navigate away from the Session. Studio reads
 Evidence and Evolution through the configured loopback services; it does not select or filter by a
 repository. The active Session supplies the runtime workspace. If the Workflow declares Roles, place
 their bindings in that repository's `.wsr/role-provider-bindings.json`.
@@ -64,5 +70,16 @@ by default. Any future data purge must be a separate explicit destructive operat
 
 ## Contributor source preview
 
-Contributors who need the source-built data-service preview should follow the separate
+Feature-branch human acceptance is a single command from the repository root:
+
+```sh
+./deployment/accept-current-branch.sh
+```
+
+The script creates isolated DSH profile, port, Compose project, Evidence volume, and state resources,
+then builds and deploys the current DSH, Compose, and product-operations checkout. The human performs
+only the printed browser checks and presses Enter when finished; the script removes every temporary
+asset. Startup failure and interruption use the same cleanup path.
+
+Contributors who need other source-built data-service scenarios should follow the separate
 [source-build guide](../contributing/source-build.md). It is not the clean-machine product path.

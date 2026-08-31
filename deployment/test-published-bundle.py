@@ -141,8 +141,11 @@ class PublishedBundleTest(unittest.TestCase):
         self.assertNotIn("../evolution-system", compose)
         self.assertIn("condition: service_completed_successfully", compose)
         self.assertIn("condition: service_healthy", compose)
+        self.assertIn("WSR_EVIDENCE_STATE_IDENTITY", compose)
         start_stack = launcher.split("start_stack() {", 1)[1].split("}", 1)[0]
         self.assertLess(start_stack.index("compose pull"), start_stack.index("wait_stack"))
+        self.assertLess(start_stack.index("database"), start_stack.index("10-wsr-roles.sh"))
+        self.assertLess(start_stack.index("10-wsr-roles.sh"), start_stack.index("wait_stack"))
         self.assertIn("start | upgrade | rollback) start_stack", launcher)
         self.assertNotIn("down --volumes", launcher)
 
@@ -211,12 +214,16 @@ class PublishedBundleTest(unittest.TestCase):
 
             subprocess.run([str(bundle / "wsr-compose"), "start"], env=environment, check=True)
             password = (state / "secrets" / "admin-password").read_bytes()
+            identity = (state / "service-state-identity").read_text(encoding="utf-8").strip()
+            self.assertEqual(len(identity), 64)
             subprocess.run([str(bundle / "wsr-compose"), "restart"], env=environment, check=True)
             self.assertEqual((state / "secrets" / "admin-password").read_bytes(), password)
+            self.assertEqual((state / "service-state-identity").read_text(encoding="utf-8").strip(), identity)
             subprocess.run([str(bundle / "wsr-compose"), "stop"], env=environment, check=True)
             subprocess.run([str(bundle / "wsr-compose"), "upgrade"], env=environment, check=True)
             subprocess.run([str(bundle / "wsr-compose"), "rollback"], env=environment, check=True)
             self.assertEqual((state / "secrets" / "admin-password").read_bytes(), password)
+            self.assertEqual((state / "service-state-identity").read_text(encoding="utf-8").strip(), identity)
             subprocess.run([str(bundle / "wsr-compose"), "down"], env=environment, check=True)
             denied = subprocess.run([str(bundle / "wsr-compose"), "purge"], env=environment)
             self.assertNotEqual(denied.returncode, 0)
@@ -227,9 +234,21 @@ class PublishedBundleTest(unittest.TestCase):
             )
             commands = log.read_text(encoding="utf-8")
             self.assertNotIn("down --volumes", commands)
-            self.assertIn("compose.yaml restart database evidence evolution", commands)
+            self.assertIn("up -d --wait", commands)
+            self.assertIn("exec -T database /docker-entrypoint-initdb.d/10-wsr-roles.sh", commands)
+            self.assertIn("compose.yaml restart database", commands)
+            self.assertIn("compose.yaml restart evidence evolution", commands)
             self.assertIn("compose.yaml stop", commands)
             self.assertIn("volume rm wsr-evidence-data", commands)
+
+    def test_role_bootstrap_reconciles_all_managed_passwords_and_binds_the_volume_to_state(self) -> None:
+        source = (PUBLISHED / "init-roles.sh").read_text(encoding="utf-8")
+        self.assertIn("WSR_EVIDENCE_ADMIN_PASSWORD_FILE", source)
+        self.assertIn("WSR_EVIDENCE_STATE_IDENTITY", source)
+        self.assertIn(".wsr-state-identity", source)
+        self.assertIn("ALTER ROLE wsr_evidence_admin", source)
+        self.assertIn("ALTER ROLE wsr_evidence_runtime", source)
+        self.assertIn("ALTER ROLE wsr_evidence_backup", source)
 
     def test_partial_start_failure_prints_status_and_logs(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

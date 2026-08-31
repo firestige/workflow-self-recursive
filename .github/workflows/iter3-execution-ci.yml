@@ -134,7 +134,8 @@ jobs:
           npm --prefix wsr-dsh run qualify:clean-profile
           npm --prefix wsr-dsh run qualify:lifecycle
           npm --prefix wsr-dsh run qualify:provider-routing
-          WSR_RELEASE_CHANNEL=candidate WSR_CANDIDATE_TAG=0.1.0-rc.1 npm --prefix wsr-dsh run release:candidate -- "$RUNNER_TEMP/wsr-dsh-release"
+          WSR_DSH_VERSION="$(node -p 'require("./wsr-dsh/package.json").version')"
+          WSR_RELEASE_CHANNEL=candidate WSR_CANDIDATE_TAG="${WSR_DSH_VERSION}-rc.1" npm --prefix wsr-dsh run release:candidate -- "$RUNNER_TEMP/wsr-dsh-release"
           npm --prefix wsr-dsh run provenance:verify -- "$RUNNER_TEMP/wsr-dsh-release"
           npm --prefix wsr-dsh run release:qualify -- "$RUNNER_TEMP/wsr-dsh-release"
           npm --prefix wsr-dsh run release:verify -- "$RUNNER_TEMP/wsr-dsh-release"
