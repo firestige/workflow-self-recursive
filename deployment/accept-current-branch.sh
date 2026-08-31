@@ -68,6 +68,32 @@ for command in node npm pnpm python3 jq dsh docker git; do
   fi
 done
 
+ensure_submodule() {
+  submodule=$1
+  manifest=$2
+  submodule_status=$(git -C "$root" submodule status -- "$submodule")
+
+  case "$submodule_status" in
+    -*)
+      printf '正在初始化 submodule：%s\n' "$submodule"
+      git -C "$root" submodule update --init -- "$submodule"
+      ;;
+    U*)
+      printf 'Submodule has unresolved conflicts: %s\n' "$submodule" >&2
+      exit 1
+      ;;
+  esac
+
+  if ! test -f "$root/$submodule/$manifest"; then
+    printf 'Submodule checkout is incomplete: %s (missing %s)\n' "$submodule" "$manifest" >&2
+    printf 'Run: git -C %s submodule update --init -- %s\n' "$root" "$submodule" >&2
+    exit 1
+  fi
+}
+
+ensure_submodule execution-system package.json
+ensure_submodule wsr-dsh package.json
+
 free_port() {
   python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()'
 }
