@@ -39,8 +39,9 @@ body:
     id: component
     attributes:
       label: Component / 组件
+      description: 选项由 pctl init 按仓库配置（project-ops.config 的 vocabulary.components，缺失则用机制默认）渲染 / options are rendered by pctl init from the repo config (vocabulary.components; mechanism default when absent)
       options:
-        - execution
+                - execution
         - evidence
         - evolution
         - contracts
