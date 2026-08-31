@@ -92,6 +92,7 @@ ensure_submodule() {
 }
 
 ensure_submodule execution-system package.json
+ensure_submodule evidence-system pyproject.toml
 ensure_submodule wsr-dsh package.json
 
 free_port() {
@@ -147,6 +148,9 @@ printf '\n==> 2/4 构建并部署本地产物\n'
 python3 "$root/deployment/published/build-bundle.py" \
   "$root/release/compose/0.1.0.json" \
   "$bundle"
+node "$root/deployment/bind-local-evidence-build.mjs" \
+  "$bundle/compose.yaml" \
+  "$root/evidence-system"
 
 node "$root/product-operations/bin/wsr.mjs" setup \
   --config-input "$config" \
