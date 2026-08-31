@@ -19,7 +19,13 @@ def executable(path: Path, body: str) -> None:
 
 
 class CurrentBranchAcceptanceTest(unittest.TestCase):
-    def run_acceptance(self, *, fail_start: bool = False, no_open: bool = False) -> tuple[subprocess.CompletedProcess[str], list[str], Path]:
+    def run_acceptance(
+        self,
+        *,
+        fail_start: bool = False,
+        no_open: bool = False,
+        uninitialized_execution_system: bool = False,
+    ) -> tuple[subprocess.CompletedProcess[str], list[str], Path]:
         with tempfile.TemporaryDirectory(prefix="wsr-accept-test-") as temporary_name:
             temporary = Path(temporary_name)
             fake_bin = temporary / "bin"
@@ -95,7 +101,18 @@ EOF
             """)
             executable(fake_bin / "git", """
                 printf 'git %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
-                case " $* " in *" rev-parse "*) printf 'abcdef12\n' ;; esac
+                case " $* " in
+                  *" submodule status -- execution-system "*)
+                    if test "${WSR_ACCEPT_TEST_UNINITIALIZED_EXECUTION_SYSTEM:-0}" = 1; then
+                      printf '%s\n' '-044bfe8 execution-system'
+                    else
+                      printf '%s\n' ' 044bfe8 execution-system'
+                    fi ;;
+                  *" submodule status -- evidence-system "*) printf '%s\n' '+5065cf8 evidence-system' ;;
+                  *" submodule status -- evolution-system "*) printf '%s\n' '+b302595 evolution-system' ;;
+                  *" submodule status -- wsr-dsh "*) printf '%s\n' '+408c837 wsr-dsh' ;;
+                  *" rev-parse "*) printf 'abcdef12\n' ;;
+                esac
             """)
 
             env = {
@@ -104,6 +121,7 @@ EOF
                 "WSR_ACCEPT_TEST_LOG": str(log),
                 "WSR_ACCEPT_TMPDIR": str(preview_parent),
                 "WSR_ACCEPT_TEST_FAIL_START": "1" if fail_start else "0",
+                "WSR_ACCEPT_TEST_UNINITIALIZED_EXECUTION_SYSTEM": "1" if uninitialized_execution_system else "0",
                 "WSR_ACCEPT_NO_OPEN": "1" if no_open else "0",
             }
             result = subprocess.run(
@@ -130,6 +148,8 @@ EOF
         self.assertIn("pnpm cwd=", joined)
         self.assertIn("execution-system release:artifacts", joined)
         self.assertIn("deployment/published/build-bundle.py", joined)
+        self.assertIn("deployment/bind-local-evidence-build.mjs", joined)
+        self.assertIn("evolution-system", joined)
         self.assertIn(" setup ", f" {joined} ")
         self.assertIn(" install ", f" {joined} ")
         self.assertIn("qualify-local-provider-auth.mjs", joined)
@@ -167,6 +187,15 @@ EOF
         self.assertNotIn("open http://127.0.0.1:13080", joined)
         self.assertIn(" start ", f" {joined} ")
         self.assertIn("compose purge", joined)
+
+    def test_initializes_only_a_missing_submodule_before_building(self) -> None:
+        result, commands, _ = self.run_acceptance(uninitialized_execution_system=True)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        joined = "\n".join(commands)
+        self.assertIn("submodule update --init -- execution-system", joined)
+        self.assertNotIn("submodule update --init -- wsr-dsh", joined)
+        self.assertIn("execution-system release:artifacts", joined)
 
 
 if __name__ == "__main__":
