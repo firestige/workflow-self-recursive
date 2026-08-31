@@ -21,7 +21,7 @@ Owner：Execution System
 | 实体 | 身份 | 唯一 authority/writer | 持久化位置 | 规则 |
 |---|---|---|---|---|
 | Host Session availability | exact DSH session key | DSH host；Intake 观察 | DSH session registry，不是 WSR state | 不猜测 availability |
-| Session–Delivery binding | session key + Delivery ID + correlation | DSH Intake Adapter | plugin 安装目录外的 private binding file | 双向均为零或一 |
+| Session–Delivery association | session key + Delivery ID + correlation | DSH Intake Adapter | plugin 安装目录外的 private binding file | 每个 Session 至多一个 active binding；可有多个 exact 只读历史关联 |
 | Delivery | Delivery ID + immutable `deliveryBindingIdentity` | Execution Delivery（M01） | Manifest + current-slot + Runner durable facts | Manifest 后 worktree 不可变 |
 | Worktree occupancy | canonical realpath | Execution Delivery（M01） | 既有 current-slot | 至多一个 current Delivery；不排队、不抢占、不超时释放 |
 | Conversation-workspace authorization | session key + DSH workspace ID + exact canonical path | DSH Intake 提供、private Bootstrap control 验证 | 仅 invocation-scoped；无 durable identity | 不授权父目录或相邻目录 |
@@ -32,7 +32,7 @@ Owner：Execution System
 
 ## 3. 闭合不变量
 
-1. 一个 host Session 有零或一个 `BOUND` active Delivery。
+1. 一个 host Session 有零或一个 `BOUND` active Delivery，并可有零或多个 `HISTORICAL` Delivery association。
 2. 一个 active Delivery 有零或一个 `BOUND` host Session；零是合法 `DETACHED` recovery 状态。
 3. Manifest 持久化后，一个 Delivery 恰好拥有一个 immutable canonical worktree。
 4. 任一非空 current-slot 状态下，一个 canonical worktree 至多一个 current Delivery。
@@ -40,6 +40,7 @@ Owner：Execution System
 6. 普通 contention 不修改任何 store。持久化 one-to-many、many-to-one、identity drift 或 duplicate 是 corruption，startup fail closed，不选 winner。
 7. Session authority 缺失/非法时，在任何 Delivery、Package、Runner、binding effect 前返回 `DSH_INTAKE_WORKSPACE_UNAUTHORIZED`。
 8. Session 已绑定返回 `SESSION_INTAKE_BOUND`；Delivery 已绑定其他 available Session 返回 `DELIVERY_INTAKE_BOUND`；worktree 占用保持既有 `CONTENDED`/exact `RECOVERY`。
+9. historical association 只用于只读投影 join，不参与 Intake bound、recover、Bootstrap attach、presentation routing 或 worktree occupancy；一个 Delivery 至多一个 exact historical association。
 
 现有 architecture 的“一个 active Delivery 恰好绑定一个 session”需细化为“至多一个 Session”，否则无法表达 crash-safe `DETACHED`。Wave11/#102 实施时必须同步修改该文字。
 
@@ -57,10 +58,11 @@ BOUND --plugin restart--> RESTORING
 RESTORING --exact Session + Delivery join--> BOUND
 RESTORING --Delivery valid, Session unavailable--> DETACHED
 DETACHED --authorized unbound Session explicit recover--> BOUND
-BOUND/DETACHED --conclusive terminal or authorized abandonment--> UNBOUND
+BOUND --exact terminal Core projection--> HISTORICAL
+BOUND/DETACHED --conclusively stale active state--> UNBOUND
 ```
 
-`RESTORING` 是内存 startup phase，不是第二份持久化真相；持久化状态只有 `BOUND`/`DETACHED`。新 Session 不会隐式继承 binding。带或不带 Delivery ID 的 recover 都必须证明 invoking Session 的 exact authorized workspace 等于 persisted Manifest worktree。
+`RESTORING` 是内存 startup phase，不是第二份持久化真相；active record 只有 `BOUND`/`DETACHED`，`HISTORICAL` 是分离的只读关联。新 Session 不会隐式继承 binding。带或不带 Delivery ID 的 recover 都必须证明 invoking Session 的 exact authorized workspace 等于 persisted Manifest worktree。Session read 优先 active exact association；否则按 `(updatedAt, deliveryId)` 降序选择 terminal history。installation inventory 保留 Execution retention 内的所有 terminal row。
 
 ### 4.3 Delivery
 
@@ -88,15 +90,15 @@ Bootstrap 必须先完成 Execution recovery；失败则 application fail closed
 
 ### Release
 
-只有 conclusive terminal 或 authorized abandonment 才清理 presentation binding，并通过既有 M01 transition 清 current-slot。任一 cleanup 中断时，restart 以 Execution truth 对账，绝不制造 outcome。Session 消失只 detach presentation，不释放 worktree。
+只有 conclusive terminal 或 authorized abandonment 才释放 active presentation route，并通过既有 M01 transition 清 current-slot。Intake 仅在 terminal Core row 与 Session、correlation、Delivery ID、binding identity、canonical worktree 全部精确匹配后，才把 active association 原子移动到只读 history。cleanup 中断时，restart 以 Execution terminal truth 对账，绝不制造 outcome。Session 消失只 detach presentation，不释放 worktree。
 
 ## 6. 实现级 oracle
 
-必须覆盖：同 worktree 双 Session contention、同 Session 二次 create、第二 Session claim bound Delivery、不同 worktree 并发、UI Session 切换、workspace/membership mismatch、Manifest 前/后 crash、binding 写后 crash、restart Session unavailable、跨 workspace recover、conclusive terminal 后 stale binding、duplicate/corrupt/identity mismatch。任何失败都不得产生 fallback、implicit switch、winner selection、新 selector work、worktree timeout release 或跨 Session presentation 泄漏。
+必须覆盖：同 worktree 双 Session contention、同 Session 二次 create、第二 Session claim bound Delivery、不同 worktree 并发、UI Session 切换、workspace/membership mismatch、Manifest 前/后 crash、binding 写后 crash、restart Session unavailable、跨 workspace recover、conclusive terminal 后 exact history、terminal reload、同 Session 新旧 Delivery、duplicate/corrupt/identity mismatch。任何失败都不得产生 fallback、implicit switch、winner selection、新 selector work、worktree timeout release、跨 Session presentation 泄漏，或让 history 参与 active authority。
 
 ## 7. 替换 #93 provisional 过渡
 
-#93 检查继续作为 authorization source，但不再把 raw workspace string 当成 durable worktree。Wave11/#102 必须引入 private、typed、invocation-only conversation-workspace authorization input，由 Execution 推导/持久化 worktree；该输入没有自己的 identity 或 durable lifecycle。binding schema 从 `execution.intake-bindings@1.0.0` 显式迁移到 `execution.intake-bindings@2.0.0` 并增加 `deliveryBindingIdentity`；每条 v1 record 必须 exact join 一个 recovered Delivery，否则 fail closed，不静默改写。
+#93 检查继续作为 authorization source，但不再把 raw workspace string 当成 durable worktree。Wave11/#102 已引入 private、typed、invocation-only conversation-workspace authorization input，由 Execution 推导/持久化 worktree；该输入没有自己的 identity 或 durable lifecycle。由于 adapter 仍是未发布的 `0.y.z` 初始预览，active/history 模型冻结为 clean-break 的 private `execution.intake-bindings@3.0.0` schema。旧 binding document 在 startup 时 fail closed 且保持字节不变，qualification 使用 clean profile；已删除 legacy mapping 不从 chat、cwd、recency 或任何非 exact source 重建。
 
 ## 8. 实施边界
 

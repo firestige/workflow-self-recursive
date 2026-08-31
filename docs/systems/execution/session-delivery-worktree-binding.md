@@ -21,7 +21,7 @@ The design deliberately adds no third durable source of truth and no cross-store
 | Entity | Identity | Unique authority/writer | Durable location | Rule |
 |---|---|---|---|---|
 | Host Session availability | exact DSH session key | DSH host; Intake observes | DSH-owned session registry, not WSR state | availability is not Delivery truth and is never guessed |
-| Session–Delivery binding | session key + Delivery ID + correlation | DSH Intake Adapter | adapter-private binding file outside plugin installation | zero or one active binding in each direction |
+| Session–Delivery association | session key + Delivery ID + correlation | DSH Intake Adapter | adapter-private binding file outside plugin installation | zero or one active binding per Session; multiple exact historical associations are read-only |
 | Delivery | Delivery ID + immutable `deliveryBindingIdentity` | Execution Delivery (M01) | Manifest + current-slot + Runner durable facts | one immutable canonical worktree after Manifest persistence |
 | Worktree occupancy | canonical realpath | Execution Delivery (M01) | existing current-slot record | zero or one current Delivery; no queue, stealing, or timeout expiry |
 | Conversation-workspace authorization | session key + DSH workspace ID + exact canonical path | DSH Intake Adapter supplies; private Bootstrap control validates | invocation-scoped only; no durable identity | authorization is exact and cannot admit a parent or sibling |
@@ -32,7 +32,7 @@ For a new Delivery, Intake supplies proof of the registered conversation workspa
 
 ## 3. Closed invariants
 
-1. One host Session has zero or one `BOUND` active Delivery.
+1. One host Session has zero or one `BOUND` active Delivery and zero or more `HISTORICAL` Delivery associations.
 2. One active Delivery has zero or one `BOUND` host Session. Zero is the valid `DETACHED` recovery condition.
 3. One Delivery has exactly one immutable canonical worktree after Manifest persistence.
 4. One canonical worktree has zero or one current Delivery across every non-empty current-slot state.
@@ -40,6 +40,7 @@ For a new Delivery, Intake supplies proof of the registered conversation workspa
 6. A normal contention error never mutates either store. Durable one-to-many, many-to-one, identity drift, or duplicate records are corruption and fail startup closed; no winner is selected.
 7. Missing/invalid Session authority produces `DSH_INTAKE_WORKSPACE_UNAUTHORIZED` before Delivery, Package, Runner, or binding effects.
 8. A Session conflict produces a typed `SESSION_INTAKE_BOUND`; a Delivery already bound to another available Session produces `DELIVERY_INTAKE_BOUND`; occupied-worktree behavior remains the existing `CONTENDED`/exact `RECOVERY` result.
+9. Historical associations are projection joins only. They never satisfy Intake bound checks, recover, Bootstrap attach, presentation routing, or worktree occupancy, and one Delivery can have at most one exact historical association.
 
 The current architecture statement “one active Delivery to exactly one session” is refined to “one active Delivery to at most one Session”; otherwise crash-safe `DETACHED` recovery would be impossible. Wave11/#102 must apply this wording change to the architecture document.
 
@@ -66,10 +67,11 @@ BOUND --plugin restart--> RESTORING
 RESTORING --exact Session + Delivery join--> BOUND
 RESTORING --Delivery valid, Session unavailable--> DETACHED
 DETACHED --explicit recover by authorized unbound Session--> BOUND
-BOUND/DETACHED --conclusive terminal or authorized abandonment--> UNBOUND
+BOUND --exact terminal Core projection--> HISTORICAL
+BOUND/DETACHED --conclusively stale active state--> UNBOUND
 ```
 
-`RESTORING` is an in-memory startup phase, not a persisted competing truth. Persisted records are `BOUND` or `DETACHED`. A changed Session cannot implicitly inherit a binding. Recover with or without an explicit Delivery ID must prove that the invoking Session’s exact authorized workspace equals the persisted Manifest worktree.
+`RESTORING` is an in-memory startup phase, not a persisted competing truth. Active records are `BOUND` or `DETACHED`; `HISTORICAL` is a separate read-only association. A changed Session cannot implicitly inherit a binding. Recover with or without an explicit Delivery ID must prove that the invoking Session’s exact authorized workspace equals the persisted Manifest worktree. Session reads prefer the active exact association; otherwise they choose historical terminal rows by descending `(updatedAt, deliveryId)`. Installation inventory retains every terminal row still retained by Execution.
 
 ### 4.3 Delivery
 
@@ -119,7 +121,7 @@ No pre-Delivery reservation is required. Adding one would duplicate authority an
 
 ### Release
 
-Conclusive terminal handling or authorized abandonment clears the Intake binding as presentation cleanup and clears current-slot only through the existing M01 transition. If either cleanup is interrupted, restart reconciliation uses Execution truth and never invents an outcome. Session disappearance alone only detaches presentation and never releases the worktree.
+Conclusive terminal handling or authorized abandonment releases the active presentation route and clears current-slot only through the existing M01 transition. After an exact terminal Core row matches Session, correlation, Delivery ID, binding identity, and canonical worktree, Intake atomically moves the active association to read-only history. If cleanup is interrupted, restart reconciliation uses Execution terminal truth and never invents an outcome. Session disappearance alone only detaches presentation and never releases the worktree.
 
 ## 6. Required implementation oracles
 
@@ -138,10 +140,12 @@ Conclusive terminal handling or authorized abandonment clears the Intake binding
 | recover from different workspace | `DSH_INTAKE_WORKSPACE_UNAUTHORIZED` | Delivery disclosure through mutation |
 | stale binding after conclusive terminal cleanup | remove binding after Bootstrap-ready inventory join | startup-time guess before recovery completes |
 | corrupt/duplicate binding or Manifest mismatch | startup failure with bounded diagnostic | repair by dropping an arbitrary record |
+| terminal Delivery after reload | inventory retains the terminal row; its Session selects the newest exact historical association | browser cache, conversation/cwd inference, or historical participation in active routing |
+| same Session starts another Delivery | new active association wins Session read; earlier terminal associations remain in history | historical association blocks admission or inherits the new correlation |
 
 ## 7. Provisional transition replacement
 
-The #93 checks remain the authorization source but stop passing a raw workspace string as if it were already the durable worktree. Wave11/#102 must introduce a private, typed, invocation-only conversation-workspace authorization input and let Execution derive/persist the worktree. The input has no identity or durable lifecycle of its own. Existing `execution.intake-bindings@1.0.0` documents require an explicit migration to `execution.intake-bindings@2.0.0` that adds `deliveryBindingIdentity`; migration must exact-join every v1 record to one recovered Delivery or fail closed. It must not silently rewrite an unmatched record.
+The #93 checks remain the authorization source but stop passing a raw workspace string as if it were already the durable worktree. Wave11/#102 introduced a private, typed, invocation-only conversation-workspace authorization input and lets Execution derive/persist the worktree. The input has no identity or durable lifecycle of its own. Because the adapter is still an unpublished `0.y.z` preview, the active/history model freezes a clean-break `execution.intake-bindings@3.0.0` private schema. Older binding documents fail startup closed and remain byte-for-byte untouched; qualification uses a clean profile. Deleted legacy mappings are not reconstructed from chat, cwd, recency, or any non-exact source.
 
 ## 8. Implementation ownership
 
