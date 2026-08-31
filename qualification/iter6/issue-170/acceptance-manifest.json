@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "wsr.issue-170.acceptance@1",
+  "issue": "https://github.com/firestige/workflow-self-recursive/issues/170",
+  "scope": {
+    "activeGoals": [172, 173, 174, 175],
+    "deferredGoals": [176]
+  },
+  "candidate": {
+    "baseline": {
+      "superprojectCommit": "f373c82dd709421e1c1ccfdd7a03b91118b9b6ea",
+      "wsrUiCommit": "19148027762b6b951ca0e977f6aeae50aa0f746e",
+      "wsrDshCommit": "086735f36a21feb42055be3f0f2e4c221ea44a5b",
+      "dshVersion": "0.1.1-rc.2",
+      "dshPrimitivesIntegrity": "sha512-vCWEha1yhY//26j/LppHC/xZrU6MOuw6lcI4bJr5L7ppbY8h7GAR24ozBr+4ESMtQ5OmsvqGnsa/Kj5ZjSLfEQ=="
+    },
+    "requiredFinalIdentity": [
+      "superprojectCommit",
+      "providerCommit",
+      "packageCoordinate",
+      "packageVersion",
+      "packageIntegrity",
+      "consumerCommit",
+      "consumerLockSha256",
+      "dshVersion",
+      "dshPrimitivesIntegrity",
+      "benchmarkManifestSha256",
+      "qualificationResultSha256"
+    ]
+  },
+  "goalWaveGates": [
+    { "goal": 172, "wave": 1, "gate": "shared-package-and-panel-benchmark" },
+    { "goal": 173, "wave": 2, "gate": "formal-dependency-and-dsh-product" },
+    { "goal": 175, "wave": 3, "gate": "native-delivery-layout" },
+    {
+      "goal": 174,
+      "wave": 4,
+      "gate": "cross-repository-product-qualification"
+    },
+    { "goal": 170, "wave": 5, "gate": "umbrella-closure" }
+  ],
+  "redGreenOrder": [
+    "172-boundary-red",
+    "172-package-green",
+    "172-benchmark-green",
+    "175-layout-red",
+    "175-layout-green",
+    "173-product-red",
+    "173-product-green",
+    "174-negative-red",
+    "174-positive-green",
+    "170-composed-green"
+  ],
+  "fixtures": {
+    "studio": [
+      "single-available",
+      "single-unavailable",
+      "compare-available",
+      "partial-compare",
+      "receipt-drilldown",
+      "fact-drilldown",
+      "recorded-trace",
+      "gateway-outage"
+    ],
+    "delivery": [
+      "running",
+      "succeeded",
+      "failed",
+      "detached",
+      "stale",
+      "unbound",
+      "long-identities",
+      "missing-optional-fields",
+      "long-localized-copy"
+    ]
+  },
+  "deliveryAcceptance": {
+    "viewports": [
+      {
+        "id": "narrow",
+        "width": 320,
+        "height": 800,
+        "deviceScaleFactor": 1,
+        "zoomPercent": 100
+      },
+      {
+        "id": "desktop",
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 1,
+        "zoomPercent": 100
+      },
+      {
+        "id": "desktop-200-percent",
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 1,
+        "zoomPercent": 200
+      }
+    ],
+    "firstFold": {
+      "fixture": "succeeded",
+      "viewport": "desktop",
+      "boundary": "The bounds of status, Workflow, final Action and elapsed time are within the Delivery tab scrollport before any scroll."
+    },
+    "domAssertions": [
+      "No document-level horizontal overflow.",
+      "Optional sections are absent rather than empty when their source field is absent.",
+      "Every displayed truncated identity has a disclosure or tooltip exposing the exact value and a keyboard-operable copy button.",
+      "State has visible text and is not expressed by color alone.",
+      "The tab consumes only the existing exact Session/Delivery projection."
+    ],
+    "ariaAssertions": [
+      "Status updates and copy feedback have an appropriate live region.",
+      "Identity copy controls include the stable field label in their accessible name.",
+      "Disclosure controls expose expanded state and preserve logical focus order.",
+      "Reduced-motion mode does not depend on animation to reveal state."
+    ],
+    "keyboardPath": [
+      "Focus the Delivery tab.",
+      "Traverse summary, identity disclosures and copy controls with Tab only.",
+      "Open and close a long identity disclosure with Enter and Space.",
+      "Copy the exact value and observe announced feedback.",
+      "Confirm focus remains on the invoking control after disclosure closes."
+    ],
+    "visualRegression": {
+      "baselineWsrDshCommit": "086735f36a21feb42055be3f0f2e4c221ea44a5b",
+      "baselineDshVersion": "0.1.1-rc.2",
+      "referenceSurfaces": [
+        "adjacent native Session summary",
+        "native metadata/disclosure controls"
+      ],
+      "maxDiffPixelRatio": 0.005,
+      "animations": "disabled",
+      "fonts": "ready-before-capture"
+    },
+    "networkAssertion": "For every Delivery fixture, the method-and-path multiset after the tab opens is identical to the frozen baseline; additional requests equal zero."
+  },
+  "commands": {
+    "wsrUi": [
+      "npm ci --ignore-scripts --no-audit --no-fund",
+      "npm run format:check",
+      "npm run lint",
+      "npm run typecheck",
+      "npm test",
+      "npm run deps:check",
+      "npm run build",
+      "npm run package:verify",
+      "npm run browser",
+      "npm run benchmark:full -- --manifest qualification/panel-benchmark/v1/manifest.json"
+    ],
+    "wsrDsh": [
+      "npm ci --ignore-scripts --no-audit --no-fund",
+      "npm test",
+      "npm run boundaries:check",
+      "npm run build",
+      "npm run pack:verify",
+      "npm run provenance:verify",
+      "npm run qualify:clean-profile",
+      "npm run qualify:lifecycle",
+      "npm run qualify:real-harness"
+    ],
+    "superproject": [
+      "python3 -m unittest deployment/test-current-branch-acceptance.py",
+      "WSR_ACCEPT_NO_OPEN=1 ./deployment/accept-current-branch.sh"
+    ]
+  },
+  "evidence": {
+    "root": "qualification/iter6/issue-170/results/<candidate-id>/",
+    "requiredFiles": [
+      "candidate.json",
+      "commands.ndjson",
+      "tests.json",
+      "screenshots/index.json",
+      "benchmark/index.json",
+      "network-diff.json",
+      "provenance.json"
+    ],
+    "commandRecordRequired": [
+      "command",
+      "cwd",
+      "startedAt",
+      "finishedAt",
+      "exitCode",
+      "stdoutSha256",
+      "stderrSha256"
+    ]
+  }
+}
