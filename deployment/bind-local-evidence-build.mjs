@@ -4,11 +4,12 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const LOCAL_SERVICES = new Set(["migrate", "evidence"]);
+const LOCAL_SERVICES = new Set(["migrate", "evidence", "evolution"]);
 
-export async function bindLocalEvidenceBuild(composePath, evidenceCheckout) {
+export async function bindLocalEvidenceBuild(composePath, evidenceCheckout, repositoryCheckout) {
   const source = await readFile(composePath, "utf8");
-  const context = path.resolve(evidenceCheckout);
+  const evidenceContext = path.resolve(evidenceCheckout);
+  const repositoryContext = path.resolve(repositoryCheckout);
   const lines = source.split("\n");
   const replaced = new Set();
   let service;
@@ -26,10 +27,12 @@ export async function bindLocalEvidenceBuild(composePath, evidenceCheckout) {
       throw new Error(`multiple image bindings found for service ${service}`);
     }
     replaced.add(service);
+    const context = service === "evolution" ? repositoryContext : evidenceContext;
+    const dockerfile = service === "evolution" ? "evolution-system/Dockerfile" : "deployment/Dockerfile";
     return [
       "    build:",
       `      context: ${JSON.stringify(context)}`,
-      "      dockerfile: deployment/Dockerfile",
+      `      dockerfile: ${dockerfile}`,
     ];
   });
 
@@ -58,8 +61,8 @@ export async function bindLocalEvidenceBuild(composePath, evidenceCheckout) {
 
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : undefined;
 if (invokedPath === fileURLToPath(import.meta.url)) {
-  if (process.argv.length !== 4) {
-    throw new Error("usage: bind-local-evidence-build.mjs COMPOSE-FILE EVIDENCE-CHECKOUT");
+  if (process.argv.length !== 5) {
+    throw new Error("usage: bind-local-evidence-build.mjs COMPOSE-FILE EVIDENCE-CHECKOUT REPOSITORY-CHECKOUT");
   }
-  await bindLocalEvidenceBuild(process.argv[2], process.argv[3]);
+  await bindLocalEvidenceBuild(process.argv[2], process.argv[3], process.argv[4]);
 }

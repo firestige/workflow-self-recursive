@@ -10,11 +10,12 @@ const helperUrl = pathToFileURL(
   path.join(import.meta.dirname, "bind-local-evidence-build.mjs"),
 ).href;
 
-test("binds migrate and evidence to the local Evidence checkout", async (context) => {
+test("binds Evidence and Evolution to their local checkouts", async (context) => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-local-evidence-"));
   context.after(() => rm(directory, { recursive: true }));
   const composePath = path.join(directory, "compose.yaml");
   const evidencePath = path.join(directory, "evidence checkout");
+  const repositoryPath = path.join(directory, "repository checkout");
   await writeFile(
     composePath,
     `services:
@@ -34,15 +35,16 @@ test("binds migrate and evidence to the local Evidence checkout", async (context
   await writeFile(checksumsPath, `${"0".repeat(64)}  compose.yaml\n${"1".repeat(64)}  release.json\n`);
 
   const { bindLocalEvidenceBuild } = await import(helperUrl);
-  await bindLocalEvidenceBuild(composePath, evidencePath);
+  await bindLocalEvidenceBuild(composePath, evidencePath, repositoryPath);
 
   const actual = await readFile(composePath, "utf8");
   const buildBlock = `    build:\n      context: ${JSON.stringify(evidencePath)}\n      dockerfile: deployment/Dockerfile`;
-  assert.equal(actual.match(new RegExp("build:", "g"))?.length, 2);
+  assert.equal(actual.match(new RegExp("build:", "g"))?.length, 3);
   assert.equal(actual.match(new RegExp("image: evidence:published", "g")), null);
   assert.match(actual, new RegExp(buildBlock.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(actual, /image: postgres:published/);
-  assert.match(actual, /image: evolution:published/);
+  assert.doesNotMatch(actual, /image: evolution:published/);
+  assert.match(actual, new RegExp(`    build:\\n      context: ${JSON.stringify(repositoryPath).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\n      dockerfile: evolution-system/Dockerfile`));
   const digest = createHash("sha256").update(actual).digest("hex");
   assert.equal(
     await readFile(checksumsPath, "utf8"),
@@ -58,7 +60,7 @@ test("fails closed when the published bundle shape is unexpected", async (contex
 
   const { bindLocalEvidenceBuild } = await import(helperUrl);
   await assert.rejects(
-    bindLocalEvidenceBuild(composePath, path.join(directory, "evidence")),
+    bindLocalEvidenceBuild(composePath, path.join(directory, "evidence"), path.join(directory, "repository")),
     /expected image binding/,
   );
 });

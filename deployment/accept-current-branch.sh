@@ -93,6 +93,7 @@ ensure_submodule() {
 
 ensure_submodule execution-system package.json
 ensure_submodule evidence-system pyproject.toml
+ensure_submodule evolution-system Dockerfile
 ensure_submodule wsr-dsh package.json
 
 free_port() {
@@ -107,6 +108,7 @@ printf '==> 1/4 构建隔离环境\n'
 printf '临时目录：%s\n' "$preview"
 printf '当前提交：%s\n' "$(git -C "$root" rev-parse --short HEAD)"
 printf 'DSH 提交：%s\n' "$(git -C "$root/wsr-dsh" rev-parse --short HEAD)"
+printf 'Evolution 提交：%s\n' "$(git -C "$root/evolution-system" rev-parse --short HEAD)"
 
 jq \
   --argjson dsh "$dsh_port" \
@@ -150,7 +152,8 @@ python3 "$root/deployment/published/build-bundle.py" \
   "$bundle"
 node "$root/deployment/bind-local-evidence-build.mjs" \
   "$bundle/compose.yaml" \
-  "$root/evidence-system"
+  "$root/evidence-system" \
+  "$root"
 
 node "$root/product-operations/bin/wsr.mjs" setup \
   --config-input "$config" \

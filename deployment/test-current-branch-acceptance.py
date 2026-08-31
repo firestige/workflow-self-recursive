@@ -109,6 +109,7 @@ EOF
                       printf '%s\n' ' 044bfe8 execution-system'
                     fi ;;
                   *" submodule status -- evidence-system "*) printf '%s\n' '+5065cf8 evidence-system' ;;
+                  *" submodule status -- evolution-system "*) printf '%s\n' '+b302595 evolution-system' ;;
                   *" submodule status -- wsr-dsh "*) printf '%s\n' '+408c837 wsr-dsh' ;;
                   *" rev-parse "*) printf 'abcdef12\n' ;;
                 esac
@@ -148,6 +149,7 @@ EOF
         self.assertIn("execution-system release:artifacts", joined)
         self.assertIn("deployment/published/build-bundle.py", joined)
         self.assertIn("deployment/bind-local-evidence-build.mjs", joined)
+        self.assertIn("evolution-system", joined)
         self.assertIn(" setup ", f" {joined} ")
         self.assertIn(" install ", f" {joined} ")
         self.assertIn("qualify-local-provider-auth.mjs", joined)
