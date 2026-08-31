@@ -1,0 +1,184 @@
+#!/bin/sh
+set -eu
+
+root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
+temporary_parent=${WSR_ACCEPT_TMPDIR:-${TMPDIR:-/tmp}}
+preview=$(mktemp -d "$temporary_parent/wsr-current-accept.XXXXXX")
+packages="$preview/packages"
+bundle="$preview/bundle"
+config="$preview/config.json"
+state="$preview/state"
+workspace="$preview/current-branch-acceptance"
+suffix=$(basename "$preview" | tr -cd 'A-Za-z0-9' | tr '[:upper:]' '[:lower:]')
+
+export DSH_HOME="$preview/dsh-home"
+export COMPOSE_PROJECT_NAME="wsr_accept_$suffix"
+export WSR_EVIDENCE_VOLUME="wsr-accept-$suffix"
+
+mkdir -p "$packages"
+
+operation() {
+  node "$root/product-operations/bin/wsr.mjs" "$1" \
+    --config "$config" \
+    --state-dir "$state"
+}
+
+cleanup() {
+  status=$?
+  trap - 0 HUP INT TERM
+  set +e
+
+  if test -f "$config"; then
+    operation stop >/dev/null 2>&1
+  fi
+
+  process_file="$state/run/dsh.json"
+  if test -f "$process_file"; then
+    pid=$(sed -n 's/.*"pid"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$process_file" | head -n 1)
+    case "$pid" in
+      '' | *[!0-9]*) ;;
+      *) kill "$pid" >/dev/null 2>&1 ;;
+    esac
+  fi
+
+  if test -x "$bundle/wsr-compose"; then
+    WSR_CONFIRM_PURGE=DELETE_EVIDENCE_DATA "$bundle/wsr-compose" purge >/dev/null 2>&1
+  fi
+
+  case "$preview" in
+    "$temporary_parent"/wsr-current-accept.*) rm -rf "$preview" ;;
+    *) printf 'Refusing to remove unexpected preview directory: %s\n' "$preview" >&2 ;;
+  esac
+
+  if test "$status" -eq 0; then
+    printf '\n验收环境已移除（DSH profile、容器、volume 和临时文件）。\n'
+  else
+    printf '\n验收启动失败；已移除隔离环境，退出码 %s。\n' "$status" >&2
+  fi
+  exit "$status"
+}
+
+trap cleanup 0
+trap 'exit 130' HUP INT TERM
+
+for command in node npm pnpm python3 jq dsh docker git; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    printf 'Required command not found: %s\n' "$command" >&2
+    exit 1
+  fi
+done
+
+free_port() {
+  python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()'
+}
+
+dsh_port=$(free_port)
+evidence_port=$(free_port)
+evolution_port=$(free_port)
+
+printf '==> 1/4 构建隔离环境\n'
+printf '临时目录：%s\n' "$preview"
+printf '当前提交：%s\n' "$(git -C "$root" rev-parse --short HEAD)"
+printf 'DSH 提交：%s\n' "$(git -C "$root/wsr-dsh" rev-parse --short HEAD)"
+
+jq \
+  --argjson dsh "$dsh_port" \
+  --argjson evidence "$evidence_port" \
+  --argjson evolution "$evolution_port" \
+  '.services.ports = {dsh: $dsh, evidence: $evidence, evolution: $evolution}' \
+  "$root/product-operations/fixtures/config.json" > "$config"
+
+mkdir -p "$workspace/.wsr"
+printf '%s\n' '# Current branch acceptance workspace' > "$workspace/README.md"
+printf '%s\n' \
+  '{' \
+  '  "schemaVersion": "execution.repository-role-provider-bindings@1.0.0",' \
+  '  "bindings": {' \
+  '    "role.greeter": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.reviewer": {' \
+  '      "agentProvider": { "identity": "provider.codex", "version": "0.144.5" },' \
+  '      "model": { "provider": "openai", "model": "gpt-5.6-sol" }' \
+  '    }' \
+  '  }' \
+  '}' > "$workspace/.wsr/role-provider-bindings.json"
+
+printf '\n==> 2/4 构建并部署本地产物\n'
+(
+  cd "$root/execution-system"
+  pnpm release:artifacts "$packages"
+)
+(
+  cd "$root/wsr-dsh"
+  npm ci
+  npm run build
+  npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-execution
+  npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-studio
+)
+
+python3 "$root/deployment/published/build-bundle.py" \
+  "$root/release/compose/0.1.0.json" \
+  "$bundle"
+
+node "$root/product-operations/bin/wsr.mjs" setup \
+  --config-input "$config" \
+  --config "$config" \
+  --state-dir "$state"
+operation install
+
+(
+  cd "$root/execution-system"
+  node --import tsx scripts/bind-local-package-candidate-cli.ts \
+    "$DSH_HOME/profiles/web" \
+    wsr-execution \
+    0.2.1 \
+    "$packages/wsr-execution-0.2.1.tgz"
+)
+
+dsh plugin --profile web remove --workspace-root dsh-wsr
+dsh plugin --profile web add --workspace-root \
+  "$packages/dsh-wsr-execution-0.2.1.tgz" \
+  "$packages/dsh-wsr-studio-0.1.1.tgz" \
+  --ignore-scripts
+
+node "$root/deployment/verify-local-core-install.mjs" \
+  "$DSH_HOME/profiles/web" \
+  "$packages/wsr-execution-0.2.1.tgz"
+
+installed_bundle="$state/managed/wsr-services-0.1.0"
+mkdir -p "$installed_bundle"
+cp -R "$bundle/." "$installed_bundle/"
+
+operation preflight
+printf '\n正在验证本机 Agent Provider 凭据（不会读取或输出令牌）\n'
+node "$root/wsr-dsh/scripts/qualify-local-provider-auth.mjs" "$workspace"
+operation start
+operation health
+
+url="http://127.0.0.1:$dsh_port"
+node "$root/deployment/register-acceptance-workspace.mjs" "$url" "$workspace"
+if test "${WSR_ACCEPT_NO_OPEN:-0}" = 1; then
+  :
+elif command -v open >/dev/null 2>&1; then
+  open "$url"
+elif command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "$url"
+else
+  printf '请在浏览器打开：%s\n' "$url"
+fi
+
+printf '\n==> 3/4 人工验收\n'
+printf '浏览器地址：%s\n' "$url"
+printf '请选择脚本已注册的 workspace：current-branch-acceptance\n'
+printf '%s\n' \
+  '1. 选择 current-branch-acceptance 并创建 Session。' \
+  '2. 只发送 selector，确认出现可展开的 TASK_PROMPT_REQUIRED 完整诊断。' \
+  '3. 发送 selector + Task，确认中间 Action 只出现一次且带 Action 名称，最终回答以独立回答气泡展示；不得出现空 Completed 或 WSR_PRESENTATION_INVALID。' \
+  '4. 确认 WSR Studio 紧跟 Delivery，且不会跳离当前 Session。' \
+  '5. 检查 Studio 的 Task、metric、receipt、fact 与 trace。'
+printf '\n验收完成后按 Enter；脚本将自动执行第 4 步清理：'
+IFS= read -r _answer
+
+printf '\n==> 4/4 移除临时资产\n'

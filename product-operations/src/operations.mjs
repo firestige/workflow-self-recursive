@@ -120,10 +120,14 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
       });
     }
     const components = [];
+    const diagnostics = [];
     for (const component of manifest.components) {
       const adapter = adapters.get(component.id);
       if (!adapter) {
         components.push({ id: component.id, layer: component.layer, status: "unavailable" });
+        if (command === "health") diagnostics.push({
+          code: "ADAPTER_MISSING", component: component.id, message: `No adapter owns ${component.id}`,
+        });
         continue;
       }
       const result = await adapter.inspect(command, component, { manifest });
@@ -133,8 +137,13 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
         status: result.status,
         data: result.data,
       });
+      if (command === "health" && result.status !== "succeeded") diagnostics.push({
+        code: result.code ?? "COMPONENT_UNHEALTHY",
+        component: component.id,
+        message: result.message ?? `${component.id} is not healthy`,
+      });
     }
-    return envelope(command, id, "succeeded", { components });
+    return envelope(command, id, diagnostics.length === 0 ? "succeeded" : "blocked", { components, diagnostics });
   }
 
   async function mutate(command, id) {

@@ -115,7 +115,7 @@ dsh --help
 
 ## 4. 启动与调用
 
-产品 surface 边界：Delivery list 与 current Delivery status 使用 sidebar tabs；create/recover/abandon/action-finish command、acknowledgement、Action output/input、普通用户答复、error 与 terminal result 使用 chat timeline。Interactive command 只以原生用户气泡出现一次，内部 command lifecycle row 保持隐藏。“新会话”启动隔离的 blank timeline，旧 Workflow conversation 仍可单独重新打开。
+产品 surface 边界：Delivery list 与 current Delivery status 使用只读 Delivery projection；create/recover/abandon/action-finish command、Action output/input、普通用户答复、error 与 terminal result 使用 chat timeline。原生用户气泡与宿主拥有的 WSR command lifecycle 各只显示一次；keyed view 展示友好结果，并可展开查看完整的已准入 JSON 详情。“新会话”启动隔离的 blank timeline，旧 Workflow conversation 仍可单独重新打开。
 
 从目标 worktree 启动 DSH Web：
 

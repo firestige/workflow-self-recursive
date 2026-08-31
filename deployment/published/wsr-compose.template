@@ -5,6 +5,7 @@ bundle_dir=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
 compose_file="$bundle_dir/compose.yaml"
 state_dir=${WSR_LOCAL_STATE_DIR:-"$bundle_dir/.local"}
 secret_dir="$state_dir/secrets"
+identity_file="$state_dir/service-state-identity"
 volume=${WSR_EVIDENCE_VOLUME:-wsr-evidence-data}
 wait_timeout=${WSR_READY_TIMEOUT_SECONDS:-120}
 evidence_port=${WSR_EVIDENCE_PORT:-4318}
@@ -59,11 +60,17 @@ for name in admin-password backup-password runtime-password; do
   if ! test -s "$path"; then openssl rand -out "$path" -hex 32; fi
   chmod 644 "$path"
 done
+if ! test -s "$identity_file"; then openssl rand -out "$identity_file" -hex 32; fi
+chmod 600 "$identity_file"
+state_identity=$(tr -d '\r\n' < "$identity_file")
+case "$state_identity" in *[!0-9a-f]* | "") printf 'Invalid service state identity.\n' >&2; exit 2;; esac
+if test "${#state_identity}" -ne 64; then printf 'Invalid service state identity.\n' >&2; exit 2; fi
 
 export WSR_EVIDENCE_ADMIN_PASSWORD_FILE="$secret_dir/admin-password"
 export WSR_EVIDENCE_BACKUP_PASSWORD_FILE="$secret_dir/backup-password"
 export WSR_EVIDENCE_RUNTIME_PASSWORD_FILE="$secret_dir/runtime-password"
 export WSR_EVIDENCE_VOLUME="$volume"
+export WSR_EVIDENCE_STATE_IDENTITY="$state_identity"
 export WSR_EVOLUTION_CONFIG_FILE="$evolution_config"
 compose() { docker compose -f "$compose_file" "$@"; }
 
@@ -83,15 +90,17 @@ wait_stack() {
 
 start_stack() {
   compose pull
+  compose up -d --wait --wait-timeout "$wait_timeout" database
+  compose exec -T database /docker-entrypoint-initdb.d/10-wsr-roles.sh
   wait_stack
 }
 
 case "$action" in
   start | upgrade | rollback) start_stack;;
-  restart) compose restart database evidence evolution && wait_stack;;
+  restart) compose restart database && compose exec -T database /docker-entrypoint-initdb.d/10-wsr-roles.sh && compose restart evidence evolution && wait_stack;;
   stop) compose stop;;
   down) compose down --remove-orphans;;
-  status) compose ps;;
+  status) compose ps --all --format json;;
   logs)
     if test "$#" -gt 1; then compose logs --no-color "$2"; else compose logs --no-color; fi
     ;;

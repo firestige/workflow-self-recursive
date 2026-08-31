@@ -37,6 +37,11 @@ CLI 把全局配置和 state 放在 package README 记录的稳定操作系统�
 wsr start
 ```
 
+`start` 会自行启动已发布的 Docker Compose 服务栈：等待 PostgreSQL、在不删除 Evidence 的前提下
+协调受管数据库角色、执行 migration、等待 Evidence/Evolution 就绪，最后启动 DSH；不需要另行手动启动
+Compose。若命令阻塞，结果会包含有界且脱敏的 stderr；使用 `wsr status`、`wsr health` 和 `wsr logs`
+检查各层状态。
+
 打开 DSH web profile，注册 workspace，在其中创建 Session，然后把 selector 放在第一行、
 Task 指令放在后续行：
 
@@ -45,7 +50,8 @@ Task 指令放在后续行：
 Return a concise greeting and review it.
 ```
 
-Delivery 卡片和 Session Delivery 视图展示持久状态与最终结果。Studio 通过配置的 loopback 服务读取
+Delivery 卡片和 Session Delivery 视图展示持久状态与最终结果。`WSR Studio` 是紧跟 `Delivery` 的
+conversation tab，不会离开当前 Session。Studio 通过配置的 loopback 服务读取
 Evidence/Evolution，不按 repository 选择或过滤。当前 Session 提供运行时 workspace；若 Workflow 声明
 Role，则在该 repository 的 `.wsr/role-provider-bindings.json` 中配置 binding。
 
@@ -62,5 +68,15 @@ durable state 重建 Delivery、checkpoint 和 Session binding。
 
 ## Contributor 源码预览
 
-需要运行源码构建数据服务预览的贡献者，请使用单独的
+特性分支的人工验收只需要从 repository root 执行：
+
+```sh
+./deployment/accept-current-branch.sh
+```
+
+脚本自动建立隔离的 DSH profile、端口、Compose project、Evidence volume 和状态目录，构建并部署
+当前 checkout 的 DSH、Compose 与 product operations。浏览器打开后人工只执行脚本列出的验收项目；
+完成后按 Enter，脚本会移除全部临时资产。启动失败或收到中断信号时也执行同一清理流程。
+
+需要运行其他源码构建场景的贡献者，请使用单独的
 [源码构建指南](../contributing/source-build.zh-CN.md)。它不是 clean-machine 产品路径。

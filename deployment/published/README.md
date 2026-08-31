@@ -28,7 +28,9 @@ endpoint ownership and degradation boundaries.
 
 `purge` is the only data-deleting operation and requires
 `WSR_CONFIRM_PURGE=DELETE_EVIDENCE_DATA`. Generated database role secrets are reused across ordinary
-operations. Override the loopback ports with `WSR_EVIDENCE_PORT` and `WSR_EVOLUTION_PORT`, the durable
+operations. The launcher binds the retained Evidence volume to a stable identity in its state directory
+and idempotently reconciles all managed role passwords before migration; it refuses to rotate a volume
+already bound to another state directory. Override the loopback ports with `WSR_EVIDENCE_PORT` and `WSR_EVOLUTION_PORT`, the durable
 volume with `WSR_EVIDENCE_VOLUME`, and the ready bound with `WSR_READY_TIMEOUT_SECONDS`.
 
 The existing parent `deployment/compose.yaml` remains the source-build developer qualification fixture.

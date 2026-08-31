@@ -218,6 +218,47 @@ test("published services health reads the running loopback endpoints instead of 
   assert.deepEqual(urls, ["http://127.0.0.1:4318/healthz", "http://127.0.0.1:8000/healthz"]);
 });
 
+test("published services status rejects a partial Compose stack even when compose ps exits zero", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const adapters = createPublishedAdapters({
+    manifest, configPath, stateDirectory: path.join(directory, "state"), bundleDirectory: path.join(directory, "bundle"),
+    run: async () => ({
+      status: 0,
+      stdout: `${JSON.stringify({ Service: "database", State: "running", Health: "healthy", ExitCode: 0 })}\n`,
+      stderr: "",
+    }),
+  });
+
+  const result = await adapters.get("services").inspect("status");
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.code, "SERVICES_NOT_READY");
+  assert.match(result.message, /migrate.*evidence.*evolution/iu);
+});
+
+test("published adapter returns bounded redacted command stderr instead of only an exit status", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const adapters = createPublishedAdapters({
+    manifest, configPath, stateDirectory: path.join(directory, "state"), bundleDirectory: path.join(directory, "bundle"),
+    run: async () => ({
+      status: 19,
+      stdout: "",
+      stderr: "migration failed: password authentication failed\nAuthorization: Bearer should-not-leak",
+    }),
+  });
+
+  const result = await adapters.get("services").apply("start");
+
+  assert.equal(result.status, "blocked");
+  assert.match(result.message, /password authentication failed/u);
+  assert.doesNotMatch(result.message, /should-not-leak/u);
+  assert.ok(Buffer.byteLength(result.message, "utf8") <= 4096);
+});
+
 test("published DSH lifecycle launches the configured profile and retains only pid and logs", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-published-adapter-"));
   const stateDirectory = path.join(directory, "state");
