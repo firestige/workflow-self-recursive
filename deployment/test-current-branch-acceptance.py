@@ -47,6 +47,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
                   *" --workspace wsr-ui-core "*) : > "$destination/wsr-ui-core-0.1.0-rc.0.tgz" ;;
                   *" --workspace dsh-wsr-execution "*) : > "$destination/dsh-wsr-execution-0.2.1.tgz" ;;
                   *" --workspace dsh-wsr-studio "*) : > "$destination/dsh-wsr-studio-0.1.1.tgz" ;;
+                  *" --workspace dsh-wsr "*) : > "$destination/dsh-wsr-0.2.1.tgz" ;;
                 esac
             """)
             executable(fake_bin / "pnpm", """
@@ -165,6 +166,8 @@ EOF
         self.assertIn("--verify", joined)
         self.assertIn("--workspace dsh-wsr-execution", joined)
         self.assertIn("--workspace dsh-wsr-studio", joined)
+        self.assertIn("--workspace dsh-wsr", joined)
+        self.assertIn("prepare-local-dsh-acceptance.mjs", joined)
         self.assertIn("pnpm cwd=", joined)
         self.assertIn("execution-system release:artifacts", joined)
         self.assertIn("deployment/published/build-bundle.py", joined)
@@ -173,13 +176,14 @@ EOF
         self.assertIn(" setup ", f" {joined} ")
         self.assertIn(" install ", f" {joined} ")
         self.assertIn("qualify-local-provider-auth.mjs", joined)
-        self.assertIn("dsh plugin --profile web remove --workspace-root dsh-wsr", joined)
+        self.assertNotIn("dsh plugin --profile web remove --workspace-root dsh-wsr", joined)
         self.assertIn("wsr-execution-0.2.1.tgz", joined)
-        self.assertIn("bind-local-package-candidate-cli.ts", joined)
-        self.assertIn("wsr-execution 0.2.1", joined)
+        self.assertNotIn("bind-local-package-candidate-cli.ts", joined)
         self.assertIn("verify-local-core-install.mjs", joined)
         self.assertIn("dsh-wsr-execution-0.2.1.tgz", joined)
         self.assertIn("dsh-wsr-studio-0.1.1.tgz", joined)
+        self.assertIn("dsh-wsr-0.2.1.tgz", joined)
+        self.assertRegex(joined, r"product-operations/bin/wsr\.mjs install .*--manifest .*compatibility\.json")
         self.assertIn(" start ", f" {joined} ")
         self.assertNotIn("git init", joined)
         self.assertIn("register-acceptance-workspace.mjs", joined)

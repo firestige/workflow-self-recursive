@@ -7,6 +7,7 @@ preview=$(mktemp -d "$temporary_parent/wsr-current-accept.XXXXXX")
 packages="$preview/packages"
 bundle="$preview/bundle"
 config="$preview/config.json"
+acceptance_manifest="$preview/compatibility.json"
 state="$preview/state"
 workspace="$preview/current-branch-acceptance"
 suffix=$(basename "$preview" | tr -cd 'A-Za-z0-9' | tr '[:upper:]' '[:lower:]')
@@ -19,6 +20,7 @@ mkdir -p "$packages"
 
 operation() {
   node "$root/product-operations/bin/wsr.mjs" "$1" \
+    --manifest "$acceptance_manifest" \
     --config "$config" \
     --state-dir "$state"
 }
@@ -165,7 +167,17 @@ fi
   npm run build
   npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-execution
   npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-studio
+  npm pack --silent --pack-destination "$packages" --workspace dsh-wsr
 )
+
+node "$root/deployment/prepare-local-dsh-acceptance.mjs" \
+  "$root/product-operations/manifests/product-0.3.0.json" \
+  "$acceptance_manifest" \
+  "$packages/wsr-execution-0.2.1.tgz" \
+  "$packages/dsh-wsr-execution-0.2.1.tgz" \
+  "$packages/dsh-wsr-studio-0.1.1.tgz" \
+  "$packages/dsh-wsr-0.2.1.tgz" \
+  "$provider_archive"
 
 python3 "$root/deployment/published/build-bundle.py" \
   "$root/release/compose/0.1.0.json" \
@@ -176,31 +188,11 @@ node "$root/deployment/bind-local-evidence-build.mjs" \
   "$root"
 
 node "$root/product-operations/bin/wsr.mjs" setup \
+  --manifest "$acceptance_manifest" \
   --config-input "$config" \
   --config "$config" \
   --state-dir "$state"
 operation install
-
-node "$root/deployment/bind-local-package-candidate.mjs" \
-  "$DSH_HOME/profiles/web" \
-  wsr-ui-core \
-  "$provider_version" \
-  "$provider_archive"
-
-(
-  cd "$root/execution-system"
-  node --import tsx scripts/bind-local-package-candidate-cli.ts \
-    "$DSH_HOME/profiles/web" \
-    wsr-execution \
-    0.2.1 \
-    "$packages/wsr-execution-0.2.1.tgz"
-)
-
-dsh plugin --profile web remove --workspace-root dsh-wsr
-dsh plugin --profile web add --workspace-root \
-  "$packages/dsh-wsr-execution-0.2.1.tgz" \
-  "$packages/dsh-wsr-studio-0.1.1.tgz" \
-  --ignore-scripts
 
 node "$root/deployment/bind-local-package-candidate.mjs" --verify \
   "$DSH_HOME/profiles/web" \

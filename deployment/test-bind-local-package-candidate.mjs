@@ -82,13 +82,13 @@ test("fails closed when an existing override or installed lock points elsewhere"
       version: "0.1.0-rc.0",
       archive: value.archive,
     });
-    await writeFile(join(value.profile, "pnpm-lock.yaml"), "resolution: registry\n");
+    await writeFile(join(value.profile, "pnpm-lock.yaml"), "resolution: https://registry.npmjs.org/wsr-ui-core/-/wsr-ui-core-0.1.0-rc.0.tgz\n");
     await assert.rejects(() => verifyLocalPackageCandidate({
       profileRoot: value.profile,
       packageName: "wsr-ui-core",
       version: "0.1.0-rc.0",
       archive: value.archive,
-    }), /LOCAL_PACKAGE_LOCK_PROVENANCE/u);
+    }), /LOCAL_PACKAGE_REMOTE_RESOLUTION/u);
   } finally {
     await rm(value.root, { recursive: true, force: true });
   }

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, stat, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 function fail(code, detail) {
@@ -61,10 +61,30 @@ export async function bindLocalPackageCandidate(input) {
 export async function verifyLocalPackageCandidate(input) {
   const { profile, artifact } = await exactInputs(input);
   const lock = await readFile(resolve(profile, "pnpm-lock.yaml"), "utf8");
-  if (!lock.includes(artifact)) fail("LOCAL_PACKAGE_LOCK_PROVENANCE", artifact);
+  const registryPath = `registry.npmjs.org/${input.packageName}/`;
+  if (lock.includes(registryPath)) fail("LOCAL_PACKAGE_REMOTE_RESOLUTION", registryPath);
   const installed = JSON.parse(await readFile(resolve(profile, "node_modules", input.packageName, "package.json"), "utf8"));
   if (installed.name !== input.packageName || installed.version !== input.version) {
     fail("LOCAL_PACKAGE_INSTALLED_IDENTITY", `${installed.name}@${installed.version}`);
+  }
+  const temporary = await mkdtemp(resolve(profile, ".wsr-verify-package-"));
+  try {
+    execFileSync("tar", ["-xzf", artifact, "-C", temporary]);
+    const source = resolve(temporary, "package");
+    const destination = resolve(profile, "node_modules", input.packageName);
+    const verifyTree = async (directory, relative = "") => {
+      for (const entry of await readdir(resolve(directory, relative))) {
+        const next = join(relative, entry);
+        const metadata = await stat(resolve(directory, next));
+        if (metadata.isDirectory()) await verifyTree(directory, next);
+        else if (!(await readFile(resolve(directory, next))).equals(await readFile(resolve(destination, next)))) {
+          fail("LOCAL_PACKAGE_INSTALLED_CONTENT", next);
+        }
+      }
+    };
+    await verifyTree(source);
+  } finally {
+    await rm(temporary, { recursive: true, force: true });
   }
 }
 
