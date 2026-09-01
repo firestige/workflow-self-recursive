@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "wsr.issue-170.cross-repository-tests@1",
+  "qualification": {
+    "qualified": true,
+    "matrix": {
+      "positive": "PASS",
+      "negativePolicy": "PASS",
+      "benchmark": "PASS",
+      "realWeb": "PASS"
+    }
+  },
+  "commandCount": 32,
+  "successfulCommands": 28,
+  "retainedExpectedFailures": {
+    "total": 4,
+    "benchmarkBudget": 1,
+    "missingSubmodulePrecondition": 1,
+    "missingContractBuildContext": 2
+  },
+  "policyTests": 16,
+  "acceptanceTests": 5
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "wsr.issue-170.cross-repository-provenance@1",
+  "superproject": {
+    "commit": "e39ddfa4c45e3c5f711d93cdc816bde4f4957a8f"
+  },
+  "provider": {
+    "commit": "45d6ec33148fd81520db203ad047e8af220c3ad2",
+    "evidenceCommit": "4122e299f5a765b3af7e7d8a80550b292980bebe",
+    "packageCoordinate": "wsr-ui-core",
+    "packageVersion": "0.1.0-rc.0",
+    "packageIntegrity": "sha512-jHK1jASNAw0WqNMrzgOK9KWZls/DiA7q8J2shE96/Gatb2mTw+lzG7UY+8rWuh1PWfyTFuvqnS3u/hVfyCrOBw==",
+    "packageTarball": "https://registry.npmjs.org/wsr-ui-core/-/wsr-ui-core-0.1.0-rc.0.tgz",
+    "manifestSha256": "81cbab4305a0a25dadd51b6585b923e329be7c6f2d60b9bc934293490d2262ff",
+    "benchmarkResultSha256": "cc568d25a5eccf785fac4907b8b80448b03fa62cd141d53e6792d57dd4ac3da9"
+  },
+  "consumer": {
+    "commit": "80c365aa780d0ba8f224b87fb8f34dddd0ae9a3a",
+    "evidenceCommit": "aa505b41d2f941bf302245077131c79e9f36c80d",
+    "packageCoordinate": "wsr-ui-core",
+    "packageVersion": "0.1.0-rc.0",
+    "packageIntegrity": "sha512-jHK1jASNAw0WqNMrzgOK9KWZls/DiA7q8J2shE96/Gatb2mTw+lzG7UY+8rWuh1PWfyTFuvqnS3u/hVfyCrOBw==",
+    "lockSha256": "66f899db76e7c32f4d5708237c9c1937549601dac290293f4e88c37c3435879e",
+    "panels": [
+      "metric-ratio-bar@1",
+      "recorded-trace-graph@1"
+    ],
+    "jsonPrimary": false,
+    "runtimeRendererSelector": false,
+    "sourcePathImports": false
+  },
+  "releaseProvenanceSha256": "97551092cf37090cc6c96c25d6da25a2d2b3f6861bffda44c0355875ea6f0fcb",
+  "releaseSubjects": [
+    {
+      "name": "dsh-wsr-0.2.1.tgz",
+      "sha256": "f5bdeee4bc47c2946b1ebd4a6ad41f600144121ca2fceadc462dd2a369539a7b"
+    },
+    {
+      "name": "dsh-wsr-execution-0.2.1.tgz",
+      "sha256": "9ad854e78092b3a7b01023c61c55e52e0c860a1d5c7d9b211ef68e32328705c6"
+    },
+    {
+      "name": "dsh-wsr-studio-0.1.1.tgz",
+      "sha256": "0907c05285050ade6e3eae3462ab5f0778cbd3fd73d4dd25ccc8e9a6d148d1e4"
+    }
+  ]
+}

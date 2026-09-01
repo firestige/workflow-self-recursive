@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "wsr.issue-170.benchmark-index@1",
+  "qualifyingResult": {
+    "directory": "full-2026-09-01T04-05-55-798Z",
+    "sha256": "cc568d25a5eccf785fac4907b8b80448b03fa62cd141d53e6792d57dd4ac3da9",
+    "traces": [
+      {
+        "file": "metric-ratio-bar@1.typical.run-1.zip",
+        "sha256": "51258351d2f3871731f6ba9daa84ea73f429d320411bd649b2ce89cfacd865f6"
+      },
+      {
+        "file": "metric-ratio-bar@1.typical.run-2.zip",
+        "sha256": "37df579e0e09f22fcbc1ee2492891f6be330cb897860871a070f5f88c8802639"
+      },
+      {
+        "file": "metric-ratio-bar@1.typical.run-3.zip",
+        "sha256": "4c8a82c93450aa0e4c6072b96fbbef9b63ee0e55f523ddab7a6899f8343c2879"
+      },
+      {
+        "file": "metric-ratio-bar@1.upper-bound.run-1.zip",
+        "sha256": "c18b8068ff70ed9cf49edfc1511e228401e44cb990e7822c6a7bb5719c36c520"
+      },
+      {
+        "file": "metric-ratio-bar@1.upper-bound.run-2.zip",
+        "sha256": "0b52f23f006c0c8fb14c0881b4eacadf06afcea3c89c195adc59b8467acee5f4"
+      },
+      {
+        "file": "metric-ratio-bar@1.upper-bound.run-3.zip",
+        "sha256": "a558c0f7c1a5cfb9593c39a9f12066405be2544ed448f8d9cd8d68ec79754ae3"
+      },
+      {
+        "file": "recorded-trace-graph@1.typical.run-1.zip",
+        "sha256": "524679399bd20b519908a6c86a728d7b6c61664ac7a75329a55ca7e1893531ab"
+      },
+      {
+        "file": "recorded-trace-graph@1.typical.run-2.zip",
+        "sha256": "1ff98ce07f2f85f9887497eb37456b9afadf861e4956a8d5d5a54819a31795a1"
+      },
+      {
+        "file": "recorded-trace-graph@1.typical.run-3.zip",
+        "sha256": "422ccca68deb5fb450c1e9ac2b597d0e52b317ea4e37fa24a055cd25adc87066"
+      },
+      {
+        "file": "recorded-trace-graph@1.upper-bound.run-1.zip",
+        "sha256": "dc2628cb7bfcc7e50373d2bdb7cee6731948d58dc0c6675a54e14bb95cccb1cb"
+      },
+      {
+        "file": "recorded-trace-graph@1.upper-bound.run-2.zip",
+        "sha256": "409bfc2c0981f5148d0c145fabc72083add5843d3787e370d8c2891a21a5a644"
+      },
+      {
+        "file": "recorded-trace-graph@1.upper-bound.run-3.zip",
+        "sha256": "e87835ca7b6a5520831d911351991601fbee4fbb4e670b1a28e1e9cbaa109dfd"
+      },
+      {
+        "file": "unavailable@1.semantic.run-1.zip",
+        "sha256": "1c5653a16677c68dc1efb3543e911f33cef70e2085221c3e103fc65fdea859d5"
+      },
+      {
+        "file": "unavailable@1.semantic.run-2.zip",
+        "sha256": "dc64170f001333d09224d96d3cc3b08a3b2af3e326d4d42e4004470625e4197f"
+      },
+      {
+        "file": "unavailable@1.semantic.run-3.zip",
+        "sha256": "b1a6e3662485d03be20ad30a6d79fcb5409d509ac978524ac284622c21325c96"
+      }
+    ]
+  },
+  "retainedFailure": {
+    "directory": "full-2026-09-01T03-43-47-604Z",
+    "sha256": "991ff489a02b13af1411d937fed6d7a4efe87305a5544f60d8efe917d5b05bbe",
+    "failedRuns": [
+      {
+        "panel": "recorded-trace-graph@1",
+        "fixture": "upper-bound",
+        "runIndex": 2,
+        "evaluation": {
+          "firstPaintP50Ms": 46.35000014305115,
+          "firstPaintP95Ms": 57.66000008583069,
+          "frameP50Ms": 16.670000000000073,
+          "frameP95Ms": 16.670000000000073,
+          "longTaskCount": 1,
+          "passed": false
+        }
+      }
+    ]
+  }
+}
