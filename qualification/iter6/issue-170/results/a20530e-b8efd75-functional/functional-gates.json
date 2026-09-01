@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "wsr.issue-170.functional-qualification@1",
+  "status": "FUNCTIONAL_GREEN_BENCHMARK_DEFERRED",
+  "decision": {
+    "date": "2026-09-02",
+    "manualStudioAcceptance": "PASS",
+    "benchmark": "DEFERRED_UNTIL_FUNCTIONAL_FREEZE",
+    "followUpIssue": "https://github.com/firestige/workflow-self-recursive/issues/178"
+  },
+  "candidate": {
+    "superprojectCommit": "ec0c0b8851dca886dbcf42a98a1799e8ea307458",
+    "providerCommit": "a20530e08a39a4999f6ef5acd96553019eed2af0",
+    "consumerCommit": "b8efd7567d0f5681b4c6b0aceee3eeab0bd0913c",
+    "provider": {
+      "coordinate": "wsr-ui-core@0.1.0-rc.0",
+      "localTarSha256": "4bd3e31e7a84cc9adbebe191f23f288281a864d948191ad3881388f86840661a",
+      "npmShasum": "fac8016ae107a57b29f56fc8061ed28b8493830d",
+      "integrity": "sha512-R5mwdJ2zLsppSIkvTsgh5uZM6mtwRlwBVMglcfmpeNGKy3+zZNsPCXjRuDY6Bb2ht6yR4nnJicx03VvmDezwCw=="
+    },
+    "consumer": {
+      "lockSha256": "66f899db76e7c32f4d5708237c9c1937549601dac290293f4e88c37c3435879e",
+      "studioBundleSha256": "9491dc88b9cf7222cf46fad45dc6e628005a970767a365071644fe12290d9e6a"
+    }
+  },
+  "gates": {
+    "provider": {
+      "format": "PASS",
+      "lint": "PASS",
+      "typecheck": "PASS",
+      "dependencyBoundary": "PASS",
+      "tests": { "passed": 240, "failed": 0 },
+      "browserJourneys": { "passed": 15, "failed": 0 },
+      "packageVerify": "PASS",
+      "react18Consumer": "PASS"
+    },
+    "consumer": {
+      "tests": { "passed": 138, "failed": 0 },
+      "boundary": "PASS",
+      "build": "PASS",
+      "packageInventory": "PASS",
+      "lifecycle": "PASS",
+      "cleanProfile": "PASS",
+      "savedEvidenceHarness": { "status": "PASS", "browserErrors": 0 }
+    },
+    "crossRepository": {
+      "localArtifactMaterialized": "PASS",
+      "localArtifactRuntimeBytesVerified": "PASS",
+      "setup": "PASS",
+      "install": "PASS",
+      "preflight": "PASS",
+      "providerAuthentication": "PASS",
+      "start": "PASS",
+      "health": "PASS",
+      "isolatedCleanup": "PASS",
+      "negativePolicyTests": { "passed": 23, "failed": 0 }
+    },
+    "benchmark": "DEFERRED"
+  }
+}
