@@ -94,6 +94,7 @@ ensure_submodule() {
 ensure_submodule execution-system package.json
 ensure_submodule evidence-system pyproject.toml
 ensure_submodule evolution-system Dockerfile
+ensure_submodule system-contracts workflow-dsl-2-candidate/package.json
 ensure_submodule wsr-dsh package.json
 
 free_port() {

@@ -25,6 +25,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
         fail_start: bool = False,
         no_open: bool = False,
         uninitialized_execution_system: bool = False,
+        uninitialized_system_contracts: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], list[str], Path]:
         with tempfile.TemporaryDirectory(prefix="wsr-accept-test-") as temporary_name:
             temporary = Path(temporary_name)
@@ -110,6 +111,12 @@ EOF
                     fi ;;
                   *" submodule status -- evidence-system "*) printf '%s\n' '+5065cf8 evidence-system' ;;
                   *" submodule status -- evolution-system "*) printf '%s\n' '+b302595 evolution-system' ;;
+                  *" submodule status -- system-contracts "*)
+                    if test "${WSR_ACCEPT_TEST_UNINITIALIZED_SYSTEM_CONTRACTS:-0}" = 1; then
+                      printf '%s\n' '-4ca07c0 system-contracts'
+                    else
+                      printf '%s\n' ' 4ca07c0 system-contracts'
+                    fi ;;
                   *" submodule status -- wsr-dsh "*) printf '%s\n' '+408c837 wsr-dsh' ;;
                   *" rev-parse "*) printf 'abcdef12\n' ;;
                 esac
@@ -122,6 +129,7 @@ EOF
                 "WSR_ACCEPT_TMPDIR": str(preview_parent),
                 "WSR_ACCEPT_TEST_FAIL_START": "1" if fail_start else "0",
                 "WSR_ACCEPT_TEST_UNINITIALIZED_EXECUTION_SYSTEM": "1" if uninitialized_execution_system else "0",
+                "WSR_ACCEPT_TEST_UNINITIALIZED_SYSTEM_CONTRACTS": "1" if uninitialized_system_contracts else "0",
                 "WSR_ACCEPT_NO_OPEN": "1" if no_open else "0",
             }
             result = subprocess.run(
@@ -196,6 +204,15 @@ EOF
         self.assertIn("submodule update --init -- execution-system", joined)
         self.assertNotIn("submodule update --init -- wsr-dsh", joined)
         self.assertIn("execution-system release:artifacts", joined)
+
+    def test_initializes_the_contract_source_required_by_the_evolution_image(self) -> None:
+        result, commands, _ = self.run_acceptance(uninitialized_system_contracts=True)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        joined = "\n".join(commands)
+        self.assertIn("submodule update --init -- system-contracts", joined)
+        self.assertNotIn("submodule update --init -- execution-system", joined)
+        self.assertIn("evolution-system", joined)
 
 
 if __name__ == "__main__":
