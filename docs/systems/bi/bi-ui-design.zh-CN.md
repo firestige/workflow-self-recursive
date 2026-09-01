@@ -2,6 +2,8 @@
 
 > **状态：** owner 已接受的 Wave3 设计候选，2026-08-28。英文 [`bi-ui-design.md`](bi-ui-design.md) 是候选规范文本；本文是中文追踪 companion。本候选 supersede 现有 G1 的 browser evaluator、BI-local manifest 与固定 `/factual`/`/trace` 设计，但本身不发布 Contract、不创建 durable implementation baseline commit，也不授权 Wave4。
 
+> **Iteration 6 嵌入细化：** Issue #170 的 Studio composition、响应式布局、Trace Waterfall/Tree/Statistics、motion 及 `wsr-ui-core`/`wsr-dsh` 分工由 [`bi-studio-ui-ux-design.md`](bi-studio-ui-ux-design.md) 规定。该细化收紧实现选择，但不改变本文的数据 authority 与 metric semantics。
+
 ## 1. 产品目的与非目标
 
 Iter5 的首要用户是配置和运行 agent、希望理解其配置实际表现的 owner。最常见的三个任务是：选择 Task population 查看 12 项 candidate Metric Result；在同一工作区比较两个明确 selection；经评估回执、指标说明、Facts 与 recorded Trace 核验结果来源。Single 是默认主路径，compare 是同页派生模式，不是事故调查台。

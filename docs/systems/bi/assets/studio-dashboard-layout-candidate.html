@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WSR Studio responsive layout impressions</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background:#090b0e; color:#e7e9ed; }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:32px; background:#090b0e; }
+    h1 { margin:0 0 8px; font-size:24px; }
+    .lede { margin:0 0 28px; color:#969da8; max-width:76ch; }
+    .specimen { margin:0 auto 36px; }
+    .specimen > h2 { display:flex; align-items:baseline; gap:12px; margin:0 0 10px; font-size:16px; }
+    .specimen > h2 small { color:#77808d; font-weight:500; }
+    .viewport { width:100%; margin:0 auto; overflow:hidden; border:1px solid #343941; border-radius:14px; background:#111316; box-shadow:0 18px 60px #0008; }
+    .desktop .viewport { max-width:1440px; }
+    .tablet .viewport { max-width:900px; }
+    .narrow .viewport { max-width:390px; }
+    .host { display:grid; grid-template-columns:210px 1fr; min-height:650px; }
+    .rail { padding:20px 14px; border-right:1px solid #2b2f35; background:#17191c; }
+    .brand { height:24px; width:116px; border-radius:6px; background:#e8eaed; opacity:.9; margin-bottom:32px; }
+    .rail-line { height:34px; margin:8px 0; border-radius:8px; background:#23262b; }
+    .rail-line.active { background:#343840; box-shadow:inset 3px 0 #73a2ff; }
+    .main { min-width:0; background:#121416; }
+    .tabs { height:58px; display:flex; align-items:end; gap:26px; padding:0 28px; border-bottom:1px solid #2b2f35; color:#8e96a2; }
+    .tabs span { padding:18px 0 12px; }
+    .tabs .active { color:#77a4ff; border-bottom:2px solid #77a4ff; }
+    .studio { padding:22px 28px 34px; }
+    .context { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border:1px solid #353a42; border-radius:10px; background:#1a1d21; }
+    .context-copy { min-width:0; }
+    .eyebrow { font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#7f8792; }
+    .context strong { display:block; margin-top:4px; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+    button { min-height:34px; padding:7px 11px; border:1px solid #505762; border-radius:7px; background:#25292f; color:#e7e9ed; font:inherit; font-size:12px; }
+    button.primary { border-color:#6d95e8; color:#a8c3ff; }
+    .canvas { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:14px; margin-top:14px; }
+    .panel { min-width:0; min-height:152px; padding:16px; border:1px solid #353a42; border-radius:10px; background:#202327; }
+    .small { grid-column:span 3; }
+    .medium { grid-column:span 6; min-height:220px; }
+    .wide { grid-column:1 / -1; min-height:210px; }
+    .panel-head { display:flex; align-items:start; justify-content:space-between; gap:8px; }
+    .panel h3 { min-width:0; margin:0; font-size:13px; line-height:1.35; overflow-wrap:anywhere; }
+    .state { flex:none; padding:3px 7px; border-radius:999px; font-size:9px; font-weight:700; color:#9cbaff; background:#253451; }
+    .state.muted { color:#b4bac3; background:#32363c; }
+    .value { margin-top:22px; font:700 26px ui-monospace, monospace; }
+    .meta { margin-top:7px; color:#9098a3; font-size:11px; }
+    .bar { position:relative; height:9px; margin:28px 0 12px; border-radius:99px; background:#343940; overflow:hidden; }
+    .bar::after { content:""; display:block; width:68%; height:100%; background:#72a0ff; }
+    .bar.alt::after { width:42%; }
+    .panel-foot { display:flex; justify-content:space-between; gap:8px; margin-top:20px; color:#8faef0; font-size:10px; }
+    .unavailable { min-height:124px; }
+    .unavailable .meta { max-width:38ch; }
+    .table-lines { display:grid; gap:9px; margin-top:20px; }
+    .table-lines i { display:block; height:9px; border-radius:3px; background:linear-gradient(90deg,#343941 0 28%,#2a2e34 28% 58%,#343941 58% 100%); }
+    .trace-entry { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:72px; margin-top:14px; padding:12px 16px; border:1px dashed #4d5f7e; border-radius:10px; color:#b6c9ee; background:#19202b; }
+    .trace-entry small { display:block; margin-top:4px; color:#8793a7; }
+    .tablet .host { grid-template-columns:72px 1fr; }
+    .tablet .brand { width:36px; }
+    .tablet .rail-line { height:36px; }
+    .tablet .studio { padding:18px; }
+    .tablet .canvas { grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; }
+    .tablet .small { grid-column:span 3; }
+    .tablet .medium,.tablet .wide { grid-column:1 / -1; }
+    .tablet .context { align-items:flex-start; }
+    .tablet .actions { max-width:280px; }
+    .narrow .host { display:block; min-height:720px; }
+    .narrow .rail { display:none; }
+    .narrow .tabs { height:52px; padding:0 14px; gap:18px; overflow:hidden; font-size:12px; }
+    .narrow .studio { padding:12px; }
+    .narrow .context { position:sticky; top:0; z-index:2; display:block; padding:10px 12px; }
+    .narrow .actions { justify-content:flex-start; margin-top:10px; }
+    .narrow .actions button:nth-child(2) { display:none; }
+    .narrow .canvas { display:block; margin-top:10px; }
+    .narrow .panel { min-height:0; margin-bottom:10px; padding:13px; }
+    .narrow .medium { min-height:184px; }
+    .narrow .wide { min-height:180px; }
+    .narrow .panel:nth-of-type(n+7) { display:none; }
+    .narrow .trace-entry { align-items:flex-start; }
+    .narrow .trace-entry button { flex:none; }
+    .narrow .value { margin-top:16px; font-size:22px; }
+    @media (max-width:700px) { body { padding:18px 8px; } }
+  </style>
+</head>
+<body>
+  <h1>WSR Studio — responsive layout impressions</h1>
+  <p class="lede">布局评审稿：图形与文案只是语义占位。重点是 dark Host 一致性、有限 panel span、紧凑 unavailable state、composer 入口与 Recorded Trace 可发现性。</p>
+
+  <section class="specimen desktop">
+    <h2>Desktop <small>12-column canvas · persistent Host rail</small></h2>
+    <div class="viewport"><div class="host"><aside class="rail"><div class="brand"></div><div class="rail-line"></div><div class="rail-line active"></div><div class="rail-line"></div></aside><main class="main">
+      <nav class="tabs"><span>对话</span><span>轨迹</span><span>Delivery</span><span class="active">WSR Studio</span></nav>
+      <div class="studio">
+        <header class="context"><div class="context-copy"><span class="eyebrow">Single evaluation · 1 task</span><strong>hello-world-workflow · current receipt</strong></div><div class="actions"><button>Default overview ▾</button><button>Recorded traces (2)</button><button class="primary">Edit dashboard</button></div></header>
+        <section class="canvas">
+          <article class="panel small"><div class="panel-head"><h3>Operational latency</h3><span class="state">AVAILABLE</span></div><div class="value">842 ms</div><div class="meta">24 / 24 · exact value</div></article>
+          <article class="panel small"><div class="panel-head"><h3>Delivery cycle time</h3><span class="state">AVAILABLE</span></div><div class="value">27.9 s</div><div class="meta">1 delivery · complete</div></article>
+          <article class="panel small unavailable"><div class="panel-head"><h3>Usage availability</h3><span class="state muted">N/A</span></div><div class="meta">No applicable population · 0 / 0</div><div class="panel-foot"><span>Metric explanation</span><span>Evidence</span></div></article>
+          <article class="panel small"><div class="panel-head"><h3>Cohort eligibility</h3><span class="state">AVAILABLE</span></div><div class="value">✓ True</div><div class="meta">selection compatible</div></article>
+          <article class="panel medium"><div class="panel-head"><h3>Role template rework rate</h3><span class="state">AVAILABLE</span></div><div class="value">68%</div><div class="bar"></div><div class="panel-foot"><span>17 / 25 exact</span><span>View evidence</span></div></article>
+          <article class="panel medium"><div class="panel-head"><h3>Role/model task outcome rate</h3><span class="state">AVAILABLE</span></div><div class="value">42%</div><div class="bar alt"></div><div class="panel-foot"><span>10 / 24 exact</span><span>View evidence</span></div></article>
+          <article class="panel wide"><div class="panel-head"><h3>Delivery stage reach · lossless table</h3><span class="state">PARTIAL</span></div><div class="table-lines"><i></i><i></i><i></i><i></i></div></article>
+        </section>
+        <aside class="trace-entry"><div><strong>Recorded Trace is available</strong><small>2 exact trace identities referenced by current Evidence · no inferred ordering</small></div><button>Open Evidence → Trace</button></aside>
+      </div>
+    </main></div></div>
+  </section>
+
+  <section class="specimen tablet">
+    <h2>Tablet <small>6-column canvas · compact Host rail · overlay inspector</small></h2>
+    <div class="viewport"><div class="host"><aside class="rail"><div class="brand"></div><div class="rail-line"></div><div class="rail-line active"></div><div class="rail-line"></div></aside><main class="main">
+      <nav class="tabs"><span>对话</span><span>轨迹</span><span>Delivery</span><span class="active">WSR Studio</span></nav>
+      <div class="studio"><header class="context"><div class="context-copy"><span class="eyebrow">Single · 1 task</span><strong>hello-world-workflow</strong></div><div class="actions"><button>Overview ▾</button><button>Traces (2)</button><button class="primary">Edit</button></div></header>
+        <section class="canvas">
+          <article class="panel small"><div class="panel-head"><h3>Operational latency</h3><span class="state">AVAILABLE</span></div><div class="value">842 ms</div><div class="meta">24 / 24</div></article>
+          <article class="panel small unavailable"><div class="panel-head"><h3>Usage availability</h3><span class="state muted">N/A</span></div><div class="meta">No applicable population · 0 / 0</div></article>
+          <article class="panel medium"><div class="panel-head"><h3>Role template rework rate</h3><span class="state">AVAILABLE</span></div><div class="value">68%</div><div class="bar"></div><div class="panel-foot"><span>17 / 25</span><span>Evidence</span></div></article>
+          <article class="panel medium"><div class="panel-head"><h3>Role/model task outcome rate</h3><span class="state">AVAILABLE</span></div><div class="value">42%</div><div class="bar alt"></div></article>
+          <article class="panel wide"><div class="panel-head"><h3>Delivery stage reach</h3><span class="state">PARTIAL</span></div><div class="table-lines"><i></i><i></i><i></i></div></article>
+        </section><aside class="trace-entry"><div><strong>Recorded traces (2)</strong><small>Exact Evidence references</small></div><button>Open</button></aside>
+      </div>
+    </main></div></div>
+  </section>
+
+  <section class="specimen narrow">
+    <h2>Narrow <small>single column · sticky compact context · Trace outline first</small></h2>
+    <div class="viewport"><div class="host"><main class="main">
+      <nav class="tabs"><span>对话</span><span>Delivery</span><span class="active">WSR Studio</span></nav>
+      <div class="studio"><header class="context"><div class="context-copy"><span class="eyebrow">Single · 1 task</span><strong>hello-world-workflow</strong></div><div class="actions"><button>Overview ▾</button><button>Traces (2)</button><button class="primary">Edit</button></div></header>
+        <section class="canvas">
+          <article class="panel small"><div class="panel-head"><h3>Operational latency</h3><span class="state">AVAILABLE</span></div><div class="value">842 ms</div><div class="meta">24 / 24 · exact value</div></article>
+          <article class="panel small unavailable"><div class="panel-head"><h3>Usage availability</h3><span class="state muted">N/A</span></div><div class="meta">No applicable population · 0 / 0</div><div class="panel-foot"><span>Explanation</span><span>Evidence</span></div></article>
+          <article class="panel medium"><div class="panel-head"><h3>Role template rework rate</h3><span class="state">AVAILABLE</span></div><div class="value">68%</div><div class="bar"></div><div class="panel-foot"><span>17 / 25</span><span>Evidence</span></div></article>
+          <article class="panel medium"><div class="panel-head"><h3>Role/model task outcome rate</h3><span class="state">AVAILABLE</span></div><div class="value">42%</div><div class="bar alt"></div></article>
+        </section><aside class="trace-entry"><div><strong>Recorded traces (2)</strong><small>Opens outline first</small></div><button>Open</button></aside>
+      </div>
+    </main></div></div>
+  </section>
+</body>
+</html>

@@ -2,6 +2,8 @@
 
 > **Status:** Owner-accepted Wave3 design candidate, 2026-08-28. English is the candidate normative text; the tracking Chinese companion is [`bi-ui-design.zh-CN.md`](bi-ui-design.zh-CN.md). This candidate supersedes the browser-evaluator, BI-local manifest, and fixed `/factual`/`/trace` G1 design, but does not itself publish a Contract, create a durable implementation baseline commit, or authorize Wave4.
 
+> **Iteration 6 embedding refinement:** Issue #170's Studio composition, responsive layout, Trace Waterfall/Tree/Statistics rendering, motion, and `wsr-ui-core`/`wsr-dsh` ownership are specified by [`bi-studio-ui-ux-design.md`](bi-studio-ui-ux-design.md). That refinement narrows implementation choices but does not change this document's data authority or metric semantics.
+
 ## 1. Product intent and non-goals
 
 The primary Iter5 user configures and operates agents and wants to understand the observed effect of agent configuration: which published metrics changed, what Skills and model/Role coordinates were present, how many tokens and directly reported costs were recorded, and where recorded workflow stages or calls consumed time. Iter5 reports those observations; it does not attribute cause, recommend an improvement, edit a Workflow, apply a revision, or close a meta-recursive loop.

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WSR Studio — Semantic Trace candidate</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      --bg:#0b0e12; --host:#13161a; --surface:#191d22; --panel:#20252b;
+      --raised:#272d34; --line:#363e48; --muted:#8a95a3; --text:#e8edf3;
+      --cyan:#58c8e8; --cyan-soft:#173643; --violet:#aa8df2; --violet-soft:#302747;
+      --green:#61d197; --green-soft:#193b2d; --amber:#e7b85f; --amber-soft:#42341c;
+      --red:#e67f86; --red-soft:#42252a; --blue:#79a5ff; --ease:cubic-bezier(.2,.8,.2,1);
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:320px; background:var(--bg); color:var(--text); }
+    button,input { font:inherit; }
+    button { color:inherit; }
+    .host { display:grid; grid-template-columns:214px minmax(0,1fr); min-height:100vh; }
+    .rail { padding:22px 14px; border-right:1px solid #292f36; background:#15181c; }
+    .brand { display:flex; align-items:center; gap:10px; margin:0 6px 32px; font-weight:750; }
+    .brand-mark { width:24px; height:24px; border:2px solid #dce3ec; border-radius:50% 50% 46% 54%; transform:rotate(-18deg); }
+    .rail-label { margin:22px 8px 8px; color:#687382; font-size:10px; letter-spacing:.1em; text-transform:uppercase; }
+    .rail-item { display:flex; align-items:center; gap:10px; min-height:38px; margin:4px 0; padding:0 10px; border-radius:8px; color:#9aa4b1; font-size:12px; }
+    .rail-item::before { width:7px; height:7px; border:1px solid #697483; border-radius:50%; content:""; }
+    .rail-item.active { color:#e7ebf0; background:#292e35; box-shadow:inset 3px 0 var(--blue); }
+    .main { min-width:0; background:var(--host); }
+    .host-tabs { height:58px; display:flex; align-items:end; gap:26px; padding:0 28px; border-bottom:1px solid #292f36; color:#818b98; font-size:13px; }
+    .host-tabs span { padding:18px 0 12px; }
+    .host-tabs .active { color:#8bb0ff; border-bottom:2px solid #79a5ff; }
+    .studio { padding:18px 24px 24px; }
+    .product-row { display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:48px; }
+    .product-row h1 { margin:0; font-size:19px; }
+    .product-nav { display:flex; gap:4px; padding:4px; border:1px solid var(--line); border-radius:9px; background:#171a1f; }
+    .product-nav button { min-height:32px; padding:0 12px; border:0; border-radius:6px; background:transparent; color:#8893a1; font-size:12px; }
+    .product-nav .active { background:#29344a; color:#dce7ff; }
+    .context { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:center; margin-top:9px; padding:11px 13px; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+    .back { color:#9bb9f7; font-size:10px; }
+    .trace-title { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:5px 0 3px; }
+    .trace-title strong { font-size:14px; }
+    .chip { display:inline-flex; align-items:center; gap:5px; padding:3px 7px; border:1px solid currentColor; border-radius:999px; font-size:8px; font-weight:750; letter-spacing:.05em; }
+    .chip.partial { color:var(--amber); background:var(--amber-soft); }
+    .identity { display:block; max-width:70ch; overflow:hidden; color:#798594; font:9px ui-monospace,SFMono-Regular,monospace; text-overflow:ellipsis; white-space:nowrap; }
+    .toolbar { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
+    .control,.icon-control { min-height:34px; padding:0 10px; border:1px solid #4a535f; border-radius:7px; background:var(--raised); font-size:10px; }
+    .control[aria-pressed="true"],.control.primary { border-color:#719beb; background:#263650; color:#c8d9ff; }
+    .control:disabled { color:#68727f; cursor:not-allowed; }
+    .workbench { display:grid; grid-template-columns:minmax(0,1fr) 304px; gap:12px; margin-top:12px; }
+    .canvas-shell,.passport { min-width:0; overflow:hidden; border:1px solid var(--line); border-radius:11px; background:var(--panel); }
+    .canvas-head,.passport-head { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:48px; padding:0 14px; border-bottom:1px solid var(--line); }
+    .canvas-head strong,.passport-head strong { font-size:12px; }
+    .counts { color:#7e8997; font-size:9px; }
+    .canvas { position:relative; min-height:560px; overflow:hidden; background-color:#171b20; background-image:radial-gradient(#303741 1px,transparent 1px); background-size:20px 20px; }
+    .depth-band { position:absolute; left:18px; right:18px; height:104px; border:1px solid #2b333d; border-radius:10px; background:#1b2026aa; transition:opacity 180ms var(--ease),border-color 180ms var(--ease); }
+    .depth-band span { position:absolute; left:10px; top:8px; color:#687483; font-size:8px; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+    .depth-0 { top:22px; }.depth-1 { top:144px; }.depth-2 { top:266px; }
+    .orphan-band { top:388px; border-style:dashed; border-color:#755e31; background:#241f17aa; }
+    .orphan-band span { color:#ae8c4a; }
+    .graph { position:absolute; inset:0; width:100%; height:100%; }
+    .edge { fill:none; stroke:#516171; stroke-width:2; marker-end:url(#arrow); transition:opacity 180ms var(--ease),stroke 180ms var(--ease); }
+    .edge.link { stroke:#9a7b3c; stroke-dasharray:7 6; marker-end:url(#arrow-amber); }
+    .edge.active { stroke:var(--cyan); filter:drop-shadow(0 0 4px #58c8e899); }
+    .edge.link.active { stroke:var(--amber); filter:drop-shadow(0 0 4px #e7b85f88); }
+    .signal { display:none; fill:var(--cyan); filter:drop-shadow(0 0 5px var(--cyan)); }
+    .signal.link-signal { fill:var(--amber); filter:drop-shadow(0 0 5px var(--amber)); }
+    .node { cursor:pointer; outline:none; transition:opacity 180ms var(--ease),filter 180ms var(--ease),transform 180ms var(--ease); }
+    .node .plate { fill:#252b32; stroke:#4a5561; stroke-width:1.2; rx:9; }
+    .node .rail-color { rx:3; }
+    .node .sigil { font:700 9px system-ui; }
+    .node .label { fill:#e2e7ed; font:650 11px system-ui; }
+    .node .meta { fill:#84909e; font:8px ui-monospace,monospace; }
+    .node .state-text { font:700 7px system-ui; letter-spacing:.06em; }
+    .node .hit { fill:transparent; }
+    .node[data-kind="root"] .rail-color { fill:var(--cyan); }.node[data-kind="root"] .sigil,.node[data-kind="root"] .state-text { fill:var(--cyan); }
+    .node[data-kind="role"] .rail-color { fill:var(--violet); }.node[data-kind="role"] .sigil,.node[data-kind="role"] .state-text { fill:var(--violet); }
+    .node[data-kind="action"] .rail-color { fill:var(--green); }.node[data-kind="action"] .sigil,.node[data-kind="action"] .state-text { fill:var(--green); }
+    .node[data-kind="tool"] .rail-color { fill:var(--amber); }.node[data-kind="tool"] .sigil,.node[data-kind="tool"] .state-text { fill:var(--amber); }
+    .node[data-kind="result"] .rail-color { fill:var(--blue); }.node[data-kind="result"] .sigil,.node[data-kind="result"] .state-text { fill:var(--blue); }
+    .node[data-kind="orphan"] .plate { fill:#2a261f; stroke:#a17f40; stroke-dasharray:5 4; }.node[data-kind="orphan"] .rail-color { fill:var(--amber); }.node[data-kind="orphan"] .sigil,.node[data-kind="orphan"] .state-text { fill:var(--amber); }
+    .node.selected .plate { stroke:var(--cyan); stroke-width:2; filter:drop-shadow(0 0 5px #58c8e855); }
+    .node.selected { filter:drop-shadow(0 2px 4px #0008); }
+    .canvas.guided .node:not(.guide-active):not(.guide-context) { opacity:.28; }
+    .canvas.guided .edge:not(.active) { opacity:.18; }
+    .canvas.guided .depth-band:not(.band-active) { opacity:.35; }
+    .canvas.live .signal { display:block; }
+    .map { position:absolute; right:12px; bottom:12px; width:116px; height:72px; padding:7px; border:1px solid #46515d; border-radius:8px; background:#101419e8; }
+    .map strong { color:#7e8997; font-size:7px; letter-spacing:.1em; }
+    .map-lines { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; margin-top:7px; }
+    .map-lines i { display:block; height:7px; border-radius:2px; background:#3c4651; }
+    .map-lines i:nth-child(2),.map-lines i:nth-child(4) { background:#386477; }
+    .passport { align-self:stretch; }
+    .passport-head span { color:#7d8896; font-size:8px; }
+    .passport-body { padding:14px; }
+    .passport-kind { display:flex; align-items:center; gap:8px; margin-bottom:15px; }
+    .passport-sigil { display:grid; width:30px; height:30px; place-items:center; border:1px solid #55616e; border-radius:8px; color:var(--cyan); background:var(--cyan-soft); font-size:10px; font-weight:800; }
+    .passport-kind strong { display:block; font-size:12px; }
+    .passport-kind small { display:block; margin-top:2px; color:#7e8997; font-size:8px; }
+    dl { display:grid; gap:12px; margin:0; }
+    dl div { display:grid; gap:4px; }
+    dt { color:#707c8a; font-size:8px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
+    dd { margin:0; overflow-wrap:anywhere; font-size:10px; line-height:1.45; }
+    dd code { color:#aab4c0; font:8px ui-monospace,monospace; }
+    .truth-note { margin:14px 0 0; padding:10px; border-left:3px solid var(--amber); border-radius:5px; background:var(--amber-soft); color:#c8b68f; font-size:9px; line-height:1.5; }
+    .passport-actions { display:flex; gap:6px; margin-top:14px; }
+    .director { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:12px; align-items:center; margin-top:12px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+    .director-controls { display:flex; gap:5px; }
+    .director-copy strong { display:block; font-size:10px; }
+    .director-copy span { display:block; margin-top:3px; color:#7e8997; font-size:8px; }
+    .progress { display:flex; gap:5px; align-items:center; }
+    .step { width:30px; height:4px; border-radius:99px; background:#38414b; transition:background 160ms var(--ease); }
+    .step.done { background:#476e80; }.step.current { background:var(--cyan); box-shadow:0 0 7px #58c8e866; }
+    .outline-mobile { display:none; }
+    @keyframes node-arrive { 0% { opacity:.35; transform:translateY(5px) scale(.97); } 100% { opacity:1; transform:none; } }
+    .canvas.guided .guide-active { animation:node-arrive 320ms var(--ease) both; }
+    @media (max-width:1000px) {
+      .host { grid-template-columns:72px minmax(0,1fr); }
+      .rail .brand span,.rail-label,.rail-item span { display:none; }
+      .brand { justify-content:center; }.rail-item { justify-content:center; }
+      .workbench { grid-template-columns:minmax(0,1fr); }
+      .passport { display:none; }
+      .canvas { min-height:520px; }
+    }
+    @media (max-width:680px) {
+      .host { display:block; }.rail { display:none; }
+      .host-tabs { height:52px; gap:18px; padding:0 14px; overflow:hidden; font-size:11px; }
+      .studio { padding:11px; }
+      .product-row { display:block; }.product-row h1 { margin:4px 0 9px; font-size:16px; }
+      .product-nav { width:100%; justify-content:space-between; overflow:auto; }.product-nav button { padding:0 8px; font-size:9px; white-space:nowrap; }
+      .context { display:block; }.toolbar { justify-content:flex-start; margin-top:10px; }
+      .toolbar .desktop-only { display:none; }
+      .canvas-shell { display:none; }.outline-mobile { display:block; border:1px solid var(--line); border-radius:10px; background:var(--panel); }
+      .outline-head { display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--line); font-size:10px; }
+      .outline-list { padding:9px; }
+      .outline-depth { margin:8px 0 5px; color:#717d8b; font-size:8px; font-weight:750; letter-spacing:.09em; text-transform:uppercase; }
+      .outline-node { display:grid; grid-template-columns:24px minmax(0,1fr) auto; gap:7px; align-items:center; width:100%; min-height:44px; margin:5px 0; padding:7px; border:1px solid #3b444f; border-radius:7px; background:#272c32; text-align:left; }
+      .outline-node strong { display:block; font-size:10px; }.outline-node code { display:block; margin-top:3px; overflow:hidden; color:#7f8a98; font-size:7px; text-overflow:ellipsis; white-space:nowrap; }
+      .outline-node span:first-child { color:var(--cyan); text-align:center; }.outline-node em { color:#8aa9e8; font-size:7px; font-style:normal; }
+      .outline-node.orphan { border-color:#8d713a; border-style:dashed; }.outline-node.orphan span:first-child,.outline-node.orphan em { color:var(--amber); }
+      .director { grid-template-columns:1fr; }.director-controls { order:2; }.progress { order:3; }.step { flex:1; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.001ms!important; transition-duration:.001ms!important; }
+    }
+  </style>
+</head>
+<body>
+<div class="host">
+  <aside class="rail"><div class="brand"><i class="brand-mark"></i><span>deepseek</span></div><p class="rail-label">Workspace</p><div class="rail-item"><span>Sessions</span></div><div class="rail-item active"><span>Current run</span></div><div class="rail-item"><span>Deliveries</span></div><p class="rail-label">Tools</p><div class="rail-item"><span>Settings</span></div></aside>
+  <main class="main">
+    <nav class="host-tabs"><span>对话</span><span>轨迹</span><span>Delivery</span><span class="active">WSR Studio</span></nav>
+    <section class="studio">
+      <header class="product-row"><h1>WSR Studio</h1><nav class="product-nav"><button>Dashboard</button><button>Evidence</button><button class="active">Recorded Trace</button></nav></header>
+      <section class="context">
+        <div><span class="back">← Back to Evidence</span><div class="trace-title"><strong>Recorded Trace</strong><span class="chip partial">◐ PARTIAL</span></div><code class="identity">trace 4f2ac88c18e14db287140726067f91c · selection task-delivery-a450a9e1 · exact recorded relations only</code></div>
+        <div class="toolbar" aria-label="Trace controls"><button class="control primary" id="finder">⌕ Find node</button><button class="control desktop-only" id="outline">Outline</button><button class="control" id="motion" aria-pressed="false">Motion: Still</button><button class="control desktop-only" id="reset">Reset view</button></div>
+      </section>
+      <section class="workbench">
+        <article class="canvas-shell"><header class="canvas-head"><strong>Recorded structure</strong><span class="counts">6 nodes · 4 PARENT_EDGE · 1 LINK · 1 unresolved</span></header>
+          <div class="canvas" id="canvas">
+            <div class="depth-band depth-0" data-band="0"><span>Recorded depth 0 · origin</span></div><div class="depth-band depth-1" data-band="1"><span>Recorded depth 1 · sibling group</span></div><div class="depth-band depth-2" data-band="2"><span>Recorded depth 2 · descendants</span></div><div class="depth-band orphan-band" data-band="3"><span>Unresolved lane · never merged by proximity</span></div>
+            <svg class="graph" viewBox="0 0 920 560" role="img" aria-label="Semantic recorded Trace graph">
+              <defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#516171"/></marker><marker id="arrow-amber" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#9a7b3c"/></marker></defs>
+              <path id="e-root-writer" class="edge" data-step="2" d="M460 107 C460 130 300 126 300 158"/><path id="e-root-reviewer" class="edge" data-step="2" d="M460 107 C460 130 620 126 620 158"/><path id="e-writer-tool" class="edge" data-step="3" d="M300 229 L300 280"/><path id="e-review-result" class="edge" data-step="3" d="M620 229 L620 280"/><path id="e-link" class="edge link" data-step="4" d="M377 192 C442 151 478 151 543 192"/>
+              <circle class="signal" r="4"><animateMotion dur="1.1s" repeatCount="indefinite"><mpath href="#e-root-writer"/></animateMotion></circle><circle class="signal" r="4"><animateMotion dur="1.1s" begin=".18s" repeatCount="indefinite"><mpath href="#e-root-reviewer"/></animateMotion></circle><circle class="signal link-signal" r="4"><animateMotion dur="1.1s" repeatCount="indefinite"><mpath href="#e-link"/></animateMotion></circle>
+              <g class="node" tabindex="0" role="button" data-id="root" data-kind="root" data-depth="0" transform="translate(370 45)"><rect class="plate" width="180" height="62"/><rect class="rail-color" width="4" height="62"/><text class="sigil" x="16" y="19">ROOT</text><text class="label" x="16" y="38">evaluation root</text><text class="meta" x="16" y="53">span 012f…802a</text><text class="state-text" x="135" y="19">AVAILABLE</text><rect class="hit" width="180" height="62"/></g>
+              <g class="node selected" tabindex="0" role="button" data-id="writer" data-kind="role" data-depth="1" transform="translate(210 167)"><rect class="plate" width="180" height="62"/><rect class="rail-color" width="4" height="62"/><text class="sigil" x="16" y="19">ROLE</text><text class="label" x="16" y="38">writer invocation</text><text class="meta" x="16" y="53">span 72bd…41c1</text><text class="state-text" x="135" y="19">PARTIAL</text><rect class="hit" width="180" height="62"/></g>
+              <g class="node" tabindex="0" role="button" data-id="reviewer" data-kind="role" data-depth="1" transform="translate(530 167)"><rect class="plate" width="180" height="62"/><rect class="rail-color" width="4" height="62"/><text class="sigil" x="16" y="19">ROLE</text><text class="label" x="16" y="38">reviewer invocation</text><text class="meta" x="16" y="53">span 118e…507d</text><text class="state-text" x="135" y="19">AVAILABLE</text><rect class="hit" width="180" height="62"/></g>
+              <g class="node" tabindex="0" role="button" data-id="tool" data-kind="tool" data-depth="2" transform="translate(210 289)"><rect class="plate" width="180" height="62"/><rect class="rail-color" width="4" height="62"/><text class="sigil" x="16" y="19">TOOL</text><text class="label" x="16" y="38">workspace write</text><text class="meta" x="16" y="53">span aac2…0ad1</text><text class="state-text" x="135" y="19">PARTIAL</text><rect class="hit" width="180" height="62"/></g>
+              <g class="node" tabindex="0" role="button" data-id="result" data-kind="result" data-depth="2" transform="translate(530 289)"><rect class="plate" width="180" height="62"/><rect class="rail-color" width="4" height="62"/><text class="sigil" x="16" y="19">RESULT</text><text class="label" x="16" y="38">review finding</text><text class="meta" x="16" y="53">span d902…170f</text><text class="state-text" x="135" y="19">AVAILABLE</text><rect class="hit" width="180" height="62"/></g>
+              <g class="node" tabindex="0" role="button" data-id="orphan" data-kind="orphan" data-depth="3" transform="translate(370 411)"><rect class="plate" width="180" height="62"/><rect class="rail-color" width="4" height="62"/><text class="sigil" x="16" y="19">UNRESOLVED</text><text class="label" x="16" y="38">missing endpoint</text><text class="meta" x="16" y="53">parent not observed</text><text class="state-text" x="135" y="19">ORPHAN</text><rect class="hit" width="180" height="62"/></g>
+            </svg>
+            <aside class="map"><strong>SEMANTIC MAP</strong><div class="map-lines"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></aside>
+          </div>
+        </article>
+        <aside class="passport"><header class="passport-head"><strong>Semantic Passport</strong><span>Exact focus</span></header><div class="passport-body"><div class="passport-kind"><span class="passport-sigil" id="passportSigil">ROLE</span><div><strong id="passportLabel">writer invocation</strong><small id="passportKind">Recorded node · depth 1</small></div></div><dl><div><dt>Stable identity</dt><dd><code id="passportId">4f2ac88c…f91c / 72bd09e3…41c1</code></dd></div><div><dt>Truth state</dt><dd id="passportState">◐ PARTIAL · recorded detail remains readable</dd></div><div><dt>Recorded relation</dt><dd id="passportRelation">PARENT_EDGE from evaluation root</dd></div><div><dt>Sibling context</dt><dd id="passportContext">reviewer invocation · same recorded depth; no ordering inferred</dd></div></dl><p class="truth-note">Graph position expresses recorded parent depth only. LINK is independent; timestamps and visual proximity never create a causal edge.</p><div class="passport-actions"><button class="control primary">Open exact Fact</button><button class="control">Copy focus link</button></div></div></aside>
+        <article class="outline-mobile"><header class="outline-head"><strong>Recorded structure outline</strong><span>Graph available</span></header><div class="outline-list"><p class="outline-depth">Depth 0</p><button class="outline-node"><span>◆</span><span><strong>evaluation root</strong><code>span 012f…802a</code></span><em>AVAILABLE</em></button><p class="outline-depth">Depth 1 · siblings</p><button class="outline-node"><span>├</span><span><strong>writer invocation</strong><code>span 72bd…41c1</code></span><em>PARTIAL</em></button><button class="outline-node"><span>└</span><span><strong>reviewer invocation</strong><code>span 118e…507d</code></span><em>AVAILABLE</em></button><p class="outline-depth">Depth 2</p><button class="outline-node"><span>├</span><span><strong>workspace write</strong><code>span aac2…0ad1</code></span><em>PARTIAL</em></button><button class="outline-node"><span>└</span><span><strong>review finding</strong><code>span d902…170f</code></span><em>AVAILABLE</em></button><p class="outline-depth">Unresolved lane</p><button class="outline-node orphan"><span>◇</span><span><strong>missing endpoint</strong><code>parent not observed</code></span><em>ORPHAN</em></button></div></article>
+      </section>
+      <footer class="director"><div class="director-controls"><button class="icon-control" id="previous" aria-label="Previous guide step">←</button><button class="control primary" id="play">Play depth guide</button><button class="icon-control" id="next" aria-label="Next guide step">→</button></div><div class="director-copy"><strong id="guideTitle">Overview · complete recorded structure</strong><span id="guideNote">Reader-controlled finite guide; this is not temporal replay.</span></div><div class="progress" id="progress"><i class="step current"></i><i class="step"></i><i class="step"></i><i class="step"></i><i class="step"></i></div></footer>
+    </section>
+  </main>
+</div>
+<script>
+  const nodes = [...document.querySelectorAll('.node')];
+  const edges = [...document.querySelectorAll('.edge')];
+  const bands = [...document.querySelectorAll('.depth-band')];
+  const canvas = document.querySelector('#canvas');
+  const motion = document.querySelector('#motion');
+  const play = document.querySelector('#play');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const nodeData = {
+    root:['ROOT','evaluation root','Recorded node · depth 0','4f2ac88c…f91c / 012f9c20…802a','● AVAILABLE','Trace origin; no recorded parent','2 recorded children'],
+    writer:['ROLE','writer invocation','Recorded node · depth 1','4f2ac88c…f91c / 72bd09e3…41c1','◐ PARTIAL · recorded detail remains readable','PARENT_EDGE from evaluation root','reviewer invocation · same depth; no ordering inferred'],
+    reviewer:['ROLE','reviewer invocation','Recorded node · depth 1','4f2ac88c…f91c / 118e91aa…507d','● AVAILABLE','PARENT_EDGE from evaluation root','writer invocation · same depth; no ordering inferred'],
+    tool:['TOOL','workspace write','Recorded node · depth 2','4f2ac88c…f91c / aac29f51…0ad1','◐ PARTIAL','PARENT_EDGE from writer invocation','Recorded descendant; detail hole remains explicit'],
+    result:['RESULT','review finding','Recorded node · depth 2','4f2ac88c…f91c / d9022441…170f','● AVAILABLE','PARENT_EDGE from reviewer invocation','Recorded descendant'],
+    orphan:['?','missing endpoint','Unresolved recorded endpoint','4f2ac88c…f91c / unresolved','◇ UNRESOLVED','No accepted parent endpoint','Held in orphan lane; never joined by proximity']
+  };
+  const guide = [
+    {title:'Overview · complete recorded structure',note:'Reader-controlled finite guide; this is not temporal replay.',depth:null,ids:[]},
+    {title:'Depth 0 · recorded origin',note:'One exact root identity anchors the structure.',depth:0,ids:['root']},
+    {title:'Depth 1 · sibling group',note:'Both children arrive together; their screen order carries no meaning.',depth:1,ids:['root','writer','reviewer']},
+    {title:'Depth 2 · recorded descendants',note:'Exact PARENT_EDGE records reveal the next structural layer.',depth:2,ids:['writer','reviewer','tool','result']},
+    {title:'Independent and unresolved records',note:'LINK remains independent; missing endpoints stay outside the parent tree.',depth:3,ids:['writer','reviewer','orphan']}
+  ];
+  let step = 0, timer;
+  function selectNode(node){ nodes.forEach(n=>n.classList.toggle('selected',n===node)); const d=nodeData[node.dataset.id]; ['passportSigil','passportLabel','passportKind','passportId','passportState','passportRelation','passportContext'].forEach((id,i)=>document.getElementById(id).textContent=d[i]); }
+  nodes.forEach(n=>{ n.addEventListener('click',()=>selectNode(n)); n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectNode(n)}}); });
+  function showStep(index){ step=Math.max(0,Math.min(guide.length-1,index)); const g=guide[step]; canvas.classList.toggle('guided',step>0); nodes.forEach(n=>{n.classList.toggle('guide-active',g.ids.includes(n.dataset.id));n.classList.toggle('guide-context',step>0&&Number(n.dataset.depth)<g.depth)}); edges.forEach(e=>e.classList.toggle('active',Number(e.dataset.step)===step)); bands.forEach(b=>b.classList.toggle('band-active',Number(b.dataset.band)===g.depth)); document.querySelector('#guideTitle').textContent=g.title;document.querySelector('#guideNote').textContent=g.note;[...document.querySelectorAll('.step')].forEach((s,i)=>{s.classList.toggle('current',i===step);s.classList.toggle('done',i<step)}); }
+  function stop(){ clearInterval(timer); timer=undefined; play.textContent='Play depth guide'; }
+  function run(){ if(reduced.matches)return; stop(); motion.setAttribute('aria-pressed','true');motion.textContent='Motion: Live';canvas.classList.add('live'); if(step===guide.length-1)showStep(0); play.textContent='Pause'; timer=setInterval(()=>{if(step===guide.length-1){stop();canvas.classList.remove('live');motion.setAttribute('aria-pressed','false');motion.textContent='Motion: Still';return}showStep(step+1)},1250); }
+  play.addEventListener('click',()=>timer?stop():run()); document.querySelector('#previous').addEventListener('click',()=>{stop();showStep(step-1)});document.querySelector('#next').addEventListener('click',()=>{stop();showStep(step+1)});
+  motion.addEventListener('click',()=>{const live=motion.getAttribute('aria-pressed')!=='true';motion.setAttribute('aria-pressed',String(live));motion.textContent=`Motion: ${live?'Live':'Still'}`;canvas.classList.toggle('live',live);if(!live)stop()});
+  document.querySelector('#reset').addEventListener('click',()=>{stop();canvas.classList.remove('live');motion.setAttribute('aria-pressed','false');motion.textContent='Motion: Still';showStep(0)});
+  function reducedState(){play.disabled=reduced.matches;play.textContent=reduced.matches?'Reduced motion: Still':'Play depth guide';if(reduced.matches){stop();canvas.classList.remove('live');showStep(0)}} reduced.addEventListener('change',reducedState);reducedState();showStep(0);
+</script>
+</body>
+</html>

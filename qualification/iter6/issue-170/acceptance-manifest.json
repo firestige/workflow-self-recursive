@@ -1,9 +1,32 @@
 {
-  "schemaVersion": "wsr.issue-170.acceptance@1",
+  "schemaVersion": "wsr.issue-170.acceptance@2",
   "issue": "https://github.com/firestige/workflow-self-recursive/issues/170",
   "scope": {
     "activeGoals": [172, 173, 174, 175],
     "deferredGoals": [176]
+  },
+  "authority": {
+    "priority": [
+      "upstream-system-and-data-contracts",
+      "docs/systems/bi/bi-studio-ui-ux-design.md",
+      "qualification/iter6/issue-170/acceptance-manifest.json",
+      "versioned-semantic-design-assets"
+    ],
+    "trackingCompanions": [
+      "docs/systems/bi/bi-system.zh-CN.md",
+      "docs/systems/bi/bi-ui-design.zh-CN.md",
+      "docs/systems/bi/bi-studio-ui-ux-design.zh-CN.md"
+    ],
+    "semanticAssets": [
+      "docs/systems/bi/assets/studio-page-family-impression.html",
+      "docs/systems/bi/assets/studio-dashboard-layout-candidate.html",
+      "docs/systems/bi/assets/studio-trace-waterfall-candidate.html",
+      "docs/systems/bi/assets/studio-trace-tree-candidate.html"
+    ],
+    "excludedImplementationInputs": [
+      "qualification/iter6/issue-170/studio-ui-ux/trace-impressions.html",
+      "qualification/iter6/issue-170/studio-ui-ux/trace-motion-candidate.html"
+    ]
   },
   "candidate": {
     "baseline": {
@@ -18,18 +41,22 @@
       "providerCommit",
       "packageCoordinate",
       "packageVersion",
+      "packageSha256",
       "packageIntegrity",
       "consumerCommit",
       "consumerLockSha256",
+      "consumerBundleSha256",
       "dshVersion",
       "dshPrimitivesIntegrity",
       "benchmarkManifestSha256",
       "qualificationResultSha256"
-    ]
+    ],
+    "wave2ArtifactSource": "local-pack-only"
   },
   "goalWaveGates": [
-    { "goal": 172, "wave": 1, "gate": "shared-package-and-panel-benchmark" },
-    { "goal": 173, "wave": 2, "gate": "formal-dependency-and-dsh-product" },
+    { "goal": 172, "wave": 1, "gate": "initial-shared-package-baseline" },
+    { "goal": 172, "wave": 2, "gate": "corrected-core-asset-and-encapsulation" },
+    { "goal": 173, "wave": 2, "gate": "host-assembly-and-product" },
     { "goal": 175, "wave": 3, "gate": "native-delivery-layout" },
     {
       "goal": 174,
@@ -44,8 +71,13 @@
     "172-benchmark-green",
     "175-layout-red",
     "175-layout-green",
-    "173-product-red",
-    "173-product-green",
+    "wave2-manifest-red",
+    "wave2-core-asset-red",
+    "wave2-core-asset-green",
+    "wave2-host-assembly-red",
+    "wave2-host-assembly-green",
+    "wave2-encapsulation-green",
+    "wave2-product-green",
     "174-negative-red",
     "174-positive-green",
     "170-composed-green"
@@ -56,9 +88,16 @@
       "single-unavailable",
       "compare-available",
       "partial-compare",
+      "compact-percentage",
+      "bounded-table",
       "receipt-drilldown",
       "fact-drilldown",
-      "recorded-trace",
+      "studio-selection-page",
+      "recorded-trace-waterfall",
+      "recorded-trace-tree",
+      "recorded-trace-statistics",
+      "recorded-trace-reduced-motion",
+      "recorded-trace-invalid",
       "gateway-outage"
     ],
     "delivery": [
@@ -71,6 +110,94 @@
       "long-identities",
       "missing-optional-fields",
       "long-localized-copy"
+    ]
+  },
+  "wave2Acceptance": {
+    "coreAssets": {
+      "platformNeutralVisualComponents": [
+        "BiSurface",
+        "BiSection",
+        "BiCard"
+      ],
+      "cohesiveBusinessComponents": [
+        "MetricPanel",
+        "CompareResultFrame",
+        "ReceiptView",
+        "EvidenceConsoleFoundation",
+        "TraceWaterfall",
+        "TraceTree",
+        "TraceStatistics",
+        "SpanPassport"
+      ],
+      "supportHooksAndTools": [
+        "selectDefaultVisualizer",
+        "compileTraceView"
+      ]
+    },
+    "coreForbiddenOwnership": [
+      "network-or-fetch",
+      "host-gateway-auth-or-route",
+      "header-footer-content",
+      "concrete-platform-layout-or-layout-json",
+      "page-application-state",
+      "global-theme-or-global-css-reset"
+    ],
+    "hostOwnership": [
+      "header-main-footer-composition",
+      "title-context-controls-and-button-layout",
+      "adjustable-layout-and-layout-json",
+      "integrated-and-page-state",
+      "theme-creation-from-system-light-dark",
+      "gateway-route-recovery-and-persistence"
+    ],
+    "layout": {
+      "desktopColumns": 12,
+      "tabletColumns": 6,
+      "narrowColumns": 1,
+      "sizes": {
+        "SMALL": { "desktop": 3, "tablet": 3, "narrow": 1 },
+        "MEDIUM": { "desktop": 6, "tablet": 6, "narrow": 1 },
+        "WIDE": { "desktop": 12, "tablet": 6, "narrow": 1 }
+      },
+      "adjustmentActions": [
+        "preset",
+        "add",
+        "remove",
+        "resize-bounded",
+        "reorder",
+        "reset",
+        "save",
+        "cancel"
+      ]
+    },
+    "viewports": [
+      { "id": "narrow", "width": 360, "height": 720 },
+      { "id": "tablet", "width": 900, "height": 900 },
+      { "id": "desktop", "width": 1440, "height": 1000 }
+    ],
+    "themes": ["light", "dark"],
+    "traceViews": ["waterfall", "tree", "statistics"],
+    "motion": {
+      "source": "recorded-time-only",
+      "finite": true,
+      "reducedMotionStaticEquivalent": true
+    },
+    "negativeMutations": [
+      "core-deep-import",
+      "undocumented-dom-or-class-dependency",
+      "selector-css-penetration",
+      "core-source-or-style-copy",
+      "duplicated-contract-projection",
+      "duplicated-renderer-geometry-or-component-state",
+      "json-first-default",
+      "remote-registry-artifact-in-local-e2e",
+      "provider-consumer-digest-mismatch"
+    ],
+    "gates": [
+      "authority",
+      "core-asset",
+      "encapsulation",
+      "product"
     ]
   },
   "deliveryAcceptance": {
