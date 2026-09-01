@@ -36,7 +36,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
             preview_parent.mkdir()
 
             executable(fake_bin / "npm", """
-                printf 'npm %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
+                printf 'npm cwd=%s %s\n' "$PWD" "$*" >> "$WSR_ACCEPT_TEST_LOG"
                 destination=
                 previous=
                 for argument in "$@"; do
@@ -44,6 +44,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
                   previous=$argument
                 done
                 case " $* " in
+                  *" --workspace wsr-ui-core "*) : > "$destination/wsr-ui-core-0.1.0-rc.0.tgz" ;;
                   *" --workspace dsh-wsr-execution "*) : > "$destination/dsh-wsr-execution-0.2.1.tgz" ;;
                   *" --workspace dsh-wsr-studio "*) : > "$destination/dsh-wsr-studio-0.1.1.tgz" ;;
                 esac
@@ -80,6 +81,10 @@ EOF
             """)
             executable(fake_bin / "node", """
                 printf 'node %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
+                if test "${1:-}" = -p; then
+                  printf '0.1.0-rc.0\n'
+                  exit 0
+                fi
                 case " $* " in
                   *" start "*)
                     if test "${WSR_ACCEPT_TEST_FAIL_START:-0}" = 1; then exit 3; fi ;;
@@ -118,6 +123,7 @@ EOF
                       printf '%s\n' ' 4ca07c0 system-contracts'
                     fi ;;
                   *" submodule status -- wsr-dsh "*) printf '%s\n' '+408c837 wsr-dsh' ;;
+                  *" submodule status -- wsr-ui "*) printf '%s\n' '+4122e29 wsr-ui' ;;
                   *" rev-parse "*) printf 'abcdef12\n' ;;
                 esac
             """)
@@ -151,6 +157,12 @@ EOF
 
         self.assertEqual(result.returncode, 0, result.stderr)
         joined = "\n".join(commands)
+        self.assertRegex(joined, r"npm cwd=.*/wsr-ui run build")
+        self.assertIn("--workspace wsr-ui-core", joined)
+        self.assertIn("wsr-ui-core-0.1.0-rc.0.tgz", joined)
+        self.assertIn("bind-local-package-candidate.mjs", joined)
+        self.assertIn("--install", joined)
+        self.assertIn("--verify", joined)
         self.assertIn("--workspace dsh-wsr-execution", joined)
         self.assertIn("--workspace dsh-wsr-studio", joined)
         self.assertIn("pnpm cwd=", joined)
