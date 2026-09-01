@@ -18,7 +18,10 @@ export function qualifyCrossRepository(candidate) {
   if (candidate?.schemaVersion !== "wsr.issue-170.cross-repository-candidate@1") {
     fail("CROSS_REPOSITORY_SCHEMA", "candidate schema is not exact");
   }
-  const { provider, consumer, benchmark, runtime, evidence } = candidate;
+  const { superproject, provider, consumer, benchmark, runtime, evidence } = candidate;
+  if (!/^[0-9a-f]{40}$/u.test(superproject?.commit ?? "")) {
+    fail("CROSS_REPOSITORY_SUPERPROJECT_IDENTITY", "superproject candidate commit is not exact");
+  }
   if (![provider?.commit, provider?.packageCoordinate, provider?.packageVersion, provider?.packageIntegrity,
     provider?.manifestSha256, provider?.benchmarkResultSha256, consumer?.commit, consumer?.lockSha256]
     .every(nonEmpty)) fail("CROSS_REPOSITORY_PROVENANCE", "candidate identity is incomplete");
@@ -86,6 +89,7 @@ export function qualifyCrossRepository(candidate) {
     fail("CROSS_REPOSITORY_RAW_EVIDENCE", "raw browser traces are incomplete");
   }
   if (evidence?.provenance === null || typeof evidence?.provenance !== "object"
+    || evidence.provenance.superprojectCommit !== superproject.commit
     || evidence.provenance.providerCommit !== provider.commit
     || evidence.provenance.consumerCommit !== consumer.commit
     || evidence.provenance.packageIntegrity !== provider.packageIntegrity

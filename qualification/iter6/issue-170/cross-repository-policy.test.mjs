@@ -20,6 +20,7 @@ function fixture() {
   });
   return {
     schemaVersion: "wsr.issue-170.cross-repository-candidate@1",
+    superproject: { commit: "53bbdf599ddc582a4ce2b627457105f872dd8eef" },
     provider: {
       commit: "45d6ec33148fd81520db203ad047e8af220c3ad2",
       packageCoordinate: "wsr-ui-core",
@@ -84,6 +85,7 @@ function fixture() {
         "recorded-trace-graph@1.upper-bound.run-1.zip",
       ],
       provenance: {
+        superprojectCommit: "53bbdf599ddc582a4ce2b627457105f872dd8eef",
         providerCommit: "45d6ec33148fd81520db203ad047e8af220c3ad2",
         consumerCommit: "80c365aa780d0ba8f224b87fb8f34dddd0ae9a3a",
         packageIntegrity: "sha512-qualified",
@@ -98,6 +100,7 @@ test("accepts one exact provider, consumer, benchmark and runtime candidate", ()
 });
 
 const negativeCases = [
+  ["missing superproject identity", "CROSS_REPOSITORY_SUPERPROJECT_IDENTITY", (value) => { value.superproject.commit = ""; }],
   ["missing Panel", "CROSS_REPOSITORY_PANEL_MISSING", (value) => value.consumer.panels.pop()],
   ["JSON-first fallback", "CROSS_REPOSITORY_JSON_PRIMARY", (value) => { value.consumer.jsonPrimary = true; }],
   ["benchmark version drift", "CROSS_REPOSITORY_BENCHMARK_VERSION", (value) => { value.benchmark.schemaVersion = "panel-benchmark@2"; }],

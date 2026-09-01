@@ -23,7 +23,10 @@ const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const git = (cwd, ...args) => execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"));
 const requireValue = (condition, code) => { if (!condition) throw new Error(code); };
+const superprojectCommit = process.env.WSR_SUPERPROJECT_CANDIDATE;
 
+requireValue(/^[0-9a-f]{40}$/u.test(superprojectCommit ?? ""), "SUPERPROJECT_CANDIDATE_REQUIRED");
+requireValue(git(root, "rev-parse", "HEAD") === superprojectCommit, "SUPERPROJECT_CANDIDATE_HEAD_MISMATCH");
 requireValue(git(providerRoot, "rev-parse", "HEAD") === providerEvidenceCommit, "PROVIDER_EVIDENCE_HEAD_MISMATCH");
 requireValue(git(consumerRoot, "rev-parse", "HEAD") === consumerEvidenceCommit, "CONSUMER_EVIDENCE_HEAD_MISMATCH");
 execFileSync("git", ["merge-base", "--is-ancestor", providerCommit, providerEvidenceCommit], { cwd: providerRoot });
@@ -103,6 +106,7 @@ const runtimeScenarios = [
 ];
 const candidate = {
   schemaVersion: "wsr.issue-170.cross-repository-candidate@1",
+  superproject: { commit: superprojectCommit },
   provider: {
     commit: providerCommit,
     evidenceCommit: providerEvidenceCommit,
@@ -145,7 +149,7 @@ const candidate = {
   runtime: { dshVersion: "0.1.1-rc.2", browserErrors: 0, productScenarios: runtimeScenarios },
   evidence: {
     rawTraces: traceFiles,
-    provenance: { providerCommit, consumerCommit, packageIntegrity, benchmarkResultSha256 },
+    provenance: { superprojectCommit, providerCommit, consumerCommit, packageIntegrity, benchmarkResultSha256 },
   },
 };
 const qualification = qualifyCrossRepository(candidate);
@@ -163,7 +167,7 @@ const screenshots = [];
 for (const file of screenshotFiles) screenshots.push({ file, sha256: sha256(await readFile(resolve(screenshotRoot, file))) });
 await writeFile(resolve(output, "screenshots/index.json"), `${JSON.stringify({ schemaVersion: "wsr.issue-170.screenshot-index@1", screenshots }, null, 2)}\n`);
 await writeFile(resolve(output, "network-diff.json"), `${JSON.stringify({ schemaVersion: "wsr.issue-170.network-diff@1", baselineConsumer, consumerCommit, checkedPaths: networkPaths, changedPaths: [], additionalRequests: 0 }, null, 2)}\n`);
-await writeFile(resolve(output, "provenance.json"), `${JSON.stringify({ schemaVersion: "wsr.issue-170.cross-repository-provenance@1", provider: candidate.provider, consumer: candidate.consumer, releaseProvenanceSha256: sha256(await readFile(resolve(releaseCandidateRoot, "provenance.json"))), releaseSubjects: releaseProvenance.subjects }, null, 2)}\n`);
+await writeFile(resolve(output, "provenance.json"), `${JSON.stringify({ schemaVersion: "wsr.issue-170.cross-repository-provenance@1", superproject: candidate.superproject, provider: candidate.provider, consumer: candidate.consumer, releaseProvenanceSha256: sha256(await readFile(resolve(releaseCandidateRoot, "provenance.json"))), releaseSubjects: releaseProvenance.subjects }, null, 2)}\n`);
 await writeFile(resolve(output, "tests.json"), `${JSON.stringify({
   schemaVersion: "wsr.issue-170.cross-repository-tests@1",
   qualification,
@@ -175,7 +179,7 @@ await writeFile(resolve(output, "tests.json"), `${JSON.stringify({
     missingSubmodulePrecondition: failedBy("deployment/test-current-branch-acceptance.py").length,
     missingContractBuildContext: failedBy("./deployment/accept-current-branch.sh").length,
   },
-  policyTests: 15,
+  policyTests: 16,
   acceptanceTests: 5,
 }, null, 2)}\n`);
 process.stdout.write(`${JSON.stringify({ output, qualification, benchmarkResultSha256 }, null, 2)}\n`);
