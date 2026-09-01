@@ -100,7 +100,7 @@
     "firstFold": {
       "fixture": "succeeded",
       "viewport": "desktop",
-      "boundary": "The bounds of status, Workflow, final Action and elapsed time are within the Delivery tab scrollport before any scroll."
+      "boundary": "The bounds of status, Workflow, terminal outcome and elapsed time are within the Delivery tab scrollport before any scroll. For an active fixture, the authoritative current Action or Intervention is also within the first fold; no final Action is inferred when current is null."
     },
     "domAssertions": [
       "No document-level horizontal overflow.",
