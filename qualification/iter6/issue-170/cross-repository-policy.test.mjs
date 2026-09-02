@@ -25,16 +25,20 @@ function fixture() {
     provider: {
       commit: "45d6ec33148fd81520db203ad047e8af220c3ad2",
       packageCoordinate: "wsr-ui-core",
-      packageVersion: "0.1.0-rc.0",
+      packageVersion: "0.1.0-rc.1",
       packageIntegrity: "sha512-qualified",
+      packageSha256: sha256("d"),
+      publishedPackageSha256: sha256("d"),
+      packageSource: "registry-published+local-byte-match",
       manifestSha256: sha256("a"),
       benchmarkResultSha256: sha256("b"),
     },
     consumer: {
       commit: "80c365aa780d0ba8f224b87fb8f34dddd0ae9a3a",
       packageCoordinate: "wsr-ui-core",
-      packageVersion: "0.1.0-rc.0",
+      packageVersion: "0.1.0-rc.1",
       packageIntegrity: "sha512-qualified",
+      packageSha256: sha256("d"),
       lockSha256: sha256("c"),
       panels: ["metric-ratio-bar@1", "recorded-trace-waterfall@1", "recorded-trace-tree@1"],
       jsonPrimary: false,
@@ -46,7 +50,7 @@ function fixture() {
       resultSchemaVersion: "panel-benchmark-result@1",
       providerCommit: "45d6ec33148fd81520db203ad047e8af220c3ad2",
       packageCoordinate: "wsr-ui-core",
-      packageVersion: "0.1.0-rc.0",
+      packageVersion: "0.1.0-rc.1",
       manifestSha256: sha256("a"),
       qualifying: true,
       protocol: {
@@ -123,6 +127,8 @@ const negativeCases = [
   ["missing raw trace", "CROSS_REPOSITORY_RAW_EVIDENCE", (value) => { value.evidence.rawTraces = []; }],
   ["missing provenance", "CROSS_REPOSITORY_PROVENANCE", (value) => { value.evidence.provenance = null; }],
   ["package integrity drift", "CROSS_REPOSITORY_PACKAGE_IDENTITY", (value) => { value.consumer.packageIntegrity = "sha512-other"; }],
+  ["unpublished package source", "CROSS_REPOSITORY_PACKAGE_PUBLICATION", (value) => { value.provider.packageSource = "local-artifact"; }],
+  ["published byte drift", "CROSS_REPOSITORY_PACKAGE_PUBLICATION", (value) => { value.provider.publishedPackageSha256 = sha256("e"); }],
   ["runtime product gap", "CROSS_REPOSITORY_RUNTIME_SCENARIO", (value) => value.runtime.productScenarios.pop()],
 ];
 

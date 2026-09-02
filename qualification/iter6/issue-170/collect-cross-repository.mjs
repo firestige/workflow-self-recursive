@@ -10,10 +10,11 @@ const root = resolve(new URL("../../..", import.meta.url).pathname);
 const providerRoot = resolve(process.env.WSR_UI_ROOT ?? resolve(root, "wsr-ui"));
 const consumerRoot = resolve(process.env.WSR_DSH_ROOT ?? resolve(root, "wsr-dsh"));
 const resultRoot = resolve(process.env.WSR_BENCHMARK_RESULT
-  ?? resolve(providerRoot, "qualification/panel-benchmark/v1/results/full-2026-09-02T10-44-25-834Z"));
+  ?? resolve(providerRoot, "qualification/panel-benchmark/v1/results/full-2026-09-02T12-09-22-174Z"));
 const failedResultRoot = resolve(process.env.WSR_BENCHMARK_FAILED_RESULT
   ?? resolve(providerRoot, "qualification/panel-benchmark/v1/results/full-2026-09-02T10-34-59-263Z"));
 const artifact = resolve(process.env.WSR_LOCAL_CORE_ARTIFACT ?? "");
+const publishedArtifact = resolve(process.env.WSR_PUBLISHED_CORE_ARTIFACT ?? "");
 const realHarnessPath = resolve(process.env.WSR_REAL_HARNESS_RESULT ?? "");
 const screenshotRoot = resolve(process.env.WSR_REAL_HARNESS_SCREENSHOTS ?? "");
 const releaseCandidateRoot = resolve(process.env.WSR_DSH_RELEASE_CANDIDATE ?? "");
@@ -27,6 +28,7 @@ const requireValue = (condition, code) => { if (!condition) throw new Error(code
 
 for (const [name, value] of Object.entries({
   WSR_LOCAL_CORE_ARTIFACT: process.env.WSR_LOCAL_CORE_ARTIFACT,
+  WSR_PUBLISHED_CORE_ARTIFACT: process.env.WSR_PUBLISHED_CORE_ARTIFACT,
   WSR_REAL_HARNESS_RESULT: process.env.WSR_REAL_HARNESS_RESULT,
   WSR_REAL_HARNESS_SCREENSHOTS: process.env.WSR_REAL_HARNESS_SCREENSHOTS,
   WSR_DSH_RELEASE_CANDIDATE: process.env.WSR_DSH_RELEASE_CANDIDATE,
@@ -42,10 +44,17 @@ requireValue(git(consumerRoot, "status", "--porcelain", "--untracked-files=no") 
 const providerCommit = git(providerRoot, "rev-parse", "HEAD");
 const consumerCommit = git(consumerRoot, "rev-parse", "HEAD");
 const artifactBytes = await readFile(artifact);
+const publishedArtifactBytes = await readFile(publishedArtifact);
 const packageSha256 = sha256(artifactBytes);
+const publishedPackageSha256 = sha256(publishedArtifactBytes);
 const packageIntegrity = sha512Integrity(artifactBytes);
 const packageManifest = JSON.parse(execFileSync("tar", ["-xOf", artifact, "package/package.json"], { encoding: "utf8" }));
-requireValue(packageManifest.name === "wsr-ui-core" && packageManifest.version === "0.1.0-rc.0", "LOCAL_ARTIFACT_IDENTITY");
+const publishedPackageManifest = JSON.parse(execFileSync("tar", ["-xOf", publishedArtifact, "package/package.json"], { encoding: "utf8" }));
+const providerManifest = await readJson(resolve(providerRoot, "packages/bi/package.json"));
+requireValue(packageManifest.name === "wsr-ui-core" && packageManifest.version === providerManifest.version, "LOCAL_ARTIFACT_IDENTITY");
+requireValue(publishedPackageManifest.name === packageManifest.name
+  && publishedPackageManifest.version === packageManifest.version
+  && publishedPackageSha256 === packageSha256, "PUBLISHED_ARTIFACT_BYTE_MISMATCH");
 
 const archiveFiles = execFileSync("tar", ["-tzf", artifact], { encoding: "utf8" })
   .trim().split("\n").filter((entry) => entry.startsWith("package/") && !entry.endsWith("/"));
@@ -77,9 +86,15 @@ const traces = [];
 for (const file of traceFiles) traces.push({ file, sha256: sha256(await readFile(resolve(resultRoot, file))) });
 
 const lockBytes = await readFile(resolve(consumerRoot, "package-lock.json"));
+const lock = JSON.parse(lockBytes);
 const studioManifest = await readJson(resolve(consumerRoot, "packages/studio/package.json"));
 requireValue(studioManifest.dependencies?.["wsr-ui-core"] === packageManifest.version
   && !/file:|workspace:/u.test(JSON.stringify(studioManifest.dependencies)), "CONSUMER_DEPENDENCY_INVALID");
+const lockedCore = lock.packages?.["node_modules/wsr-ui-core"];
+requireValue(lockedCore?.version === packageManifest.version
+  && lockedCore?.integrity === packageIntegrity
+  && lockedCore?.resolved === `https://registry.npmjs.org/wsr-ui-core/-/wsr-ui-core-${packageManifest.version}.tgz`,
+"CONSUMER_PUBLISHED_RESOLUTION_INVALID");
 const studioSource = await readFile(resolve(consumerRoot, "packages/studio/src/client/studio.js"), "utf8");
 for (const needle of ["Bi.DashboardMetricPanel", "Bi.CompareResultFrame", "Bi.ReceiptView", "Bi.EvidenceConsoleFoundation", "Bi.TraceWaterfall", "Bi.TraceTree", "Bi.TraceStatistics", "Bi.compileTraceView"]) {
   requireValue(studioSource.includes(needle), `CONSUMER_PRODUCT_SURFACE_MISSING:${needle}`);
@@ -115,7 +130,9 @@ const candidate = {
   superproject: { commit: superprojectCommit },
   provider: {
     commit: providerCommit, packageCoordinate: packageManifest.name, packageVersion: packageManifest.version,
-    packageIntegrity, packageSha256, packageSource: "local-artifact", manifestSha256, benchmarkResultSha256,
+    packageIntegrity, packageSha256, publishedPackageSha256,
+    packageTarball: `https://registry.npmjs.org/wsr-ui-core/-/wsr-ui-core-${packageManifest.version}.tgz`,
+    packageSource: "registry-published+local-byte-match", manifestSha256, benchmarkResultSha256,
   },
   consumer: {
     commit: consumerCommit, packageCoordinate: packageManifest.name, packageVersion: packageManifest.version,

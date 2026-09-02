@@ -38,6 +38,11 @@ export function qualifyCrossRepository(candidate) {
     || provider.packageIntegrity !== consumer.packageIntegrity) {
     fail("CROSS_REPOSITORY_PACKAGE_IDENTITY", "provider and consumer package identities differ");
   }
+  if (provider.packageSource !== "registry-published+local-byte-match"
+    || !nonEmpty(provider.packageSha256)
+    || provider.publishedPackageSha256 !== provider.packageSha256) {
+    fail("CROSS_REPOSITORY_PACKAGE_PUBLICATION", "published and locally rebuilt package bytes differ");
+  }
   for (const panel of REQUIRED_PANELS) {
     if (!consumer.panels?.includes(panel)) fail("CROSS_REPOSITORY_PANEL_MISSING", panel);
   }
