@@ -146,6 +146,9 @@ printf '\n==> 2/4 构建并部署本地产物\n'
 )
 provider_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-ui/packages/bi/package.json")
 provider_archive="$packages/wsr-ui-core-$provider_version.tgz"
+execution_plugin_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-dsh/packages/execution/package.json")
+studio_plugin_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-dsh/packages/studio/package.json")
+suite_plugin_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-dsh/packages/suite/package.json")
 (
   cd "$root/wsr-ui"
   npm ci --ignore-scripts --no-audit --no-fund
@@ -175,9 +178,9 @@ node "$root/deployment/prepare-local-dsh-acceptance.mjs" \
   "$root/product-operations/manifests/product-0.3.0.json" \
   "$acceptance_manifest" \
   "$packages/wsr-execution-0.2.1.tgz" \
-  "$packages/dsh-wsr-execution-0.2.1.tgz" \
-  "$packages/dsh-wsr-studio-0.1.1.tgz" \
-  "$packages/dsh-wsr-0.2.1.tgz" \
+  "$packages/dsh-wsr-execution-$execution_plugin_version.tgz" \
+  "$packages/dsh-wsr-studio-$studio_plugin_version.tgz" \
+  "$packages/dsh-wsr-$suite_plugin_version.tgz" \
   "$provider_archive"
 
 python3 "$root/deployment/published/build-bundle.py" \
