@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "wsr.issue-170.cross-repository-provenance@2",
+  "superproject": {
+    "commit": "b87a8aeaad3288f9fe853c18f47a4118c5efd9b1"
+  },
+  "provider": {
+    "commit": "f65d7267048bf178cf2fc08d16666a33adc5cffb",
+    "packageCoordinate": "wsr-ui-core",
+    "packageVersion": "0.1.0-rc.0",
+    "packageIntegrity": "sha512-3MUE0+jelXCUHN9Uw7PvHkL28Ak/P4vnvjSNdPNGj/gaGHPWR8LadobImijqch4E1QdoCdhwRkel7aLpl2We8A==",
+    "packageSha256": "e8588e43dea59294f04f7066abd68b94338d8cd043b91cc1d2341bcf1fcfaf28",
+    "packageSource": "local-artifact",
+    "manifestSha256": "b4825935f0824a5113a1a9745ad4249fecbf999a829313f8e687d08330954f6b",
+    "benchmarkResultSha256": "afb897079279b3c0abe7439cdaf8ef36e346e4ad5a934906b716c09212111997"
+  },
+  "consumer": {
+    "commit": "1489123d6b6a04bb18a9d21d4f3171a319fdb6a7",
+    "packageCoordinate": "wsr-ui-core",
+    "packageVersion": "0.1.0-rc.0",
+    "packageIntegrity": "sha512-3MUE0+jelXCUHN9Uw7PvHkL28Ak/P4vnvjSNdPNGj/gaGHPWR8LadobImijqch4E1QdoCdhwRkel7aLpl2We8A==",
+    "packageSha256": "e8588e43dea59294f04f7066abd68b94338d8cd043b91cc1d2341bcf1fcfaf28",
+    "installedArchiveFiles": 63,
+    "lockSha256": "66f899db76e7c32f4d5708237c9c1937549601dac290293f4e88c37c3435879e",
+    "bundleSha256": "fcc1e6fe8f83bb98de4c15c97ac95b569934803da64447a02c87d4d4ae65a519",
+    "panels": [
+      "metric-ratio-bar@1",
+      "recorded-trace-waterfall@1",
+      "recorded-trace-tree@1"
+    ],
+    "jsonPrimary": false,
+    "runtimeRendererSelector": false,
+    "sourcePathImports": false
+  },
+  "benchmark": {
+    "resultSha256": "afb897079279b3c0abe7439cdaf8ef36e346e4ad5a934906b716c09212111997",
+    "traceCount": 21
+  },
+  "realHarness": {
+    "sha256": "fb3f1e4566e6901871a3d1beb6095f9f9419affc2b39b52252d934a846454134",
+    "screenshotCount": 7
+  },
+  "releaseProvenanceSha256": "44c732bdbbfc009ad383fb599520c2c59efc28385cbe712f134309663f2171b6",
+  "releaseSubjects": [
+    {
+      "name": "dsh-wsr-0.2.1.tgz",
+      "sha256": "f5bdeee4bc47c2946b1ebd4a6ad41f600144121ca2fceadc462dd2a369539a7b"
+    },
+    {
+      "name": "dsh-wsr-execution-0.2.1.tgz",
+      "sha256": "9ad854e78092b3a7b01023c61c55e52e0c860a1d5c7d9b211ef68e32328705c6"
+    },
+    {
+      "name": "dsh-wsr-studio-0.1.1.tgz",
+      "sha256": "84c11075734efcda9ec52a79c342e7f06d189fd217cb84279b48ed8e516ba693"
+    }
+  ]
+}

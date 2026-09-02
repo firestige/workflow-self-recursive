@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "wsr.issue-170.network-diff@1",
+  "baselineConsumer": "69bbdf567aa2ce3bd77037f69ef8db3a822666d5",
+  "consumerCommit": "1489123d6b6a04bb18a9d21d4f3171a319fdb6a7",
+  "checkedPaths": [
+    "packages/execution/src/client/delivery/control-plane-port.js",
+    "packages/execution/src/host/delivery-control-plane.js"
+  ],
+  "changedPaths": [],
+  "additionalRequests": 0
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "wsr.issue-170.screenshot-index@1",
+  "screenshots": [
+    {
+      "file": "studio-dashboard-dark-desktop.png",
+      "sha256": "1dc26585c3df3c1ea9f0db18e5267951bed632ddc0e3dad0a461d5f60054cd17"
+    },
+    {
+      "file": "studio-selection-dark-desktop.png",
+      "sha256": "b015aca910831e5be8cb3541acc2002505e42cfb393307d1952685c7bc8f05ba"
+    },
+    {
+      "file": "studio-trace-statistics-dark-desktop.png",
+      "sha256": "a699837b41cceb8b90d685ee540e442a53f191e4f844d492fdb9527cde3e266d"
+    },
+    {
+      "file": "studio-trace-tree-dark-desktop.png",
+      "sha256": "91e6a92dfc2a8c73e1457c53c17c10c18802af22d2a15a6ffc5fed84cb7b75c2"
+    },
+    {
+      "file": "studio-trace-tree-dark-narrow.png",
+      "sha256": "22187eb774b2902bdc94cce87f05d2e8ab91225c183ab57083ad42d316f02f88"
+    },
+    {
+      "file": "studio-trace-waterfall-dark-desktop.png",
+      "sha256": "6893d4ae58a59b02db75c62e229e327d97bb7ed6197ac7ca571a8e0dbf020490"
+    },
+    {
+      "file": "studio-trace-waterfall-light-narrow.png",
+      "sha256": "28cc96fa8cc4e1170dc5da74902b01be2c101930e08ac30d2dbe6f9764b6bb8a"
+    }
+  ]
+}
