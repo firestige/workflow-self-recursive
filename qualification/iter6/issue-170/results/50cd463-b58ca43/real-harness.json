@@ -1,0 +1,362 @@
+{
+  "dsh": "0.1.1-rc.2",
+  "owner": {
+    "version": "0.2.1",
+    "resolved": "https://github.com/firestige/wsr-execution/releases/download/0.2.1/wsr-execution-0.2.1.tgz",
+    "integrity": "sha512-jCsoY1ryODAh8W3Gu6VVKRnAYv8eUd2lkd8fHDHTvHTsMhtqYeS4JYfl3d0HYO8kH6HrlkDfZuptT3fC7qtC/w=="
+  },
+  "host": {
+    "origin": "http://127.0.0.1:64100",
+    "csp": "absent-in-dsh-0.1.1-rc.2",
+    "activation": [
+      "wsr-execution",
+      "wsr-studio"
+    ]
+  },
+  "browser": {
+    "deliveryInventory": "empty-ready",
+    "terminalView": null,
+    "commandDiagnostic": {
+      "presentations": 1,
+      "technicalDetails": true,
+      "userBeforePresentation": true,
+      "presentationText": "Add a Task instruction after the Workflow selector or attach a file.Technical details{schemaVersion:\"wsr.presentation@1.0.0\",correlation:\"presentation-9d03571d-b048-48fa-9bbf-de5ca0da72df\",kind:\"error\",data:{code: \"TASK_PROMPT_REQUIRED\", message: \"Add a Task instruction after the Workflow selector or attach a file.\"}}",
+      "errorCode": true
+    },
+    "keyboardDisclosure": "true->false",
+    "tabOrder": [
+      "Delivery",
+      "WSR Studio"
+    ],
+    "studio": {
+      "role": "region",
+      "modal": null,
+      "color": "rgb(249, 250, 251)",
+      "background": "rgb(21, 21, 23)",
+      "landmarks": true,
+      "labelled": true,
+      "regions": true,
+      "hostTheme": "dark",
+      "repositoryInput": false
+    },
+    "evaluate": "single-adjustable-dashboard-compare-metric-receipt-fact-trace",
+    "dashboard": {
+      "schemaVersion": "wsr.studio-render@1",
+      "page": "dashboard",
+      "layoutSchema": "wsr-dsh.studio-layout@1",
+      "coreTheme": "dark",
+      "panels": [
+        {
+          "id": "operational-latency-ms",
+          "columns": "3",
+          "size": "SMALL",
+          "visualizer": "numeric-card@1"
+        },
+        {
+          "id": "delivery-cycle-time-ms",
+          "columns": "3",
+          "size": "SMALL",
+          "visualizer": "numeric-card@1"
+        },
+        {
+          "id": "operational-usage-availability",
+          "columns": "3",
+          "size": "SMALL",
+          "visualizer": "numeric-card@1"
+        },
+        {
+          "id": "task-cohort-comparison-eligibility",
+          "columns": "3",
+          "size": "SMALL",
+          "visualizer": "badge@1"
+        },
+        {
+          "id": "role-template-rework-rate",
+          "columns": "6",
+          "size": "MEDIUM",
+          "visualizer": "ratio-bar@1"
+        },
+        {
+          "id": "role-model-task-outcome-rate",
+          "columns": "6",
+          "size": "MEDIUM",
+          "visualizer": "ratio-bar@1"
+        },
+        {
+          "id": "role-template-trajectory-partial-cost",
+          "columns": "3",
+          "size": "SMALL",
+          "visualizer": "numeric-card@1"
+        },
+        {
+          "id": "trajectory-partial-cost",
+          "columns": "3",
+          "size": "SMALL",
+          "visualizer": "numeric-card@1"
+        },
+        {
+          "id": "operational-attributable-cost",
+          "columns": "3",
+          "size": "SMALL",
+          "visualizer": "numeric-card@1"
+        },
+        {
+          "id": "delivery-stage-reach",
+          "columns": "12",
+          "size": "WIDE",
+          "visualizer": "table@1"
+        },
+        {
+          "id": "delivery-terminal-outcome-rate",
+          "columns": "12",
+          "size": "WIDE",
+          "visualizer": "table@1"
+        },
+        {
+          "id": "operational-token-usage",
+          "columns": "12",
+          "size": "WIDE",
+          "visualizer": "table@1"
+        }
+      ],
+      "rawDetails": 0,
+      "surfaceRoles": {
+        "section": "oklch(0.225 0.025 255)",
+        "panel": "oklch(0.225 0.025 255)"
+      },
+      "actions": {
+        "View receipt": {
+          "appearance": "outline",
+          "tone": "neutral",
+          "size": "compact"
+        },
+        "Default overview": {
+          "appearance": "outline",
+          "tone": "neutral",
+          "size": "compact"
+        },
+        "Change evaluation": {
+          "appearance": "outline",
+          "tone": "neutral",
+          "size": "compact"
+        },
+        "Edit dashboard": {
+          "appearance": "solid",
+          "tone": "primary",
+          "size": "compact"
+        }
+      }
+    },
+    "savedDashboard": {
+      "panelColumns": "6",
+      "persisted": {
+        "operational-latency-ms": "wide"
+      }
+    },
+    "themes": {
+      "dark": "dark",
+      "light": "light"
+    },
+    "storedLocation": "/evaluate/trace/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa?v=1&mode=compare&left_task=task-a&right_task=task-a&right_task=task-b&span=bbbbbbbbbbbbbbbb",
+    "urlLocation": null,
+    "refreshRecovery": true,
+    "screenshots": {
+      "selectionDarkDesktop": "b015aca910831e5be8cb3541acc2002505e42cfb393307d1952685c7bc8f05ba",
+      "dashboardDarkDesktop": "9bb5a067935493adf1e9f79e4c076022c107bc2c8fdea97d58446d0f5f24678b",
+      "waterfallDarkDesktop": "dfaf476e852f718b62a0b487ded45408da58089ae37aa62f47c762d7521f365e",
+      "treeDarkDesktop": "d51784b3719d91e7afcc3d2cd0f3b7eaa7ed9369643f427359578e6b2d518d90",
+      "statisticsDarkDesktop": "a699837b41cceb8b90d685ee540e442a53f191e4f844d492fdb9527cde3e266d",
+      "treeDarkNarrow": "22187eb774b2902bdc94cce87f05d2e8ab91225c183ab57083ad42d316f02f88",
+      "waterfallLightNarrow": "35ce5c421223c2614e94c575b1b5de401c7c935621a3993fbbfdbe08cd4d59a4"
+    },
+    "escapeBehavior": "conversation-view-retained",
+    "degraded": "Task list unavailable; the current selection remains usable.",
+    "narrow": {
+      "pass": true,
+      "scrollWidth": 296,
+      "clientWidth": 296,
+      "innerWidth": 360,
+      "media64": true,
+      "passportDisplay": "none",
+      "coreStyleLength": 61578,
+      "coreStyleSheetRules": 418,
+      "offenders": [
+        {
+          "tag": "SECTION",
+          "className": "trace-view trace-tree-graph",
+          "scrollWidth": 461,
+          "clientWidth": 274
+        },
+        {
+          "tag": "HEADER",
+          "className": "trace-summary trace-summary-dense trace-tree-context trace-view-header",
+          "scrollWidth": 460,
+          "clientWidth": 272
+        },
+        {
+          "tag": "I",
+          "className": "",
+          "scrollWidth": 18,
+          "clientWidth": 16
+        },
+        {
+          "tag": "I",
+          "className": "",
+          "scrollWidth": 18,
+          "clientWidth": 16
+        },
+        {
+          "tag": "UL",
+          "className": "trace-link-list trace-sr-only",
+          "scrollWidth": 470,
+          "clientWidth": 1
+        },
+        {
+          "tag": "LI",
+          "className": "text-code",
+          "scrollWidth": 470,
+          "clientWidth": 1
+        }
+      ]
+    },
+    "trace": {
+      "waterfall": {
+        "schemaVersion": "wsr.studio-render@1",
+        "motion": "zoom-transition",
+        "spans": 7,
+        "minimap": true,
+        "passport": true,
+        "summaryLabels": [
+          "Duration",
+          "Start",
+          "Spans",
+          "Errors"
+        ],
+        "summaryTones": {
+          "Duration": "default",
+          "Start": "default",
+          "Spans": "default",
+          "Errors": "error"
+        },
+        "rulerTicks": [
+          "0 ns",
+          "250 ms",
+          "500 ms",
+          "750 ms",
+          "1 s"
+        ],
+        "oldToolbar": false,
+        "controls": {
+          "expand": true,
+          "collapse": true,
+          "search": true,
+          "rootToggle": true
+        },
+        "iconActions": {
+          "count": 3,
+          "grouped": true,
+          "segmented": null
+        },
+        "minimapValue": "0 ns to 1 s",
+        "navigationNote": "Exact span timing",
+        "actions": {
+          "Back to Dashboard": {
+            "appearance": "outline",
+            "tone": "neutral",
+            "size": "compact"
+          },
+          "Open Evidence": {
+            "appearance": "outline",
+            "tone": "neutral",
+            "size": "compact"
+          },
+          "Copy trace identity": {
+            "appearance": "solid",
+            "tone": "primary",
+            "size": "compact"
+          }
+        },
+        "rendererViews": [
+          {
+            "label": "Waterfall",
+            "appearance": "segment",
+            "selected": "true"
+          },
+          {
+            "label": "Tree",
+            "appearance": "segment",
+            "selected": "false"
+          },
+          {
+            "label": "Statistics",
+            "appearance": "segment",
+            "selected": "false"
+          }
+        ]
+      },
+      "tree": {
+        "schemaVersion": "wsr.trace-graph@1",
+        "spans": 7,
+        "parentEdgeCount": 6,
+        "linkCount": 1,
+        "graph": true,
+        "cameraMap": true,
+        "navigationNote": "Deterministic geometry · depth → recorded start/end → Span ID",
+        "passport": true
+      },
+      "statistics": {
+        "exactInventory": true,
+        "inferredAnalysis": false,
+        "navigationNote": "Exact inventory · recorded-time aggregates · no inferred causality",
+        "typography": [
+          "overline",
+          "h2",
+          "caption",
+          "caption",
+          "h2",
+          "caption",
+          "h2",
+          "caption",
+          "h2",
+          "caption",
+          "h2",
+          "caption",
+          "subtitle1",
+          "body1",
+          "body2",
+          "body1",
+          "body2",
+          "body1",
+          "body2",
+          "subtitle1",
+          "body1",
+          "body2",
+          "body1",
+          "body2",
+          "subtitle1",
+          "body1",
+          "body1",
+          "subtitle1",
+          "caption",
+          "caption",
+          "caption",
+          "caption",
+          "body1",
+          "body2",
+          "body1",
+          "body2",
+          "body1",
+          "body2",
+          "caption",
+          "body1",
+          "body2",
+          "body1",
+          "body2",
+          "body1",
+          "body2"
+        ]
+      }
+    },
+    "errors": 0
+  }
+}

@@ -1,47 +1,40 @@
 # Issue 170 Wave 5 closure preparation
 
-Status: **READY FOR HUMAN CHECKPOINT**
+Status: **PUBLICATION AND FINAL-PIN GATES PASS; ISSUE CLOSURE IN PROGRESS**
 
-No merge, stable publication, final gitlink commit, or issue state transition
-has been performed by this preparation step.
+The owner approved Wave 5, package publication, merge, and the release flow on
+2026-09-02. Core PR #2 and DSH PR #17 are merged. The exact qualified DSH
+candidate was promoted to stable packages and GitHub Release `0.2.3`.
 
 ## Proven gates
 
 - #172 / Wave 1: provider candidate `45d6ec33148fd81520db203ad047e8af220c3ad2`, evidence `4122e299f5a765b3af7e7d8a80550b292980bebe`
 - #173 / Wave 2: consumer candidate `69bbdf567aa2ce3bd77037f69ef8db3a822666d5`, evidence `17f867e`
 - #175 / Wave 3: combined consumer candidate `80c365aa780d0ba8f224b87fb8f34dddd0ae9a3a`, evidence `aa505b41d2f941bf302245077131c79e9f36c80d`
-- #174 / Wave 4: superproject candidate `b87a8aeaad3288f9fe853c18f47a4118c5efd9b1`, provider `f65d7267048bf178cf2fc08d16666a33adc5cffb`, consumer `1489123d6b6a04bb18a9d21d4f3171a319fdb6a7`, evidence commit `ffe77bd9`
-- Qualified local provider archive: `wsr-ui-core@0.1.0-rc.0`, SHA-256 `e8588e43dea59294f04f7066abd68b94338d8cd043b91cc1d2341bcf1fcfaf28`, integrity `sha512-3MUE0+jelXCUHN9Uw7PvHkL28Ak/P4vnvjSNdPNGj/gaGHPWR8LadobImijqch4E1QdoCdhwRkel7aLpl2We8A==`
-- Registry history only: `wsr-ui-core@0.1.0-rc.0` is already occupied by different bytes and must not be rebound or used as the Wave 4 candidate
+- #174 / Wave 4 final qualified source: provider `50cd463104a05a91d918eb21f3009a762b0753de`, consumer `b58ca4327b4e55b8b17d25c2cbc68ef1b6666a7a`
+- Final merged pins: provider `d55ce05f960c3d5d72b53932ccd5617f563e5bbf`, consumer `4a8fd50ef8b80bfc9459eb0fde4b7c0a6744ac20`; each has the same Git tree as its qualified source
+- Final-pin superproject candidate: `ed66fc6916adae0b328f4cdc05d4ad1f6ffc3097`
+- Published provider: `wsr-ui-core@0.1.0-rc.1`, SHA-256 `1f3988137711d37a0d839ef93ecff325188017738675c86cb57a807ee99407f5`
+- Final evidence: `qualification/iter6/issue-170/results/50cd463-b58ca43/`
 
-The Wave 4 local-artifact provenance, positive product, encapsulation negative,
-benchmark, and real-Web matrices are all GREEN. The qualification candidate
-contains exact gitlinks, while the final published-coordinate pins remain
-uncommitted as required by the final-pin checkpoint.
+The local-artifact provenance, positive product, encapsulation negative,
+benchmark, and real-Web matrices are all GREEN at the published coordinate and
+final merged pins. The final isolated product replay rebuilt and installed the
+Core archive locally rather than resolving the already-published package.
 
-## Release-coordinate audit
+## Released coordinates
 
-The existing DSH source versions cannot be promoted. The qualified tarballs no
-longer match the immutable npm bytes already published at
-`dsh-wsr-execution@0.2.1`, `dsh-wsr-studio@0.1.1`, and `dsh-wsr@0.2.1`;
-`publish-npm-set.mjs` therefore rejects the current candidate with
-`NPM_VERSION_DIGEST_COLLISION`.
-
-Recommended unused final coordinates:
-
-| Artifact | Proposed coordinate | Reason |
+| Artifact | Final coordinate | SHA-256 |
 | --- | --- | --- |
-| Shared BI provider | `wsr-ui-core@0.1.0-rc.1` | Next immutable prerelease; preserves the owner's prerelease decision and cannot collide with the occupied `rc.0` |
-| Execution adapter | `dsh-wsr-execution@0.2.2` | Patch release for the Delivery presentation correction |
-| Studio adapter | `dsh-wsr-studio@0.1.2` | Patch release for the missing MVP BI product surface |
-| Composition suite | `dsh-wsr@0.2.2` | Pins the corrected component floor |
-| DSH release set | `0.2.3` via `0.2.3-rc.1` | Next release-set revision after `0.2.2` |
+| Shared BI provider | `wsr-ui-core@0.1.0-rc.1` | `1f3988137711d37a0d839ef93ecff325188017738675c86cb57a807ee99407f5` |
+| Execution adapter | `dsh-wsr-execution@0.2.2` | `99e2e58b6fe262d7c8667145e77ddb7f74cefc40091110d38125fbebc6933b4b` |
+| Studio adapter | `dsh-wsr-studio@0.1.2` | `acf3fc5a5f4f82a402f96c6707bfbd1efa80ce298c45633624ad0ca41d0ba3e3` |
+| Composition suite | `dsh-wsr@0.2.2` | `0eeff303c77fd4b38e4f8600c5bf44d95defebe2faca9e7accc4c8b982794eb1` |
+| DSH release set | `0.2.3` via `0.2.3-rc.1` | exact promoted candidate assets |
 
-All proposed npm coordinates were unoccupied when audited on 2026-09-02.
-Provider publication changes the package version and tarball integrity. DSH
-package version/dependency changes also change runtime bytes.
-Consequently the execution plan requires the complete Wave 4 matrix to run
-again against the approved publication coordinates before any completion claim.
+Candidate workflow: https://github.com/firestige/wsr-dsh/actions/runs/33630327791
+
+Promotion workflow: https://github.com/firestige/wsr-dsh/actions/runs/33630820399
 
 ## Authorized execution sequence after checkpoint
 
