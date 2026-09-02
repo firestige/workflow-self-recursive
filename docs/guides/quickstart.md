@@ -3,7 +3,7 @@
 English | [中文](quickstart.zh-CN.md)
 
 This guide rebuilds the Iter6 reference assembly on one trusted personal computer. It installs the
-top-level operations bundle from the `product-0.3.0` GitHub Release and consumes only that bundle's
+top-level operations bundle from the `product-0.3.1` GitHub Release and consumes only that bundle's
 stable compatibility manifest. No WSR source checkout or owner build is part of the product path.
 
 ## 1. Prepare configuration
@@ -13,9 +13,9 @@ Prerequisites are DSH `0.1.1-rc.2`, Node `24.12.0`, npm `11.6.2`, Docker with Co
 asset and download its editable configuration example:
 
 ```sh
-npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.0/wsr-product-operations-0.3.0.tgz
+npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.1/wsr-product-operations-0.3.1.tgz
 curl --proto '=https' --tlsv1.2 --fail --location --remote-name \
-  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.0/wsr-product-0.3.0.config.example.json
+  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.1/wsr-product-0.3.1.config.example.json
 ```
 
 The example selects the GitHub repository that publishes Workflow Packages. Service ports are optional;
