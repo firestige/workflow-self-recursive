@@ -24,6 +24,8 @@ function fixture() {
     superproject: { commit: "53bbdf599ddc582a4ce2b627457105f872dd8eef" },
     provider: {
       commit: "45d6ec33148fd81520db203ad047e8af220c3ad2",
+      qualifiedCommit: "15d6ec33148fd81520db203ad047e8af220c3ad2",
+      treeEquivalent: true,
       packageCoordinate: "wsr-ui-core",
       packageVersion: "0.1.0-rc.1",
       packageIntegrity: "sha512-qualified",
@@ -35,6 +37,8 @@ function fixture() {
     },
     consumer: {
       commit: "80c365aa780d0ba8f224b87fb8f34dddd0ae9a3a",
+      qualifiedCommit: "10c365aa780d0ba8f224b87fb8f34dddd0ae9a3a",
+      treeEquivalent: true,
       packageCoordinate: "wsr-ui-core",
       packageVersion: "0.1.0-rc.1",
       packageIntegrity: "sha512-qualified",
@@ -48,7 +52,7 @@ function fixture() {
     benchmark: {
       schemaVersion: "panel-benchmark@1",
       resultSchemaVersion: "panel-benchmark-result@1",
-      providerCommit: "45d6ec33148fd81520db203ad047e8af220c3ad2",
+      providerCommit: "15d6ec33148fd81520db203ad047e8af220c3ad2",
       packageCoordinate: "wsr-ui-core",
       packageVersion: "0.1.0-rc.1",
       manifestSha256: sha256("a"),
@@ -98,7 +102,9 @@ function fixture() {
       provenance: {
         superprojectCommit: "53bbdf599ddc582a4ce2b627457105f872dd8eef",
         providerCommit: "45d6ec33148fd81520db203ad047e8af220c3ad2",
+        qualifiedProviderCommit: "15d6ec33148fd81520db203ad047e8af220c3ad2",
         consumerCommit: "80c365aa780d0ba8f224b87fb8f34dddd0ae9a3a",
+        qualifiedConsumerCommit: "10c365aa780d0ba8f224b87fb8f34dddd0ae9a3a",
         packageIntegrity: "sha512-qualified",
         benchmarkResultSha256: sha256("b"),
       },
@@ -129,6 +135,8 @@ const negativeCases = [
   ["package integrity drift", "CROSS_REPOSITORY_PACKAGE_IDENTITY", (value) => { value.consumer.packageIntegrity = "sha512-other"; }],
   ["unpublished package source", "CROSS_REPOSITORY_PACKAGE_PUBLICATION", (value) => { value.provider.packageSource = "local-artifact"; }],
   ["published byte drift", "CROSS_REPOSITORY_PACKAGE_PUBLICATION", (value) => { value.provider.publishedPackageSha256 = sha256("e"); }],
+  ["provider final-pin tree drift", "CROSS_REPOSITORY_FINAL_PIN", (value) => { value.provider.treeEquivalent = false; }],
+  ["consumer final-pin tree drift", "CROSS_REPOSITORY_FINAL_PIN", (value) => { value.consumer.treeEquivalent = false; }],
   ["runtime product gap", "CROSS_REPOSITORY_RUNTIME_SCENARIO", (value) => value.runtime.productScenarios.pop()],
 ];
 

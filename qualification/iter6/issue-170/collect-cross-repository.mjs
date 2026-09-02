@@ -35,7 +35,11 @@ for (const [name, value] of Object.entries({
 })) requireValue(typeof value === "string" && value.length > 0, `${name}_REQUIRED`);
 
 const superprojectCommit = process.env.WSR_SUPERPROJECT_CANDIDATE;
+const qualifiedProviderCommit = process.env.WSR_UI_QUALIFIED_COMMIT;
+const qualifiedConsumerCommit = process.env.WSR_DSH_QUALIFIED_COMMIT;
 requireValue(/^[0-9a-f]{40}$/u.test(superprojectCommit ?? ""), "SUPERPROJECT_CANDIDATE_REQUIRED");
+requireValue(/^[0-9a-f]{40}$/u.test(qualifiedProviderCommit ?? ""), "PROVIDER_QUALIFIED_COMMIT_REQUIRED");
+requireValue(/^[0-9a-f]{40}$/u.test(qualifiedConsumerCommit ?? ""), "CONSUMER_QUALIFIED_COMMIT_REQUIRED");
 requireValue(git(root, "rev-parse", "HEAD") === superprojectCommit, "SUPERPROJECT_CANDIDATE_HEAD_MISMATCH");
 requireValue(git(root, "status", "--porcelain", "--untracked-files=no") === "", "SUPERPROJECT_TRACKED_DIRTY");
 requireValue(git(providerRoot, "status", "--porcelain", "--untracked-files=no") === "", "PROVIDER_TRACKED_DIRTY");
@@ -43,6 +47,12 @@ requireValue(git(consumerRoot, "status", "--porcelain", "--untracked-files=no") 
 
 const providerCommit = git(providerRoot, "rev-parse", "HEAD");
 const consumerCommit = git(consumerRoot, "rev-parse", "HEAD");
+const providerTree = git(providerRoot, "rev-parse", `${providerCommit}^{tree}`);
+const qualifiedProviderTree = git(providerRoot, "rev-parse", `${qualifiedProviderCommit}^{tree}`);
+const consumerTree = git(consumerRoot, "rev-parse", `${consumerCommit}^{tree}`);
+const qualifiedConsumerTree = git(consumerRoot, "rev-parse", `${qualifiedConsumerCommit}^{tree}`);
+requireValue(providerTree === qualifiedProviderTree, "PROVIDER_FINAL_PIN_TREE_MISMATCH");
+requireValue(consumerTree === qualifiedConsumerTree, "CONSUMER_FINAL_PIN_TREE_MISMATCH");
 const artifactBytes = await readFile(artifact);
 const publishedArtifactBytes = await readFile(publishedArtifact);
 const packageSha256 = sha256(artifactBytes);
@@ -75,7 +85,7 @@ const failedResult = JSON.parse(failedResultBytes);
 const benchmarkResultSha256 = sha256(resultBytes);
 const manifestSha256 = sha256(manifestBytes);
 requireValue(result.manifestSha256 === manifestSha256, "BENCHMARK_MANIFEST_DIGEST_MISMATCH");
-requireValue(result.providerCommit === providerCommit && result.qualifying === true && result.protocolComplete === true, "BENCHMARK_CANDIDATE_MISMATCH");
+requireValue(result.providerCommit === qualifiedProviderCommit && result.qualifying === true && result.protocolComplete === true, "BENCHMARK_CANDIDATE_MISMATCH");
 requireValue(result.results.every((entry) => entry.runs.every((run) => run.evaluation?.passed === true)), "BENCHMARK_RESULT_FAILED");
 requireValue(failedResult.results.some((entry) => entry.runs.some((run) => run.evaluation?.passed === false)), "BENCHMARK_FAILURE_HISTORY_MISSING");
 
@@ -111,7 +121,7 @@ requireValue(networkDiff === "", "DELIVERY_NETWORK_CONTRACT_DRIFT");
 
 const releaseProvenanceBytes = await readFile(resolve(releaseCandidateRoot, "provenance.json"));
 const releaseProvenance = JSON.parse(releaseProvenanceBytes);
-requireValue(releaseProvenance.commit === consumerCommit && releaseProvenance.subjects?.length === 3, "CONSUMER_PROVENANCE_INVALID");
+requireValue(releaseProvenance.commit === qualifiedConsumerCommit && releaseProvenance.subjects?.length === 3, "CONSUMER_PROVENANCE_INVALID");
 const realHarness = await readJson(realHarnessPath);
 requireValue(realHarness.browser?.errors === 0
   && realHarness.browser?.dashboard?.panels?.length === 12
@@ -129,13 +139,15 @@ const candidate = {
   schemaVersion: "wsr.issue-170.cross-repository-candidate@1",
   superproject: { commit: superprojectCommit },
   provider: {
-    commit: providerCommit, packageCoordinate: packageManifest.name, packageVersion: packageManifest.version,
+    commit: providerCommit, qualifiedCommit: qualifiedProviderCommit, treeEquivalent: providerTree === qualifiedProviderTree,
+    packageCoordinate: packageManifest.name, packageVersion: packageManifest.version,
     packageIntegrity, packageSha256, publishedPackageSha256,
     packageTarball: `https://registry.npmjs.org/wsr-ui-core/-/wsr-ui-core-${packageManifest.version}.tgz`,
     packageSource: "registry-published+local-byte-match", manifestSha256, benchmarkResultSha256,
   },
   consumer: {
-    commit: consumerCommit, packageCoordinate: packageManifest.name, packageVersion: packageManifest.version,
+    commit: consumerCommit, qualifiedCommit: qualifiedConsumerCommit, treeEquivalent: consumerTree === qualifiedConsumerTree,
+    packageCoordinate: packageManifest.name, packageVersion: packageManifest.version,
     packageIntegrity, packageSha256, installedArchiveFiles: archiveFiles.length, lockSha256: sha256(lockBytes),
     bundleSha256: sha256(await readFile(resolve(consumerRoot, "packages/studio/lib/client.js"))),
     panels: manifest.chartPanels.map((panel) => panel.id), jsonPrimary: false,
@@ -150,7 +162,10 @@ const candidate = {
     rendererDecision: "manifest-static:svg+semantic-html+canvas", results: result.results,
   },
   runtime: { dshVersion: realHarness.dsh, browserErrors: realHarness.browser.errors, productScenarios: runtimeScenarios },
-  evidence: { rawTraces: traceFiles, provenance: { superprojectCommit, providerCommit, consumerCommit, packageIntegrity, benchmarkResultSha256 } },
+  evidence: { rawTraces: traceFiles, provenance: {
+    superprojectCommit, providerCommit, qualifiedProviderCommit, consumerCommit, qualifiedConsumerCommit,
+    packageIntegrity, benchmarkResultSha256,
+  } },
 };
 const qualification = qualifyCrossRepository(candidate);
 

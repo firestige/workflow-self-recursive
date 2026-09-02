@@ -30,8 +30,8 @@ export function qualifyCrossRepository(candidate) {
   if (!/^[0-9a-f]{40}$/u.test(superproject?.commit ?? "")) {
     fail("CROSS_REPOSITORY_SUPERPROJECT_IDENTITY", "superproject candidate commit is not exact");
   }
-  if (![provider?.commit, provider?.packageCoordinate, provider?.packageVersion, provider?.packageIntegrity,
-    provider?.manifestSha256, provider?.benchmarkResultSha256, consumer?.commit, consumer?.lockSha256]
+  if (![provider?.commit, provider?.qualifiedCommit, provider?.packageCoordinate, provider?.packageVersion, provider?.packageIntegrity,
+    provider?.manifestSha256, provider?.benchmarkResultSha256, consumer?.commit, consumer?.qualifiedCommit, consumer?.lockSha256]
     .every(nonEmpty)) fail("CROSS_REPOSITORY_PROVENANCE", "candidate identity is incomplete");
   if (provider.packageCoordinate !== consumer.packageCoordinate
     || provider.packageVersion !== consumer.packageVersion
@@ -42,6 +42,9 @@ export function qualifyCrossRepository(candidate) {
     || !nonEmpty(provider.packageSha256)
     || provider.publishedPackageSha256 !== provider.packageSha256) {
     fail("CROSS_REPOSITORY_PACKAGE_PUBLICATION", "published and locally rebuilt package bytes differ");
+  }
+  if (provider.treeEquivalent !== true || consumer.treeEquivalent !== true) {
+    fail("CROSS_REPOSITORY_FINAL_PIN", "final main pins do not preserve the qualified candidate trees");
   }
   for (const panel of REQUIRED_PANELS) {
     if (!consumer.panels?.includes(panel)) fail("CROSS_REPOSITORY_PANEL_MISSING", panel);
@@ -54,7 +57,7 @@ export function qualifyCrossRepository(candidate) {
     || benchmark?.resultSchemaVersion !== "panel-benchmark-result@1") {
     fail("CROSS_REPOSITORY_BENCHMARK_VERSION", "benchmark contract or result revision drifted");
   }
-  if (benchmark.providerCommit !== provider.commit
+  if (benchmark.providerCommit !== provider.qualifiedCommit
     || benchmark.packageCoordinate !== provider.packageCoordinate
     || benchmark.packageVersion !== provider.packageVersion
     || benchmark.manifestSha256 !== provider.manifestSha256
@@ -113,7 +116,9 @@ export function qualifyCrossRepository(candidate) {
   if (evidence?.provenance === null || typeof evidence?.provenance !== "object"
     || evidence.provenance.superprojectCommit !== superproject.commit
     || evidence.provenance.providerCommit !== provider.commit
+    || evidence.provenance.qualifiedProviderCommit !== provider.qualifiedCommit
     || evidence.provenance.consumerCommit !== consumer.commit
+    || evidence.provenance.qualifiedConsumerCommit !== consumer.qualifiedCommit
     || evidence.provenance.packageIntegrity !== provider.packageIntegrity
     || evidence.provenance.benchmarkResultSha256 !== provider.benchmarkResultSha256) {
     fail("CROSS_REPOSITORY_PROVENANCE", "provenance does not bind the exact candidate");
