@@ -1,7 +1,7 @@
 export type OperationsCommand =
   | "setup" | "install" | "preflight" | "config"
   | "status" | "health" | "logs" | "start" | "stop" | "restart"
-  | "upgrade" | "rollback" | "uninstall";
+  | "upgrade" | "rollback" | "uninstall" | "doctor" | "cleanup";
 
 export interface ComponentResult {
   id: string;

@@ -3,7 +3,7 @@
 English | [中文](quickstart.zh-CN.md)
 
 This guide rebuilds the Iter6 reference assembly on one trusted personal computer. It installs the
-top-level operations bundle from the `product-0.3.1` GitHub Release and consumes only that bundle's
+top-level operations bundle from the `product-0.4.0` GitHub Release and consumes only that bundle's
 stable compatibility manifest. No WSR source checkout or owner build is part of the product path.
 
 ## 1. Prepare configuration
@@ -13,9 +13,9 @@ Prerequisites are DSH `0.1.1-rc.2`, Node `24.12.0`, npm `11.6.2`, Docker with Co
 asset and download its editable configuration example:
 
 ```sh
-npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.1/wsr-product-operations-0.3.1.tgz
+npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.4.0/wsr-product-operations-0.4.0.tgz
 curl --proto '=https' --tlsv1.2 --fail --location --remote-name \
-  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.1/wsr-product-0.3.1.config.example.json
+  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.4.0/wsr-product-0.4.0.config.example.json
 ```
 
 The example selects the GitHub repository that publishes Workflow Packages. Service ports are optional;
@@ -24,6 +24,7 @@ Role binding, or credential. To override the OS-level state location, add an abs
 
 ```sh
 wsr setup --config-input /absolute/config.json
+wsr doctor
 wsr install
 wsr preflight
 ```
@@ -31,6 +32,20 @@ wsr preflight
 The CLI stores global config and state in stable OS-level user directories documented in the package
 README, so every command can run from any current directory. No token or credential is copied into WSR
 configuration.
+
+`doctor` is read-only. A clean machine reports `READY`; `install` repeats the same check and fails closed
+before changing anything when cleanup or a manual action is required. For an existing or manually modified
+installation, preview the exact WSR-owned cleanup plan and apply it explicitly:
+
+```sh
+wsr cleanup
+wsr cleanup --apply true
+wsr doctor
+```
+
+Cleanup removes obsolete software roots and managed caches only. It preserves configuration, Delivery,
+checkpoints, bindings, durable Execution state, Evidence data and volumes, credentials, non-WSR plugins,
+and user-owned DSH patches. User patches and externally owned processes are reported as manual actions.
 
 ## 2. Start and create a Delivery
 
@@ -64,7 +79,8 @@ Execution reconstructs Delivery, checkpoint and Session bindings from durable st
 
 ## 4. Upgrade or remove
 
-`upgrade` and `rollback` use explicit compatible versions and digests, never an ambient `latest`.
+Stop the managed runtime, run `doctor`, and apply any reported cleanup before `upgrade`. `upgrade` and
+`rollback` use explicit compatible versions and digests, never an ambient `latest`.
 `uninstall` preserves Delivery, checkpoints, bindings, Evidence, configuration, and other durable data
 by default. Any future data purge must be a separate explicit destructive operation.
 
