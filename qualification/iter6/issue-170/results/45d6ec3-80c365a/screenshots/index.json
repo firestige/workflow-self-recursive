@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "wsr.issue-170.screenshot-index@1",
+  "screenshots": [
+    {
+      "file": "delivery-desktop.png",
+      "sha256": "d9ac7de5ac1ad45ea2f5e802708b2d49c687eba8cba80f754150ad8e0ec145be"
+    },
+    {
+      "file": "delivery-identities-expanded.png",
+      "sha256": "4397faea43552c3160fbafd80c2240d4f260c2495700249237cebc47c1c8d332"
+    },
+    {
+      "file": "delivery-narrow-320.png",
+      "sha256": "ec8af2cfde1fc633a28f20d40122f6d7ceaa12de12dc16b882956059bdc61e42"
+    },
+    {
+      "file": "delivery-zoom-200.png",
+      "sha256": "dfbdeee074b12dcfe965ef7b9398aea952d5443944cb65ca8dd9b2771d7cbf13"
+    }
+  ]
+}

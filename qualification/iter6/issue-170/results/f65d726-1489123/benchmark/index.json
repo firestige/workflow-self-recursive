@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "wsr.issue-170.benchmark-index@1",
+  "protocol": {
+    "warmupSamples": 1,
+    "measuredSamplesPerRun": 30,
+    "independentRuns": 3,
+    "percentileAlgorithm": "nearest-rank",
+    "firstPaint": "data-ready to the second requestAnimationFrame after renderer-ready",
+    "interactiveWindowsPerRun": 1,
+    "interactiveDurationMsPerRun": 5000,
+    "rendererReady": "geometry fonts ready and SVG attributes committed or Canvas draw completed",
+    "retain": [
+      "raw-samples",
+      "browser-traces",
+      "environment-metadata",
+      "failures"
+    ]
+  },
+  "qualifyingResult": {
+    "directory": "full-2026-09-02T10-44-25-834Z",
+    "sha256": "afb897079279b3c0abe7439cdaf8ef36e346e4ad5a934906b716c09212111997",
+    "traces": [
+      {
+        "file": "metric-ratio-bar@1.typical.run-1.zip",
+        "sha256": "285564a51ad0fd915f28981ff4eee5000b5ef745dcc648151a51f89415c8d985"
+      },
+      {
+        "file": "metric-ratio-bar@1.typical.run-2.zip",
+        "sha256": "8978631cb0e80b35f8538ae85e9d312fd24d2cb09a86266223062ac8ce5c806b"
+      },
+      {
+        "file": "metric-ratio-bar@1.typical.run-3.zip",
+        "sha256": "79ce9e1fb3fbb6631563d0e65896ca0224632ab24e721bd6989d59510bc9c6bb"
+      },
+      {
+        "file": "metric-ratio-bar@1.upper-bound.run-1.zip",
+        "sha256": "67aef6c05abb03c971c597e811e566aab3aaea063ccd2f304113857f73e29fa0"
+      },
+      {
+        "file": "metric-ratio-bar@1.upper-bound.run-2.zip",
+        "sha256": "dcedafd10aaccf9b012ae22f3dfb13cc8d3fa0f3a8c4d769b06f47c69bf2f187"
+      },
+      {
+        "file": "metric-ratio-bar@1.upper-bound.run-3.zip",
+        "sha256": "4e150920b92af4583830e238bab535d050cb90e3f118987b3e4dd693b9ce7942"
+      },
+      {
+        "file": "recorded-trace-tree@1.typical.run-1.zip",
+        "sha256": "29ccda19b6161121d051dc0b558d7d0f637922512f135ef5ac318a7cf56349b1"
+      },
+      {
+        "file": "recorded-trace-tree@1.typical.run-2.zip",
+        "sha256": "1ecc4c2b3ddb92758f7fb66f9eca85d31c5748a065308f7a44f3143d40136db2"
+      },
+      {
+        "file": "recorded-trace-tree@1.typical.run-3.zip",
+        "sha256": "19cba64d8ff64e33e48b6742b3f1887eff5a3fcb27e44609e9bceddca4523480"
+      },
+      {
+        "file": "recorded-trace-tree@1.upper-bound.run-1.zip",
+        "sha256": "4891e27a62d79e05d9eb531d3395c8a3e5c058c0377c27cb1c1be130500084af"
+      },
+      {
+        "file": "recorded-trace-tree@1.upper-bound.run-2.zip",
+        "sha256": "c8971133ee91953d51ef42852c79366ebaa9d948b2b82bc2ca0a58d20fddfa2d"
+      },
+      {
+        "file": "recorded-trace-tree@1.upper-bound.run-3.zip",
+        "sha256": "5d072c11abc7777f8bc2fa278cbb0ffc98a10984a861a2247ad098eb12685118"
+      },
+      {
+        "file": "recorded-trace-waterfall@1.typical.run-1.zip",
+        "sha256": "cc466357a7870249adeeeff6fd73cdb08029c410c3e96dbd261c936128f96cc5"
+      },
+      {
+        "file": "recorded-trace-waterfall@1.typical.run-2.zip",
+        "sha256": "229abff9e43935be136b533525f71b91c1310d3e8e084491d06e6906fd79fbe7"
+      },
+      {
+        "file": "recorded-trace-waterfall@1.typical.run-3.zip",
+        "sha256": "ecd822a67302fff834029df873aaf854540ed1812c0423f0c3b9ee9ae88b5fd3"
+      },
+      {
+        "file": "recorded-trace-waterfall@1.upper-bound.run-1.zip",
+        "sha256": "38c3e5fa6467aaf46a68f5e5db027e2c483bda6fa62eed157acda6a0f0f85429"
+      },
+      {
+        "file": "recorded-trace-waterfall@1.upper-bound.run-2.zip",
+        "sha256": "49e8f9e4368feb93ffc75afae0127b2e91d898bb842f575af6f5bcb8bfc437a3"
+      },
+      {
+        "file": "recorded-trace-waterfall@1.upper-bound.run-3.zip",
+        "sha256": "8da20dfc05871c772faa9b01483c44898f80dc5e5ac0f322f641a326d17434a5"
+      },
+      {
+        "file": "unavailable@1.semantic.run-1.zip",
+        "sha256": "5baead4b0573b24e5b5a415c6232b36f271fde558ff1fcd78b7a359d0ca0a8a8"
+      },
+      {
+        "file": "unavailable@1.semantic.run-2.zip",
+        "sha256": "fb68d0519ba6dbcc7ec58687a9c6bee4187e524451f1bc31e333c1096d2a964d"
+      },
+      {
+        "file": "unavailable@1.semantic.run-3.zip",
+        "sha256": "ae2a1108b5e691e2dea1b3c297d537ec7e715df838b789d1a93386afe2954d66"
+      }
+    ]
+  },
+  "retainedFailure": {
+    "directory": "full-2026-09-02T10-34-59-263Z",
+    "sha256": "d3d27ce068ce1574e563c5b197a224f367d073d8a1cc4d8628a0ce356471f92b",
+    "failedRuns": [
+      {
+        "panel": "recorded-trace-tree@1",
+        "fixture": "upper-bound",
+        "runIndex": 2,
+        "evaluation": {
+          "firstPaintP50Ms": 46.65999984741211,
+          "firstPaintP95Ms": 58.03499984741211,
+          "frameP50Ms": 16.664999999999964,
+          "frameP95Ms": 16.670000000000073,
+          "longTaskCount": 1,
+          "passed": false
+        }
+      }
+    ]
+  }
+}

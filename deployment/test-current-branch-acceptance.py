@@ -25,6 +25,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
         fail_start: bool = False,
         no_open: bool = False,
         uninitialized_execution_system: bool = False,
+        uninitialized_system_contracts: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], list[str], Path]:
         with tempfile.TemporaryDirectory(prefix="wsr-accept-test-") as temporary_name:
             temporary = Path(temporary_name)
@@ -35,7 +36,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
             preview_parent.mkdir()
 
             executable(fake_bin / "npm", """
-                printf 'npm %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
+                printf 'npm cwd=%s %s\n' "$PWD" "$*" >> "$WSR_ACCEPT_TEST_LOG"
                 destination=
                 previous=
                 for argument in "$@"; do
@@ -43,8 +44,10 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
                   previous=$argument
                 done
                 case " $* " in
-                  *" --workspace dsh-wsr-execution "*) : > "$destination/dsh-wsr-execution-0.2.1.tgz" ;;
-                  *" --workspace dsh-wsr-studio "*) : > "$destination/dsh-wsr-studio-0.1.1.tgz" ;;
+                  *" --workspace wsr-ui-core "*) : > "$destination/wsr-ui-core-0.1.0-rc.1.tgz" ;;
+                  *" --workspace dsh-wsr-execution "*) : > "$destination/dsh-wsr-execution-0.2.2.tgz" ;;
+                  *" --workspace dsh-wsr-studio "*) : > "$destination/dsh-wsr-studio-0.1.2.tgz" ;;
+                  *" --workspace dsh-wsr "*) : > "$destination/dsh-wsr-0.2.2.tgz" ;;
                 esac
             """)
             executable(fake_bin / "pnpm", """
@@ -79,6 +82,16 @@ EOF
             """)
             executable(fake_bin / "node", """
                 printf 'node %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
+                if test "${1:-}" = -p; then
+                  case "${3:-}" in
+                    */wsr-ui/packages/bi/package.json) printf '0.1.0-rc.1\n' ;;
+                    */wsr-dsh/packages/execution/package.json) printf '0.2.2\n' ;;
+                    */wsr-dsh/packages/studio/package.json) printf '0.1.2\n' ;;
+                    */wsr-dsh/packages/suite/package.json) printf '0.2.2\n' ;;
+                    *) exit 2 ;;
+                  esac
+                  exit 0
+                fi
                 case " $* " in
                   *" start "*)
                     if test "${WSR_ACCEPT_TEST_FAIL_START:-0}" = 1; then exit 3; fi ;;
@@ -110,7 +123,14 @@ EOF
                     fi ;;
                   *" submodule status -- evidence-system "*) printf '%s\n' '+5065cf8 evidence-system' ;;
                   *" submodule status -- evolution-system "*) printf '%s\n' '+b302595 evolution-system' ;;
+                  *" submodule status -- system-contracts "*)
+                    if test "${WSR_ACCEPT_TEST_UNINITIALIZED_SYSTEM_CONTRACTS:-0}" = 1; then
+                      printf '%s\n' '-4ca07c0 system-contracts'
+                    else
+                      printf '%s\n' ' 4ca07c0 system-contracts'
+                    fi ;;
                   *" submodule status -- wsr-dsh "*) printf '%s\n' '+408c837 wsr-dsh' ;;
+                  *" submodule status -- wsr-ui "*) printf '%s\n' '+4122e29 wsr-ui' ;;
                   *" rev-parse "*) printf 'abcdef12\n' ;;
                 esac
             """)
@@ -122,6 +142,7 @@ EOF
                 "WSR_ACCEPT_TMPDIR": str(preview_parent),
                 "WSR_ACCEPT_TEST_FAIL_START": "1" if fail_start else "0",
                 "WSR_ACCEPT_TEST_UNINITIALIZED_EXECUTION_SYSTEM": "1" if uninitialized_execution_system else "0",
+                "WSR_ACCEPT_TEST_UNINITIALIZED_SYSTEM_CONTRACTS": "1" if uninitialized_system_contracts else "0",
                 "WSR_ACCEPT_NO_OPEN": "1" if no_open else "0",
             }
             result = subprocess.run(
@@ -143,8 +164,16 @@ EOF
 
         self.assertEqual(result.returncode, 0, result.stderr)
         joined = "\n".join(commands)
+        self.assertRegex(joined, r"npm cwd=.*/wsr-ui run build")
+        self.assertIn("--workspace wsr-ui-core", joined)
+        self.assertIn("wsr-ui-core-0.1.0-rc.1.tgz", joined)
+        self.assertIn("bind-local-package-candidate.mjs", joined)
+        self.assertIn("--install", joined)
+        self.assertIn("--verify", joined)
         self.assertIn("--workspace dsh-wsr-execution", joined)
         self.assertIn("--workspace dsh-wsr-studio", joined)
+        self.assertIn("--workspace dsh-wsr", joined)
+        self.assertIn("prepare-local-dsh-acceptance.mjs", joined)
         self.assertIn("pnpm cwd=", joined)
         self.assertIn("execution-system release:artifacts", joined)
         self.assertIn("deployment/published/build-bundle.py", joined)
@@ -153,13 +182,14 @@ EOF
         self.assertIn(" setup ", f" {joined} ")
         self.assertIn(" install ", f" {joined} ")
         self.assertIn("qualify-local-provider-auth.mjs", joined)
-        self.assertIn("dsh plugin --profile web remove --workspace-root dsh-wsr", joined)
+        self.assertNotIn("dsh plugin --profile web remove --workspace-root dsh-wsr", joined)
         self.assertIn("wsr-execution-0.2.1.tgz", joined)
-        self.assertIn("bind-local-package-candidate-cli.ts", joined)
-        self.assertIn("wsr-execution 0.2.1", joined)
+        self.assertNotIn("bind-local-package-candidate-cli.ts", joined)
         self.assertIn("verify-local-core-install.mjs", joined)
-        self.assertIn("dsh-wsr-execution-0.2.1.tgz", joined)
-        self.assertIn("dsh-wsr-studio-0.1.1.tgz", joined)
+        self.assertIn("dsh-wsr-execution-0.2.2.tgz", joined)
+        self.assertIn("dsh-wsr-studio-0.1.2.tgz", joined)
+        self.assertIn("dsh-wsr-0.2.2.tgz", joined)
+        self.assertRegex(joined, r"product-operations/bin/wsr\.mjs install .*--manifest .*compatibility\.json")
         self.assertIn(" start ", f" {joined} ")
         self.assertNotIn("git init", joined)
         self.assertIn("register-acceptance-workspace.mjs", joined)
@@ -196,6 +226,15 @@ EOF
         self.assertIn("submodule update --init -- execution-system", joined)
         self.assertNotIn("submodule update --init -- wsr-dsh", joined)
         self.assertIn("execution-system release:artifacts", joined)
+
+    def test_initializes_the_contract_source_required_by_the_evolution_image(self) -> None:
+        result, commands, _ = self.run_acceptance(uninitialized_system_contracts=True)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        joined = "\n".join(commands)
+        self.assertIn("submodule update --init -- system-contracts", joined)
+        self.assertNotIn("submodule update --init -- execution-system", joined)
+        self.assertIn("evolution-system", joined)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,315 @@
+{
+  "schemaVersion": "wsr.issue-170.acceptance@2",
+  "issue": "https://github.com/firestige/workflow-self-recursive/issues/170",
+  "scope": {
+    "activeGoals": [172, 173, 174, 175],
+    "deferredGoals": [176]
+  },
+  "authority": {
+    "priority": [
+      "upstream-system-and-data-contracts",
+      "docs/systems/bi/bi-studio-ui-ux-design.md",
+      "qualification/iter6/issue-170/acceptance-manifest.json",
+      "versioned-semantic-design-assets"
+    ],
+    "trackingCompanions": [
+      "docs/systems/bi/bi-system.zh-CN.md",
+      "docs/systems/bi/bi-ui-design.zh-CN.md",
+      "docs/systems/bi/bi-studio-ui-ux-design.zh-CN.md"
+    ],
+    "semanticAssets": [
+      "docs/systems/bi/assets/studio-page-family-impression.html",
+      "docs/systems/bi/assets/studio-dashboard-layout-candidate.html",
+      "docs/systems/bi/assets/studio-trace-waterfall-candidate.html",
+      "docs/systems/bi/assets/studio-trace-tree-candidate.html"
+    ],
+    "excludedImplementationInputs": [
+      "qualification/iter6/issue-170/studio-ui-ux/trace-impressions.html",
+      "qualification/iter6/issue-170/studio-ui-ux/trace-motion-candidate.html"
+    ]
+  },
+  "candidate": {
+    "baseline": {
+      "superprojectCommit": "f373c82dd709421e1c1ccfdd7a03b91118b9b6ea",
+      "wsrUiCommit": "19148027762b6b951ca0e977f6aeae50aa0f746e",
+      "wsrDshCommit": "086735f36a21feb42055be3f0f2e4c221ea44a5b",
+      "dshVersion": "0.1.1-rc.2",
+      "dshPrimitivesIntegrity": "sha512-vCWEha1yhY//26j/LppHC/xZrU6MOuw6lcI4bJr5L7ppbY8h7GAR24ozBr+4ESMtQ5OmsvqGnsa/Kj5ZjSLfEQ=="
+    },
+    "requiredFinalIdentity": [
+      "superprojectCommit",
+      "providerCommit",
+      "packageCoordinate",
+      "packageVersion",
+      "packageSha256",
+      "packageIntegrity",
+      "consumerCommit",
+      "consumerLockSha256",
+      "consumerBundleSha256",
+      "dshVersion",
+      "dshPrimitivesIntegrity",
+      "benchmarkManifestSha256",
+      "qualificationResultSha256"
+    ],
+    "wave2ArtifactSource": "local-pack-only"
+  },
+  "goalWaveGates": [
+    { "goal": 172, "wave": 1, "gate": "initial-shared-package-baseline" },
+    { "goal": 172, "wave": 2, "gate": "corrected-core-asset-and-encapsulation" },
+    { "goal": 173, "wave": 2, "gate": "host-assembly-and-product" },
+    { "goal": 175, "wave": 3, "gate": "native-delivery-layout" },
+    {
+      "goal": 174,
+      "wave": 4,
+      "gate": "cross-repository-product-qualification"
+    },
+    { "goal": 170, "wave": 5, "gate": "umbrella-closure" }
+  ],
+  "redGreenOrder": [
+    "172-boundary-red",
+    "172-package-green",
+    "172-benchmark-green",
+    "175-layout-red",
+    "175-layout-green",
+    "wave2-manifest-red",
+    "wave2-core-asset-red",
+    "wave2-core-asset-green",
+    "wave2-host-assembly-red",
+    "wave2-host-assembly-green",
+    "wave2-encapsulation-green",
+    "wave2-product-green",
+    "174-negative-red",
+    "174-positive-green",
+    "170-composed-green"
+  ],
+  "fixtures": {
+    "studio": [
+      "single-available",
+      "single-unavailable",
+      "compare-available",
+      "partial-compare",
+      "compact-percentage",
+      "bounded-table",
+      "receipt-drilldown",
+      "fact-drilldown",
+      "studio-selection-page",
+      "recorded-trace-waterfall",
+      "recorded-trace-tree",
+      "recorded-trace-statistics",
+      "recorded-trace-reduced-motion",
+      "recorded-trace-invalid",
+      "gateway-outage"
+    ],
+    "delivery": [
+      "running",
+      "succeeded",
+      "failed",
+      "detached",
+      "stale",
+      "unbound",
+      "long-identities",
+      "missing-optional-fields",
+      "long-localized-copy"
+    ]
+  },
+  "wave2Acceptance": {
+    "coreAssets": {
+      "platformNeutralVisualComponents": [
+        "BiSurface",
+        "BiSection",
+        "BiCard"
+      ],
+      "cohesiveBusinessComponents": [
+        "MetricPanel",
+        "CompareResultFrame",
+        "ReceiptView",
+        "EvidenceConsoleFoundation",
+        "TraceWaterfall",
+        "TraceTree",
+        "TraceStatistics",
+        "SpanPassport"
+      ],
+      "supportHooksAndTools": [
+        "selectDefaultVisualizer",
+        "compileTraceView"
+      ]
+    },
+    "coreForbiddenOwnership": [
+      "network-or-fetch",
+      "host-gateway-auth-or-route",
+      "header-footer-content",
+      "concrete-platform-layout-or-layout-json",
+      "page-application-state",
+      "global-theme-or-global-css-reset"
+    ],
+    "hostOwnership": [
+      "header-main-footer-composition",
+      "title-context-controls-and-button-layout",
+      "adjustable-layout-and-layout-json",
+      "integrated-and-page-state",
+      "theme-creation-from-system-light-dark",
+      "gateway-route-recovery-and-persistence"
+    ],
+    "layout": {
+      "desktopColumns": 12,
+      "tabletColumns": 6,
+      "narrowColumns": 1,
+      "sizes": {
+        "SMALL": { "desktop": 3, "tablet": 3, "narrow": 1 },
+        "MEDIUM": { "desktop": 6, "tablet": 6, "narrow": 1 },
+        "WIDE": { "desktop": 12, "tablet": 6, "narrow": 1 }
+      },
+      "adjustmentActions": [
+        "preset",
+        "add",
+        "remove",
+        "resize-bounded",
+        "reorder",
+        "reset",
+        "save",
+        "cancel"
+      ]
+    },
+    "viewports": [
+      { "id": "narrow", "width": 360, "height": 720 },
+      { "id": "tablet", "width": 900, "height": 900 },
+      { "id": "desktop", "width": 1440, "height": 1000 }
+    ],
+    "themes": ["light", "dark"],
+    "traceViews": ["waterfall", "tree", "statistics"],
+    "motion": {
+      "source": "recorded-time-only",
+      "finite": true,
+      "reducedMotionStaticEquivalent": true
+    },
+    "negativeMutations": [
+      "core-deep-import",
+      "undocumented-dom-or-class-dependency",
+      "selector-css-penetration",
+      "core-source-or-style-copy",
+      "duplicated-contract-projection",
+      "duplicated-renderer-geometry-or-component-state",
+      "json-first-default",
+      "remote-registry-artifact-in-local-e2e",
+      "provider-consumer-digest-mismatch"
+    ],
+    "gates": [
+      "authority",
+      "core-asset",
+      "encapsulation",
+      "product"
+    ]
+  },
+  "deliveryAcceptance": {
+    "viewports": [
+      {
+        "id": "narrow",
+        "width": 320,
+        "height": 800,
+        "deviceScaleFactor": 1,
+        "zoomPercent": 100
+      },
+      {
+        "id": "desktop",
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 1,
+        "zoomPercent": 100
+      },
+      {
+        "id": "desktop-200-percent",
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 1,
+        "zoomPercent": 200
+      }
+    ],
+    "firstFold": {
+      "fixture": "succeeded",
+      "viewport": "desktop",
+      "boundary": "The bounds of status, Workflow, terminal outcome and elapsed time are within the Delivery tab scrollport before any scroll. For an active fixture, the authoritative current Action or Intervention is also within the first fold; no final Action is inferred when current is null."
+    },
+    "domAssertions": [
+      "No document-level horizontal overflow.",
+      "Optional sections are absent rather than empty when their source field is absent.",
+      "Every displayed truncated identity has a disclosure or tooltip exposing the exact value and a keyboard-operable copy button.",
+      "State has visible text and is not expressed by color alone.",
+      "The tab consumes only the existing exact Session/Delivery projection."
+    ],
+    "ariaAssertions": [
+      "Status updates and copy feedback have an appropriate live region.",
+      "Identity copy controls include the stable field label in their accessible name.",
+      "Disclosure controls expose expanded state and preserve logical focus order.",
+      "Reduced-motion mode does not depend on animation to reveal state."
+    ],
+    "keyboardPath": [
+      "Focus the Delivery tab.",
+      "Traverse summary, identity disclosures and copy controls with Tab only.",
+      "Open and close a long identity disclosure with Enter and Space.",
+      "Copy the exact value and observe announced feedback.",
+      "Confirm focus remains on the invoking control after disclosure closes."
+    ],
+    "visualRegression": {
+      "baselineWsrDshCommit": "086735f36a21feb42055be3f0f2e4c221ea44a5b",
+      "baselineDshVersion": "0.1.1-rc.2",
+      "referenceSurfaces": [
+        "adjacent native Session summary",
+        "native metadata/disclosure controls"
+      ],
+      "maxDiffPixelRatio": 0.005,
+      "animations": "disabled",
+      "fonts": "ready-before-capture"
+    },
+    "networkAssertion": "For every Delivery fixture, the method-and-path multiset after the tab opens is identical to the frozen baseline; additional requests equal zero."
+  },
+  "commands": {
+    "wsrUi": [
+      "npm ci --ignore-scripts --no-audit --no-fund",
+      "npm run format:check",
+      "npm run lint",
+      "npm run typecheck",
+      "npm test",
+      "npm run deps:check",
+      "npm run build",
+      "npm run package:verify",
+      "npm run browser",
+      "npm run benchmark:full -- --manifest qualification/panel-benchmark/v1/manifest.json"
+    ],
+    "wsrDsh": [
+      "npm ci --ignore-scripts --no-audit --no-fund",
+      "npm test",
+      "npm run boundaries:check",
+      "npm run build",
+      "npm run pack:verify",
+      "npm run provenance:verify",
+      "npm run qualify:clean-profile",
+      "npm run qualify:lifecycle",
+      "npm run qualify:real-harness"
+    ],
+    "superproject": [
+      "python3 -m unittest deployment/test-current-branch-acceptance.py",
+      "WSR_ACCEPT_NO_OPEN=1 ./deployment/accept-current-branch.sh"
+    ]
+  },
+  "evidence": {
+    "root": "qualification/iter6/issue-170/results/<candidate-id>/",
+    "requiredFiles": [
+      "candidate.json",
+      "commands.ndjson",
+      "tests.json",
+      "screenshots/index.json",
+      "benchmark/index.json",
+      "network-diff.json",
+      "provenance.json"
+    ],
+    "commandRecordRequired": [
+      "command",
+      "cwd",
+      "startedAt",
+      "finishedAt",
+      "exitCode",
+      "stdoutSha256",
+      "stderrSha256"
+    ]
+  }
+}

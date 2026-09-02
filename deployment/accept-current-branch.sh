@@ -7,6 +7,7 @@ preview=$(mktemp -d "$temporary_parent/wsr-current-accept.XXXXXX")
 packages="$preview/packages"
 bundle="$preview/bundle"
 config="$preview/config.json"
+acceptance_manifest="$preview/compatibility.json"
 state="$preview/state"
 workspace="$preview/current-branch-acceptance"
 suffix=$(basename "$preview" | tr -cd 'A-Za-z0-9' | tr '[:upper:]' '[:lower:]')
@@ -19,6 +20,7 @@ mkdir -p "$packages"
 
 operation() {
   node "$root/product-operations/bin/wsr.mjs" "$1" \
+    --manifest "$acceptance_manifest" \
     --config "$config" \
     --state-dir "$state"
 }
@@ -94,7 +96,9 @@ ensure_submodule() {
 ensure_submodule execution-system package.json
 ensure_submodule evidence-system pyproject.toml
 ensure_submodule evolution-system Dockerfile
+ensure_submodule system-contracts workflow-dsl-2-candidate/package.json
 ensure_submodule wsr-dsh package.json
+ensure_submodule wsr-ui packages/bi/package.json
 
 free_port() {
   python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()'
@@ -108,6 +112,7 @@ printf '==> 1/4 构建隔离环境\n'
 printf '临时目录：%s\n' "$preview"
 printf '当前提交：%s\n' "$(git -C "$root" rev-parse --short HEAD)"
 printf 'DSH 提交：%s\n' "$(git -C "$root/wsr-dsh" rev-parse --short HEAD)"
+printf 'Shared UI 提交：%s\n' "$(git -C "$root/wsr-ui" rev-parse --short HEAD)"
 printf 'Evolution 提交：%s\n' "$(git -C "$root/evolution-system" rev-parse --short HEAD)"
 
 jq \
@@ -139,13 +144,44 @@ printf '\n==> 2/4 构建并部署本地产物\n'
   cd "$root/execution-system"
   pnpm release:artifacts "$packages"
 )
+provider_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-ui/packages/bi/package.json")
+provider_archive="$packages/wsr-ui-core-$provider_version.tgz"
+execution_plugin_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-dsh/packages/execution/package.json")
+studio_plugin_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-dsh/packages/studio/package.json")
+suite_plugin_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-dsh/packages/suite/package.json")
+(
+  cd "$root/wsr-ui"
+  npm ci --ignore-scripts --no-audit --no-fund
+  npm run build
+  npm pack --silent --pack-destination "$packages" --workspace wsr-ui-core
+)
+if ! test -f "$provider_archive"; then
+  printf 'Local shared UI archive missing: %s\n' "$provider_archive" >&2
+  exit 1
+fi
 (
   cd "$root/wsr-dsh"
-  npm ci
+  npm ci --ignore-scripts --no-audit --no-fund
+  node "$root/deployment/bind-local-package-candidate.mjs" --install \
+    "$root/wsr-dsh/node_modules" \
+    wsr-ui-core \
+    "$provider_version" \
+    "$provider_archive" \
+    "$root/wsr-ui/node_modules"
   npm run build
   npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-execution
   npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-studio
+  npm pack --silent --pack-destination "$packages" --workspace dsh-wsr
 )
+
+node "$root/deployment/prepare-local-dsh-acceptance.mjs" \
+  "$root/product-operations/manifests/product-0.3.0.json" \
+  "$acceptance_manifest" \
+  "$packages/wsr-execution-0.2.1.tgz" \
+  "$packages/dsh-wsr-execution-$execution_plugin_version.tgz" \
+  "$packages/dsh-wsr-studio-$studio_plugin_version.tgz" \
+  "$packages/dsh-wsr-$suite_plugin_version.tgz" \
+  "$provider_archive"
 
 python3 "$root/deployment/published/build-bundle.py" \
   "$root/release/compose/0.1.0.json" \
@@ -156,25 +192,17 @@ node "$root/deployment/bind-local-evidence-build.mjs" \
   "$root"
 
 node "$root/product-operations/bin/wsr.mjs" setup \
+  --manifest "$acceptance_manifest" \
   --config-input "$config" \
   --config "$config" \
   --state-dir "$state"
 operation install
 
-(
-  cd "$root/execution-system"
-  node --import tsx scripts/bind-local-package-candidate-cli.ts \
-    "$DSH_HOME/profiles/web" \
-    wsr-execution \
-    0.2.1 \
-    "$packages/wsr-execution-0.2.1.tgz"
-)
-
-dsh plugin --profile web remove --workspace-root dsh-wsr
-dsh plugin --profile web add --workspace-root \
-  "$packages/dsh-wsr-execution-0.2.1.tgz" \
-  "$packages/dsh-wsr-studio-0.1.1.tgz" \
-  --ignore-scripts
+node "$root/deployment/bind-local-package-candidate.mjs" --verify \
+  "$DSH_HOME/profiles/web" \
+  wsr-ui-core \
+  "$provider_version" \
+  "$provider_archive"
 
 node "$root/deployment/verify-local-core-install.mjs" \
   "$DSH_HOME/profiles/web" \

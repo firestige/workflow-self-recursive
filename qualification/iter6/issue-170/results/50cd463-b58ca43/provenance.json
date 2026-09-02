@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "wsr.issue-170.cross-repository-provenance@2",
+  "superproject": {
+    "commit": "ed66fc6916adae0b328f4cdc05d4ad1f6ffc3097"
+  },
+  "provider": {
+    "commit": "d55ce05f960c3d5d72b53932ccd5617f563e5bbf",
+    "qualifiedCommit": "50cd463104a05a91d918eb21f3009a762b0753de",
+    "treeEquivalent": true,
+    "packageCoordinate": "wsr-ui-core",
+    "packageVersion": "0.1.0-rc.1",
+    "packageIntegrity": "sha512-d18toSc4NPrq6Hhkzx4xDFYpy57FnJ5NqM3QimxxWai8WcBFcicjnrq9DXIgbEV5xV3kX8XKjZAkTV2tRhRG7Q==",
+    "packageSha256": "1f3988137711d37a0d839ef93ecff325188017738675c86cb57a807ee99407f5",
+    "publishedPackageSha256": "1f3988137711d37a0d839ef93ecff325188017738675c86cb57a807ee99407f5",
+    "packageTarball": "https://registry.npmjs.org/wsr-ui-core/-/wsr-ui-core-0.1.0-rc.1.tgz",
+    "packageSource": "registry-published+local-byte-match",
+    "manifestSha256": "b4825935f0824a5113a1a9745ad4249fecbf999a829313f8e687d08330954f6b",
+    "benchmarkResultSha256": "e4bfb9176d5cd3fd99181545ffabc93274e576266d1d6bd78e1831085d8232cd"
+  },
+  "consumer": {
+    "commit": "4a8fd50ef8b80bfc9459eb0fde4b7c0a6744ac20",
+    "qualifiedCommit": "b58ca4327b4e55b8b17d25c2cbc68ef1b6666a7a",
+    "treeEquivalent": true,
+    "packageCoordinate": "wsr-ui-core",
+    "packageVersion": "0.1.0-rc.1",
+    "packageIntegrity": "sha512-d18toSc4NPrq6Hhkzx4xDFYpy57FnJ5NqM3QimxxWai8WcBFcicjnrq9DXIgbEV5xV3kX8XKjZAkTV2tRhRG7Q==",
+    "packageSha256": "1f3988137711d37a0d839ef93ecff325188017738675c86cb57a807ee99407f5",
+    "installedArchiveFiles": 63,
+    "lockSha256": "1855902489ee5608b861eddd64f7726203836b2696441c7be49421f7f71e1011",
+    "bundleSha256": "e37c334b2659a24a50af4398fb6e94e0505b7e2564160e8b5b7b1bd701b76415",
+    "panels": [
+      "metric-ratio-bar@1",
+      "recorded-trace-waterfall@1",
+      "recorded-trace-tree@1"
+    ],
+    "jsonPrimary": false,
+    "runtimeRendererSelector": false,
+    "sourcePathImports": false
+  },
+  "benchmark": {
+    "resultSha256": "e4bfb9176d5cd3fd99181545ffabc93274e576266d1d6bd78e1831085d8232cd",
+    "traceCount": 21
+  },
+  "realHarness": {
+    "sha256": "80dcb3265b1b8ea475bcce19c775a09f7f7d23b31576d964752bcac0c493f0f8",
+    "screenshotCount": 7
+  },
+  "releaseProvenanceSha256": "898e630ef6ce0fccdcf7a2c2c001d2eb1607bb54d8471cff011867e4fb88bc44",
+  "releaseSubjects": [
+    {
+      "name": "dsh-wsr-0.2.2.tgz",
+      "sha256": "0eeff303c77fd4b38e4f8600c5bf44d95defebe2faca9e7accc4c8b982794eb1"
+    },
+    {
+      "name": "dsh-wsr-execution-0.2.2.tgz",
+      "sha256": "99e2e58b6fe262d7c8667145e77ddb7f74cefc40091110d38125fbebc6933b4b"
+    },
+    {
+      "name": "dsh-wsr-studio-0.1.2.tgz",
+      "sha256": "acf3fc5a5f4f82a402f96c6707bfbd1efa80ce298c45633624ad0ca41d0ba3e3"
+    }
+  ]
+}
