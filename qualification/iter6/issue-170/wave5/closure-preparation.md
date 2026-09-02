@@ -1,10 +1,13 @@
 # Issue 170 Wave 5 closure preparation
 
-Status: **PUBLICATION AND FINAL-PIN GATES PASS; ISSUE CLOSURE IN PROGRESS**
+Status: **COMPLETE**
 
 The owner approved Wave 5, package publication, merge, and the release flow on
 2026-09-02. Core PR #2 and DSH PR #17 are merged. The exact qualified DSH
 candidate was promoted to stable packages and GitHub Release `0.2.3`.
+`pctl req close` verified #172–#175 and #170 as CLOSED with the `completed`
+label and MVP milestone. #176 remains OPEN, blocked, and outside a milestone;
+the six historical issues received correction comments without being reopened.
 
 ## Proven gates
 
@@ -72,4 +75,4 @@ or reopened.
 - #168 is CLOSED with the shared-authority trigger decision recorded.
 - #176 is OPEN, `blocked`, has no milestone, and awaits a public versioned DSH Trajectory contribution contract.
 - #114, #137, #58, #59, #60, #113, and #109 remain outside the MVP milestone and outside #170's active goals.
-- #104, #110, #111, #112, #119, and #120 remain CLOSED pending correction comments only.
+- #104, #110, #111, #112, #119, and #120 remain CLOSED and now carry the correction comments.
