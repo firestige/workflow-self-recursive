@@ -43,7 +43,9 @@ let output;
 try {
   const { command, options } = parseArguments(process.argv.slice(2));
   const defaults = resolveProductPaths();
-  const manifestPath = path.resolve(options.manifest ?? path.join(packageRoot, "manifests", "product-0.3.0.json"));
+  const packageDocument = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
+  const defaultManifestPath = path.join(packageRoot, "manifests", `product-${packageDocument.version}.json`);
+  const manifestPath = path.resolve(options.manifest ?? defaultManifestPath);
   const fixturePath = options.fixture ? path.resolve(options.fixture) : null;
   const manifest = await loadCompatibilityManifest(manifestPath);
   const configPath = path.resolve(options.config ?? defaults.configPath);
