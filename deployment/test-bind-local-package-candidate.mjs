@@ -65,6 +65,50 @@ test("materializes the local archive over an existing registry installation", as
   }
 });
 
+test("materializes the local artifact runtime dependency closure", async () => {
+  const value = await fixture();
+  try {
+    const dependencyRoot = join(value.root, "provider-node-modules");
+    await mkdir(join(dependencyRoot, "fixture-dep"), { recursive: true });
+    await writeFile(
+      join(dependencyRoot, "fixture-dep", "package.json"),
+      `${JSON.stringify({ name: "fixture-dep", version: "1.0.0" })}\n`,
+    );
+    const source = join(value.root, "source", "package", "package.json");
+    await writeFile(
+      source,
+      `${JSON.stringify({ name: "wsr-ui-core", version: "0.1.0-rc.0", dependencies: { "fixture-dep": "1.0.0" } })}\n`,
+    );
+    execFileSync("tar", [
+      "-czf",
+      value.archive,
+      "-C",
+      join(value.root, "source"),
+      "package",
+    ]);
+
+    await installLocalPackageCandidate({
+      nodeModulesRoot: join(value.profile, "node_modules"),
+      packageName: "wsr-ui-core",
+      version: "0.1.0-rc.0",
+      archive: value.archive,
+      dependencyModulesRoot: dependencyRoot,
+    });
+
+    assert.equal(
+      JSON.parse(
+        await readFile(
+          join(value.profile, "node_modules", "fixture-dep", "package.json"),
+          "utf8",
+        ),
+      ).version,
+      "1.0.0",
+    );
+  } finally {
+    await rm(value.root, { recursive: true, force: true });
+  }
+});
+
 test("fails closed when an existing override or installed lock points elsewhere", async () => {
   const value = await fixture();
   try {

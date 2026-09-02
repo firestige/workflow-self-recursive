@@ -163,7 +163,8 @@ fi
     "$root/wsr-dsh/node_modules" \
     wsr-ui-core \
     "$provider_version" \
-    "$provider_archive"
+    "$provider_archive" \
+    "$root/wsr-ui/node_modules"
   npm run build
   npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-execution
   npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-studio

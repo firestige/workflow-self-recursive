@@ -1,4 +1,12 @@
-const REQUIRED_PANELS = ["metric-ratio-bar@1", "recorded-trace-graph@1"];
+const REQUIRED_PANELS = [
+  "metric-ratio-bar@1",
+  "recorded-trace-waterfall@1",
+  "recorded-trace-tree@1",
+];
+const INTERACTIVE_PANELS = new Set([
+  "recorded-trace-waterfall@1",
+  "recorded-trace-tree@1",
+]);
 const REQUIRED_SCENARIOS = [
   "single-available", "single-unavailable", "compare-available", "partial-compare",
   "receipt-drilldown", "fact-drilldown", "recorded-trace", "gateway-outage",
@@ -55,17 +63,26 @@ export function qualifyCrossRepository(candidate) {
     fail("CROSS_REPOSITORY_PERCENTILE", "percentile algorithm drifted");
   }
   if (benchmark.protocol?.warmupSamples !== 1 || benchmark.protocol?.measuredSamplesPerRun !== 30
-    || benchmark.protocol?.independentRuns !== 3) {
+    || benchmark.protocol?.independentRuns !== 3
+    || benchmark.protocol?.interactiveWindowsPerRun !== 1
+    || benchmark.protocol?.interactiveDurationMsPerRun !== 5000) {
     fail("CROSS_REPOSITORY_RUN_COUNT", "benchmark protocol sample counts drifted");
   }
-  if (benchmark.rendererDecision !== "svg-static") {
-    fail("CROSS_REPOSITORY_RUNTIME_RENDERER", "qualified renderer is not statically SVG");
+  if (benchmark.rendererDecision !== "manifest-static:svg+semantic-html+canvas") {
+    fail("CROSS_REPOSITORY_RUNTIME_RENDERER", "qualified renderers are not statically bound by the manifest");
   }
   for (const result of benchmark.results ?? []) {
     if (result.runs?.length !== 3) fail("CROSS_REPOSITORY_RUN_COUNT", `${result.panel}/${result.fixture}`);
     for (const run of result.runs) {
       if (run.warmupSamples !== 1 || run.rawSamples?.length !== 30 || !nonEmpty(run.browserTrace)) {
         fail("CROSS_REPOSITORY_RAW_EVIDENCE", `${result.panel}/${result.fixture}/run-${run.runIndex}`);
+      }
+      if (INTERACTIVE_PANELS.has(result.panel)
+        && (run.interactionSample?.durationMs !== 5000
+          || !Array.isArray(run.interactionSample?.frameDurations)
+          || run.interactionSample.frameDurations.length === 0
+          || !Array.isArray(run.interactionSample?.longTasks))) {
+        fail("CROSS_REPOSITORY_INTERACTION_EVIDENCE", `${result.panel}/${result.fixture}/run-${run.runIndex}`);
       }
       if (run.evaluation?.passed !== true) {
         fail("CROSS_REPOSITORY_BENCHMARK_BUDGET", `${result.panel}/${result.fixture}/run-${run.runIndex}`);
@@ -104,6 +121,12 @@ export function qualifyCrossRepository(candidate) {
   }
   return {
     qualified: true,
-    matrix: { positive: "PASS", negativePolicy: "PASS", benchmark: "PASS", realWeb: "PASS" },
+    matrix: {
+      localArtifactProvenance: "PASS",
+      positiveProduct: "PASS",
+      encapsulationNegative: "PASS",
+      benchmark: "PASS",
+      realWeb: "PASS",
+    },
   };
 }

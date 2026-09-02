@@ -23,7 +23,13 @@ async function exactInputs(input) {
   return { profile, ...await exactArchive(input) };
 }
 
-export async function installLocalPackageCandidate({ nodeModulesRoot, packageName, version, archive }) {
+export async function installLocalPackageCandidate({
+  nodeModulesRoot,
+  packageName,
+  version,
+  archive,
+  dependencyModulesRoot,
+}) {
   if (!/^(?:@[a-z0-9._-]+\/)?[a-z0-9._-]+$/u.test(packageName)) {
     fail("LOCAL_PACKAGE_NAME", packageName);
   }
@@ -37,6 +43,36 @@ export async function installLocalPackageCandidate({ nodeModulesRoot, packageNam
     await mkdir(dirname(destination), { recursive: true });
     await rm(destination, { recursive: true, force: true });
     await cp(resolve(temporary, "package"), destination, { recursive: true });
+    const manifest = JSON.parse(
+      await readFile(resolve(destination, "package.json"), "utf8"),
+    );
+    const dependencies = Object.keys(manifest.dependencies ?? {});
+    if (dependencies.length > 0 && dependencyModulesRoot === undefined) {
+      fail("LOCAL_PACKAGE_DEPENDENCY_ROOT_REQUIRED", dependencies.join(","));
+    }
+    const sourceModules =
+      dependencyModulesRoot === undefined
+        ? undefined
+        : await realpath(resolve(dependencyModulesRoot));
+    const pending = [...dependencies];
+    const copied = new Set();
+    while (pending.length > 0) {
+      const dependency = pending.shift();
+      if (dependency === undefined || copied.has(dependency)) continue;
+      copied.add(dependency);
+      const source = resolve(sourceModules, ...dependency.split("/"));
+      const dependencyManifest = JSON.parse(
+        await readFile(resolve(source, "package.json"), "utf8"),
+      );
+      if (dependencyManifest.name !== dependency) {
+        fail("LOCAL_PACKAGE_DEPENDENCY_IDENTITY", dependency);
+      }
+      const dependencyDestination = resolve(modules, ...dependency.split("/"));
+      await mkdir(dirname(dependencyDestination), { recursive: true });
+      await rm(dependencyDestination, { recursive: true, force: true });
+      await cp(source, dependencyDestination, { recursive: true });
+      pending.push(...Object.keys(dependencyManifest.dependencies ?? {}));
+    }
   } finally {
     await rm(temporary, { recursive: true, force: true });
   }
@@ -94,9 +130,11 @@ async function main() {
   if (verify) args.shift();
   const install = args[0] === "--install";
   if (install) args.shift();
-  if (args.length !== 4) fail("LOCAL_PACKAGE_USAGE", "[--verify] <profile> <name> <version> <archive>");
-  const [root, packageName, version, archive] = args;
-  if (install) await installLocalPackageCandidate({ nodeModulesRoot: root, packageName, version, archive });
+  if (args.length < 4 || args.length > 5)
+    fail("LOCAL_PACKAGE_USAGE", "[--verify] <profile> <name> <version> <archive> [dependency-node-modules]");
+  const [root, packageName, version, archive, dependencyModulesRoot] = args;
+  if (install)
+    await installLocalPackageCandidate({ nodeModulesRoot: root, packageName, version, archive, dependencyModulesRoot });
   else {
     const operation = verify ? verifyLocalPackageCandidate : bindLocalPackageCandidate;
     await operation({ profileRoot: root, packageName, version, archive });

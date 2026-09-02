@@ -6,7 +6,7 @@ import { qualifyCrossRepository } from "./cross-repository-policy.mjs";
 const sha256 = (character) => character.repeat(64);
 
 function fixture() {
-  const run = (index) => ({
+  const run = (index, interactive = false) => ({
     runIndex: index,
     warmupSamples: 1,
     rawSamples: Array.from({ length: 30 }, (_, sampleIndex) => ({ sampleIndex: sampleIndex + 1 })),
@@ -17,6 +17,7 @@ function fixture() {
       browserRevision: "1234",
     },
     evaluation: { passed: true },
+    ...(interactive ? { interactionSample: { durationMs: 5000, frameDurations: [16.67], longTasks: [] } } : {}),
   });
   return {
     schemaVersion: "wsr.issue-170.cross-repository-candidate@1",
@@ -35,7 +36,7 @@ function fixture() {
       packageVersion: "0.1.0-rc.0",
       packageIntegrity: "sha512-qualified",
       lockSha256: sha256("c"),
-      panels: ["metric-ratio-bar@1", "recorded-trace-graph@1"],
+      panels: ["metric-ratio-bar@1", "recorded-trace-waterfall@1", "recorded-trace-tree@1"],
       jsonPrimary: false,
       runtimeRendererSelector: false,
       sourcePathImports: false,
@@ -52,10 +53,12 @@ function fixture() {
         warmupSamples: 1,
         measuredSamplesPerRun: 30,
         independentRuns: 3,
+        interactiveWindowsPerRun: 1,
+        interactiveDurationMsPerRun: 5000,
         percentileAlgorithm: "nearest-rank",
         rendererReady: "geometry fonts ready and SVG attributes committed or Canvas draw completed",
       },
-      rendererDecision: "svg-static",
+      rendererDecision: "manifest-static:svg+semantic-html+canvas",
       runner: {
         platform: "linux/arm64/v8",
         browserVersion: "151.0.7922.34",
@@ -64,8 +67,10 @@ function fixture() {
       results: [
         { panel: "metric-ratio-bar@1", fixture: "typical", runs: [run(1), run(2), run(3)] },
         { panel: "metric-ratio-bar@1", fixture: "upper-bound", runs: [run(1), run(2), run(3)] },
-        { panel: "recorded-trace-graph@1", fixture: "typical", runs: [run(1), run(2), run(3)] },
-        { panel: "recorded-trace-graph@1", fixture: "upper-bound", runs: [run(1), run(2), run(3)] },
+        { panel: "recorded-trace-waterfall@1", fixture: "typical", runs: [run(1, true), run(2, true), run(3, true)] },
+        { panel: "recorded-trace-waterfall@1", fixture: "upper-bound", runs: [run(1, true), run(2, true), run(3, true)] },
+        { panel: "recorded-trace-tree@1", fixture: "typical", runs: [run(1, true), run(2, true), run(3, true)] },
+        { panel: "recorded-trace-tree@1", fixture: "upper-bound", runs: [run(1, true), run(2, true), run(3, true)] },
       ],
     },
     runtime: {
@@ -81,8 +86,10 @@ function fixture() {
       rawTraces: [
         "metric-ratio-bar@1.typical.run-1.zip",
         "metric-ratio-bar@1.upper-bound.run-1.zip",
-        "recorded-trace-graph@1.typical.run-1.zip",
-        "recorded-trace-graph@1.upper-bound.run-1.zip",
+        "recorded-trace-waterfall@1.typical.run-1.zip",
+        "recorded-trace-waterfall@1.upper-bound.run-1.zip",
+        "recorded-trace-tree@1.typical.run-1.zip",
+        "recorded-trace-tree@1.upper-bound.run-1.zip",
       ],
       provenance: {
         superprojectCommit: "53bbdf599ddc582a4ce2b627457105f872dd8eef",
@@ -107,6 +114,8 @@ const negativeCases = [
   ["renderer-ready drift", "CROSS_REPOSITORY_RENDERER_READY", (value) => { value.benchmark.protocol.rendererReady = "load event"; }],
   ["percentile drift", "CROSS_REPOSITORY_PERCENTILE", (value) => { value.benchmark.protocol.percentileAlgorithm = "interpolated"; }],
   ["run-count drift", "CROSS_REPOSITORY_RUN_COUNT", (value) => value.benchmark.results[0].runs.pop()],
+  ["interaction protocol drift", "CROSS_REPOSITORY_RUN_COUNT", (value) => { value.benchmark.protocol.interactiveWindowsPerRun = 30; }],
+  ["missing interaction evidence", "CROSS_REPOSITORY_INTERACTION_EVIDENCE", (value) => { delete value.benchmark.results[2].runs[0].interactionSample; }],
   ["performance budget failure", "CROSS_REPOSITORY_BENCHMARK_BUDGET", (value) => { value.benchmark.results[0].runs[0].evaluation.passed = false; }],
   ["runner browser drift", "CROSS_REPOSITORY_RUNNER_IDENTITY", (value) => { value.benchmark.results[0].runs[0].environment.browserVersion = "future"; }],
   ["runtime renderer selection", "CROSS_REPOSITORY_RUNTIME_RENDERER", (value) => { value.consumer.runtimeRendererSelector = true; }],
