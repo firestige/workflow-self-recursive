@@ -3,7 +3,7 @@
 [English](quickstart.md) | 中文
 
 本指南描述在一台可信个人电脑上重建 Iter6 reference assembly 的正式旅程。顶层 operations 从
-`product-0.3.1` GitHub Release 安装，并只消费包内的稳定 compatibility manifest；产品路径不需要
+`product-0.4.0` GitHub Release 安装，并只消费包内的稳定 compatibility manifest；产品路径不需要
 任何 WSR 源码 checkout 或 owner build。
 
 ## 1. 准备配置
@@ -13,9 +13,9 @@ Codex CLI `0.144.5`，以及可用的本机 GitHub Copilot 登录。安装精确
 配置示例：
 
 ```sh
-npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.1/wsr-product-operations-0.3.1.tgz
+npm install --global https://github.com/firestige/workflow-self-recursive/releases/download/product-0.4.0/wsr-product-operations-0.4.0.tgz
 curl --proto '=https' --tlsv1.2 --fail --location --remote-name \
-  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.3.1/wsr-product-0.3.1.config.example.json
+  https://github.com/firestige/workflow-self-recursive/releases/download/product-0.4.0/wsr-product-0.4.0.config.example.json
 ```
 
 示例只选择发布 Workflow Package 的 GitHub repository。服务端口可省略，示例值就是默认值；其中没有
@@ -24,12 +24,26 @@ state 目录，可增加绝对路径 `state.root`。
 
 ```sh
 wsr setup --config-input /absolute/config.json
+wsr doctor
 wsr install
 wsr preflight
 ```
 
 CLI 把全局配置和 state 放在 package README 记录的稳定操作系统用户目录中，因此可以从任意当前目录
 执行所有命令。WSR 不复制 token 或 credential 到产品配置。
+
+`doctor` 完全只读。干净环境返回 `READY`；`install` 会重复同一检查，若需要清理或人工动作，会在任何修改
+之前 fail closed。已有安装或手工修改过的环境可以先预览精确的 WSR-owned 清理计划，再显式执行：
+
+```sh
+wsr cleanup
+wsr cleanup --apply true
+wsr doctor
+```
+
+cleanup 只删除过期软件 root 与受管缓存，始终保留配置、Delivery、checkpoint、binding、Execution durable
+state、Evidence 数据与 volume、credential、非 WSR 插件和用户 DSH patch。用户 patch 与外部进程只报告为
+人工动作，不会被自动修改或终止。
 
 ## 2. 启动并创建 Delivery
 
@@ -62,7 +76,8 @@ durable state 重建 Delivery、checkpoint 和 Session binding。
 
 ## 4. 升级或移除
 
-`upgrade` 与 `rollback` 只使用明确的 compatible version 和 digest，不读取 ambient `latest`。
+升级前先停止受管 runtime、运行 `doctor` 并处理其报告的 cleanup。`upgrade` 与 `rollback` 只使用明确的
+compatible version 和 digest，不读取 ambient `latest`。
 `uninstall` 默认保留 Delivery、checkpoint、binding、Evidence、配置与其他 durable data。未来若提供
 数据清理，必须是独立、显式的破坏性操作。
 

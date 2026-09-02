@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { loadCompatibilityManifest } from "../src/compatibility-manifest.mjs";
 import { createFixtureAdapter } from "../src/fixture-adapter.mjs";
+import { createInstallationMaintenance } from "../src/installation-maintenance.mjs";
 import { createOperations } from "../src/operations.mjs";
 import { resolveConfiguredStateDirectory, resolveProductPaths } from "../src/platform-paths.mjs";
 import { createPublishedAdapters } from "../src/published-adapters.mjs";
@@ -38,6 +39,14 @@ function failure(command, error) {
   };
 }
 
+function booleanOption(options, name, fallback = false) {
+  const value = options[name];
+  if (value === undefined) return fallback;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  throw new Error(`--${name} must be true or false`);
+}
+
 let exitCode = 0;
 let output;
 try {
@@ -67,24 +76,29 @@ try {
     defaultStateDirectory: defaults.stateDirectory,
   }));
   let adapters;
+  let maintenance;
   if (fixturePath) {
     const fixture = JSON.parse(await readFile(fixturePath, "utf8"));
     const adapter = createFixtureAdapter(fixture);
     adapters = new Map(manifest.components.map((component) => [component.id, adapter]));
   } else {
     adapters = createPublishedAdapters({ manifest, stateDirectory, configPath });
+    maintenance = createInstallationMaintenance({ manifest, stateDirectory, configPath });
   }
   const operations = createOperations({
     manifest,
     adapters,
     stateDirectory,
     configPath,
+    maintenance,
   });
 
   if (configInput !== undefined) {
     await operations.writeConfig(configInput);
   }
-  output = await operations.run(command);
+  output = await operations.run(command, {
+    apply: command === "cleanup" ? booleanOption(options, "apply") : false,
+  });
   exitCode = output.status === "succeeded" ? 0 : output.status === "blocked" ? 3 : 2;
 } catch (error) {
   output = failure(process.argv[2], error);

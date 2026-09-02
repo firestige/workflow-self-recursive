@@ -19,6 +19,8 @@ const COMMANDS = new Set([
   "upgrade",
   "rollback",
   "uninstall",
+  "doctor",
+  "cleanup",
 ]);
 const READ_COMMANDS = new Set(["config", "status", "health", "logs"]);
 const ORDER_REVERSED = new Set(["stop", "rollback", "uninstall"]);
@@ -69,8 +71,32 @@ async function writeJsonAtomic(target, value, mode = 0o600) {
   await rename(temporary, target);
 }
 
-export function createOperations({ manifest, adapters, stateDirectory, configPath }) {
+const READY_DIAGNOSIS = Object.freeze({
+  verdict: "READY",
+  findings: [],
+  plan: [],
+  manualActions: [],
+  preserved: Object.freeze({
+    config: true,
+    durableData: true,
+    evidence: true,
+    credentials: true,
+    userPatches: true,
+  }),
+});
+
+export function createOperations({ manifest, adapters, stateDirectory, configPath, maintenance }) {
   const statePath = path.join(stateDirectory, "operations-state.json");
+  const installationMaintenance = maintenance ?? Object.freeze({
+    async diagnose() { return READY_DIAGNOSIS; },
+    async cleanup() {
+      return {
+        status: "succeeded",
+        changed: false,
+        data: { ...READY_DIAGNOSIS, removed: [] },
+      };
+    },
+  });
 
   async function retainAppliedManifest() {
     const releaseName = encodeURIComponent(manifest.release);
@@ -146,6 +172,36 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
     return envelope(command, id, diagnostics.length === 0 ? "succeeded" : "blocked", { components, diagnostics });
   }
 
+  async function diagnose(command, id) {
+    const checked = await preflight(command, id);
+    if (checked.status !== "succeeded") {
+      return envelope(command, id, "blocked", {
+        components: checked.components,
+        diagnostics: checked.diagnostics,
+        data: { ...READY_DIAGNOSIS, verdict: "BLOCKED" },
+      });
+    }
+    const diagnosis = await installationMaintenance.diagnose({ command, manifest });
+    const blocking = diagnosis.findings.filter(({ severity }) => severity !== "warning");
+    return envelope(command, id, diagnosis.verdict === "READY" ? "succeeded" : "blocked", {
+      components: checked.components,
+      diagnostics: blocking.map(({ code, message }) => ({ code, message })),
+      data: diagnosis,
+    });
+  }
+
+  async function cleanup(id, options) {
+    const result = await installationMaintenance.cleanup({
+      apply: options.apply === true,
+      manifest,
+    });
+    return envelope("cleanup", id, result.status, {
+      changed: result.changed,
+      diagnostics: result.diagnostics ?? [],
+      data: result.data,
+    });
+  }
+
   async function mutate(command, id) {
     const state = await readState(statePath);
     if (state.active && state.active.manifestDigest !== manifest.digest) {
@@ -158,6 +214,10 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
     }
 
     const key = `${command}:${manifest.digest}`;
+    const readiness = ["install", "upgrade"].includes(command)
+      ? await diagnose(command, id)
+      : undefined;
+    if (readiness !== undefined && readiness.status !== "succeeded") return readiness;
     if (state.completed[key]) {
       if (["install", "upgrade", "rollback"].includes(command)) await retainAppliedManifest();
       const data = command === "uninstall"
@@ -166,7 +226,7 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
       return envelope(command, id, "succeeded", { changed: false, data });
     }
 
-    const checked = await preflight(command, id);
+    const checked = readiness ?? await preflight(command, id);
     if (checked.status !== "succeeded") return checked;
 
     let active;
@@ -246,7 +306,7 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
   }
 
   return Object.freeze({
-    async run(command) {
+    async run(command, options = {}) {
       if (!COMMANDS.has(command)) {
         return envelope(command, "invalid", "failed", {
           diagnostics: [{ code: "UNKNOWN_COMMAND", message: `Unknown command: ${command}` }],
@@ -254,6 +314,8 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
       }
       const id = operationId(command, manifest.digest);
       if (command === "preflight") return preflight(command, id);
+      if (command === "doctor") return diagnose(command, id);
+      if (command === "cleanup") return cleanup(id, options);
       if (READ_COMMANDS.has(command)) return inspect(command, id);
       return mutate(command, id);
     },

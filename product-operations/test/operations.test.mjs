@@ -38,19 +38,45 @@ const productConfig = (_root, overrides = {}) => ({
   ...overrides,
 });
 
-async function harness({ manifest = manifestDocument(), fixture = {} } = {}) {
+async function harness({ manifest = manifestDocument(), fixture = {}, maintenance: maintenanceFixture = {} } = {}) {
   const root = await mkdtemp(path.join(os.tmpdir(), "wsr-operations-"));
   const manifestPath = path.join(root, "compatibility.json");
   await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
   const compatibility = await loadCompatibilityManifest(manifestPath);
   const adapter = createFixtureAdapter(fixture);
+  const maintenanceEffects = [];
+  const maintenance = {
+    async diagnose() {
+      return maintenanceFixture.diagnosis ?? {
+        verdict: "READY",
+        findings: [],
+        plan: [],
+        manualActions: [],
+        preserved: { config: true, durableData: true, evidence: true, credentials: true, userPatches: true },
+      };
+    },
+    async cleanup({ apply }) {
+      maintenanceEffects.push(apply ? "cleanup:apply" : "cleanup:preview");
+      return maintenanceFixture.cleanupResult ?? {
+        status: "succeeded",
+        changed: apply,
+        data: {
+          plan: ["obsolete-release:fixture-old"],
+          removed: apply ? ["obsolete-release:fixture-old"] : [],
+          manualActions: [],
+          preserved: { config: true, durableData: true, evidence: true, credentials: true, userPatches: true },
+        },
+      };
+    },
+  };
   const operations = createOperations({
     manifest: compatibility,
     adapters: new Map(compatibility.components.map((component) => [component.id, adapter])),
     stateDirectory: path.join(root, "state"),
     configPath: path.join(root, "config", "config.json"),
+    maintenance,
   });
-  return { root, adapter, operations };
+  return { root, adapter, operations, maintenanceEffects };
 }
 
 test("compatibility manifest rejects ambient and inexact component coordinates", async () => {
@@ -86,6 +112,81 @@ test("preflight failure returns a typed result before installation effects", asy
   assert.equal(result.changed, false);
   assert.match(result.diagnostics[0].message, /docker is unavailable/);
   assert.deepEqual(adapter.effects(), []);
+});
+
+test("doctor reports cleanup-required findings without applying component effects", async () => {
+  const diagnosis = {
+    verdict: "CLEANUP_REQUIRED",
+    findings: [{ code: "INSTALLATION_STATE_DRIFT", severity: "cleanup", message: "active release has no DSH roots" }],
+    plan: ["obsolete-release:fixture-old"],
+    manualActions: [],
+    preserved: { config: true, durableData: true, evidence: true, credentials: true, userPatches: true },
+  };
+  const { adapter, operations } = await harness({ maintenance: { diagnosis } });
+
+  const result = await operations.run("doctor");
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.changed, false);
+  assert.equal(result.data.verdict, "CLEANUP_REQUIRED");
+  assert.deepEqual(result.data.findings, diagnosis.findings);
+  assert.deepEqual(adapter.effects(), []);
+});
+
+test("install fails closed on doctor findings before the first adapter effect", async () => {
+  const { adapter, operations } = await harness({
+    maintenance: {
+      diagnosis: {
+        verdict: "BLOCKED",
+        findings: [{ code: "EXTERNAL_DSH_PORT_OCCUPIED", severity: "blocked", message: "port 18081 is occupied" }],
+        plan: [],
+        manualActions: ["Stop the non-WSR process using port 18081"],
+        preserved: { config: true, durableData: true, evidence: true, credentials: true, userPatches: true },
+      },
+    },
+  });
+
+  const result = await operations.run("install");
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.diagnostics[0].code, "EXTERNAL_DSH_PORT_OCCUPIED");
+  assert.deepEqual(adapter.effects(), []);
+});
+
+test("a repeated install still runs doctor before returning an idempotent result", async () => {
+  const maintenance = {};
+  const input = await harness({ maintenance });
+  assert.equal((await input.operations.run("install")).status, "succeeded");
+  maintenance.diagnosis = {
+    verdict: "BLOCKED",
+    findings: [{ code: "EXTERNAL_DSH_PORT_OCCUPIED", severity: "blocked", message: "port is occupied" }],
+    plan: [],
+    manualActions: ["Stop the external process"],
+    preserved: { config: true, durableData: true, evidence: true, credentials: true, userPatches: true },
+  };
+
+  const repeated = await input.operations.run("install");
+
+  assert.equal(repeated.status, "blocked");
+  assert.deepEqual(input.adapter.effects(), ["install:execution"]);
+});
+
+test("cleanup previews by default and mutates only after explicit apply", async () => {
+  const preview = await harness();
+  const previewed = await preview.operations.run("cleanup");
+  assert.equal(previewed.status, "succeeded");
+  assert.equal(previewed.changed, false);
+  assert.deepEqual(preview.maintenanceEffects, ["cleanup:preview"]);
+  assert.deepEqual(previewed.data.removed, []);
+
+  const applied = await harness();
+  const cleaned = await applied.operations.run("cleanup", { apply: true });
+  assert.equal(cleaned.status, "succeeded");
+  assert.equal(cleaned.changed, true);
+  assert.deepEqual(applied.maintenanceEffects, ["cleanup:apply"]);
+  assert.equal(cleaned.data.preserved.durableData, true);
+  assert.equal(cleaned.data.preserved.evidence, true);
+  assert.equal(cleaned.data.preserved.userPatches, true);
 });
 
 test("install resumes the exact interrupted journal and is then idempotent", async () => {
@@ -304,6 +405,8 @@ test("the stable command set always returns the versioned result envelope", asyn
     "upgrade",
     "rollback",
     "uninstall",
+    "doctor",
+    "cleanup",
   ];
 
   for (const command of commands) {
@@ -371,4 +474,28 @@ test("CLI emits one machine-readable typed result using the fixture boundary", a
   assert.equal(result.schema, "wsr.operations.result@1.0.0");
   assert.equal(result.command, "preflight");
   assert.equal(result.status, "succeeded");
+});
+
+test("CLI rejects cleanup mutation without an exact boolean apply value", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "wsr-cli-cleanup-"));
+  const manifestPath = path.join(root, "compatibility.json");
+  const fixturePath = path.join(root, "fixture.json");
+  await writeFile(manifestPath, `${JSON.stringify(manifestDocument())}\n`);
+  await writeFile(fixturePath, "{}\n");
+
+  await assert.rejects(execFileAsync(process.execPath, [
+    new URL("../bin/wsr.mjs", import.meta.url).pathname,
+    "cleanup",
+    "--apply", "yes",
+    "--manifest", manifestPath,
+    "--state-dir", path.join(root, "state"),
+    "--config", path.join(root, "config.json"),
+    "--fixture", fixturePath,
+  ]), (error) => {
+    const result = JSON.parse(error.stdout);
+    assert.equal(result.status, "failed");
+    assert.equal(result.diagnostics[0].code, "CLI_INPUT_INVALID");
+    assert.match(result.diagnostics[0].message, /apply.*true.*false/iu);
+    return true;
+  });
 });
