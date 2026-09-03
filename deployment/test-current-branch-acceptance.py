@@ -46,16 +46,16 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
                 done
                 case " $* " in
                   *" --workspace wsr-ui-core "*) : > "$destination/wsr-ui-core-0.1.0-rc.1.tgz" ;;
-                  *" --workspace dsh-wsr-execution "*) : > "$destination/dsh-wsr-execution-0.2.4.tgz" ;;
+                  *" --workspace dsh-wsr-execution "*) : > "$destination/dsh-wsr-execution-0.2.5.tgz" ;;
                   *" --workspace dsh-wsr-studio "*) : > "$destination/dsh-wsr-studio-0.1.2.tgz" ;;
-                  *" --workspace dsh-wsr "*) : > "$destination/dsh-wsr-0.2.4.tgz" ;;
+                  *" --workspace dsh-wsr "*) : > "$destination/dsh-wsr-0.2.5.tgz" ;;
                 esac
             """)
             executable(fake_bin / "pnpm", """
                 printf 'pnpm cwd=%s %s\n' "$PWD" "$*" >> "$WSR_ACCEPT_TEST_LOG"
                 for argument in "$@"; do destination=$argument; done
                 case " $* " in
-                  *" release:artifacts "*) mkdir -p "$destination"; : > "$destination/wsr-execution-0.2.3.tgz" ;;
+                  *" release:artifacts "*) mkdir -p "$destination"; : > "$destination/wsr-execution-0.2.4.tgz" ;;
                 esac
             """)
             executable(fake_bin / "python3", """
@@ -86,10 +86,10 @@ EOF
                 if test "${1:-}" = -p; then
                   case "${3:-}" in
                     */wsr-ui/packages/bi/package.json) printf '0.1.0-rc.1\n' ;;
-                    */execution-system/package.json) printf '0.2.3\n' ;;
-                    */wsr-dsh/packages/execution/package.json) printf '0.2.4\n' ;;
+                    */execution-system/package.json) printf '0.2.4\n' ;;
+                    */wsr-dsh/packages/execution/package.json) printf '0.2.5\n' ;;
                     */wsr-dsh/packages/studio/package.json) printf '0.1.2\n' ;;
-                    */wsr-dsh/packages/suite/package.json) printf '0.2.4\n' ;;
+                    */wsr-dsh/packages/suite/package.json) printf '0.2.5\n' ;;
                     *) exit 2 ;;
                   esac
                   exit 0
@@ -187,12 +187,12 @@ EOF
         self.assertIn(" install ", f" {joined} ")
         self.assertIn("qualify-local-provider-auth.mjs", joined)
         self.assertNotIn("dsh plugin --profile web remove --workspace-root dsh-wsr", joined)
-        self.assertIn("wsr-execution-0.2.3.tgz", joined)
+        self.assertIn("wsr-execution-0.2.4.tgz", joined)
         self.assertNotIn("bind-local-package-candidate-cli.ts", joined)
         self.assertIn("verify-local-core-install.mjs", joined)
-        self.assertIn("dsh-wsr-execution-0.2.4.tgz", joined)
+        self.assertIn("dsh-wsr-execution-0.2.5.tgz", joined)
         self.assertIn("dsh-wsr-studio-0.1.2.tgz", joined)
-        self.assertIn("dsh-wsr-0.2.4.tgz", joined)
+        self.assertIn("dsh-wsr-0.2.5.tgz", joined)
         self.assertRegex(joined, r"product-operations/bin/wsr\.mjs install .*--manifest .*compatibility\.json")
         self.assertIn(" start ", f" {joined} ")
         self.assertNotIn("git init", joined)
