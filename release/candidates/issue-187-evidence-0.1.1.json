@@ -20,7 +20,19 @@
     "candidate_tag": "0.1.1-rc.1",
     "manifest_path": "evidence-system/release/candidates/issue-187-evidence-0.1.1.json",
     "manifest_sha256": "sha256:ac3341865567429de611312e29388d65864abf366089349115dedfc98937146a",
-    "migration_revision": "20260828_0004"
+    "migration_revision": "20260828_0004",
+    "assets": [
+      {
+        "name": "wsr_evidence-0.1.1-py3-none-any.whl",
+        "bytes": 56065,
+        "sha256": "sha256:00a8c4999ae82333792944dbbd5a86e6d9660fd6340bd6d858d0ccfa31dcffbe"
+      },
+      {
+        "name": "wsr_evidence-0.1.1.tar.gz",
+        "bytes": 44236,
+        "sha256": "sha256:4f0fa78625c4e4776c71ba1f3cf518fce5fb1931400323a09c19196eeacd3e3d"
+      }
+    ]
   },
   "qualification": {
     "evidence_ci": "PASS_RUN_33802918629",
