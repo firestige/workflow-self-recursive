@@ -63,3 +63,9 @@ test("the CLI default resolves the manifest matching its packaged product versio
 
   assert.equal(JSON.parse(stdout).operationId, expectedOperationId);
 });
+
+test("the Product publisher checks out the pinned DSH owner record", async () => {
+  const workflow = await readFile(path.join(repositoryRoot, ".github/workflows/release-compose-bundle.yml"), "utf8");
+  const productJob = workflow.split("build-and-qualify-product:")[1];
+  assert.match(productJob, /actions\/checkout@v6[\s\S]*submodules: recursive/u);
+});

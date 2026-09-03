@@ -155,6 +155,7 @@ jobs:
         with:
           ref: ${{ inputs.authority_ref }}
           fetch-depth: 0
+          submodules: recursive
 
       - name: Validate immutable product manifest
         env:
