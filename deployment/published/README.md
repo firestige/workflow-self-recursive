@@ -5,12 +5,12 @@ self-contained, checksummed Compose bundle. The generated `compose.yaml` contain
 immutable digest coordinates for PostgreSQL, Evidence (also used by the migration job), and Evolution.
 It contains no source checkout, build context, BI, Workflow Builder, or improvement-loop container.
 
-The stable Iter 6 manifest is `release/compose/0.1.0.json`; the qualified candidate remains at
+The stable Iter 6 manifest is `release/compose/0.1.1.json`; the original qualified candidate remains at
 `release/compose/0.1.0-rc.1.json`. The existing
 `release-compose-bundle.yml` flow downloads the first-party qualification records, binds their tags,
 product commits, OCI digests, platform gates, and provenance gates to that manifest, verifies the
 three remote amd64/arm64 indexes, and only then generates the bundle artifact. A manual dispatch for
-the stable manifest publishes the checksummed archive and manifest as the durable `compose-0.1.0`
+the stable manifest publishes the checksummed archive and manifest as the durable `compose-0.1.1`
 GitHub Release; it does not rebuild or republish the pinned images.
 
 In a generated bundle, run `./wsr-compose start`. It pulls the pinned images, runs the Evidence
