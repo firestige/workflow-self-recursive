@@ -90,8 +90,14 @@ wait_stack() {
 
 start_stack() {
   compose pull
-  compose up -d --wait --wait-timeout "$wait_timeout" database
+  # Compose does not include a secret file's host source path in the service
+  # configuration hash. Recreate the database so a second Product state using
+  # this bundle cannot inherit another state's secret mounts or volume.
+  compose up -d --wait --wait-timeout "$wait_timeout" --force-recreate database
   compose exec -T database /docker-entrypoint-initdb.d/10-wsr-roles.sh
+  # One-shot migrate containers can otherwise retain the previous state's
+  # admin secret mount even after the database has moved to the current state.
+  compose rm -sf migrate evidence evolution
   wait_stack
 }
 

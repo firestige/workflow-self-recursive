@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 PUBLISHED = ROOT / "deployment" / "published"
 GENERATOR = PUBLISHED / "build-bundle.py"
-FINAL_MANIFEST = ROOT / "release" / "compose" / "0.1.0.json"
+FINAL_MANIFEST = ROOT / "release" / "compose" / "0.1.1.json"
 
 SHA = "a" * 64
 
@@ -95,7 +95,7 @@ class PublishedBundleTest(unittest.TestCase):
     def test_final_release_manifest_binds_the_qualified_image_set(self) -> None:
         release = json.loads(FINAL_MANIFEST.read_text(encoding="utf-8"))
 
-        self.assertEqual(release["version"], "0.1.0")
+        self.assertEqual(release["version"], "0.1.1")
         self.assertEqual(
             release["images"]["postgres"]["coordinate"],
             "postgres:18.4-bookworm@sha256:882236b897e39051d2368c5ccc6cda944904723506b2dfc97f2a8f5bc9afa382",
@@ -144,8 +144,10 @@ class PublishedBundleTest(unittest.TestCase):
         self.assertIn("WSR_EVIDENCE_STATE_IDENTITY", compose)
         start_stack = launcher.split("start_stack() {", 1)[1].split("}", 1)[0]
         self.assertLess(start_stack.index("compose pull"), start_stack.index("wait_stack"))
+        self.assertIn("--force-recreate database", start_stack)
         self.assertLess(start_stack.index("database"), start_stack.index("10-wsr-roles.sh"))
         self.assertLess(start_stack.index("10-wsr-roles.sh"), start_stack.index("wait_stack"))
+        self.assertIn("compose rm -sf migrate evidence evolution", start_stack)
         self.assertIn("start | upgrade | rollback) start_stack", launcher)
         self.assertNotIn("down --volumes", launcher)
 
@@ -235,7 +237,9 @@ class PublishedBundleTest(unittest.TestCase):
             commands = log.read_text(encoding="utf-8")
             self.assertNotIn("down --volumes", commands)
             self.assertIn("up -d --wait", commands)
+            self.assertIn("--force-recreate database", commands)
             self.assertIn("exec -T database /docker-entrypoint-initdb.d/10-wsr-roles.sh", commands)
+            self.assertIn("rm -sf migrate evidence evolution", commands)
             self.assertIn("compose.yaml restart database", commands)
             self.assertIn("compose.yaml restart evidence evolution", commands)
             self.assertIn("compose.yaml stop", commands)
@@ -460,7 +464,7 @@ class PublishedBundleTest(unittest.TestCase):
             (ROOT / "release" / "compose" / "0.1.0-rc.1.json").read_text(encoding="utf-8")
         )
 
-        self.assertEqual(stable["version"], "0.1.0")
+        self.assertEqual(stable["version"], "0.1.1")
         self.assertEqual(candidate["version"], "0.1.0-rc.1")
         self.assertEqual(stable["images"], candidate["images"])
         self.assertEqual(stable["schemaCompatibility"], candidate["schemaCompatibility"])
@@ -538,7 +542,7 @@ class PublishedBundleTest(unittest.TestCase):
         e2e = (ROOT / "deployment" / "test-published-e2e.sh").read_text(encoding="utf-8")
 
         self.assertIn("WSR_RUN_PUBLISHED_E2E", e2e)
-        self.assertIn("release/compose/0.1.0.json", e2e)
+        self.assertIn("release/compose/0.1.1.json", e2e)
         self.assertIn("build-bundle.py", e2e)
         self.assertIn('"$bundle/wsr-compose" start', e2e)
         self.assertIn('"$bundle/wsr-compose" restart', e2e)
