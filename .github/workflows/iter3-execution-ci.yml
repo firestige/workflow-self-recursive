@@ -142,12 +142,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir "$RUNNER_TEMP/implementation-release" "$RUNNER_TEMP/system-design-release"
-          gh release download workflow-package/implementation-workflow/v0.4.0 --repo firestige/wsr-workflow-package --dir "$RUNNER_TEMP/implementation-release"
-          gh release download workflow-package/system-design-workflow/v0.4.0 --repo firestige/wsr-workflow-package --dir "$RUNNER_TEMP/system-design-release"
+          gh release download workflow-package/implementation-workflow/v0.4.1 --repo firestige/wsr-workflow-package --dir "$RUNNER_TEMP/implementation-release"
+          gh release download workflow-package/system-design-workflow/v0.4.1 --repo firestige/wsr-workflow-package --dir "$RUNNER_TEMP/system-design-release"
           test "$(find "$RUNNER_TEMP/implementation-release" -type f | wc -l | tr -d ' ')" = 4
           test "$(find "$RUNNER_TEMP/system-design-release" -type f | wc -l | tr -d ' ')" = 4
-          test "$(sha256sum "$RUNNER_TEMP/implementation-release/workflow-package-implementation-workflow-0.4.0.tar.gz" | cut -d' ' -f1)" = 86d8bfca8e60eb2a207bb8e6a0a463c7035fd4d8ad7220b94317c9f45eb32b4e
-          test "$(sha256sum "$RUNNER_TEMP/system-design-release/workflow-package-system-design-workflow-0.4.0.tar.gz" | cut -d' ' -f1)" = e321678ad9460ae58a6fb5d6b316329296992abea69ef64ef6a570cb9c048e08
+          test "$(sha256sum "$RUNNER_TEMP/implementation-release/workflow-package-implementation-workflow-0.4.1.tar.gz" | cut -d' ' -f1)" = 0fa0e8849cc5a38d7e4f24101d5a92ac89205fa32b7f535daef5f00b72fd5331
+          test "$(sha256sum "$RUNNER_TEMP/system-design-release/workflow-package-system-design-workflow-0.4.1.tar.gz" | cut -d' ' -f1)" = e321678ad9460ae58a6fb5d6b316329296992abea69ef64ef6a570cb9c048e08
 
       - name: Enforce protected Iteration 2 and frozen-scope boundaries
         run: |
