@@ -15,23 +15,23 @@ const preserved = Object.freeze({
 });
 
 const manifest = Object.freeze({
-  release: "0.4.0",
+  release: "0.5.0",
   digest: `sha256:${"a".repeat(64)}`,
   components: [
     {
       id: "dsh-bundle",
-      version: "0.2.3",
+      version: "0.2.4",
       compatibility: {
-        executionOwner: { package: "wsr-execution", version: "0.2.1" },
+        executionOwner: { package: "wsr-execution", version: "0.2.2" },
         packages: {
-          execution: "dsh-wsr-execution@0.2.2",
+          execution: "dsh-wsr-execution@0.2.3",
           studio: "dsh-wsr-studio@0.1.2",
-          suite: "dsh-wsr@0.2.2",
+          suite: "dsh-wsr@0.2.3",
         },
       },
     },
     { id: "services", version: "0.1.0" },
-    { id: "workflow-source", name: "hello-world-workflow", version: "0.2.0" },
+    { id: "workflow-source", name: "implementation-workflow", version: "0.4.0" },
   ],
 });
 
