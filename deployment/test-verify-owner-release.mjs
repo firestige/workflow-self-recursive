@@ -10,7 +10,7 @@ const root = resolve(import.meta.dirname, "..");
 
 test("published-coordinate acceptance binds Product pins to the single DSH owner record", async () => {
   const compatibility = JSON.parse(await readFile(resolve(root, "wsr-dsh/config/dsh-compatibility.json"), "utf8"));
-  const product = JSON.parse(await readFile(resolve(root, "product-operations/manifests/product-0.5.5.json"), "utf8"));
+  const product = JSON.parse(await readFile(resolve(root, "product-operations/manifests/product-0.5.6.json"), "utf8"));
   const bytes = Buffer.from("remote-owner");
   const owner = { ...compatibility.executionOwner, assetSha256: createHash("sha256").update(bytes).digest("hex") };
   const dsh = product.components.find(({ id }) => id === "dsh-bundle");
@@ -26,7 +26,7 @@ test("published-coordinate acceptance binds Product pins to the single DSH owner
 
 test("local overrides and Product/owner drift are rejected before candidate qualification", async () => {
   const compatibility = JSON.parse(await readFile(resolve(root, "wsr-dsh/config/dsh-compatibility.json"), "utf8"));
-  const product = JSON.parse(await readFile(resolve(root, "product-operations/manifests/product-0.5.5.json"), "utf8"));
+  const product = JSON.parse(await readFile(resolve(root, "product-operations/manifests/product-0.5.6.json"), "utf8"));
   await assert.rejects(verifyProductOwnerRelease(
     { ...compatibility.executionOwner, coordinate: "/tmp/wsr-execution-0.2.3.tgz" }, product,
     { fetchBytes: async () => new Uint8Array(), resolveRevision: async () => compatibility.executionOwner.revision },
