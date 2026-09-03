@@ -13,7 +13,7 @@ const productRoot = path.resolve(import.meta.dirname, "..");
 const repositoryRoot = path.resolve(productRoot, "..");
 const execFileAsync = promisify(execFile);
 
-test("the current one-click product installs the qualified DSH 0.2.9 release set", async () => {
+test("the current one-click product installs the qualified DSH 0.2.10 release set", async () => {
   const packageDocument = JSON.parse(await readFile(path.join(productRoot, "package.json"), "utf8"));
   const releaseManifestPath = path.join(repositoryRoot, "release/product", `${packageDocument.version}.json`);
   const packagedManifestPath = path.join(productRoot, "manifests", `product-${packageDocument.version}.json`);
@@ -26,9 +26,9 @@ test("the current one-click product installs the qualified DSH 0.2.9 release set
     JSON.parse(await readFile(path.join(repositoryRoot, `wsr-dsh/packages/${name}/package.json`), "utf8"))));
 
   assert.equal(manifest.release, packageDocument.version);
-  assert.equal(dsh.coordinate, "github-release://firestige/wsr-dsh/0.2.9/compatibility-matrix.json");
-  assert.equal(dsh.version, "0.2.9");
-  assert.equal(dsh.digest, "sha256:fb04f8fde9326847fe9d1e4be4c4b2e98f31738f53a3c8250953d3afbfcfebbf");
+  assert.equal(dsh.coordinate, "github-release://firestige/wsr-dsh/0.2.10/compatibility-matrix.json");
+  assert.equal(dsh.version, "0.2.10");
+  assert.equal(dsh.digest, "sha256:d2b17db8b9a3635a33a1db2470cce8a992ea50ffc84a777ac521e39cc92c3fa0");
   assert.deepEqual(dsh.compatibility.executionOwner, {
     package: ownerRecord.package,
     version: ownerRecord.version,
