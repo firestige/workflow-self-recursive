@@ -218,7 +218,7 @@ fi
 )
 
 node "$root/deployment/prepare-local-dsh-acceptance.mjs" \
-  "$root/product-operations/manifests/product-0.5.3.json" \
+  "$root/product-operations/manifests/product-0.5.4.json" \
   "$acceptance_manifest" \
   "$packages/wsr-execution-$execution_version.tgz" \
   "$packages/dsh-wsr-execution-$execution_plugin_version.tgz" \
@@ -250,7 +250,7 @@ node "$root/deployment/bind-local-package-candidate.mjs" --verify \
 
 node "$root/deployment/verify-local-core-install.mjs" \
   "$DSH_HOME/profiles/web" \
-  "$packages/wsr-execution-0.2.2.tgz"
+  "$packages/wsr-execution-0.2.4.tgz"
 
 installed_bundle="$state/managed/wsr-services-0.1.0"
 mkdir -p "$installed_bundle"
