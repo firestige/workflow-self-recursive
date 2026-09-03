@@ -39,7 +39,14 @@ test("creates a local-only DSH manifest and binds transitive package archives", 
     const component = loaded.components[0];
     assert.equal(component.coordinate, "fixture://issue-170/local-dsh-set");
     assert.equal(component.compatibility.executionOwner.coordinate, await realpath(ownerArchive));
-    assert.equal(component.compatibility.packages.suite, await realpath(suiteArchive));
+    assert.equal(component.compatibility.packages.execution, "dsh-wsr-execution@0.2.1");
+    assert.equal(component.compatibility.packages.studio, "dsh-wsr-studio@0.1.1");
+    assert.equal(component.compatibility.packages.suite, "dsh-wsr@0.2.1");
+    assert.deepEqual(component.qualification.packageSources, {
+      execution: await realpath(executionArchive),
+      studio: await realpath(studioArchive),
+      suite: await realpath(suiteArchive),
+    });
     const studio = JSON.parse(execFileSync("tar", ["-xOf", studioArchive, "package/package.json"], { encoding: "utf8" }));
     const suite = JSON.parse(execFileSync("tar", ["-xOf", suiteArchive, "package/package.json"], { encoding: "utf8" }));
     assert.equal(studio.dependencies["wsr-ui-core"], `file:${await realpath(providerArchive)}`);

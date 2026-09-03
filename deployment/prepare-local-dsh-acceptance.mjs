@@ -57,9 +57,16 @@ export async function prepareLocalDshAcceptance({
   component.compatibility.executionOwner.coordinate = paths.ownerArchive;
   component.compatibility.executionOwner.digest = digest(await readFile(paths.ownerArchive));
   component.compatibility.packages = {
-    execution: paths.executionArchive,
-    studio: paths.studioArchive,
-    suite: paths.suiteArchive,
+    execution: `${identities.executionArchive.name}@${identities.executionArchive.version}`,
+    studio: `${identities.studioArchive.name}@${identities.studioArchive.version}`,
+    suite: `${identities.suiteArchive.name}@${identities.suiteArchive.version}`,
+  };
+  component.qualification = {
+    packageSources: {
+      execution: paths.executionArchive,
+      studio: paths.studioArchive,
+      suite: paths.suiteArchive,
+    },
   };
   await writeFile(resolve(outputManifest), `${JSON.stringify(document, null, 2)}\n`);
   return {

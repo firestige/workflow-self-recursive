@@ -1,6 +1,10 @@
 #!/bin/sh
 set -eu
 
+# This gate proves current-source composition only. It deliberately rewrites
+# the Product manifest to local archives and is never published-coordinate evidence.
+printf '%s\n' 'Qualification mode: CURRENT_SOURCE_COMPOSITION (not published-coordinate evidence)'
+
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 temporary_parent=${WSR_ACCEPT_TMPDIR:-${TMPDIR:-/tmp}}
 preview=$(mktemp -d "$temporary_parent/wsr-current-accept.XXXXXX")
@@ -10,6 +14,7 @@ config="$preview/config.json"
 acceptance_manifest="$preview/compatibility.json"
 state="$preview/state"
 workspace="$preview/current-branch-acceptance"
+workflow_asset_pid=
 suffix=$(basename "$preview" | tr -cd 'A-Za-z0-9' | tr '[:upper:]' '[:lower:]')
 
 export DSH_HOME="$preview/dsh-home"
@@ -29,6 +34,11 @@ cleanup() {
   status=$?
   trap - 0 HUP INT TERM
   set +e
+
+  if test -n "$workflow_asset_pid"; then
+    kill "$workflow_asset_pid" >/dev/null 2>&1
+    wait "$workflow_asset_pid" >/dev/null 2>&1
+  fi
 
   if test -f "$config"; then
     operation stop >/dev/null 2>&1
@@ -135,6 +145,38 @@ printf '%s\n' \
   '    "role.reviewer": {' \
   '      "agentProvider": { "identity": "provider.codex", "version": "0.144.5" },' \
   '      "model": { "provider": "openai", "model": "gpt-5.6-sol" }' \
+  '    },' \
+  '    "role.grilling-facilitator": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.evidence-scout": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.system-designer": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.architecture-reviewer": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.problem-solution-reviewer": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.quality-reviewer": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.finding-aggregator": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.fresh-reader": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
   '    }' \
   '  }' \
   '}' > "$workspace/.wsr/role-provider-bindings.json"
@@ -196,6 +238,7 @@ node "$root/product-operations/bin/wsr.mjs" setup \
   --config-input "$config" \
   --config "$config" \
   --state-dir "$state"
+
 operation install
 
 node "$root/deployment/bind-local-package-candidate.mjs" --verify \
@@ -215,6 +258,31 @@ cp -R "$bundle/." "$installed_bundle/"
 operation preflight
 printf '\n正在验证本机 Agent Provider 凭据（不会读取或输出令牌）\n'
 node "$root/wsr-dsh/scripts/qualify-local-provider-auth.mjs" "$workspace"
+if test -n "${WSR_ACCEPT_WORKFLOW_ASSETS:-}"; then
+  workflow_asset_ready="$preview/workflow-asset-server.json"
+  (
+    cd "$root/execution-system"
+    node --import tsx scripts/serve-workflow-assets.ts "$WSR_ACCEPT_WORKFLOW_ASSETS" "$workflow_asset_ready"
+  ) >"$preview/workflow-asset-server.log" 2>&1 &
+  workflow_asset_pid=$!
+  attempts=0
+  while ! test -f "$workflow_asset_ready"; do
+    attempts=$((attempts + 1))
+    if test "$attempts" -ge 100 || ! kill -0 "$workflow_asset_pid" 2>/dev/null; then
+      printf 'Local Workflow asset server failed to start.\n' >&2
+      exit 1
+    fi
+    sleep 0.1
+  done
+  releases_base_url=$(jq -r '.releasesBaseUrl' "$workflow_asset_ready")
+  NODE_EXTRA_CA_CERTS=$(jq -r '.certificate' "$workflow_asset_ready")
+  export NODE_EXTRA_CA_CERTS
+  execution_config="$state/managed/dsh/execution-config.json"
+  jq --arg releasesBaseUrl "$releases_base_url" \
+    '.workflowSource.releasesBaseUrl = $releasesBaseUrl' \
+    "$execution_config" > "$execution_config.new"
+  mv "$execution_config.new" "$execution_config"
+fi
 operation start
 operation health
 
@@ -230,16 +298,26 @@ else
   printf '请在浏览器打开：%s\n' "$url"
 fi
 
-printf '\n==> 3/4 人工验收\n'
-printf '浏览器地址：%s\n' "$url"
-printf '请选择脚本已注册的 workspace：current-branch-acceptance\n'
-printf '%s\n' \
-  '1. 选择 current-branch-acceptance 并创建 Session。' \
-  '2. 只发送 selector，确认出现可展开的 TASK_PROMPT_REQUIRED 完整诊断。' \
-  '3. 发送 selector + Task，确认中间 Action 只出现一次且带 Action 名称，最终回答以独立回答气泡展示；不得出现空 Completed 或 WSR_PRESENTATION_INVALID。' \
-  '4. 确认 WSR Studio 紧跟 Delivery，且不会跳离当前 Session。' \
-  '5. 检查 Studio 的 Task、metric、receipt、fact 与 trace。'
-printf '\n验收完成后按 Enter；脚本将自动执行第 4 步清理：'
-IFS= read -r _answer
+if test "${WSR_ACCEPT_BROWSER_QUALIFICATION:-0}" = 1; then
+  printf '\n==> 3/4 自动产品验收\n'
+  (
+    cd "$root/execution-system"
+    node --import tsx "$root/execution-system/scripts/qualify-current-source-browser.ts" \
+      "$url" "$workspace" "http://127.0.0.1:$evidence_port" "${WSR_ACCEPT_BROWSER_SCENARIO:-evidence-studio}"
+  )
+  printf '自动产品验收通过。\n'
+else
+  printf '\n==> 3/4 人工验收\n'
+  printf '浏览器地址：%s\n' "$url"
+  printf '请选择脚本已注册的 workspace：current-branch-acceptance\n'
+  printf '%s\n' \
+    '1. 选择 current-branch-acceptance 并创建 Session。' \
+    '2. 只发送 selector，确认出现可展开的 TASK_PROMPT_REQUIRED 完整诊断。' \
+    '3. 发送 selector + Task，确认中间 Action 只出现一次且带 Action 名称，最终回答以独立回答气泡展示；不得出现空 Completed 或 WSR_PRESENTATION_INVALID。' \
+    '4. 确认 WSR Studio 紧跟 Delivery，且不会跳离当前 Session。' \
+    '5. 检查 Studio 的 Task、metric、receipt、fact 与 trace。'
+  printf '\n验收完成后按 Enter；脚本将自动执行第 4 步清理：'
+  IFS= read -r _answer
+fi
 
 printf '\n==> 4/4 移除临时资产\n'

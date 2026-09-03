@@ -34,7 +34,7 @@ export async function qualifyExactPublicCache(repository) {
     "execution-system/dist/delivery/index.js",
   )).href);
   const {
-    FrozenWorkflowPackageValidator,
+    FrozenWorkflowPackageValidatorV2,
     GitHubWorkflowPackageSource,
     WorkflowPackageResolver,
     WorkflowPackageStore,
@@ -57,9 +57,9 @@ export async function qualifyExactPublicCache(repository) {
         return request(url);
       },
     }));
-    const validator = new FrozenWorkflowPackageValidator(Object.freeze({
-      contractVersion: "1.1.0",
-      providerKey: "dsh",
+    const validator = new FrozenWorkflowPackageValidatorV2(Object.freeze({
+      contractVersion: "2.0.0",
+      providerIdentity: "provider.qualification",
       providerCapabilities: Object.freeze(["structured-completion", "action-interaction"]),
       hostCapabilities: Object.freeze([
         "deterministic-validation",
@@ -67,7 +67,7 @@ export async function qualifyExactPublicCache(repository) {
         "deterministic-transformation",
       ]),
     }));
-    const selector = "implementation-workflow@0.3.0";
+    const selector = "implementation-workflow@0.4.0";
     const first = await new WorkflowPackageResolver(store, source, validator).resolve(selector);
     if (!first.ok) throw new Error(`PUBLIC_WORKFLOW_QUALIFICATION_FAILED:${first.error.code}`);
     const requestsAfterDownload = networkRequests;

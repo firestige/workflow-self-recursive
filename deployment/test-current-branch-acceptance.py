@@ -26,6 +26,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
         no_open: bool = False,
         uninitialized_execution_system: bool = False,
         uninitialized_system_contracts: bool = False,
+        browser_qualification: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], list[str], Path]:
         with tempfile.TemporaryDirectory(prefix="wsr-accept-test-") as temporary_name:
             temporary = Path(temporary_name)
@@ -144,6 +145,7 @@ EOF
                 "WSR_ACCEPT_TEST_UNINITIALIZED_EXECUTION_SYSTEM": "1" if uninitialized_execution_system else "0",
                 "WSR_ACCEPT_TEST_UNINITIALIZED_SYSTEM_CONTRACTS": "1" if uninitialized_system_contracts else "0",
                 "WSR_ACCEPT_NO_OPEN": "1" if no_open else "0",
+                "WSR_ACCEPT_BROWSER_QUALIFICATION": "1" if browser_qualification else "0",
             }
             result = subprocess.run(
                 [str(SCRIPT)],
@@ -163,6 +165,7 @@ EOF
         result, commands, _ = self.run_acceptance()
 
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("CURRENT_SOURCE_COMPOSITION (not published-coordinate evidence)", result.stdout)
         joined = "\n".join(commands)
         self.assertRegex(joined, r"npm cwd=.*/wsr-ui run build")
         self.assertIn("--workspace wsr-ui-core", joined)
@@ -216,6 +219,19 @@ EOF
         joined = "\n".join(commands)
         self.assertNotIn("open http://127.0.0.1:13080", joined)
         self.assertIn(" start ", f" {joined} ")
+        self.assertIn("compose purge", joined)
+
+    def test_browser_qualification_replaces_the_manual_pause_and_receives_real_service_endpoints(self) -> None:
+        result, commands, _ = self.run_acceptance(no_open=True, browser_qualification=True)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        joined = "\n".join(commands)
+        self.assertIn("qualify-current-source-browser.ts", joined)
+        self.assertIn("http://127.0.0.1:13080", joined)
+        self.assertIn("http://127.0.0.1:14318", joined)
+        self.assertIn("current-branch-acceptance", joined)
+        self.assertNotIn("验收完成后按 Enter", result.stdout)
+        self.assertIn("自动产品验收通过", result.stdout)
         self.assertIn("compose purge", joined)
 
     def test_initializes_only_a_missing_submodule_before_building(self) -> None:

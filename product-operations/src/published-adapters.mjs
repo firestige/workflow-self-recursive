@@ -314,7 +314,11 @@ function dshAdapter({ component, configPath, stateDirectory, run, launch, proces
       }
       const config = await loadConfig(configPath);
       const profile = config.installation.dshProfile;
-      const selected = component.compatibility.packages[config.installation.dshMode];
+      const selectedIdentity = component.compatibility.packages[config.installation.dshMode];
+      const localSource = component.coordinate.startsWith("fixture://")
+        ? component.qualification?.packageSources?.[config.installation.dshMode]
+        : undefined;
+      const selected = typeof localSource === "string" ? localSource : selectedIdentity;
       if (["install", "upgrade", "rollback"].includes(command)) {
         const policy = await invoke(run, "dsh", ["plugin", "--profile", profile, "config", "set", "--location=project", "--json", "allowBuilds", '{"better-sqlite3":true}'], {}, "DSH_POLICY_FAILED");
         if (policy.status !== "succeeded") return policy;
@@ -326,7 +330,7 @@ function dshAdapter({ component, configPath, stateDirectory, run, launch, proces
       }
       if (command === "uninstall") {
         await stop();
-        const packageName = selected.split("@")[0];
+        const packageName = selectedIdentity.split("@")[0];
         const removed = await removeWorkspaceRoot(profile, packageName);
         if (removed.status !== "succeeded") return removed;
         return removeWorkspaceRoot(profile, "wsr-execution");

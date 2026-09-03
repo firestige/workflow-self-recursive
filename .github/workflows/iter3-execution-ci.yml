@@ -60,7 +60,6 @@ jobs:
 
       - name: Install frozen contract checker dependencies
         run: |
-          npm --prefix system-contracts/workflow-dsl ci
           npm --prefix system-contracts/workflow-dsl-2-candidate ci
           npm --prefix system-contracts/observation ci
           npm --prefix system-contracts/evaluation ci
@@ -95,17 +94,15 @@ jobs:
 
       - name: Qualify frozen contracts and Package consumers
         run: |
-          npm --prefix system-contracts/workflow-dsl test
+          npm --prefix system-contracts/workflow-dsl-2-candidate test
           npm --prefix system-contracts/delivery-admission test
           npm --prefix system-contracts/observation test
           npm --prefix system-contracts/evaluation test
           npm --prefix system-contracts/evaluation run check:example
-          node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/system-design/definition
-          node system-contracts/workflow-dsl/tools/check-example.cjs workflow-package/implementation/definition
           node system-contracts/workflow-dsl-2-candidate/generated/tools/check-example.cjs workflow-package/hello-world-workflow/definition
-          node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/system-design/definition
-          node system-contracts/workflow-dsl/tools/run-conformance.cjs workflow-package/implementation/definition
-          node system-contracts/workflow-dsl/tools/test-wave6-contract.cjs
+          node system-contracts/workflow-dsl-2-candidate/generated/tools/check-example.cjs workflow-package/system-design/definition
+          node system-contracts/workflow-dsl-2-candidate/generated/tools/check-example.cjs workflow-package/implementation/definition
+          node --test workflow-package/test/tooling/dsl2-first-party-migration.test.cjs
           npm --prefix workflow-package/implementation/cli test
           npm --prefix workflow-package/implementation/cli run check
 
@@ -144,31 +141,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir "$RUNNER_TEMP/workflow-release"
-          curl -fL -o "$RUNNER_TEMP/workflow-release/workflow-package-release-0.3.0.json" https://github.com/firestige/wsr-workflow-package/releases/download/0.3.0/workflow-package-release-0.3.0.json
-          curl -fL -o "$RUNNER_TEMP/workflow-release/workflow-package-implementation-workflow-0.3.0.tar.gz" https://github.com/firestige/wsr-workflow-package/releases/download/0.3.0/workflow-package-implementation-workflow-0.3.0.tar.gz
-          curl -fL -o "$RUNNER_TEMP/workflow-release/workflow-package-system-design-workflow-0.3.0.tar.gz" https://github.com/firestige/wsr-workflow-package/releases/download/0.3.0/workflow-package-system-design-workflow-0.3.0.tar.gz
-          test "$(sha256sum "$RUNNER_TEMP/workflow-release/workflow-package-release-0.3.0.json" | cut -d' ' -f1)" = c585123a882083e31b0e115e7edb31fc75151d9e111914e1e30dd56a1e5aca51
-          test "$(sha256sum "$RUNNER_TEMP/workflow-release/workflow-package-implementation-workflow-0.3.0.tar.gz" | cut -d' ' -f1)" = f5b25f82771efe5472439eced0038207d66416f139cdd4b207a9645b100ed148
-          test "$(sha256sum "$RUNNER_TEMP/workflow-release/workflow-package-system-design-workflow-0.3.0.tar.gz" | cut -d' ' -f1)" = abd818546d413f36f69693603b897eac25f138db079ea1af08336e7544d98231
-
-          mkdir "$RUNNER_TEMP/hello-world-release"
-          gh release download workflow-package/hello-world-workflow/v0.1.0 \
-            --repo firestige/wsr-workflow-package \
-            --dir "$RUNNER_TEMP/hello-world-release"
-          test "$(find "$RUNNER_TEMP/hello-world-release" -type f | wc -l | tr -d ' ')" = 3
-          test "$(sha256sum "$RUNNER_TEMP/hello-world-release/workflow-package-hello-world-workflow-0.1.0.tar.gz" | cut -d' ' -f1)" = 31348e57be3a8ce9bb078cbe26ba41203083a25157cba90637fde6ffb6af5f70
-          test "$(sha256sum "$RUNNER_TEMP/hello-world-release/workflow-package-hello-world-workflow-0.1.0.json" | cut -d' ' -f1)" = 113b981f8913d8384bc0ed11e8792fc58fbcfce934bf4154c0780c4d2bfb42c2
-          test "$(sha256sum "$RUNNER_TEMP/hello-world-release/workflow-package-hello-world-workflow-0.1.0.tar.gz.sha256" | cut -d' ' -f1)" = f6c4c33bcc2ee803844509712e458183027f883933ed00057e1198dc4ef4f16b
+          mkdir "$RUNNER_TEMP/implementation-release" "$RUNNER_TEMP/system-design-release"
+          gh release download workflow-package/implementation-workflow/v0.4.0 --repo firestige/wsr-workflow-package --dir "$RUNNER_TEMP/implementation-release"
+          gh release download workflow-package/system-design-workflow/v0.4.0 --repo firestige/wsr-workflow-package --dir "$RUNNER_TEMP/system-design-release"
+          test "$(find "$RUNNER_TEMP/implementation-release" -type f | wc -l | tr -d ' ')" = 4
+          test "$(find "$RUNNER_TEMP/system-design-release" -type f | wc -l | tr -d ' ')" = 4
+          test "$(sha256sum "$RUNNER_TEMP/implementation-release/workflow-package-implementation-workflow-0.4.0.tar.gz" | cut -d' ' -f1)" = 86d8bfca8e60eb2a207bb8e6a0a463c7035fd4d8ad7220b94317c9f45eb32b4e
+          test "$(sha256sum "$RUNNER_TEMP/system-design-release/workflow-package-system-design-workflow-0.4.0.tar.gz" | cut -d' ' -f1)" = e321678ad9460ae58a6fb5d6b316329296992abea69ef64ef6a570cb9c048e08
 
       - name: Enforce protected Iteration 2 and frozen-scope boundaries
         run: |
-          test "$(git -C workflow-package rev-parse ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb^{tree}:implementation)" = "$(git -C workflow-package rev-parse HEAD^{tree}:implementation)"
-          test "$(git -C workflow-package rev-parse ed2a0bddda1eeaba77f19c5e543fe0c82d55fefb^{tree}:system-design)" = "$(git -C workflow-package rev-parse HEAD^{tree}:system-design)"
           test "$(git -C system-contracts rev-parse 9e6ba782b742f49f3d2392c9af37ebd4ff328bc8^{tree}:delivery-admission)" = "$(git -C system-contracts rev-parse HEAD^{tree}:delivery-admission)"
           test "$(git -C system-contracts rev-parse 9e6ba782b742f49f3d2392c9af37ebd4ff328bc8^{tree}:evaluation)" = "$(git -C system-contracts rev-parse HEAD^{tree}:evaluation)"
           test "$(git -C system-contracts rev-parse 9e6ba782b742f49f3d2392c9af37ebd4ff328bc8^{tree}:observation)" = "$(git -C system-contracts rev-parse HEAD^{tree}:observation)"
-          test "$(git -C system-contracts rev-parse 9e6ba782b742f49f3d2392c9af37ebd4ff328bc8^{tree}:workflow-dsl)" = "$(git -C system-contracts rev-parse HEAD^{tree}:workflow-dsl)"
           pnpm --dir execution-system exec tsx scripts/static-boundary-check.ts
           if git grep -n -E '#87.*(complete|closed|done)|Workflow Contract evolution.*(complete|closed|done)|Delivery Admission Contract evolution.*(complete|closed|done)' -- docs; then
             exit 1
