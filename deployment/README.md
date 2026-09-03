@@ -61,3 +61,8 @@ The deployment publishes no image and needs no registry or publisher credential.
 The loopback bind is the supported local boundary. If a user-owned Compose override or external
 reverse proxy exposes BI on `0.0.0.0` or a public interface, that operator also owns TLS,
 authentication, firewall policy, and the resulting public-exposure risk.
+# Qualification modes
+
+`accept-current-branch.sh` is a current-source composition check. It intentionally builds local archives and rewrites a temporary Product manifest, so its result is never evidence for a published coordinate.
+
+`verify-owner-release.mjs` is the published-coordinate gate. It checks the Product Execution pin against DSH's single owner-release record, resolves the remote release tag to the recorded source revision, downloads the exact remote artifact, and verifies its SHA-256 digest. It does not accept a local archive override.
