@@ -16,7 +16,7 @@
     "version": "0.1.1",
     "payload_commit": "7f585c0c367c7d7ef27189bd79d061d600392930",
     "candidate_archive_commit": "effc9a271728532009a6d3316fce0b529bfeee3f",
-    "publisher_commit": "3f3008f84ab989705fa86a39fe15e257eadeaf65",
+    "publisher_commit": "2da2b5e9b875197e5dd32e299d84b59b80cc72f9",
     "candidate_tag": "0.1.1-rc.1",
     "manifest_path": "evidence-system/release/candidates/issue-187-evidence-0.1.1.json",
     "manifest_sha256": "sha256:ac3341865567429de611312e29388d65864abf366089349115dedfc98937146a",
