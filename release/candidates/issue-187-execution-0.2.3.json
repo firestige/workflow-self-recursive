@@ -4,16 +4,16 @@
   "created_at": "2026-09-03",
   "execution": {
     "repository": "firestige/wsr-execution",
-    "input_commit": "60a102244f70e6b23b82f67e846397c129a214cd",
-    "build_input_commit": "60a102244f70e6b23b82f67e846397c129a214cd",
-    "candidate_archive_commit": "60a102244f70e6b23b82f67e846397c129a214cd",
+    "input_commit": "d4287b9230da4b6be1f06785cbb841db048b4a84",
+    "build_input_commit": "d4287b9230da4b6be1f06785cbb841db048b4a84",
+    "candidate_archive_commit": "d4287b9230da4b6be1f06785cbb841db048b4a84",
     "metadata": {
       "path": "execution-system/release/candidates/issue-187-execution-0.2.3/release-metadata.json",
-      "sha256": "sha256:d02896480a6d06e1cb0437779ca5e258d196b9bbf4701fa4f8a167a0168a5526"
+      "sha256": "sha256:bcdc6622aa0390d6ec2400bfb428b2a35475844194ee87625e18de4a5d270155"
     },
     "release_notes": {
       "path": "execution-system/release/candidates/issue-187-execution-0.2.3/release-notes.md",
-      "sha256": "sha256:286e95b5825519052b0e6649dbc885efb19d17a124bb81b81b01b36c6cda9eed"
+      "sha256": "sha256:25ac6f9addf82c7b8986af873b3e98a320dbdf5ee3774616a269e69c23ffab82"
     },
     "artifacts": [
       {
@@ -33,7 +33,7 @@
     "contract": "agentops.workflow-dsl@2.0.0"
   },
   "qualification": {
-    "execution_ci": "PASS_RUN_33757276677",
+    "execution_ci": "PASS_RUN_33758192000",
     "execution_artifact_rebuild": "BYTE_EXACT",
     "workflow_package_candidate": "PASS_RUN_33750842491",
     "workflow_package_promotion": "PASS_RUN_33750919029",
