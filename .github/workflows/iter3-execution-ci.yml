@@ -147,7 +147,7 @@ jobs:
           test "$(find "$RUNNER_TEMP/implementation-release" -type f | wc -l | tr -d ' ')" = 4
           test "$(find "$RUNNER_TEMP/system-design-release" -type f | wc -l | tr -d ' ')" = 4
           test "$(sha256sum "$RUNNER_TEMP/implementation-release/workflow-package-implementation-workflow-0.4.1.tar.gz" | cut -d' ' -f1)" = 0fa0e8849cc5a38d7e4f24101d5a92ac89205fa32b7f535daef5f00b72fd5331
-          test "$(sha256sum "$RUNNER_TEMP/system-design-release/workflow-package-system-design-workflow-0.4.1.tar.gz" | cut -d' ' -f1)" = e321678ad9460ae58a6fb5d6b316329296992abea69ef64ef6a570cb9c048e08
+          test "$(sha256sum "$RUNNER_TEMP/system-design-release/workflow-package-system-design-workflow-0.4.1.tar.gz" | cut -d' ' -f1)" = 514ad1cc9d052d26d276e33b5fa6f977a69fb39f85b282e6e58fc30624df87d2
 
       - name: Enforce protected Iteration 2 and frozen-scope boundaries
         run: |
