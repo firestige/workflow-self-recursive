@@ -217,7 +217,7 @@ fi
 )
 
 node "$root/deployment/prepare-local-dsh-acceptance.mjs" \
-  "$root/product-operations/manifests/product-0.5.0.json" \
+  "$root/product-operations/manifests/product-0.5.1.json" \
   "$acceptance_manifest" \
   "$packages/wsr-execution-0.2.2.tgz" \
   "$packages/dsh-wsr-execution-$execution_plugin_version.tgz" \

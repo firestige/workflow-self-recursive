@@ -8,8 +8,8 @@ import { loadCompatibilityManifest } from "../src/compatibility-manifest.mjs";
 import { createPublishedAdapters } from "../src/published-adapters.mjs";
 
 const root = path.resolve(import.meta.dirname, "../..");
-const manifestPath = path.join(root, "release/product/0.5.0.json");
-const packagedManifestPath = path.join(root, "product-operations/manifests/product-0.5.0.json");
+const manifestPath = path.join(root, "release/product/0.5.1.json");
+const packagedManifestPath = path.join(root, "product-operations/manifests/product-0.5.1.json");
 
 async function configFixture(directory, overrides = {}) {
   const configPath = path.join(directory, "config.json");
@@ -30,7 +30,7 @@ async function configFixture(directory, overrides = {}) {
 test("final product manifest binds only stable published artifacts", async () => {
   assert.equal(await readFile(packagedManifestPath, "utf8"), await readFile(manifestPath, "utf8"));
   const manifest = await loadCompatibilityManifest(manifestPath);
-  assert.equal(manifest.release, "0.5.0");
+  assert.equal(manifest.release, "0.5.1");
   assert.deepEqual(manifest.components.map(({ id }) => id), [
     "dsh-bundle",
     "services",
@@ -51,8 +51,8 @@ test("final product manifest binds only stable published artifacts", async () =>
   assert.equal(dsh.compatibility.executionOwner.release, "0.2.2");
   assert.equal(services.version, "0.1.0");
   assert.match(services.coordinate, /compose-0\.1\.0\/wsr-services-0\.1\.0\.tar\.gz$/u);
-  assert.equal(workflow.version, "0.4.0");
-  assert.match(workflow.coordinate, /workflow-package\/implementation-workflow\/v0\.4\.0/u);
+  assert.equal(workflow.version, "0.4.1");
+  assert.match(workflow.coordinate, /workflow-package\/implementation-workflow\/v0\.4\.1/u);
   assert.equal(providers.compatibility.copilot, "1.0.78");
   assert.equal(providers.compatibility.codex, "0.144.5");
 });
