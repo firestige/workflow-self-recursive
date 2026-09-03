@@ -23,6 +23,8 @@ test("canonical CI replays v2 assets and the public exact-content cache qualific
   assert.match(workflow, /uv run --project evolution-system --python 3\.14 \\\n\s+pytest -q evolution-system\/tests\/unit\/workflow_sources/);
   assert.doesNotMatch(workflow, /pnpm verify:(?:dsh-intake|iteration3-docs)/);
   assert.doesNotMatch(workflow, /workflow-source.*(?:latest|branch|local fallback)/i);
+  assert.match(workflow, /npm --prefix system-contracts\/workflow-dsl-2-candidate test/);
+  assert.doesNotMatch(workflow, /system-contracts\/workflow-dsl(?:\/|\s)/);
   assert.match(qualification, /FrozenWorkflowPackageValidatorV2/);
   assert.match(qualification, /contractVersion: "2\.0\.0"/);
   assert.match(qualification, /implementation-workflow@0\.4\.0/);
