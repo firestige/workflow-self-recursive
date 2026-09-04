@@ -50,8 +50,8 @@ test("final product manifest binds only stable published artifacts", async () =>
   });
   assert.equal(dsh.compatibility.executionOwner.version, "0.2.6");
   assert.equal(dsh.compatibility.executionOwner.release, "0.2.6");
-  assert.equal(services.version, "0.1.4");
-  assert.match(services.coordinate, /compose-0\.1\.4\/wsr-services-0\.1\.4\.tar\.gz$/u);
+  assert.equal(services.version, "0.1.6");
+  assert.match(services.coordinate, /compose-0\.1\.6\/wsr-services-0\.1\.6\.tar\.gz$/u);
   assert.equal(workflow.version, "0.4.6");
   assert.match(workflow.coordinate, /workflow-package\/implementation-workflow\/v0\.4\.6/u);
   assert.equal(providers.compatibility.copilot, "1.0.78");

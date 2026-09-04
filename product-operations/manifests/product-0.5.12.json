@@ -29,10 +29,10 @@
     {
       "id": "services",
       "layer": "Evidence/Evolution",
-      "coordinate": "github-release://firestige/workflow-self-recursive/compose-0.1.4/wsr-services-0.1.4.tar.gz",
-      "downloadUrl": "https://github.com/firestige/workflow-self-recursive/releases/download/compose-0.1.4/wsr-services-0.1.4.tar.gz",
-      "version": "0.1.4",
-      "digest": "sha256:bb5b62bffee22abe444de4b66c668c136a4842c504fa257912d4d375d6f14ce6"
+      "coordinate": "github-release://firestige/workflow-self-recursive/compose-0.1.6/wsr-services-0.1.6.tar.gz",
+      "downloadUrl": "https://github.com/firestige/workflow-self-recursive/releases/download/compose-0.1.6/wsr-services-0.1.6.tar.gz",
+      "version": "0.1.6",
+      "digest": "sha256:dfc87dea6e329277507946bda740450cd9cfbcae84c09d69285886485cc5b50a"
     },
     {
       "id": "workflow-source",

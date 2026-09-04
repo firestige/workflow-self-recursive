@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import socket
 import subprocess
 import tempfile
 import time
@@ -17,6 +18,23 @@ GENERATOR = PUBLISHED / "build-bundle.py"
 FINAL_MANIFEST = ROOT / "release" / "compose" / "0.1.1.json"
 
 SHA = "a" * 64
+
+
+def free_port() -> int:
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+def free_ports() -> tuple[int, int]:
+    listeners = [socket.socket(), socket.socket()]
+    try:
+        for listener in listeners:
+            listener.bind(("127.0.0.1", 0))
+        return tuple(int(listener.getsockname()[1]) for listener in listeners)  # type: ignore[return-value]
+    finally:
+        for listener in listeners:
+            listener.close()
 
 
 def manifest(version: str = "0.1.0") -> dict[str, object]:
@@ -151,7 +169,7 @@ class PublishedBundleTest(unittest.TestCase):
         self.assertLess(start_stack.index("10-wsr-roles.sh"), start_stack.index("wait_stack"))
         self.assertIn("compose rm -sf migrate evidence evolution", start_stack)
         self.assertIn("start | upgrade | rollback) recoverable_start_stack", launcher)
-        self.assertIn("io.wsr.state-identity", compose)
+        self.assertIn("io.wsr.state-identity", launcher)
         self.assertNotIn("down --volumes", launcher)
 
     def test_generator_rejects_tags_without_digest_and_incompatible_schema(self) -> None:
@@ -211,10 +229,13 @@ class PublishedBundleTest(unittest.TestCase):
             )
             docker.chmod(0o755)
             state = temporary_root / "state"
+            evidence_port, evolution_port = free_ports()
             environment = os.environ | {
                 "PATH": f"{fake_bin}:{os.environ['PATH']}",
                 "WSR_TEST_DOCKER_LOG": str(log),
                 "WSR_LOCAL_STATE_DIR": str(state),
+                "WSR_EVIDENCE_PORT": str(evidence_port),
+                "WSR_EVOLUTION_PORT": str(evolution_port),
             }
 
             subprocess.run([str(bundle / "wsr-compose"), "start"], env=environment, check=True)
@@ -271,6 +292,7 @@ class PublishedBundleTest(unittest.TestCase):
                 encoding="utf-8",
             )
             docker.chmod(0o755)
+            evidence_port, evolution_port = free_ports()
             completed = subprocess.run(
                 [str(bundle / "wsr-compose"), "start"],
                 env=os.environ
@@ -278,6 +300,8 @@ class PublishedBundleTest(unittest.TestCase):
                     "PATH": f"{fake_bin}:{os.environ['PATH']}",
                     "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
                     "WSR_TEST_DOCKER_LOG": str(log),
+                    "WSR_EVIDENCE_PORT": str(evidence_port),
+                    "WSR_EVOLUTION_PORT": str(evolution_port),
                 },
                 capture_output=True,
                 text=True,
@@ -620,6 +644,7 @@ class PublishedBundleTest(unittest.TestCase):
                 env=os.environ | {
                     "PATH": f"{fake_bin}:{os.environ['PATH']}",
                     "WSR_EVIDENCE_PORT": port,
+                    "WSR_EVOLUTION_PORT": str(free_port()),
                     "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
                 },
                 capture_output=True,
