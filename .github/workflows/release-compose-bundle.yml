@@ -59,18 +59,43 @@ jobs:
           release_manifest: ${{ inputs.release_manifest }}
           require_final_version: 'true'
 
-      - name: Verify rc predecessor was published
+      - name: Verify rc predecessor was published and matches its manifest asset
         if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
         run: |
-          MATCH="$(gh release list --limit 200 --json tagName,isPrerelease \
-            --jq '.[] | select(.isPrerelease) | .tagName' | grep -F "compose-$VERSION-rc." | head -1 || true)"
-          if [ -z "$MATCH" ]; then
-            echo "no published rc release matches compose-$VERSION-rc.* — GA must be promoted from a published candidate, not invented" >&2
+          # The predecessor is identified by content (check-ga-manifest.mjs), not by a
+          # bounded `gh release list` scan: the exact rc version (with ordinal) is read
+          # from the matched local manifest, so the release lookup is a single-tag
+          # `gh release view` regardless of how many releases the repository has, and
+          # promotion is pinned to the newest content-equivalent rc when several
+          # ordinals share a version prefix.
+          if ! CHECK_OUT="$(node scripts/check-ga-manifest.mjs "$RELEASE_MANIFEST" --verify-coordinates 2>&1)"; then
+            echo "$CHECK_OUT"
+            echo "check-ga-manifest failed — GA manifest is not a clean promotion of a published rc" >&2
             exit 1
           fi
-          echo "promoted from: $MATCH"
+          echo "$CHECK_OUT"
+          RC_PATH="$(printf '%s\n' "$CHECK_OUT" | sed -n 's/^promoted from: //p')"
+          if [ -z "$RC_PATH" ]; then
+            echo "no rc predecessor found for $RELEASE_MANIFEST — GA must be promoted from a published candidate, not invented" >&2
+            exit 1
+          fi
+          RC_VERSION="$(jq -er '.version' "$RC_PATH")"
+          TAG="compose-$RC_VERSION"
+          if [ "$(gh release view "$TAG" --json isPrerelease --jq '.isPrerelease' 2>/dev/null)" != "true" ]; then
+            echo "no published prerelease $TAG — GA must be promoted from a published candidate, not invented" >&2
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/rc-asset"
+          gh release download "$TAG" --pattern '*.release.json' --dir "$RUNNER_TEMP/rc-asset" --clobber
+          ASSET="$(ls "$RUNNER_TEMP"/rc-asset/*.release.json)"
+          if ! cmp -s "$RC_PATH" "$ASSET"; then
+            echo "published $TAG's manifest asset differs from $RC_PATH — the published rc does not match its repository manifest" >&2
+            exit 1
+          fi
+          echo "promoted from: $TAG ($RC_PATH, asset-verified)"
 
       - name: Publish stable Compose bundle Release
         if: github.event_name == 'workflow_dispatch'
@@ -116,18 +141,41 @@ jobs:
           release_manifest: ${{ inputs.release_manifest }}
           require_final_version: 'true'
 
-      - name: Verify rc predecessor was published
+      - name: Verify rc predecessor was published and matches its manifest asset
         if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
         run: |
-          MATCH="$(gh release list --limit 200 --json tagName,isPrerelease \
-            --jq '.[] | select(.isPrerelease) | .tagName' | grep -F "product-$VERSION-rc." | head -1 || true)"
-          if [ -z "$MATCH" ]; then
-            echo "no published rc release matches product-$VERSION-rc.* — GA must be promoted from a published candidate, not invented" >&2
+          # Same reasoning as the compose job: the exact rc version comes from the
+          # content-matched local manifest, so the lookup is a single tag, never a
+          # bounded list scan, and promotion is pinned to the newest
+          # content-equivalent rc.
+          if ! CHECK_OUT="$(node scripts/check-ga-manifest.mjs "$RELEASE_MANIFEST" --verify-coordinates 2>&1)"; then
+            echo "$CHECK_OUT"
+            echo "check-ga-manifest failed — GA manifest is not a clean promotion of a published rc" >&2
             exit 1
           fi
-          echo "promoted from: $MATCH"
+          echo "$CHECK_OUT"
+          RC_PATH="$(printf '%s\n' "$CHECK_OUT" | sed -n 's/^promoted from: //p')"
+          if [ -z "$RC_PATH" ]; then
+            echo "no rc predecessor found for $RELEASE_MANIFEST — GA must be promoted from a published candidate, not invented" >&2
+            exit 1
+          fi
+          RC_VERSION="$(jq -er '.release' "$RC_PATH")"
+          TAG="product-$RC_VERSION"
+          if [ "$(gh release view "$TAG" --json isPrerelease --jq '.isPrerelease' 2>/dev/null)" != "true" ]; then
+            echo "no published prerelease $TAG — GA must be promoted from a published candidate, not invented" >&2
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/rc-asset"
+          gh release download "$TAG" --pattern '*.release.json' --dir "$RUNNER_TEMP/rc-asset" --clobber
+          ASSET="$(ls "$RUNNER_TEMP"/rc-asset/*.release.json)"
+          if ! cmp -s "$RC_PATH" "$ASSET"; then
+            echo "published $TAG's manifest asset differs from $RC_PATH — the published rc does not match its repository manifest" >&2
+            exit 1
+          fi
+          echo "promoted from: $TAG ($RC_PATH, asset-verified)"
 
       - name: Publish stable product Release
         if: github.event_name == 'workflow_dispatch'

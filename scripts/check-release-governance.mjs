@@ -136,8 +136,32 @@ function checkReleaseTriggers(files) {
 
 // --------------------------------------------------------------- rule 2
 
+/** True when `text` contains an Actions `uses:` step that actually invokes the
+ *  reusable workflow `target` — a local `./.github/workflows/<target>` path or
+ *  a pinned cross-repo `owner/repo/.github/workflows/<target>@ref` — as opposed
+ *  to merely mentioning the filename in prose (e.g. an explanatory comment). */
+function invokesWorkflow(text, target) {
+  const esc = target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const reference = String.raw`(?:\.\/\.github\/workflows\/${esc}|[^\s'"]+\/\.github\/workflows\/${esc}@[^\s'"]+)`;
+  const inline = new RegExp(
+    String.raw`^[ \t]*(?:-[ \t]*)?uses:[ \t]*['"]?${reference}['"]?[ \t]*(?:#.*)?$`,
+    "m",
+  );
+  if (inline.test(text)) return true;
+
+  // YAML folded/literal scalars are still scalar `uses` values. Accepting only
+  // the one-line spelling would let formatting hide the same call from the gate.
+  const block = new RegExp(
+    String.raw`^([ \t]*)(?:-[ \t]*)?uses:[ \t]*[>|][+-]?[ \t]*(?:#.*)?\n\1[ \t]+${reference}[ \t]*$`,
+    "m",
+  );
+  return block.test(text);
+}
+
 /** A promotion workflow exposed via workflow_call is only safe if no auto-triggered
- *  workflow calls it — otherwise the manual-only trigger is bypassable. */
+ *  workflow calls it — otherwise the manual-only trigger is bypassable. Candidate
+ *  workflows are auto-triggered by design and are NOT exempt here: that is
+ *  precisely the shape this rule must catch. */
 function checkCallChain(files) {
   const callable = PROMOTE_WORKFLOWS.filter(
     (n) => files.includes(n) && triggersOf(readFileSync(join(WORKFLOW_DIR, n), "utf8")).includes("workflow_call"),
@@ -145,13 +169,14 @@ function checkCallChain(files) {
   if (callable.length === 0) return;
 
   for (const name of files) {
-    if (RELEASE_WORKFLOWS.includes(name)) continue;
+    if (PROMOTE_WORKFLOWS.includes(name)) continue; // rule 1 already governs a promote workflow's own triggers
     const path = join(WORKFLOW_DIR, name);
     const text = readFileSync(path, "utf8");
     const auto = triggersOf(text).filter((t) => t !== "workflow_dispatch" && t !== "workflow_call");
     if (auto.length === 0) continue;
     for (const target of callable) {
-      if (text.includes(target)) {
+      if (target === name) continue; // a workflow cannot bypass itself by referencing itself
+      if (invokesWorkflow(text, target)) {
         fail(
           path,
           `触发器 ${auto.join(", ")}；引用了 ${target}`,
