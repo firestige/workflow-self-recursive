@@ -90,6 +90,24 @@ jobs:
           release_manifest: ${{ matrix.release_manifest }}
           require_final_version: 'false'
 
+      - name: Render human release preview
+        env:
+          RELEASE_MANIFEST: ${{ matrix.release_manifest }}
+          BUNDLE_KIND: ${{ matrix.bundle_kind }}
+        run: |
+          BASE="${VERSION%%-rc.*}"
+          RELEASE_PREVIEW="$RUNNER_TEMP/$BUNDLE_KIND-$VERSION.preview.md"
+          PREVIEW_ARGS=(--manifest "$RELEASE_MANIFEST" --output "$RELEASE_PREVIEW")
+          shopt -s nullglob
+          for candidate in "release/$BUNDLE_KIND/$BASE"-rc.*.json; do
+            if [ "$candidate" != "$RELEASE_MANIFEST" ]; then
+              PREVIEW_ARGS+=(--compare "$candidate")
+            fi
+          done
+          node scripts/render-release-preview.mjs "${PREVIEW_ARGS[@]}"
+          cat "$RELEASE_PREVIEW" >> "$GITHUB_STEP_SUMMARY"
+          echo "RELEASE_PREVIEW=$RELEASE_PREVIEW" >> "$GITHUB_ENV"
+
       - name: Publish or skip existing release candidate
         env:
           GH_TOKEN: ${{ github.token }}
@@ -104,16 +122,16 @@ jobs:
           fi
           if [ "$BUNDLE_KIND" = compose ]; then
             gh release create "$TAG" \
-              "$ARCHIVE" "$CHECKSUM" "$RELEASE_ASSET_MANIFEST" \
+              "$ARCHIVE" "$CHECKSUM" "$RELEASE_ASSET_MANIFEST" "$RELEASE_PREVIEW" \
               --target "$(git rev-parse HEAD)" \
               --prerelease \
               --title "WSR Docker Compose bundle candidate $VERSION" \
-              --notes "Exact-digest Docker Compose bundle candidate for WSR Evidence and Evolution."
+              --notes-file "$RELEASE_PREVIEW"
           else
             gh release create "$TAG" \
-              "$ARCHIVE" "$CHECKSUM" "$RELEASE_ASSET_MANIFEST" "$CONFIG_EXAMPLE" \
+              "$ARCHIVE" "$CHECKSUM" "$RELEASE_ASSET_MANIFEST" "$CONFIG_EXAMPLE" "$RELEASE_PREVIEW" \
               --target "$(git rev-parse HEAD)" \
               --prerelease \
               --title "WSR product operations candidate $VERSION" \
-              --notes "Installable top-level operations bundle candidate for the WSR $VERSION compatibility manifest."
+              --notes-file "$RELEASE_PREVIEW"
           fi
