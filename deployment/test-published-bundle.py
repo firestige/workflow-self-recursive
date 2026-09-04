@@ -76,6 +76,7 @@ class PublishedBundleTest(unittest.TestCase):
             self.assertIn('127.0.0.1:${WSR_EVIDENCE_PORT:-4318}:4318', compose)
             self.assertIn('127.0.0.1:${WSR_EVOLUTION_PORT:-8000}:8000', compose)
             self.assertIn("${WSR_EVOLUTION_CONFIG_FILE:-./evolution.config.json}", compose)
+            self.assertIn("external: true", compose)
             self.assertTrue((bundle / "wsr-host-preflight.mjs").is_file())
             endpoint_template = json.loads(
                 (bundle / "host-endpoints.template.json").read_text(encoding="utf-8")
@@ -432,6 +433,45 @@ class PublishedBundleTest(unittest.TestCase):
             self.assertIn("volume inspect wsr-evidence-foreign-test", commands)
             self.assertNotIn(" pull", commands)
 
+    def test_services_owner_creates_a_missing_external_volume_with_the_state_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            log = temporary_root / "docker.log"
+            docker = fake_bin / "docker"
+            docker.write_text(
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >>\"$WSR_TEST_DOCKER_LOG\"\n"
+                "case \"$*\" in *'volume inspect'* ) printf 'Error: no such volume\\n'; exit 1;; esac\n"
+                "exit 0\n",
+                encoding="utf-8",
+            )
+            docker.chmod(0o755)
+            state = temporary_root / "state"
+            state.mkdir()
+            identity = "a" * 64
+            (state / "service-state-identity").write_text(identity + "\n", encoding="utf-8")
+
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "upgrade"],
+                env=os.environ
+                | {
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "WSR_LOCAL_STATE_DIR": str(state),
+                    "WSR_EVIDENCE_VOLUME": "wsr-evidence-new-test",
+                    "WSR_TEST_DOCKER_LOG": str(log),
+                },
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            commands = log.read_text(encoding="utf-8")
+            create = f"volume create --label io.wsr.state-identity={identity} wsr-evidence-new-test"
+            self.assertIn(create, commands)
+            self.assertLess(commands.index(create), commands.index(" pull"))
+
     def test_services_abort_can_remove_partial_runtime_despite_a_foreign_volume_label(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             temporary_root = Path(temporary)
@@ -731,7 +771,7 @@ class PublishedBundleTest(unittest.TestCase):
         e2e = (ROOT / "deployment" / "test-published-e2e.sh").read_text(encoding="utf-8")
 
         self.assertIn("WSR_RUN_PUBLISHED_E2E", e2e)
-        self.assertIn("release/compose/0.1.5.json", e2e)
+        self.assertIn("release/compose/0.1.6.json", e2e)
         self.assertIn("build-bundle.py", e2e)
         self.assertIn('"$bundle/wsr-compose" start', e2e)
         self.assertIn('"$bundle/wsr-compose" restart', e2e)

@@ -76,8 +76,10 @@ case "$state_identity" in *[!0-9a-f]* | "") printf 'Invalid service state identi
 if test "${#state_identity}" -ne 64; then printf 'Invalid service state identity.\n' >&2; exit 2; fi
 
 verify_volume_owner=0
+volume_exists=0
 case "$action" in start | restart | upgrade | rollback | purge) verify_volume_owner=1;; esac
 if test "$verify_volume_owner" -eq 1 && volume_inspection=$(docker volume inspect "$volume" --format '{{json .Labels}}' 2>&1); then
+  volume_exists=1
   recorded_identity=
   if test -n "$volume_inspection" && test "$volume_inspection" != null; then
     if ! recorded_identity=$(printf '%s' "$volume_inspection" | node -e '
@@ -100,7 +102,13 @@ if test "$verify_volume_owner" -eq 1 && volume_inspection=$(docker volume inspec
   fi
 elif test "$verify_volume_owner" -eq 1; then
   case "$volume_inspection" in
-    *'no such volume'* | *'No such volume'*) ;;
+    *'no such volume'* | *'No such volume'*)
+      if test "$action" != purge; then
+        node "$bundle_dir/run-with-timeout.mjs" "$compose_timeout" docker volume create \
+          --label "io.wsr.state-identity=$state_identity" "$volume" >/dev/null
+        volume_exists=1
+      fi
+      ;;
     *) printf 'Cannot inspect Evidence volume %s ownership.\n' "$volume" >&2; exit 20;;
   esac
 fi
@@ -173,7 +181,7 @@ case "$action" in
       exit 2
     fi
     compose down
-    docker volume rm "$volume"
+    if test "$volume_exists" -eq 1; then docker volume rm "$volume"; fi
     ;;
   *) printf 'usage: %s {host-config|preflight|start|stop|restart|down|status|logs|upgrade|rollback|purge}\n' "$0" >&2; exit 2;;
 esac
