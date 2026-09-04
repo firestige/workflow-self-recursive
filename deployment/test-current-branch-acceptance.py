@@ -28,8 +28,10 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
         uninitialized_system_contracts: bool = False,
         browser_qualification: bool = False,
         leaked_container: bool = False,
+        transient_container_checks: int = 0,
+        cleanup_requires_fallback: bool = False,
         manifest_mismatch: bool = False,
-    ) -> tuple[subprocess.CompletedProcess[str], list[str], Path]:
+    ) -> tuple[subprocess.CompletedProcess[str], list[str], list[str]]:
         with tempfile.TemporaryDirectory(prefix="wsr-accept-test-") as temporary_name:
             temporary = Path(temporary_name)
             fake_bin = temporary / "bin"
@@ -133,7 +135,18 @@ EOF
                 printf 'docker %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
                 case " $* " in
                   *" ps -aq "*)
-                    if test "${WSR_ACCEPT_TEST_LEAKED_CONTAINER:-0}" = 1; then printf 'leaked-container\n'; fi ;;
+                    counter="$WSR_ACCEPT_TEST_LOG.container-checks"
+                    checks=0
+                    if test -f "$counter"; then checks=$(cat "$counter"); fi
+                    checks=$((checks + 1))
+                    printf '%s\n' "$checks" > "$counter"
+                    if test "${WSR_ACCEPT_TEST_LEAKED_CONTAINER:-0}" = 1 || \
+                       { test "${WSR_ACCEPT_TEST_CLEANUP_REQUIRES_FALLBACK:-0}" = 1 && \
+                         test ! -f "$WSR_ACCEPT_TEST_LOG.fallback-complete"; } || \
+                       test "$checks" -le "${WSR_ACCEPT_TEST_TRANSIENT_CONTAINER_CHECKS:-0}"; then
+                      printf 'leaked-container\n'
+                    fi ;;
+                  *" rm -f leaked-container "*) : > "$WSR_ACCEPT_TEST_LOG.fallback-complete" ;;
                   *" network ls -q "*) : ;;
                   *" volume inspect "*) exit 1 ;;
                 esac
@@ -172,6 +185,10 @@ EOF
                 "WSR_ACCEPT_NO_OPEN": "1" if no_open else "0",
                 "WSR_ACCEPT_BROWSER_QUALIFICATION": "1" if browser_qualification else "0",
                 "WSR_ACCEPT_TEST_LEAKED_CONTAINER": "1" if leaked_container else "0",
+                "WSR_ACCEPT_TEST_TRANSIENT_CONTAINER_CHECKS": str(transient_container_checks),
+                "WSR_ACCEPT_TEST_CLEANUP_REQUIRES_FALLBACK": "1" if cleanup_requires_fallback else "0",
+                "WSR_ACCEPT_CLEANUP_MAX_ATTEMPTS": "5",
+                "WSR_ACCEPT_CLEANUP_POLL_SECONDS": "0",
                 "WSR_ACCEPT_TEST_MANIFEST_MISMATCH": "1" if manifest_mismatch else "0",
             }
             result = subprocess.run(
@@ -184,14 +201,14 @@ EOF
                 check=False,
             )
             commands = log.read_text(encoding="utf-8").splitlines() if log.exists() else []
-            remaining = list(preview_parent.iterdir())
-            self.assertEqual(remaining, [], f"temporary assets remain: {remaining}")
-            return result, commands, preview_parent
+            remaining = [path.name for path in preview_parent.iterdir()]
+            return result, commands, remaining
 
     def test_one_command_builds_local_assets_waits_for_acceptance_and_removes_everything(self) -> None:
-        result, commands, _ = self.run_acceptance()
+        result, commands, remaining = self.run_acceptance()
 
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(remaining, [])
         self.assertIn("CURRENT_SOURCE_COMPOSITION (not published-coordinate evidence)", result.stdout)
         joined = "\n".join(commands)
         self.assertRegex(joined, r"npm cwd=.*/wsr-ui run build")
@@ -236,11 +253,26 @@ EOF
         self.assertIn("验收完成后按 Enter", result.stdout)
 
     def test_cleanup_fails_closed_when_an_isolated_container_remains(self) -> None:
-        result, commands, _ = self.run_acceptance(leaked_container=True)
+        result, commands, remaining = self.run_acceptance(leaked_container=True)
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("验收清理不完整", result.stderr)
+        self.assertEqual(len(remaining), 1)
         self.assertIn("docker ps -aq --filter label=com.docker.compose.project=wsr_services_abc123def456", "\n".join(commands))
+
+    def test_cleanup_waits_for_isolated_resources_to_converge(self) -> None:
+        result, commands, _ = self.run_acceptance(transient_container_checks=2)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        container_checks = [command for command in commands if "docker ps -aq " in command]
+        self.assertEqual(len(container_checks), 3)
+
+    def test_cleanup_uses_targeted_fallback_after_convergence_timeout(self) -> None:
+        result, commands, remaining = self.run_acceptance(cleanup_requires_fallback=True)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("docker rm -f leaked-container", "\n".join(commands))
+        self.assertEqual(remaining, [])
 
     def test_manifest_mismatch_stops_before_setup_or_install(self) -> None:
         result, commands, _ = self.run_acceptance(manifest_mismatch=True)

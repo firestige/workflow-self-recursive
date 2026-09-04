@@ -47,6 +47,48 @@ cleanup() {
     return 0
   }
 
+  cleanup_max_attempts=${WSR_ACCEPT_CLEANUP_MAX_ATTEMPTS:-50}
+  cleanup_poll_seconds=${WSR_ACCEPT_CLEANUP_POLL_SECONDS:-0.1}
+  case "$cleanup_max_attempts" in
+    '' | *[!0-9]* | 0)
+      printf 'Invalid WSR_ACCEPT_CLEANUP_MAX_ATTEMPTS: %s\n' "$cleanup_max_attempts" >&2
+      cleanup_max_attempts=50
+      cleanup_failed=1
+      ;;
+  esac
+
+  inspect_cleanup_resources() {
+    remaining_containers=$(docker ps -aq --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null)
+    remaining_networks=$(docker network ls -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null)
+    evidence_volume_exists=0
+    if docker volume inspect "$WSR_EVIDENCE_VOLUME" >/dev/null 2>&1; then
+      evidence_volume_exists=1
+    fi
+    test -z "$remaining_containers" && test -z "$remaining_networks" && test "$evidence_volume_exists" -eq 0
+  }
+
+  wait_for_cleanup_convergence() {
+    cleanup_attempt=1
+    while ! inspect_cleanup_resources; do
+      if test "$cleanup_attempt" -ge "$cleanup_max_attempts"; then return 1; fi
+      cleanup_attempt=$((cleanup_attempt + 1))
+      sleep "$cleanup_poll_seconds"
+    done
+    return 0
+  }
+
+  remove_remaining_resources() {
+    if test -n "$remaining_containers"; then
+      docker rm -f $remaining_containers >/dev/null 2>&1
+    fi
+    if test -n "$remaining_networks"; then
+      docker network rm $remaining_networks >/dev/null 2>&1
+    fi
+    if test "$evidence_volume_exists" -ne 0; then
+      docker volume rm -f "$WSR_EVIDENCE_VOLUME" >/dev/null 2>&1
+    fi
+  }
+
   if test -n "$workflow_asset_pid"; then
     kill "$workflow_asset_pid" >/dev/null 2>&1
     wait "$workflow_asset_pid" >/dev/null 2>&1
@@ -79,28 +121,36 @@ cleanup() {
     WSR_CONFIRM_PURGE=DELETE_EVIDENCE_DATA "$bundle/wsr-compose" purge >/dev/null 2>&1
   fi
 
-  remaining_containers=$(docker ps -aq --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null)
-  if test -n "$remaining_containers"; then
-    printf '验收清理不完整：Compose project %s 仍有容器。\n' "$COMPOSE_PROJECT_NAME" >&2
-    cleanup_failed=1
-  fi
-  remaining_networks=$(docker network ls -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null)
-  if test -n "$remaining_networks"; then
-    printf '验收清理不完整：Compose project %s 仍有网络。\n' "$COMPOSE_PROJECT_NAME" >&2
-    cleanup_failed=1
-  fi
-  if docker volume inspect "$WSR_EVIDENCE_VOLUME" >/dev/null 2>&1; then
-    printf '验收清理不完整：Evidence volume %s 仍然存在。\n' "$WSR_EVIDENCE_VOLUME" >&2
-    cleanup_failed=1
+  if ! wait_for_cleanup_convergence; then
+    remove_remaining_resources
+    if ! wait_for_cleanup_convergence; then
+      if test -n "$remaining_containers"; then
+        printf '验收清理不完整：Compose project %s 仍有容器。\n' "$COMPOSE_PROJECT_NAME" >&2
+      fi
+      if test -n "$remaining_networks"; then
+        printf '验收清理不完整：Compose project %s 仍有网络。\n' "$COMPOSE_PROJECT_NAME" >&2
+      fi
+      if test "$evidence_volume_exists" -ne 0; then
+        printf '验收清理不完整：Evidence volume %s 仍然存在。\n' "$WSR_EVIDENCE_VOLUME" >&2
+      fi
+      cleanup_failed=1
+    fi
   fi
 
-  case "$preview" in
-    "$temporary_parent"/wsr-current-accept.*) rm -rf "$preview" ;;
-    *) printf 'Refusing to remove unexpected preview directory: %s\n' "$preview" >&2 ;;
-  esac
+  if test "$cleanup_failed" -eq 0; then
+    case "$preview" in
+      "$temporary_parent"/wsr-current-accept.*) rm -rf "$preview" ;;
+      *)
+        printf 'Refusing to remove unexpected preview directory: %s\n' "$preview" >&2
+        cleanup_failed=1
+        ;;
+    esac
+  fi
 
   if test "$cleanup_failed" -ne 0 && test "$status" -eq 0; then status=1; fi
-  if test "$status" -eq 0; then
+  if test "$cleanup_failed" -ne 0; then
+    printf '\n验收清理未完成；临时目录已保留：%s\n' "$preview" >&2
+  elif test "$status" -eq 0; then
     printf '\n验收环境已移除（DSH profile、容器、volume 和临时文件）。\n'
   else
     printf '\n验收启动失败；已移除隔离环境，退出码 %s。\n' "$status" >&2
