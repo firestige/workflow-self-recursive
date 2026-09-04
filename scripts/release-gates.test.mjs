@@ -284,6 +284,41 @@ test("implicit predecessor selection pins the newest content-equivalent rc", asy
   assert.match(result.stdout, /promoted from: newer\.json/);
 });
 
+test("promotion rejects changes to nested component identity fields", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "wsr-component-identity-"));
+  const rcComponent = {
+    id: "fixture",
+    release: "4.5.6",
+    version: "4.5.6",
+    coordinate: "https://example.invalid/fixture-4.5.6.tgz",
+    downloadUrl: "https://example.invalid/fixture-4.5.6.tgz",
+    digest: `sha256:${"1".repeat(64)}`,
+    sha256: "1".repeat(64),
+  };
+  const gaComponent = {
+    id: "fixture",
+    release: "4.5.7",
+    version: "4.5.7",
+    coordinate: "https://example.invalid/fixture-4.5.7.tgz",
+    downloadUrl: "https://example.invalid/fixture-4.5.7.tgz",
+    digest: `sha256:${"2".repeat(64)}`,
+    sha256: "2".repeat(64),
+  };
+  await writeFile(path.join(root, "rc.json"), JSON.stringify({ release: "1.2.3-rc.7", components: [rcComponent] }));
+  await writeFile(path.join(root, "ga.json"), JSON.stringify({ release: "1.2.3", components: [gaComponent] }));
+
+  const result = await runNode(
+    path.join(ROOT, "scripts", "check-ga-manifest.mjs"),
+    ["ga.json", "--from-rc", "rc.json"],
+    root,
+  );
+
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  for (const field of ["release", "version", "coordinate", "downloadUrl", "digest", "sha256"]) {
+    assert.match(result.stdout, new RegExp(`\\$\\.components\\[0\\]\\.${field}`));
+  }
+});
+
 test("coordinate verification accepts the exact bytes and digest", async () => {
   const body = Buffer.from("verified artifact\n");
   const digest = `sha256:${createHash("sha256").update(body).digest("hex")}`;
