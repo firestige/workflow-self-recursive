@@ -1,0 +1,4 @@
+# Governance surface — changes here alter who may release.
+.github/workflows/**     @firestige
+scripts/check-*          @firestige
+.github/CODEOWNERS       @firestige
