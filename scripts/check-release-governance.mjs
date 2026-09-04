@@ -11,8 +11,15 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Editing this list is itself a governance change: the file is CODEOWNERS-guarded.
-const RELEASE_WORKFLOWS = ["release-compose-bundle.yml", "promote-ga.yml"];
+// Editing these lists is itself a governance change: the file is CODEOWNERS-guarded.
+//
+// Promotion consumes outward-facing promise space and is therefore manual-only.
+// Candidate workflows may trigger automatically on purpose: a release candidate
+// costs nothing to redo, and keeping that path cheap is what stops promotion
+// from being abused as a way to obtain evidence.
+const PROMOTE_WORKFLOWS = ["release-compose-bundle.yml", "promote-ga.yml", "release-promote.yml"];
+const CANDIDATE_WORKFLOWS = ["release-candidate.yml"];
+const RELEASE_WORKFLOWS = [...PROMOTE_WORKFLOWS, ...CANDIDATE_WORKFLOWS];
 const WORKFLOW_DIR = ".github/workflows";
 const GOVERNANCE_PATHS = [/^\.github\/workflows\//, /^scripts\/check-/, /^\.github\/CODEOWNERS$/];
 
@@ -91,7 +98,7 @@ function workflowFiles() {
 // --------------------------------------------------------------- rule 1
 
 function checkReleaseTriggers(files) {
-  for (const name of RELEASE_WORKFLOWS) {
+  for (const name of PROMOTE_WORKFLOWS) {
     if (!files.includes(name)) continue;
     const path = join(WORKFLOW_DIR, name);
     const triggers = triggersOf(readFileSync(path, "utf8"));
@@ -100,8 +107,8 @@ function checkReleaseTriggers(files) {
       fail(
         path,
         `on: ${triggers.join(", ")}`,
-        `发布 workflow 出现自动触发器 (${illegal.join(", ")}) → GA 可被非人工触发`,
-        ["移除自动触发器", "若确需自动化，改为触发 rc 流水线而非 GA"],
+        `晋升 workflow 出现自动触发器 (${illegal.join(", ")}) → GA 可被非人工触发`,
+        ["移除自动触发器", "若确需自动化，改为触发 candidate 流程而非晋升流程"],
       );
     }
   }
@@ -109,10 +116,10 @@ function checkReleaseTriggers(files) {
 
 // --------------------------------------------------------------- rule 2
 
-/** A release workflow exposed via workflow_call is only safe if no auto-triggered
+/** A promotion workflow exposed via workflow_call is only safe if no auto-triggered
  *  workflow calls it — otherwise the manual-only trigger is bypassable. */
 function checkCallChain(files) {
-  const callable = RELEASE_WORKFLOWS.filter(
+  const callable = PROMOTE_WORKFLOWS.filter(
     (n) => files.includes(n) && triggersOf(readFileSync(join(WORKFLOW_DIR, n), "utf8")).includes("workflow_call"),
   );
   if (callable.length === 0) return;
