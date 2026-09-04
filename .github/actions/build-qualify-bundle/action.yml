@@ -39,7 +39,7 @@ runs:
           "$RUNNER_TEMP/compose-qualification/evidence.json" \
           "$RUNNER_TEMP/compose-qualification/evolution.json"
 
-    - uses: docker/setup-buildx-action@v3
+    - uses: docker/setup-buildx-action@v4
       if: inputs.bundle_kind == 'compose'
 
     - name: Verify exact image platform matrix

@@ -208,6 +208,12 @@ test("promotion checks an exact rc tag without a bounded release list", async ()
   assert.equal((workflow.match(/gh release download "\$TAG"/g) ?? []).length, 2);
 });
 
+test("compose qualification uses the Node 24 buildx action runtime", async () => {
+  const action = await readFile(path.join(ROOT, ".github", "actions", "build-qualify-bundle", "action.yml"), "utf8");
+  assert.match(action, /uses: docker\/setup-buildx-action@v4\b/);
+  assert.doesNotMatch(action, /uses: docker\/setup-buildx-action@v3\b/);
+});
+
 test("both promotion jobs bind a published rc to its exact manifest asset", async (t) => {
   for (const kind of ["compose", "product"]) {
     await t.test(`${kind}: matching asset passes`, async () => {
