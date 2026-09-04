@@ -1,0 +1,90 @@
+name: Release Governance
+
+# Guards the release authority surface on every pull request into main.
+# Hard failures block the merge; risk flags only surface for a human look, so
+# routine CI maintenance is never penalised.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: release-governance-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  release-governance:
+    name: release-governance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run governance checks
+        id: checks
+        run: |
+          set +e
+          : > "$RUNNER_TEMP/report.md"
+          failed=0
+
+          node scripts/check-release-governance.mjs \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.event.pull_request.head.sha }}" \
+            --comment-file "$RUNNER_TEMP/authority.md"
+          [ $? -ne 0 ] && failed=1
+          cat "$RUNNER_TEMP/authority.md" >> "$RUNNER_TEMP/report.md"
+
+          # Only manifests touched by this PR are validated. Published manifests
+          # are immutable history — re-validating them could never be acted on.
+          changed=$(git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" \
+            -- 'release/**/*.json' | tr '\n' ' ')
+
+          if [ -n "$changed" ]; then
+            printf '\n### 本次变更的发布清单\n\n' >> "$RUNNER_TEMP/report.md"
+            for f in $changed; do
+              [ -f "$f" ] || continue
+              printf '\n<details><summary><code>%s</code></summary>\n\n' "$f" >> "$RUNNER_TEMP/report.md"
+              node scripts/check-ga-manifest.mjs "$f" >> "$RUNNER_TEMP/report.md" 2>&1
+              [ $? -ne 0 ] && failed=1
+              printf '\n</details>\n' >> "$RUNNER_TEMP/report.md"
+            done
+          fi
+
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+
+      - name: Publish review projection
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          MARKER='<!-- release-governance -->'
+          BODY="$MARKER"$'\n'"$(cat "$RUNNER_TEMP/report.md")"
+
+          # Sticky comment: update in place instead of stacking one per push.
+          id=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" \
+                 --jq "map(select(.body | startswith(\"$MARKER\"))) | .[0].id // empty")
+          if [ -n "$id" ]; then
+            gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$id" -f body="$BODY" >/dev/null
+          else
+            gh api --method POST "repos/${{ github.repository }}/issues/$PR/comments" -f body="$BODY" >/dev/null
+          fi
+
+      - name: Enforce
+        if: steps.checks.outputs.failed == '1'
+        run: |
+          echo "release-governance: 授权面存在阻塞项，见 PR 评论与上方 annotation" >&2
+          exit 1
