@@ -1,0 +1,119 @@
+name: Publish WSR release candidates
+
+# Superproject counterpart to the component convention (push to release/next).
+# The filename places this workflow in CANDIDATE_WORKFLOWS
+# (scripts/check-release-governance.mjs), which is what permits it to carry an
+# automatic trigger and to publish — a promote-class workflow may do neither.
+#
+# Discovery is scoped to what this push actually introduces relative to main,
+# not to every rc manifest that happens to exist in the tree: a stale rc
+# manifest with no release (e.g. release/compose/0.1.0-rc.1.json) must never
+# be picked up just because it is present.
+
+on:
+  push:
+    branches:
+      - release/next
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-candidate
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.discover.outputs.include }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Discover rc manifests this push introduces
+        id: discover
+        run: |
+          git fetch origin main --depth=1
+          ADDED="$(git diff --name-only --diff-filter=A origin/main...HEAD -- 'release/compose/*.json' 'release/product/*.json')"
+          ENTRIES="[]"
+          for f in $ADDED; do
+            case "$f" in
+              release/compose/*.json) KIND=compose ;;
+              release/product/*.json) KIND=product ;;
+              *) continue ;;
+            esac
+            VERSION="$(jq -er '.version // .release' "$f")"
+            case "$VERSION" in *-rc.*) ;; *) continue ;; esac
+            ENTRIES="$(echo "$ENTRIES" | jq -c --arg k "$KIND" --arg m "$f" '. + [{"bundle_kind":$k,"release_manifest":$m}]')"
+          done
+          echo "include=$ENTRIES" >> "$GITHUB_OUTPUT"
+
+  build-and-publish:
+    needs: discover
+    if: needs.discover.outputs.include != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.include) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: ${{ matrix.bundle_kind == 'product' && 'recursive' || 'false' }}
+
+      - name: Validate immutable manifest location and resolve version
+        env:
+          RELEASE_MANIFEST: ${{ matrix.release_manifest }}
+          BUNDLE_KIND: ${{ matrix.bundle_kind }}
+        run: |
+          if [ "$BUNDLE_KIND" = compose ]; then
+            case "$RELEASE_MANIFEST" in release/compose/*.json) ;; *) exit 1 ;; esac
+            test -f "$RELEASE_MANIFEST"
+            VERSION="$(jq -er '.version' "$RELEASE_MANIFEST")"
+          else
+            case "$RELEASE_MANIFEST" in release/product/*.json) ;; *) exit 1 ;; esac
+            test -f "$RELEASE_MANIFEST"
+            VERSION="$(jq -er '.release' "$RELEASE_MANIFEST")"
+            test "$(jq -er '.version' product-operations/package.json)" = "$VERSION"
+            cmp "$RELEASE_MANIFEST" "product-operations/manifests/product-$VERSION.json"
+          fi
+          case "$VERSION" in *-rc.*) ;; *) exit 1 ;; esac
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - uses: ./.github/actions/build-qualify-bundle
+        with:
+          bundle_kind: ${{ matrix.bundle_kind }}
+          release_manifest: ${{ matrix.release_manifest }}
+          require_final_version: 'false'
+
+      - name: Publish or skip existing release candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUNDLE_KIND: ${{ matrix.bundle_kind }}
+        run: |
+          TAG="$BUNDLE_KIND-$VERSION"
+          # Candidate numbering is disposable: a re-push that reproduces an
+          # already-published rc is a normal event, not a collision to fail on.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "candidate already published, skipping: $TAG"
+            exit 0
+          fi
+          if [ "$BUNDLE_KIND" = compose ]; then
+            gh release create "$TAG" \
+              "$ARCHIVE" "$CHECKSUM" "$RELEASE_ASSET_MANIFEST" \
+              --target "$(git rev-parse HEAD)" \
+              --prerelease \
+              --title "WSR Docker Compose bundle candidate $VERSION" \
+              --notes "Exact-digest Docker Compose bundle candidate for WSR Evidence and Evolution."
+          else
+            gh release create "$TAG" \
+              "$ARCHIVE" "$CHECKSUM" "$RELEASE_ASSET_MANIFEST" "$CONFIG_EXAMPLE" \
+              --target "$(git rev-parse HEAD)" \
+              --prerelease \
+              --title "WSR product operations candidate $VERSION" \
+              --notes "Installable top-level operations bundle candidate for the WSR $VERSION compatibility manifest."
+          fi

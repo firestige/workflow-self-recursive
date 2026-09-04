@@ -53,83 +53,24 @@ jobs:
           case "$RELEASE_MANIFEST" in release/compose/*.json) ;; *) exit 1 ;; esac
           test -f "$RELEASE_MANIFEST"
 
-      - name: Verify exact first-party qualification evidence
-        env:
-          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
-        run: |
-          mkdir "$RUNNER_TEMP/compose-qualification"
-          for name in evidence evolution; do
-            URL="$(jq -er --arg name "$name" '.images[$name].provenance' "$RELEASE_MANIFEST")"
-            curl --proto '=https' --tlsv1.2 --fail --location --silent --show-error \
-              "$URL" --output "$RUNNER_TEMP/compose-qualification/$name.json"
-          done
-          deployment/published/validate-qualification.py "$RELEASE_MANIFEST" \
-            "$RUNNER_TEMP/compose-qualification/evidence.json" \
-            "$RUNNER_TEMP/compose-qualification/evolution.json"
-
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Verify exact image platform matrix
-        env:
-          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
-        run: |
-          for name in postgres evidence evolution; do
-            IMAGE="$(jq -er --arg name "$name" '.images[$name].coordinate' "$RELEASE_MANIFEST")"
-            docker buildx imagetools inspect "$IMAGE" --format '{{json .Manifest}}' \
-              > "$RUNNER_TEMP/$name-manifest.json"
-            jq -e '[.manifests[] | select(.platform.os == "linux") | .platform.architecture] |
-              (index("amd64") != null and index("arm64") != null)' \
-              "$RUNNER_TEMP/$name-manifest.json" >/dev/null
-          done
-
-      - name: Build versioned bundle
-        env:
-          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
-        run: |
-          VERSION="$(python3 -c 'import json,os; print(json.load(open(os.environ["RELEASE_MANIFEST"]))["version"])')"
-          test "$VERSION" = "${VERSION%%-*}"
-          deployment/published/build-bundle.py "$RELEASE_MANIFEST" "$RUNNER_TEMP/wsr-services-$VERSION"
-          echo "BUNDLE=$RUNNER_TEMP/wsr-services-$VERSION" >> "$GITHUB_ENV"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-
-      - name: Requalify generated bundle
-        run: |
-          cd "$BUNDLE"
-          sha256sum --check SHA256SUMS
-          docker compose -f compose.yaml config --quiet
-          ./wsr-compose host-config > "$RUNNER_TEMP/loopback-host.json"
-          ./wsr-compose preflight
-          jq -e '.schemaVersion == "wsr.loopback-host@1.0.0" and
-            .observation.baseUrl == .services.evidence.baseUrl' \
-            "$RUNNER_TEMP/loopback-host.json" >/dev/null
-          test "$(grep -c '@sha256:' compose.yaml)" = 4
-          test -z "$(grep -E '(^|[[:space:]])build:|\.\./(evidence|evolution)-system|bi-app|workflow-builder' compose.yaml || true)"
-
-      - name: Archive exact qualified bundle
-        env:
-          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
-        run: |
-          ARCHIVE="$RUNNER_TEMP/wsr-services-$VERSION.tar.gz"
-          CHECKSUM="$ARCHIVE.sha256"
-          RELEASE_ASSET_MANIFEST="$RUNNER_TEMP/wsr-services-$VERSION.release.json"
-          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
-            -czf "$ARCHIVE" -C "$RUNNER_TEMP" "wsr-services-$VERSION"
-          cd "$RUNNER_TEMP"
-          sha256sum "$(basename "$ARCHIVE")" > "$CHECKSUM"
-          cp "$GITHUB_WORKSPACE/$RELEASE_MANIFEST" "$RELEASE_ASSET_MANIFEST"
-          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
-          echo "CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
-          echo "RELEASE_ASSET_MANIFEST=$RELEASE_ASSET_MANIFEST" >> "$GITHUB_ENV"
-
-      - uses: actions/upload-artifact@v7
+      - uses: ./.github/actions/build-qualify-bundle
         with:
-          name: published-image-compose-bundle
-          path: |
-            ${{ env.ARCHIVE }}
-            ${{ env.CHECKSUM }}
-            ${{ env.RELEASE_ASSET_MANIFEST }}
-          if-no-files-found: error
-          retention-days: 14
+          bundle_kind: compose
+          release_manifest: ${{ inputs.release_manifest }}
+          require_final_version: 'true'
+
+      - name: Verify rc predecessor was published
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MATCH="$(gh release list --limit 200 --json tagName,isPrerelease \
+            --jq '.[] | select(.isPrerelease) | .tagName' | grep -F "compose-$VERSION-rc." | head -1 || true)"
+          if [ -z "$MATCH" ]; then
+            echo "no published rc release matches compose-$VERSION-rc.* — GA must be promoted from a published candidate, not invented" >&2
+            exit 1
+          fi
+          echo "promoted from: $MATCH"
 
       - name: Publish stable Compose bundle Release
         if: github.event_name == 'workflow_dispatch'
@@ -169,59 +110,24 @@ jobs:
           cmp "$RELEASE_MANIFEST" "product-operations/manifests/product-$VERSION.json"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/build-qualify-bundle
         with:
-          node-version: 24.12.0
+          bundle_kind: product
+          release_manifest: ${{ inputs.release_manifest }}
+          require_final_version: 'true'
 
-      - name: Test and package product operations
-        run: |
-          npm --prefix product-operations test
-          mkdir "$RUNNER_TEMP/product-release"
-          npm pack ./product-operations --pack-destination "$RUNNER_TEMP/product-release"
-          ARCHIVE="$RUNNER_TEMP/product-release/wsr-product-operations-$VERSION.tgz"
-          test -f "$ARCHIVE"
-          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
-
-      - name: Requalify clean installed package
-        run: |
-          mkdir "$RUNNER_TEMP/product-consumer"
-          npm install --prefix "$RUNNER_TEMP/product-consumer" --ignore-scripts "$ARCHIVE"
-          "$RUNNER_TEMP/product-consumer/node_modules/.bin/wsr" config \
-            --state-dir "$RUNNER_TEMP/product-state" \
-            --config "$RUNNER_TEMP/product-config.json" \
-            > "$RUNNER_TEMP/product-result.json"
-          jq -e '.schema == "wsr.operations.result@1.0.0" and
-            .command == "config" and .status == "succeeded"' \
-            "$RUNNER_TEMP/product-result.json" >/dev/null
-          tar -xOf "$ARCHIVE" "package/manifests/product-$VERSION.json" \
-            > "$RUNNER_TEMP/installed-product-manifest.json"
-          cmp release/product/$VERSION.json "$RUNNER_TEMP/installed-product-manifest.json"
-
-      - name: Bind checksum and release manifest
+      - name: Verify rc predecessor was published
+        if: github.event_name == 'workflow_dispatch'
         env:
-          RELEASE_MANIFEST: ${{ inputs.release_manifest }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          CHECKSUM="$ARCHIVE.sha256"
-          RELEASE_ASSET_MANIFEST="$RUNNER_TEMP/product-release/wsr-product-$VERSION.release.json"
-          CONFIG_EXAMPLE="$RUNNER_TEMP/product-release/wsr-product-$VERSION.config.example.json"
-          cd "$(dirname "$ARCHIVE")"
-          sha256sum "$(basename "$ARCHIVE")" > "$CHECKSUM"
-          cp "$GITHUB_WORKSPACE/$RELEASE_MANIFEST" "$RELEASE_ASSET_MANIFEST"
-          cp "$GITHUB_WORKSPACE/product-operations/fixtures/config.json" "$CONFIG_EXAMPLE"
-          echo "CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
-          echo "RELEASE_ASSET_MANIFEST=$RELEASE_ASSET_MANIFEST" >> "$GITHUB_ENV"
-          echo "CONFIG_EXAMPLE=$CONFIG_EXAMPLE" >> "$GITHUB_ENV"
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: product-operations-bundle
-          path: |
-            ${{ env.ARCHIVE }}
-            ${{ env.CHECKSUM }}
-            ${{ env.RELEASE_ASSET_MANIFEST }}
-            ${{ env.CONFIG_EXAMPLE }}
-          if-no-files-found: error
-          retention-days: 14
+          MATCH="$(gh release list --limit 200 --json tagName,isPrerelease \
+            --jq '.[] | select(.isPrerelease) | .tagName' | grep -F "product-$VERSION-rc." | head -1 || true)"
+          if [ -z "$MATCH" ]; then
+            echo "no published rc release matches product-$VERSION-rc.* — GA must be promoted from a published candidate, not invented" >&2
+            exit 1
+          fi
+          echo "promoted from: $MATCH"
 
       - name: Publish stable product Release
         if: github.event_name == 'workflow_dispatch'

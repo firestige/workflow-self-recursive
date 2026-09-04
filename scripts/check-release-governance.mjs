@@ -8,7 +8,7 @@
 // pushed back onto the human, which is what this whole design avoids.
 
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // Editing these lists is itself a governance change: the file is CODEOWNERS-guarded.
@@ -21,7 +21,12 @@ const PROMOTE_WORKFLOWS = ["release-compose-bundle.yml", "promote-ga.yml", "rele
 const CANDIDATE_WORKFLOWS = ["release-candidate.yml"];
 const RELEASE_WORKFLOWS = [...PROMOTE_WORKFLOWS, ...CANDIDATE_WORKFLOWS];
 const WORKFLOW_DIR = ".github/workflows";
-const GOVERNANCE_PATHS = [/^\.github\/workflows\//, /^scripts\/check-/, /^\.github\/CODEOWNERS$/];
+// Composite actions have no workflow-level trigger of their own, but a publish
+// command hiding in one is reachable from any workflow that calls it — including
+// one this file never classified as a release workflow. workflowFiles() cannot
+// see in here, so rule 3 below scans it independently.
+const ACTIONS_DIR = ".github/actions";
+const GOVERNANCE_PATHS = [/^\.github\/workflows\//, /^\.github\/actions\//, /^scripts\/check-/, /^\.github\/CODEOWNERS$/];
 
 // Commands that mint or move an outward-facing promise.
 const PUBLISH_PATTERNS = [
@@ -95,6 +100,21 @@ function workflowFiles() {
     .filter((f) => /\.ya?ml$/.test(f));
 }
 
+/** Every action.yml/action.yaml under .github/actions/, recursively. */
+function actionFiles() {
+  if (!existsSync(ACTIONS_DIR)) return [];
+  const out = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (/^action\.ya?ml$/.test(entry.name)) out.push(full);
+    }
+  };
+  walk(ACTIONS_DIR);
+  return out;
+}
+
 // --------------------------------------------------------------- rule 1
 
 function checkReleaseTriggers(files) {
@@ -145,18 +165,28 @@ function checkCallChain(files) {
 
 // --------------------------------------------------------------- rule 3
 
+function scanForPublishPatterns(path, text) {
+  for (const { re, what } of PUBLISH_PATTERNS) {
+    if (!re.test(text)) continue;
+    fail(path, `匹配 ${re}`, `非发布 workflow/action ${what} → 对外承诺可在闸门之外产生`, [
+      "把该动作移入发布 workflow",
+      "若只是本地/临时用途，改用不产生对外承诺的形式",
+    ]);
+  }
+}
+
 function checkStrayPublishing(files) {
   for (const name of files) {
     if (RELEASE_WORKFLOWS.includes(name)) continue;
     const path = join(WORKFLOW_DIR, name);
-    const text = readFileSync(path, "utf8");
-    for (const { re, what } of PUBLISH_PATTERNS) {
-      if (!re.test(text)) continue;
-      fail(path, `匹配 ${re}`, `非发布 workflow ${what} → 对外承诺可在闸门之外产生`, [
-        "把该动作移入发布 workflow",
-        "若只是本地/临时用途，改用不产生对外承诺的形式",
-      ]);
-    }
+    scanForPublishPatterns(path, readFileSync(path, "utf8"));
+  }
+  // .github/actions/** is invisible to workflowFiles() and therefore to the
+  // rest of this file — a publish command placed here would never be caught
+  // above. Composite actions carry no release identity of their own, so none
+  // of them is ever exempt the way a RELEASE_WORKFLOWS entry is.
+  for (const path of actionFiles()) {
+    scanForPublishPatterns(path, readFileSync(path, "utf8"));
   }
 }
 
