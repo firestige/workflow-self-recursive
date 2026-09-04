@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
-import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -9,6 +9,7 @@ import test from "node:test";
 
 import { loadCompatibilityManifest } from "../src/compatibility-manifest.mjs";
 import { createFixtureAdapter } from "../src/fixture-adapter.mjs";
+import { createInstallationMaintenance } from "../src/installation-maintenance.mjs";
 import { createOperations } from "../src/operations.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -159,7 +160,30 @@ test("install fails closed on doctor findings before the first adapter effect", 
 
   assert.equal(result.status, "blocked");
   assert.equal(result.diagnostics[0].code, "EXTERNAL_DSH_PORT_OCCUPIED");
+  assert.ok(result.components.every(({ phase }) => phase === "preflight"));
   assert.deepEqual(adapter.effects(), []);
+});
+
+test("upgrade accepts a healthy prior release after component ownership preflight", async () => {
+  const { adapter, operations } = await harness({
+    maintenance: {
+      diagnosis: {
+        verdict: "BLOCKED",
+        findings: [
+          { code: "INACTIVE_PRODUCT_RELEASE", severity: "cleanup", message: "prior release is installed" },
+          { code: "EXTERNAL_SERVICE_PORT_OCCUPIED", severity: "blocked", message: "prior services own the port" },
+        ],
+        plan: ["remove-prior-release-after-commit"],
+        manualActions: [],
+        preserved: { config: true, durableData: true, evidence: true, credentials: true, userPatches: true },
+      },
+    },
+  });
+
+  const result = await operations.run("upgrade");
+
+  assert.equal(result.status, "succeeded");
+  assert.deepEqual(adapter.effects(), ["upgrade:execution"]);
 });
 
 test("a repeated install still runs doctor before returning an idempotent result", async () => {
@@ -199,7 +223,7 @@ test("cleanup previews by default and mutates only after explicit apply", async 
 });
 
 test("install resumes the exact interrupted journal and is then idempotent", async () => {
-  const { adapter, operations } = await harness({
+  const { root, adapter, operations } = await harness({
     manifest: manifestDocument([
       exactComponent("execution"),
       exactComponent("services"),
@@ -212,6 +236,15 @@ test("install resumes the exact interrupted journal and is then idempotent", asy
   assert.equal(interrupted.status, "blocked");
   assert.equal(interrupted.resume?.nextComponent, "services");
   assert.deepEqual(adapter.effects(), ["install:execution"]);
+  const compatibility = await loadCompatibilityManifest(path.join(root, "compatibility.json"));
+  assert.deepEqual(
+    JSON.parse(await readFile(path.join(root, "state", "operation-manifests", `${compatibility.digest.slice(7)}.json`), "utf8")),
+    manifestDocument([
+      exactComponent("execution"),
+      exactComponent("services"),
+      exactComponent("workflow-source"),
+    ]),
+  );
 
   const resumed = await operations.run("install");
   assert.equal(resumed.status, "succeeded");
@@ -229,6 +262,118 @@ test("install resumes the exact interrupted journal and is then idempotent", asy
     "install:execution",
     "install:services",
     "install:workflow-source",
+  ]);
+});
+
+test("upgrade resumes its matching journal when production maintenance observes the active operation", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "wsr-upgrade-resume-"));
+  const stateDirectory = path.join(root, "state");
+  const configPath = path.join(root, "config.json");
+  const manifestPath = path.join(root, "compatibility.json");
+  const manifest = manifestDocument([
+    {
+      ...exactComponent("dsh-bundle"),
+      compatibility: {
+        executionOwner: { package: "wsr-execution", version: "1.2.3" },
+        packages: { execution: "dsh-wsr-execution@1.2.3", studio: "dsh-wsr-studio@1.2.3", suite: "dsh-wsr@1.2.3" },
+      },
+    },
+    exactComponent("services"),
+    exactComponent("workflow-source"),
+  ]);
+  await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
+  await writeFile(configPath, `${JSON.stringify(productConfig(root))}\n`);
+  const compatibility = await loadCompatibilityManifest(manifestPath);
+  const adapter = createFixtureAdapter({ interruptOnceAt: "services" });
+  const maintenance = createInstallationMaintenance({
+    manifest: compatibility,
+    configPath,
+    stateDirectory,
+    dshHome: path.join(root, "dsh-home"),
+    run: async () => ({ status: 0, stdout: "[]", stderr: "" }),
+    inspectPort: async () => ({ available: true }),
+  });
+  const operations = createOperations({
+    manifest: compatibility,
+    adapters: new Map(compatibility.components.map((component) => [component.id, adapter])),
+    stateDirectory,
+    configPath,
+    maintenance,
+  });
+
+  const interrupted = await operations.run("upgrade");
+  assert.equal(interrupted.status, "blocked");
+  assert.equal(interrupted.resume?.nextComponent, "services");
+  assert.deepEqual(interrupted.components.map(({ id, status, phase }) => ({ id, status, phase })), [
+    { id: "dsh-bundle", status: "succeeded", phase: "apply" },
+    { id: "services", status: "blocked", phase: "apply" },
+  ]);
+
+  const resumed = await operations.run("upgrade");
+  assert.equal(resumed.status, "succeeded");
+  assert.deepEqual(resumed.components.map(({ id, status, phase }) => ({ id, status, phase })), [
+    { id: "dsh-bundle", status: "resumed", phase: "resume" },
+    { id: "services", status: "succeeded", phase: "apply" },
+    { id: "workflow-source", status: "succeeded", phase: "apply" },
+  ]);
+  assert.deepEqual(adapter.effects(), [
+    "upgrade:dsh-bundle",
+    "upgrade:services",
+    "upgrade:workflow-source",
+  ]);
+});
+
+test("composite journal owns the current atom and rollback delegates its partial recovery to that atom", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "wsr-current-atom-"));
+  const manifestPath = path.join(root, "compatibility.json");
+  const manifest = manifestDocument([exactComponent("dsh-bundle"), exactComponent("services")]);
+  await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
+  const compatibility = await loadCompatibilityManifest(manifestPath);
+  const effects = [];
+  let servicesFailed = false;
+  const adapters = new Map(compatibility.components.map((component) => [component.id, {
+    async preflight() { return { status: "succeeded" }; },
+    async apply(command) {
+      effects.push(`${command}:${component.id}`);
+      if (command === "upgrade" && component.id === "services" && !servicesFailed) {
+        servicesFailed = true;
+        return { status: "blocked", code: "SERVICES_RETRYABLE", message: "partial service effect" };
+      }
+      return { status: "succeeded" };
+    },
+    async abort(command) {
+      effects.push(`abort:${command}:${component.id}`);
+      return { status: "succeeded" };
+    },
+    async inspect() { return { status: "succeeded" }; },
+  }]));
+  const stateDirectory = path.join(root, "state");
+  const operations = createOperations({
+    manifest: compatibility,
+    adapters,
+    stateDirectory,
+    configPath: path.join(root, "config.json"),
+    maintenance: {
+      async diagnose() {
+        return {
+          verdict: "READY", findings: [], plan: [], manualActions: [],
+          preserved: { config: true, durableData: true, evidence: true, credentials: true, userPatches: true },
+        };
+      },
+    },
+  });
+
+  assert.equal((await operations.run("upgrade")).status, "blocked");
+  const interrupted = JSON.parse(await readFile(path.join(stateDirectory, "operations-state.json"), "utf8"));
+  assert.deepEqual(interrupted.active.completedComponents, ["dsh-bundle"]);
+  assert.equal(interrupted.active.currentComponent, "services");
+
+  assert.equal((await operations.run("rollback")).status, "succeeded");
+  assert.deepEqual(effects, [
+    "upgrade:dsh-bundle",
+    "upgrade:services",
+    "abort:upgrade:services",
+    "rollback:dsh-bundle",
   ]);
 });
 
@@ -263,7 +408,7 @@ test("a resume attempt fails closed when the compatibility manifest changes", as
   assert.match(result.diagnostics[0].message, /rollback or resume the exact manifest/i);
 });
 
-test("rollback after interruption unwinds only completed components in reverse order", async () => {
+test("rollback after interruption delegates the current atom before committed components in reverse order", async () => {
   const { adapter, operations } = await harness({
     manifest: manifestDocument([
       exactComponent("execution"),
@@ -281,6 +426,7 @@ test("rollback after interruption unwinds only completed components in reverse o
   assert.deepEqual(adapter.effects(), [
     "install:execution",
     "install:services",
+    "abort:install:workflow-source",
     "rollback:services",
     "rollback:execution",
   ]);
@@ -483,6 +629,44 @@ test("CLI emits one machine-readable typed result using the fixture boundary", a
   assert.equal(result.schema, "wsr.operations.result@1.0.0");
   assert.equal(result.command, "preflight");
   assert.equal(result.status, "succeeded");
+});
+
+test("an updated CLI resumes an active journal with its exact packaged historical manifest", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "wsr-cli-historical-resume-"));
+  const stateDirectory = path.join(root, "state");
+  const fixturePath = path.join(root, "fixture.json");
+  const historicalManifestPath = path.join(import.meta.dirname, "../manifests/product-0.5.9.json");
+  const historicalManifest = await loadCompatibilityManifest(historicalManifestPath);
+  await mkdir(stateDirectory, { recursive: true });
+  await writeFile(fixturePath, "{}\n");
+  await writeFile(path.join(stateDirectory, "operations-state.json"), `${JSON.stringify({
+    schema: "wsr.operations.state@1.0.0",
+    completed: {},
+    active: {
+      operationId: "interrupted-old-cli",
+      command: "upgrade",
+      manifestDigest: historicalManifest.digest,
+      completedComponents: ["dsh-bundle"],
+      currentComponent: "services",
+    },
+  })}\n`);
+
+  const { stdout } = await execFileAsync(process.execPath, [
+    new URL("../bin/wsr.mjs", import.meta.url).pathname,
+    "upgrade",
+    "--state-dir", stateDirectory,
+    "--config", path.join(root, "config.json"),
+    "--fixture", fixturePath,
+  ]);
+
+  const result = JSON.parse(stdout);
+  assert.equal(result.status, "succeeded");
+  assert.deepEqual(result.components.map(({ id, status }) => ({ id, status })), [
+    { id: "dsh-bundle", status: "resumed" },
+    { id: "services", status: "succeeded" },
+    { id: "workflow-source", status: "succeeded" },
+    { id: "providers", status: "succeeded" },
+  ]);
 });
 
 test("CLI rejects cleanup mutation without an exact boolean apply value", async () => {

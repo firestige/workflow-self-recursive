@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
 import { loadCompatibilityManifest } from "../src/compatibility-manifest.mjs";
 import { createPublishedAdapters } from "../src/published-adapters.mjs";
+import { resolveProductPaths } from "../src/platform-paths.mjs";
 
 const root = path.resolve(import.meta.dirname, "../..");
-const manifestPath = path.join(root, "release/product/0.5.10.json");
-const packagedManifestPath = path.join(root, "product-operations/manifests/product-0.5.10.json");
+const manifestPath = path.join(root, "release/product/0.5.12.json");
+const packagedManifestPath = path.join(root, "product-operations/manifests/product-0.5.12.json");
 
 async function configFixture(directory, overrides = {}) {
   const configPath = path.join(directory, "config.json");
@@ -30,7 +31,7 @@ async function configFixture(directory, overrides = {}) {
 test("final product manifest binds only stable published artifacts", async () => {
   assert.equal(await readFile(packagedManifestPath, "utf8"), await readFile(manifestPath, "utf8"));
   const manifest = await loadCompatibilityManifest(manifestPath);
-  assert.equal(manifest.release, "0.5.10");
+  assert.equal(manifest.release, "0.5.12");
   assert.deepEqual(manifest.components.map(({ id }) => id), [
     "dsh-bundle",
     "services",
@@ -49,8 +50,8 @@ test("final product manifest binds only stable published artifacts", async () =>
   });
   assert.equal(dsh.compatibility.executionOwner.version, "0.2.6");
   assert.equal(dsh.compatibility.executionOwner.release, "0.2.6");
-  assert.equal(services.version, "0.1.3");
-  assert.match(services.coordinate, /compose-0\.1\.3\/wsr-services-0\.1\.3\.tar\.gz$/u);
+  assert.equal(services.version, "0.1.6");
+  assert.match(services.coordinate, /compose-0\.1\.6\/wsr-services-0\.1\.6\.tar\.gz$/u);
   assert.equal(workflow.version, "0.4.6");
   assert.match(workflow.coordinate, /workflow-package\/implementation-workflow\/v0\.4\.6/u);
   assert.equal(providers.compatibility.copilot, "1.0.78");
@@ -154,6 +155,237 @@ test("published services adapter delegates lifecycle to the exact released wsr-c
   assert.deepEqual(commands[0].args, ["start"]);
   assert.equal(commands[0].options.env.WSR_EVIDENCE_PORT, "4318");
   assert.equal(commands[0].options.env.WSR_EVOLUTION_PORT, "8000");
+});
+
+test("published services bind different state directories to different runtime namespaces", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-services-namespace-"));
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const environments = [];
+
+  for (const name of ["installation-a", "installation-b"]) {
+    const installationRoot = path.join(directory, name);
+    await mkdir(installationRoot);
+    const configPath = await configFixture(installationRoot);
+    const adapters = createPublishedAdapters({
+      manifest,
+      configPath,
+      stateDirectory: path.join(installationRoot, "state"),
+      bundleDirectory: path.join(installationRoot, "bundle"),
+      run: async (_command, _args, options) => {
+        environments.push(options.env);
+        return { status: 0, stdout: "ready\n", stderr: "" };
+      },
+    });
+    assert.equal((await adapters.get("services").apply("start", manifest.components[1])).status, "succeeded");
+  }
+
+  assert.notEqual(environments[0].COMPOSE_PROJECT_NAME, environments[1].COMPOSE_PROJECT_NAME);
+  assert.notEqual(environments[0].WSR_EVIDENCE_VOLUME, environments[1].WSR_EVIDENCE_VOLUME);
+});
+
+test("published services cannot collapse different state directories through ambient Compose overrides", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-services-ambient-"));
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const environments = [];
+  const previousProject = process.env.COMPOSE_PROJECT_NAME;
+  const previousVolume = process.env.WSR_EVIDENCE_VOLUME;
+  process.env.COMPOSE_PROJECT_NAME = "shared-project";
+  process.env.WSR_EVIDENCE_VOLUME = "shared-volume";
+  try {
+    for (const name of ["installation-a", "installation-b"]) {
+      const installationRoot = path.join(directory, name);
+      await mkdir(installationRoot);
+      const configPath = await configFixture(installationRoot);
+      const adapters = createPublishedAdapters({
+        manifest,
+        configPath,
+        stateDirectory: path.join(installationRoot, "state"),
+        bundleDirectory: path.join(installationRoot, "bundle"),
+        run: async (_command, _args, options) => {
+          environments.push(options.env);
+          return { status: 0, stdout: "ready\n", stderr: "" };
+        },
+      });
+      assert.equal((await adapters.get("services").apply("start", manifest.components[1])).status, "succeeded");
+    }
+  } finally {
+    if (previousProject === undefined) delete process.env.COMPOSE_PROJECT_NAME;
+    else process.env.COMPOSE_PROJECT_NAME = previousProject;
+    if (previousVolume === undefined) delete process.env.WSR_EVIDENCE_VOLUME;
+    else process.env.WSR_EVIDENCE_VOLUME = previousVolume;
+  }
+
+  assert.notEqual(environments[0].COMPOSE_PROJECT_NAME, "shared-project");
+  assert.notEqual(environments[0].COMPOSE_PROJECT_NAME, environments[1].COMPOSE_PROJECT_NAME);
+  assert.notEqual(environments[0].WSR_EVIDENCE_VOLUME, environments[1].WSR_EVIDENCE_VOLUME);
+});
+
+test("published services preserve the legacy namespace for the default installation state", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-default-namespace-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  let environment;
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory: resolveProductPaths().stateDirectory,
+    bundleDirectory: path.join(directory, "bundle"),
+    run: async (_command, _args, options) => {
+      environment = options.env;
+      return { status: 0, stdout: "ready\n", stderr: "" };
+    },
+  });
+
+  assert.equal((await adapters.get("services").apply("start", manifest.components[1])).status, "succeeded");
+  assert.equal(environment.COMPOSE_PROJECT_NAME, "wsr-services");
+  assert.equal(environment.WSR_EVIDENCE_VOLUME, "wsr-evidence-data");
+});
+
+test("published services preflight rejects a runtime namespace owned by another state before apply", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-foreign-services-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const stateDirectory = path.join(directory, "state");
+  const commands = [];
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory,
+    bundleDirectory: path.join(directory, "bundle"),
+    run: async (command, args) => {
+      commands.push([command, ...args]);
+      if (command === "docker" && args[0] === "ps") {
+        return { status: 0, stdout: "foreign-container\n", stderr: "" };
+      }
+      if (command === "docker" && args[0] === "inspect") {
+        return {
+          status: 0,
+          stdout: `${JSON.stringify({
+            "com.docker.compose.project.working_dir": "/another/wsr/state/managed/wsr-services-0.1.3",
+          })}\n`,
+          stderr: "",
+        };
+      }
+      return { status: 0, stdout: "", stderr: "" };
+    },
+  });
+
+  const result = await adapters.get("services").preflight(manifest.components[1]);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.code, "SERVICES_NAMESPACE_OWNERSHIP_MISMATCH");
+  assert.ok(commands.some(([command, operation]) => command === "docker" && operation === "ps"));
+  assert.ok(commands.every(([command]) => command !== path.join(directory, "bundle", "wsr-compose")));
+});
+
+test("published services preflight rejects a stopped volume labelled for another state", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-foreign-volume-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const stateDirectory = path.join(directory, "state");
+  const identityDirectory = path.join(stateDirectory, "durable", "services");
+  await mkdir(identityDirectory, { recursive: true });
+  await writeFile(path.join(identityDirectory, "service-state-identity"), `${"a".repeat(64)}\n`);
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory,
+    bundleDirectory: path.join(directory, "bundle"),
+    run: async (command, args) => {
+      if (command === "docker" && args[0] === "ps") return { status: 0, stdout: "", stderr: "" };
+      if (command === "docker" && args[0] === "volume") {
+        return {
+          status: 0,
+          stdout: `${JSON.stringify({ "io.wsr.state-identity": "b".repeat(64) })}\n`,
+          stderr: "",
+        };
+      }
+      return { status: 0, stdout: "", stderr: "" };
+    },
+  });
+
+  const result = await adapters.get("services").preflight(manifest.components[1]);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.code, "SERVICES_VOLUME_OWNERSHIP_MISMATCH");
+});
+
+test("published services preflight rejects an unlabelled volume outside the legacy default namespace", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-unlabelled-volume-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory: path.join(directory, "state"),
+    bundleDirectory: path.join(directory, "bundle"),
+    run: async (command, args) => {
+      if (command === "docker" && args[0] === "ps") return { status: 0, stdout: "", stderr: "" };
+      if (command === "docker" && args[0] === "volume") {
+        return { status: 0, stdout: "{}\n", stderr: "" };
+      }
+      return { status: 0, stdout: "", stderr: "" };
+    },
+  });
+
+  const result = await adapters.get("services").preflight(manifest.components[1]);
+
+  assert.equal(result.status, "blocked");
+  assert.equal(result.code, "SERVICES_VOLUME_OWNERSHIP_MISMATCH");
+});
+
+test("published services abort removes only partial runtime and preserves the Evidence volume", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-services-abort-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const commands = [];
+  const bundleDirectory = path.join(directory, "bundle");
+  await mkdir(bundleDirectory);
+  await writeFile(path.join(bundleDirectory, "wsr-compose"), "#!/bin/sh\n");
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory: path.join(directory, "state"),
+    bundleDirectory,
+    run: async (command, args, options) => {
+      commands.push({ command, args, options });
+      return { status: 0, stdout: "", stderr: "" };
+    },
+  });
+
+  const result = await adapters.get("services").abort("upgrade", manifest.components[1]);
+
+  assert.equal(result.status, "succeeded");
+  assert.equal(commands.length, 1);
+  assert.equal(commands[0].command, path.join(bundleDirectory, "wsr-compose"));
+  assert.deepEqual(commands[0].args, ["down"]);
+  assert.ok(!commands[0].args.includes("purge"));
+});
+
+test("published services abort succeeds when extraction failed before the launcher existed", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-services-abort-extract-"));
+  const configPath = await configFixture(directory);
+  const manifest = await loadCompatibilityManifest(manifestPath);
+  const bundleDirectory = path.join(directory, "bundle");
+  await mkdir(bundleDirectory);
+  await writeFile(path.join(bundleDirectory, "partial-file"), "partial\n");
+  const commands = [];
+  const adapters = createPublishedAdapters({
+    manifest,
+    configPath,
+    stateDirectory: path.join(directory, "state"),
+    bundleDirectory,
+    run: async (command, args) => {
+      commands.push([command, ...args]);
+      return { status: 1, stdout: "", stderr: "spawn ENOENT" };
+    },
+  });
+
+  const result = await adapters.get("services").abort("upgrade", manifest.components[1]);
+
+  assert.equal(result.status, "succeeded");
+  assert.deepEqual(commands, []);
+  await assert.rejects(readFile(bundleDirectory), /ENOENT|EISDIR/u);
 });
 
 test("published adapters apply product defaults when optional service settings are omitted", async () => {

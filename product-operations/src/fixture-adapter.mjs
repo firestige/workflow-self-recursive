@@ -23,6 +23,11 @@ export function createFixtureAdapter(fixture = {}) {
       return { status: "succeeded", data: { source: "fixture" } };
     },
 
+    async abort(command, component) {
+      recordedEffects.push(`abort:${command}:${component.id}`);
+      return { status: "succeeded", data: { source: "fixture" } };
+    },
+
     async inspect(command, component) {
       return {
         status: "succeeded",

@@ -111,6 +111,12 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
     });
   }
 
+  async function retainOperationManifest() {
+    const digestName = manifest.digest.replace(/^sha256:/u, "");
+    const { digest: _digest, ...document } = manifest;
+    await writeJsonAtomic(path.join(stateDirectory, "operation-manifests", `${digestName}.json`), document);
+  }
+
   async function preflight(command, id) {
     const components = [];
     const diagnostics = [];
@@ -125,7 +131,7 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
         continue;
       }
       const result = await adapter.preflight(component, { command, manifest });
-      components.push({ id: component.id, layer: component.layer, status: result.status });
+      components.push({ id: component.id, layer: component.layer, status: result.status, phase: "preflight" });
       if (result.status !== "succeeded") {
         diagnostics.push({
           code: result.code ?? "PREFLIGHT_FAILED",
@@ -161,6 +167,7 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
         id: component.id,
         layer: component.layer,
         status: result.status,
+        phase: "inspect",
         data: result.data,
       });
       if (command === "health" && result.status !== "succeeded") diagnostics.push({
@@ -213,10 +220,20 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
       });
     }
 
+    const resuming = state.active?.command === command;
+    if (state.active && !resuming && command !== "rollback") {
+      return envelope(command, id, "blocked", {
+        diagnostics: [{
+          code: "OPERATION_IN_PROGRESS",
+          message: `Resume or rollback interrupted ${state.active.command} before ${command}.`,
+        }],
+      });
+    }
+
     const key = `${command}:${manifest.digest}`;
-    const readiness = ["install", "upgrade"].includes(command)
-      ? await diagnose(command, id)
-      : undefined;
+    const readiness = command === "install"
+      ? resuming ? await preflight(command, id) : await diagnose(command, id)
+      : command === "upgrade" ? await preflight(command, id) : undefined;
     if (readiness !== undefined && readiness.status !== "succeeded") return readiness;
     if (state.completed[key]) {
       if (["install", "upgrade", "rollback"].includes(command)) await retainAppliedManifest();
@@ -232,13 +249,17 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
     let active;
     let ordered;
     if (command === "rollback" && state.active && state.active.command !== "rollback") {
+      const interrupted = state.active;
       const componentById = new Map(manifest.components.map((component) => [component.id, component]));
-      const targetComponents = [...state.active.completedComponents].reverse();
+      const targetComponents = [...interrupted.completedComponents].reverse();
       active = {
         operationId: id,
         command,
         manifestDigest: manifest.digest,
         completedComponents: [],
+        currentComponent: null,
+        abortComponent: interrupted.currentComponent ?? null,
+        interruptedCommand: interrupted.command,
         targetComponents,
       };
       ordered = targetComponents.map((componentId) => componentById.get(componentId));
@@ -248,6 +269,7 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
         command,
         manifestDigest: manifest.digest,
         completedComponents: [],
+        currentComponent: null,
       };
       if (active.command !== command) {
         return envelope(command, id, "blocked", {
@@ -265,17 +287,51 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
       }
     }
     state.active = active;
+    await retainOperationManifest();
     await writeJsonAtomic(statePath, state);
 
     const components = [];
+    if (command === "rollback" && active.abortComponent !== null && active.abortComponent !== undefined) {
+      const component = manifest.components.find(({ id: componentId }) => componentId === active.abortComponent);
+      const adapter = component === undefined ? undefined : adapters.get(component.id);
+      if (component === undefined || typeof adapter?.abort !== "function") {
+        return envelope(command, id, "blocked", {
+          changed: active.completedComponents.length > 0,
+          components,
+          diagnostics: [{
+            code: "ADAPTER_ABORT_MISSING",
+            component: active.abortComponent,
+            message: `Atomic component ${active.abortComponent} cannot abort its interrupted operation`,
+          }],
+        });
+      }
+      const aborted = await adapter.abort(active.interruptedCommand, component, { manifest });
+      if (aborted.status !== "succeeded") {
+        return envelope(command, id, "blocked", {
+          changed: active.completedComponents.length > 0,
+          components,
+          diagnostics: [{
+            code: aborted.code ?? "ADAPTER_ABORT_BLOCKED",
+            component: component.id,
+            message: aborted.message ?? `Atomic component ${component.id} could not abort its interrupted operation`,
+          }],
+        });
+      }
+      components.push({ id: component.id, layer: component.layer, status: "succeeded", phase: "abort" });
+      active.abortComponent = null;
+      await writeJsonAtomic(statePath, state);
+    }
     for (const component of ordered) {
       if (active.completedComponents.includes(component.id)) {
-        components.push({ id: component.id, layer: component.layer, status: "resumed" });
+        components.push({ id: component.id, layer: component.layer, status: "resumed", phase: "resume" });
         continue;
       }
+      active.currentComponent = component.id;
+      await writeJsonAtomic(statePath, state);
       const result = await adapters.get(component.id).apply(command, component, { manifest });
       if (result.status !== "succeeded") {
         await writeJsonAtomic(statePath, state);
+        components.push({ id: component.id, layer: component.layer, status: result.status, phase: command === "rollback" ? "rollback" : "apply" });
         return envelope(command, id, "blocked", {
           changed: active.completedComponents.length > 0,
           components,
@@ -288,7 +344,8 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
         });
       }
       active.completedComponents.push(component.id);
-      components.push({ id: component.id, layer: component.layer, status: "succeeded" });
+      active.currentComponent = null;
+      components.push({ id: component.id, layer: component.layer, status: "succeeded", phase: command === "rollback" ? "rollback" : "apply" });
       await writeJsonAtomic(statePath, state);
     }
 

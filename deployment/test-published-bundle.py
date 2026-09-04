@@ -4,8 +4,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import socket
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -16,6 +18,23 @@ GENERATOR = PUBLISHED / "build-bundle.py"
 FINAL_MANIFEST = ROOT / "release" / "compose" / "0.1.1.json"
 
 SHA = "a" * 64
+
+
+def free_port() -> int:
+    with socket.socket() as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+def free_ports() -> tuple[int, int]:
+    listeners = [socket.socket(), socket.socket()]
+    try:
+        for listener in listeners:
+            listener.bind(("127.0.0.1", 0))
+        return tuple(int(listener.getsockname()[1]) for listener in listeners)  # type: ignore[return-value]
+    finally:
+        for listener in listeners:
+            listener.close()
 
 
 def manifest(version: str = "0.1.0") -> dict[str, object]:
@@ -75,6 +94,7 @@ class PublishedBundleTest(unittest.TestCase):
             self.assertIn('127.0.0.1:${WSR_EVIDENCE_PORT:-4318}:4318', compose)
             self.assertIn('127.0.0.1:${WSR_EVOLUTION_PORT:-8000}:8000', compose)
             self.assertIn("${WSR_EVOLUTION_CONFIG_FILE:-./evolution.config.json}", compose)
+            self.assertIn("external: true", compose)
             self.assertTrue((bundle / "wsr-host-preflight.mjs").is_file())
             endpoint_template = json.loads(
                 (bundle / "host-endpoints.template.json").read_text(encoding="utf-8")
@@ -148,7 +168,8 @@ class PublishedBundleTest(unittest.TestCase):
         self.assertLess(start_stack.index("database"), start_stack.index("10-wsr-roles.sh"))
         self.assertLess(start_stack.index("10-wsr-roles.sh"), start_stack.index("wait_stack"))
         self.assertIn("compose rm -sf migrate evidence evolution", start_stack)
-        self.assertIn("start | upgrade | rollback) start_stack", launcher)
+        self.assertIn("start | upgrade | rollback) recoverable_start_stack", launcher)
+        self.assertIn("io.wsr.state-identity", launcher)
         self.assertNotIn("down --volumes", launcher)
 
     def test_generator_rejects_tags_without_digest_and_incompatible_schema(self) -> None:
@@ -208,10 +229,13 @@ class PublishedBundleTest(unittest.TestCase):
             )
             docker.chmod(0o755)
             state = temporary_root / "state"
+            evidence_port, evolution_port = free_ports()
             environment = os.environ | {
                 "PATH": f"{fake_bin}:{os.environ['PATH']}",
                 "WSR_TEST_DOCKER_LOG": str(log),
                 "WSR_LOCAL_STATE_DIR": str(state),
+                "WSR_EVIDENCE_PORT": str(evidence_port),
+                "WSR_EVOLUTION_PORT": str(evolution_port),
             }
 
             subprocess.run([str(bundle / "wsr-compose"), "start"], env=environment, check=True)
@@ -260,24 +284,253 @@ class PublishedBundleTest(unittest.TestCase):
             bundle = self.build(temporary_root)
             fake_bin = temporary_root / "bin"
             fake_bin.mkdir()
+            log = temporary_root / "docker.log"
             docker = fake_bin / "docker"
             docker.write_text(
-                "#!/bin/sh\ncase \"$*\" in *'up --wait'*) exit 19;; esac\nexit 0\n",
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >>\"$WSR_TEST_DOCKER_LOG\"\n"
+                "case \"$*\" in *'up --wait'*) exit 19;; esac\nexit 0\n",
                 encoding="utf-8",
             )
             docker.chmod(0o755)
+            evidence_port, evolution_port = free_ports()
             completed = subprocess.run(
                 [str(bundle / "wsr-compose"), "start"],
                 env=os.environ
                 | {
                     "PATH": f"{fake_bin}:{os.environ['PATH']}",
                     "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
+                    "WSR_TEST_DOCKER_LOG": str(log),
+                    "WSR_EVIDENCE_PORT": str(evidence_port),
+                    "WSR_EVOLUTION_PORT": str(evolution_port),
                 },
                 capture_output=True,
                 text=True,
             )
             self.assertEqual(completed.returncode, 19)
             self.assertIn("Published service stack did not become ready", completed.stderr)
+            commands = log.read_text(encoding="utf-8")
+            self.assertIn("compose.yaml down --remove-orphans", commands)
+            self.assertNotIn("volume rm", commands)
+
+    def test_service_operation_is_retryable_after_compensating_a_partial_runtime(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            log = temporary_root / "docker.log"
+            interrupted = temporary_root / "interrupted"
+            docker = fake_bin / "docker"
+            docker.write_text(
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >>\"$WSR_TEST_DOCKER_LOG\"\n"
+                "case \"$*\" in\n"
+                "  *'up --wait'*)\n"
+                "    if ! test -f \"$WSR_TEST_INTERRUPTED\"; then\n"
+                "      touch \"$WSR_TEST_INTERRUPTED\"\n"
+                "      exit 19\n"
+                "    fi\n"
+                "    ;;\n"
+                "esac\n"
+                "exit 0\n",
+                encoding="utf-8",
+            )
+            docker.chmod(0o755)
+            environment = os.environ | {
+                "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
+                "WSR_TEST_DOCKER_LOG": str(log),
+                "WSR_TEST_INTERRUPTED": str(interrupted),
+            }
+
+            first = subprocess.run([str(bundle / "wsr-compose"), "upgrade"], env=environment)
+            second = subprocess.run([str(bundle / "wsr-compose"), "upgrade"], env=environment)
+
+            self.assertEqual(first.returncode, 19)
+            self.assertEqual(second.returncode, 0)
+            commands = log.read_text(encoding="utf-8")
+            self.assertEqual(commands.count("down --remove-orphans"), 1)
+            self.assertNotIn("volume rm", commands)
+
+    def test_service_operation_compensates_every_internal_effect_boundary(self) -> None:
+        cases = (
+            (" pull", False),
+            ("--force-recreate database", True),
+            ("exec -T database", True),
+            ("rm -sf migrate", True),
+            ("up --wait --wait-timeout", True),
+        )
+        for failure, expects_compensation in cases:
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as temporary:
+                temporary_root = Path(temporary)
+                bundle = self.build(temporary_root)
+                fake_bin = temporary_root / "bin"
+                fake_bin.mkdir()
+                log = temporary_root / "docker.log"
+                docker = fake_bin / "docker"
+                docker.write_text(
+                    "#!/bin/sh\nprintf '%s\\n' \"$*\" >>\"$WSR_TEST_DOCKER_LOG\"\n"
+                    "case \"$*\" in *\"$WSR_TEST_FAIL_PATTERN\"*) exit 23;; esac\nexit 0\n",
+                    encoding="utf-8",
+                )
+                docker.chmod(0o755)
+                completed = subprocess.run(
+                    [str(bundle / "wsr-compose"), "upgrade"],
+                    env=os.environ
+                    | {
+                        "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                        "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
+                        "WSR_TEST_DOCKER_LOG": str(log),
+                        "WSR_TEST_FAIL_PATTERN": failure,
+                    },
+                )
+                self.assertEqual(completed.returncode, 23)
+                commands = log.read_text(encoding="utf-8")
+                self.assertEqual("down --remove-orphans" in commands, expects_compensation)
+                self.assertNotIn("volume rm", commands)
+
+    def test_services_owner_bounds_a_compose_process_that_never_returns(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            docker = fake_bin / "docker"
+            docker.write_text(
+                "#!/bin/sh\ncase \"$*\" in *' pull') sleep 5;; esac\nexit 0\n",
+                encoding="utf-8",
+            )
+            docker.chmod(0o755)
+            started = time.monotonic()
+
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "upgrade"],
+                env=os.environ
+                | {
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
+                    "WSR_COMPOSE_TIMEOUT_SECONDS": "1",
+                },
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(completed.returncode, 124)
+            self.assertLess(time.monotonic() - started, 4)
+            self.assertIn("exceeded 1 seconds", completed.stderr)
+
+    def test_services_owner_rejects_a_foreign_volume_identity_before_pull(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            log = temporary_root / "docker.log"
+            docker = fake_bin / "docker"
+            docker.write_text(
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >>\"$WSR_TEST_DOCKER_LOG\"\n"
+                "case \"$*\" in\n"
+                "  *'volume inspect'* ) printf '{\"io.wsr.state-identity\":\"%s\"}\\n' \"$(printf b%.0s $(seq 1 64))\";;\n"
+                "esac\nexit 0\n",
+                encoding="utf-8",
+            )
+            docker.chmod(0o755)
+            state = temporary_root / "state"
+            state.mkdir()
+            (state / "service-state-identity").write_text("a" * 64 + "\n", encoding="utf-8")
+
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "upgrade"],
+                env=os.environ
+                | {
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "WSR_LOCAL_STATE_DIR": str(state),
+                    "WSR_EVIDENCE_VOLUME": "wsr-evidence-foreign-test",
+                    "WSR_TEST_DOCKER_LOG": str(log),
+                },
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(completed.returncode, 20)
+            self.assertIn("different WSR state directory", completed.stderr)
+            commands = log.read_text(encoding="utf-8")
+            self.assertIn("volume inspect wsr-evidence-foreign-test", commands)
+            self.assertNotIn(" pull", commands)
+
+    def test_services_owner_creates_a_missing_external_volume_with_the_state_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            log = temporary_root / "docker.log"
+            docker = fake_bin / "docker"
+            docker.write_text(
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >>\"$WSR_TEST_DOCKER_LOG\"\n"
+                "case \"$*\" in *'volume inspect'* ) printf 'Error: no such volume\\n'; exit 1;; esac\n"
+                "exit 0\n",
+                encoding="utf-8",
+            )
+            docker.chmod(0o755)
+            state = temporary_root / "state"
+            state.mkdir()
+            identity = "a" * 64
+            (state / "service-state-identity").write_text(identity + "\n", encoding="utf-8")
+
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "upgrade"],
+                env=os.environ
+                | {
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "WSR_LOCAL_STATE_DIR": str(state),
+                    "WSR_EVIDENCE_VOLUME": "wsr-evidence-new-test",
+                    "WSR_TEST_DOCKER_LOG": str(log),
+                },
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            commands = log.read_text(encoding="utf-8")
+            create = f"volume create --label io.wsr.state-identity={identity} wsr-evidence-new-test"
+            self.assertIn(create, commands)
+            self.assertLess(commands.index(create), commands.index(" pull"))
+
+    def test_services_abort_can_remove_partial_runtime_despite_a_foreign_volume_label(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            log = temporary_root / "docker.log"
+            docker = fake_bin / "docker"
+            docker.write_text(
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >>\"$WSR_TEST_DOCKER_LOG\"\n"
+                "case \"$*\" in\n"
+                "  *'volume inspect'* ) printf '{\"io.wsr.state-identity\":\"%s\"}\\n' \"$(printf b%.0s $(seq 1 64))\";;\n"
+                "esac\nexit 0\n",
+                encoding="utf-8",
+            )
+            docker.chmod(0o755)
+            state = temporary_root / "state"
+            state.mkdir()
+            (state / "service-state-identity").write_text("a" * 64 + "\n", encoding="utf-8")
+
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "down"],
+                env=os.environ
+                | {
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "WSR_LOCAL_STATE_DIR": str(state),
+                    "WSR_EVIDENCE_VOLUME": "wsr-evidence-foreign-test",
+                    "WSR_TEST_DOCKER_LOG": str(log),
+                },
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertIn("down --remove-orphans", log.read_text(encoding="utf-8"))
 
     def test_launcher_rejects_closed_port_and_timeout_bounds_before_docker(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -391,6 +644,7 @@ class PublishedBundleTest(unittest.TestCase):
                 env=os.environ | {
                     "PATH": f"{fake_bin}:{os.environ['PATH']}",
                     "WSR_EVIDENCE_PORT": port,
+                    "WSR_EVOLUTION_PORT": str(free_port()),
                     "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
                 },
                 capture_output=True,
@@ -542,7 +796,7 @@ class PublishedBundleTest(unittest.TestCase):
         e2e = (ROOT / "deployment" / "test-published-e2e.sh").read_text(encoding="utf-8")
 
         self.assertIn("WSR_RUN_PUBLISHED_E2E", e2e)
-        self.assertIn("release/compose/0.1.1.json", e2e)
+        self.assertIn("release/compose/0.1.6.json", e2e)
         self.assertIn("build-bundle.py", e2e)
         self.assertIn('"$bundle/wsr-compose" start', e2e)
         self.assertIn('"$bundle/wsr-compose" restart', e2e)

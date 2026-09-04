@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -68,4 +68,60 @@ test("the Product publisher checks out the pinned DSH owner record", async () =>
   const workflow = await readFile(path.join(repositoryRoot, ".github/workflows/release-compose-bundle.yml"), "utf8");
   const productJob = workflow.split("build-and-qualify-product:")[1];
   assert.match(productJob, /actions\/checkout@v6[\s\S]*submodules: recursive/u);
+});
+
+test("the packed CLI resumes or rolls back an interrupted composite upgrade", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-packed-recovery-"));
+  const archiveDirectory = path.join(directory, "archives");
+  const extractedDirectory = path.join(directory, "extracted");
+  await mkdir(archiveDirectory);
+  await mkdir(extractedDirectory);
+  const { stdout: archiveNameOutput } = await execFileAsync("npm", [
+    "pack", productRoot, "--silent", "--pack-destination", archiveDirectory,
+  ]);
+  const archivePath = path.join(archiveDirectory, archiveNameOutput.trim());
+  await execFileAsync("tar", ["-xzf", archivePath, "-C", extractedDirectory]);
+  const packagedRoot = path.join(extractedDirectory, "package");
+  const packageDocument = JSON.parse(await readFile(path.join(packagedRoot, "package.json"), "utf8"));
+  const manifestPath = path.join(packagedRoot, "manifests", `product-${packageDocument.version}.json`);
+  const fixturePath = path.join(directory, "fixture.json");
+  const configPath = path.join(directory, "config.json");
+
+  async function invoke(command, stateDirectory, fixture) {
+    await writeFile(fixturePath, `${JSON.stringify(fixture)}\n`);
+    try {
+      const { stdout } = await execFileAsync(process.execPath, [
+        path.join(packagedRoot, "bin/wsr.mjs"), command,
+        "--manifest", manifestPath,
+        "--state-dir", stateDirectory,
+        "--config", configPath,
+        "--fixture", fixturePath,
+      ]);
+      return JSON.parse(stdout);
+    } catch (error) {
+      return JSON.parse(error.stdout);
+    }
+  }
+
+  const resumeState = path.join(directory, "resume-state");
+  const interruptedForResume = await invoke("upgrade", resumeState, { interruptOnceAt: "services" });
+  assert.equal(interruptedForResume.status, "blocked");
+  assert.equal(interruptedForResume.resume.nextComponent, "services");
+  const resumed = await invoke("upgrade", resumeState, {});
+  assert.equal(resumed.status, "succeeded");
+  assert.deepEqual(resumed.components.map(({ id, phase }) => ({ id, phase })), [
+    { id: "dsh-bundle", phase: "resume" },
+    { id: "services", phase: "apply" },
+    { id: "workflow-source", phase: "apply" },
+    { id: "providers", phase: "apply" },
+  ]);
+
+  const rollbackState = path.join(directory, "rollback-state");
+  assert.equal((await invoke("upgrade", rollbackState, { interruptOnceAt: "services" })).status, "blocked");
+  const rolledBack = await invoke("rollback", rollbackState, {});
+  assert.equal(rolledBack.status, "succeeded");
+  assert.deepEqual(rolledBack.components.map(({ id, phase }) => ({ id, phase })), [
+    { id: "services", phase: "abort" },
+    { id: "dsh-bundle", phase: "rollback" },
+  ]);
 });

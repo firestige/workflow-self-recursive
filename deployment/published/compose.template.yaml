@@ -96,6 +96,7 @@ secrets:
 volumes:
   evidence-data:
     name: ${WSR_EVIDENCE_VOLUME:-wsr-evidence-data}
+    external: true
 
 networks:
   evidence-db:
