@@ -690,24 +690,28 @@ class PublishedBundleTest(unittest.TestCase):
             self.assertEqual(completed.returncode, 2)
             self.assertIn("WSR_EVOLUTION_CONFIG_FILE", completed.stderr)
 
-    def test_release_workflow_builds_and_rechecks_the_versioned_bundle(self) -> None:
+    def test_release_workflow_delegates_build_and_recheck_to_the_composite_action(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "release-compose-bundle.yml").read_text(
             encoding="utf-8"
         )
+        build_action = (ROOT / ".github" / "actions" / "build-qualify-bundle" / "action.yml").read_text(
+            encoding="utf-8"
+        )
 
-        self.assertIn("deployment/published/build-bundle.py", workflow)
-        self.assertIn("deployment/published/validate-qualification.py", workflow)
-        self.assertIn("docker buildx imagetools inspect", workflow)
-        self.assertIn('index("amd64") != null and index("arm64") != null', workflow)
-        self.assertIn("sha256sum --check SHA256SUMS", workflow)
-        self.assertIn("docker compose -f compose.yaml config --quiet", workflow)
-        self.assertIn("./wsr-compose host-config", workflow)
-        self.assertIn("./wsr-compose preflight", workflow)
-        self.assertIn("actions/upload-artifact@", workflow)
+        self.assertIn("uses: ./.github/actions/build-qualify-bundle", workflow)
+        self.assertIn("deployment/published/build-bundle.py", build_action)
+        self.assertIn("deployment/published/validate-qualification.py", build_action)
+        self.assertIn("docker buildx imagetools inspect", build_action)
+        self.assertIn('index("amd64") != null and index("arm64") != null', build_action)
+        self.assertIn("sha256sum --check SHA256SUMS", build_action)
+        self.assertIn("docker compose -f compose.yaml config --quiet", build_action)
+        self.assertIn("./wsr-compose host-config", build_action)
+        self.assertIn("./wsr-compose preflight", build_action)
+        self.assertIn("actions/upload-artifact@", build_action)
         self.assertIn("contents: write", workflow)
-        self.assertIn('test "$VERSION" = "${VERSION%%-*}"', workflow)
-        self.assertIn('wsr-services-$VERSION.tar.gz', workflow)
-        self.assertIn('sha256sum "$(basename "$ARCHIVE")"', workflow)
+        self.assertIn('test "$VERSION" = "${VERSION%%-*}"', build_action)
+        self.assertIn('wsr-services-$VERSION.tar.gz', build_action)
+        self.assertIn('sha256sum "$(basename "$ARCHIVE")"', build_action)
         self.assertIn('gh release create "compose-$VERSION"', workflow)
         self.assertIn('--target "$(git rev-parse HEAD)"', workflow)
         self.assertIn("github.event_name == 'workflow_dispatch'", workflow)
