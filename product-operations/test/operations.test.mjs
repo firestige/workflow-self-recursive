@@ -96,6 +96,15 @@ test("compatibility manifest rejects ambient and inexact component coordinates",
   );
 
   await assert.rejects(loadCompatibilityManifest(manifestPath), /exact version/i);
+
+  await writeFile(
+    manifestPath,
+    JSON.stringify(manifestDocument([{
+      ...exactComponent("execution"),
+      coordinate: "file:/tmp/local-dsh.tgz",
+    }])),
+  );
+  await assert.rejects(loadCompatibilityManifest(manifestPath), /explicit artifact coordinate/i);
 });
 
 test("preflight failure returns a typed result before installation effects", async () => {
