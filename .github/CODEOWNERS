@@ -2,3 +2,6 @@
 .github/workflows/**     @firestige
 scripts/check-*          @firestige
 .github/CODEOWNERS       @firestige
+
+# Release authority — generated from project-ops.config.
+.github/actions/**           @firestige
