@@ -3,12 +3,16 @@
 //
 //   node scripts/check-ga-manifest.mjs <manifest.json> [--from-rc <rc.json>]
 //
-// A GA manifest is a promotion of an already-qualified rc: it must not introduce
-// new coordinates, and it must not ship prerelease artifacts. Both are checked
-// before any tag is created — a tag pointing at a failed release is an
-// unrecoverable consumption of outward-facing promise space.
+// A GA manifest is a promotion of an already-qualified rc: it must be preceded by
+// one, it must not introduce new coordinates, and it must not ship prerelease
+// artifacts. All three are checked before any tag is created — a tag pointing at a
+// failed release is an unrecoverable consumption of outward-facing promise space.
+//
+// Inputs that are not GA manifests (rc manifests, candidate provenance records,
+// publication state) are reported and skipped rather than judged by GA rules.
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
 
 const PRERELEASE = /-(rc|dev|alpha|beta|canary|snapshot|preview)\b/i;
 // Fields that legitimately differ between an rc and the GA promoted from it.
@@ -58,7 +62,8 @@ function checkNoPrerelease(manifest) {
 
 // -------------------------------------------- rule 2: promotion must not drift
 
-function checkPromotionEquivalence(ga, rc) {
+function diffAgainst(ga, rc) {
+  const out = [];
   const flatten = (obj) => {
     const map = new Map();
     for (const [path, value] of walk(obj)) map.set(path, value);
@@ -71,29 +76,100 @@ function checkPromotionEquivalence(ga, rc) {
   for (const [path, value] of gaMap) {
     if (isIdentity(path)) continue;
     if (!rcMap.has(path)) {
-      record(path, `GA=${value}`, "GA 清单出现 rc 中不存在的字段 → 晋升引入了新内容", [
-        "晋升不得重建：GA 必须与被选中的 rc 逐字段相等（身份字段除外）",
-      ]);
+      out.push({
+        subject: path,
+        evidence: `GA=${value}`,
+        verdict: "GA 清单出现 rc 中不存在的字段 → 晋升引入了新内容",
+        fixes: ["晋升不得重建：GA 必须与被选中的 rc 逐字段相等（身份字段除外）"],
+      });
     } else if (rcMap.get(path) !== value) {
-      record(path, `rc=${rcMap.get(path)} → GA=${value}`, "GA 与被晋升的 rc 内容不一致", [
-        "重新从该 rc 生成 GA 清单，不要手工编辑",
-      ]);
+      out.push({
+        subject: path,
+        evidence: `rc=${rcMap.get(path)} → GA=${value}`,
+        verdict: "GA 与被晋升的 rc 内容不一致",
+        fixes: ["重新从该 rc 生成 GA 清单，不要手工编辑"],
+      });
     }
   }
   for (const path of rcMap.keys()) {
     if (!isIdentity(path) && !gaMap.has(path)) {
-      record(path, `仅存在于 rc`, "GA 清单丢失了 rc 中的字段 → 晋升不完整", ["重新从该 rc 生成 GA 清单"]);
+      out.push({
+        subject: path,
+        evidence: "仅存在于 rc",
+        verdict: "GA 清单丢失了 rc 中的字段 → 晋升不完整",
+        fixes: ["重新从该 rc 生成 GA 清单"],
+      });
     }
   }
+  return out;
+}
+
+// ----------------------------------------- rule 3: a GA must be promoted from rc
+
+// Sibling manifests are matched on their declared version, not their filename, so
+// a misnamed file cannot pass itself off as the predecessor.
+function findRcPredecessors(gaPath, gaVersion) {
+  const dir = dirname(gaPath);
+  const found = [];
+  for (const name of readdirSync(dir)) {
+    if (!name.endsWith(".json") || name === basename(gaPath)) continue;
+    let parsed;
+    try {
+      parsed = JSON.parse(readFileSync(join(dir, name), "utf8"));
+    } catch {
+      continue;
+    }
+    const version = parsed?.release ?? parsed?.version;
+    if (typeof version === "string" && version.startsWith(`${gaVersion}-`) && PRERELEASE.test(version)) {
+      found.push({ path: join(dir, name), version, manifest: parsed });
+    }
+  }
+  return found.sort((a, b) => a.version.localeCompare(b.version, undefined, { numeric: true }));
 }
 
 // ------------------------------------------------------------------- report
 
 const manifest = readJson(manifestPath);
-checkNoPrerelease(manifest);
-if (rcPath) checkPromotionEquivalence(manifest, readJson(rcPath));
+const version = manifest?.release ?? manifest?.version;
 
-console.log(`manifest: ${manifestPath}${rcPath ? `\npromoted from: ${rcPath}` : "\n(未提供 --from-rc，跳过晋升等价校验)"}\n`);
+// Candidate provenance and publication state live under release/ too, but carry
+// neither field; judging them by GA rules would flag their legitimate rc strings.
+if (typeof version !== "string") {
+  console.log(`manifest: ${manifestPath}\n(无 release/version 字段，非发布清单，跳过)`);
+  process.exit(0);
+}
+
+if (PRERELEASE.test(version)) {
+  console.log(`manifest: ${manifestPath}\nrc 清单（${version}）— GA 规则不适用，跳过`);
+  process.exit(0);
+}
+
+checkNoPrerelease(manifest);
+
+let promotedFrom = rcPath;
+if (rcPath) {
+  for (const f of diffAgainst(manifest, readJson(rcPath))) findings.push(f);
+} else {
+  const predecessors = findRcPredecessors(manifestPath, version);
+  if (predecessors.length === 0) {
+    record(
+      manifest.release !== undefined ? "$.release" : "$.version",
+      version,
+      "GA 清单没有 rc 前身 → 版本号是凭空生成的，不是晋升出来的",
+      [
+        `先走候选流水线产出 ${join(dirname(manifestPath), `${version}-rc.1.json`)}`,
+        "GA 只能从已限定的 rc 晋升，不得直接新建",
+      ],
+    );
+  } else {
+    const match = predecessors.find((p) => diffAgainst(manifest, p.manifest).length === 0);
+    const chosen = match ?? predecessors[predecessors.length - 1];
+    promotedFrom = chosen.path;
+    if (!match) for (const f of diffAgainst(manifest, chosen.manifest)) findings.push(f);
+  }
+}
+
+console.log(`manifest: ${manifestPath}${promotedFrom ? `\npromoted from: ${promotedFrom}` : ""}\n`);
 
 if (findings.length === 0) {
   console.log("### ✅ GA 清单校验通过");
