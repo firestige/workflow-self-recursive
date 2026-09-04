@@ -15,11 +15,11 @@ acceptance_manifest="$preview/compatibility.json"
 state="$preview/state"
 workspace="$preview/current-branch-acceptance"
 workflow_asset_pid=
-suffix=$(basename "$preview" | tr -cd 'A-Za-z0-9' | tr '[:upper:]' '[:lower:]')
+namespace_suffix=$(node -e 'const {createHash}=require("node:crypto"); const path=require("node:path"); process.stdout.write(createHash("sha256").update(path.resolve(process.argv[1])).digest("hex").slice(0,12))' "$state")
 
 export DSH_HOME="$preview/dsh-home"
-export COMPOSE_PROJECT_NAME="wsr_accept_$suffix"
-export WSR_EVIDENCE_VOLUME="wsr-accept-$suffix"
+export COMPOSE_PROJECT_NAME="wsr_services_$namespace_suffix"
+export WSR_EVIDENCE_VOLUME="wsr-evidence-$namespace_suffix"
 
 mkdir -p "$packages"
 
@@ -32,12 +32,28 @@ operation() {
 
 cleanup() {
   status=$?
+  cleanup_failed=0
   trap - 0 HUP INT TERM
   set +e
+
+  wait_for_exit() {
+    cleanup_pid=$1
+    attempts=0
+    while kill -0 "$cleanup_pid" >/dev/null 2>&1; do
+      attempts=$((attempts + 1))
+      if test "$attempts" -ge 50; then return 1; fi
+      sleep 0.1
+    done
+    return 0
+  }
 
   if test -n "$workflow_asset_pid"; then
     kill "$workflow_asset_pid" >/dev/null 2>&1
     wait "$workflow_asset_pid" >/dev/null 2>&1
+    if ! wait_for_exit "$workflow_asset_pid"; then
+      printf '验收清理不完整：workflow asset process %s 仍在运行。\n' "$workflow_asset_pid" >&2
+      cleanup_failed=1
+    fi
   fi
 
   if test -f "$config"; then
@@ -49,7 +65,13 @@ cleanup() {
     pid=$(sed -n 's/.*"pid"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$process_file" | head -n 1)
     case "$pid" in
       '' | *[!0-9]*) ;;
-      *) kill "$pid" >/dev/null 2>&1 ;;
+      *)
+        kill "$pid" >/dev/null 2>&1
+        if ! wait_for_exit "$pid"; then
+          printf '验收清理不完整：DSH process %s 仍在运行。\n' "$pid" >&2
+          cleanup_failed=1
+        fi
+        ;;
     esac
   fi
 
@@ -57,11 +79,27 @@ cleanup() {
     WSR_CONFIRM_PURGE=DELETE_EVIDENCE_DATA "$bundle/wsr-compose" purge >/dev/null 2>&1
   fi
 
+  remaining_containers=$(docker ps -aq --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null)
+  if test -n "$remaining_containers"; then
+    printf '验收清理不完整：Compose project %s 仍有容器。\n' "$COMPOSE_PROJECT_NAME" >&2
+    cleanup_failed=1
+  fi
+  remaining_networks=$(docker network ls -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null)
+  if test -n "$remaining_networks"; then
+    printf '验收清理不完整：Compose project %s 仍有网络。\n' "$COMPOSE_PROJECT_NAME" >&2
+    cleanup_failed=1
+  fi
+  if docker volume inspect "$WSR_EVIDENCE_VOLUME" >/dev/null 2>&1; then
+    printf '验收清理不完整：Evidence volume %s 仍然存在。\n' "$WSR_EVIDENCE_VOLUME" >&2
+    cleanup_failed=1
+  fi
+
   case "$preview" in
     "$temporary_parent"/wsr-current-accept.*) rm -rf "$preview" ;;
     *) printf 'Refusing to remove unexpected preview directory: %s\n' "$preview" >&2 ;;
   esac
 
+  if test "$cleanup_failed" -ne 0 && test "$status" -eq 0; then status=1; fi
   if test "$status" -eq 0; then
     printf '\n验收环境已移除（DSH profile、容器、volume 和临时文件）。\n'
   else

@@ -1,11 +1,12 @@
 import { execFile, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, open, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, open, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
 import { normalizeGlobalConfig } from "./global-config.mjs";
+import { resolveProductPaths } from "./platform-paths.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -86,6 +87,21 @@ function redactDiagnostic(value) {
 
 function resultOutput(result, maxBytes) {
   return boundedTail(redactDiagnostic([result.stdout, result.stderr].filter(Boolean).join("\n").trim()), maxBytes);
+}
+
+function serviceNamespace(stateDirectory) {
+  const canonicalState = path.resolve(stateDirectory);
+  const defaultState = path.resolve(resolveProductPaths().stateDirectory);
+  if (canonicalState === defaultState) {
+    return { project: "wsr-services", volume: "wsr-evidence-data", legacy: true };
+  }
+  const suffix = createHash("sha256").update(canonicalState).digest("hex").slice(0, 12);
+  return { project: `wsr_services_${suffix}`, volume: `wsr-evidence-${suffix}`, legacy: false };
+}
+
+function pathWithin(root, candidate) {
+  const relative = path.relative(path.resolve(root), path.resolve(candidate));
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
 async function invoke(run, command, args, options, code) {
@@ -338,6 +354,10 @@ function dshAdapter({ component, configPath, stateDirectory, run, launch, proces
       return succeeded();
     },
 
+    async abort() {
+      return succeeded();
+    },
+
     async inspect(command) {
       const config = await loadConfig(configPath);
       if (command === "logs") {
@@ -362,10 +382,13 @@ function servicesAdapter({ component, configPath, stateDirectory, bundleDirector
   const archive = path.join(stateDirectory, "downloads", `wsr-services-${component.version}.tar.gz`);
   const bundleDirectory = override ?? path.join(managed, `wsr-services-${component.version}`);
   const executable = path.join(bundleDirectory, "wsr-compose");
+  const namespace = serviceNamespace(stateDirectory);
 
   async function environment() {
     const config = await loadConfig(configPath);
     return {
+      COMPOSE_PROJECT_NAME: namespace.project,
+      WSR_EVIDENCE_VOLUME: namespace.volume,
       WSR_EVIDENCE_PORT: String(config.services.ports.evidence),
       WSR_EVOLUTION_PORT: String(config.services.ports.evolution),
       WSR_LOCAL_STATE_DIR: path.join(stateDirectory, "durable", "services"),
@@ -389,6 +412,60 @@ function servicesAdapter({ component, configPath, stateDirectory, bundleDirector
         const result = await run(command, args);
         if (result.status !== 0) return blocked(code, `${command} preflight failed`);
       }
+      const env = await environment();
+      const inventory = await run("docker", [
+        "ps", "-aq", "--filter", `label=com.docker.compose.project=${env.COMPOSE_PROJECT_NAME}`,
+      ]);
+      if (inventory.status !== 0) {
+        return blocked("SERVICES_NAMESPACE_INSPECTION_FAILED", "Cannot inspect the configured Compose namespace");
+      }
+      const expectedRoot = path.join(stateDirectory, "managed");
+      for (const container of inventory.stdout.split(/\r?\n/u).map((value) => value.trim()).filter(Boolean)) {
+        const inspected = await run("docker", ["inspect", container, "--format", "{{json .Config.Labels}}"]);
+        if (inspected.status !== 0) {
+          return blocked("SERVICES_NAMESPACE_INSPECTION_FAILED", `Cannot inspect Compose container ${container}`);
+        }
+        let labels;
+        try { labels = JSON.parse(inspected.stdout.trim()); }
+        catch { return blocked("SERVICES_NAMESPACE_INSPECTION_FAILED", `Compose container ${container} has unreadable ownership labels`); }
+        const workingDirectory = labels?.["com.docker.compose.project.working_dir"];
+        if (typeof workingDirectory !== "string" || !pathWithin(expectedRoot, workingDirectory)) {
+          return blocked(
+            "SERVICES_NAMESPACE_OWNERSHIP_MISMATCH",
+            `Compose namespace ${env.COMPOSE_PROJECT_NAME} is owned outside the current WSR state directory`,
+          );
+        }
+      }
+      const volume = await run("docker", [
+        "volume", "inspect", env.WSR_EVIDENCE_VOLUME, "--format", "{{json .Labels}}",
+      ]);
+      if (volume.status === 0 && volume.stdout.trim().length > 0) {
+        let labels;
+        try { labels = JSON.parse(volume.stdout.trim()); }
+        catch { return blocked("SERVICES_NAMESPACE_INSPECTION_FAILED", "Evidence volume has unreadable ownership labels"); }
+        const recordedIdentity = labels?.["io.wsr.state-identity"];
+        if (typeof recordedIdentity === "string") {
+          let currentIdentity;
+          try {
+            currentIdentity = (await readFile(path.join(stateDirectory, "durable", "services", "service-state-identity"), "utf8")).trim();
+          } catch (error) {
+            if (error.code !== "ENOENT") throw error;
+          }
+          if (currentIdentity !== recordedIdentity) {
+            return blocked(
+              "SERVICES_VOLUME_OWNERSHIP_MISMATCH",
+              `Evidence volume ${env.WSR_EVIDENCE_VOLUME} belongs to another WSR state directory`,
+            );
+          }
+        } else if (!namespace.legacy) {
+          return blocked(
+            "SERVICES_VOLUME_OWNERSHIP_MISMATCH",
+            `Evidence volume ${env.WSR_EVIDENCE_VOLUME} has no verifiable WSR state owner`,
+          );
+        }
+      } else if (volume.status !== 0 && !/no such volume/u.test(`${volume.stdout}\n${volume.stderr}`.toLowerCase())) {
+        return blocked("SERVICES_NAMESPACE_INSPECTION_FAILED", "Cannot inspect the configured Evidence volume");
+      }
       return succeeded();
     },
     async apply(command) {
@@ -408,6 +485,17 @@ function servicesAdapter({ component, configPath, stateDirectory, bundleDirector
         return invoke(run, executable, [command], { env: await environment() }, "SERVICES_OPERATION_FAILED");
       }
       return succeeded();
+    },
+
+    async abort() {
+      try {
+        await access(executable);
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+        await rm(bundleDirectory, { recursive: true, force: true });
+        return succeeded({ partialRuntime: false });
+      }
+      return invoke(run, executable, ["down"], { env: await environment() }, "SERVICES_ABORT_FAILED");
     },
     async inspect(command) {
       if (command === "health") {
@@ -464,6 +552,10 @@ function workflowAdapter({ component, configPath, stateDirectory, fetchImpl }) {
       if (command === "uninstall") await rm(target, { force: true });
       return succeeded();
     },
+    async abort() {
+      await rm(`${target}.new`, { force: true });
+      return succeeded();
+    },
     async inspect() {
       try {
         const bytes = await readFile(target);
@@ -494,6 +586,7 @@ function providerAdapter({ component, run }) {
       }
       return succeeded({ copilot: component.compatibility.copilot, codex: component.compatibility.codex, codexLogin: "available", copilotLogin: "validated-on-first-invocation" });
     },
+    async abort() { return succeeded(); },
     async apply() { return succeeded(); },
     async inspect() { return succeeded({ compatibility: component.compatibility }); },
   });

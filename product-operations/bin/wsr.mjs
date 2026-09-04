@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -47,6 +47,36 @@ function booleanOption(options, name, fallback = false) {
   throw new Error(`--${name} must be true or false`);
 }
 
+async function activeManifestPath(stateDirectory, packagedManifestsDirectory) {
+  let digest;
+  try {
+    const state = JSON.parse(await readFile(path.join(stateDirectory, "operations-state.json"), "utf8"));
+    digest = state.active?.manifestDigest;
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (typeof digest !== "string") return undefined;
+
+  const retained = path.join(stateDirectory, "operation-manifests", `${digest.replace(/^sha256:/u, "")}.json`);
+  const candidates = [retained];
+  try {
+    for (const name of await readdir(packagedManifestsDirectory)) {
+      if (name.endsWith(".json")) candidates.push(path.join(packagedManifestsDirectory, name));
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  for (const candidate of candidates) {
+    try {
+      await readFile(candidate);
+      if ((await loadCompatibilityManifest(candidate)).digest === digest) return candidate;
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+  }
+  throw new Error(`ACTIVE_MANIFEST_UNAVAILABLE: no exact manifest is available for ${digest}`);
+}
+
 let exitCode = 0;
 let output;
 try {
@@ -54,9 +84,7 @@ try {
   const defaults = resolveProductPaths();
   const packageDocument = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
   const defaultManifestPath = path.join(packageRoot, "manifests", `product-${packageDocument.version}.json`);
-  const manifestPath = path.resolve(options.manifest ?? defaultManifestPath);
   const fixturePath = options.fixture ? path.resolve(options.fixture) : null;
-  const manifest = await loadCompatibilityManifest(manifestPath);
   const configPath = path.resolve(options.config ?? defaults.configPath);
   let configInput;
   if (command === "setup" && options["config-input"]) {
@@ -75,6 +103,10 @@ try {
     configuredStateDirectory,
     defaultStateDirectory: defaults.stateDirectory,
   }));
+  const manifestPath = options.manifest
+    ? path.resolve(options.manifest)
+    : await activeManifestPath(stateDirectory, path.join(packageRoot, "manifests")) ?? defaultManifestPath;
+  const manifest = await loadCompatibilityManifest(manifestPath);
   let adapters;
   let maintenance;
   if (fixturePath) {

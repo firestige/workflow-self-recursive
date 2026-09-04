@@ -5,20 +5,22 @@ self-contained, checksummed Compose bundle. The generated `compose.yaml` contain
 immutable digest coordinates for PostgreSQL, Evidence (also used by the migration job), and Evolution.
 It contains no source checkout, build context, BI, Workflow Builder, or improvement-loop container.
 
-The stable Iter 6 manifest is `release/compose/0.1.1.json`; the original qualified candidate remains at
+The current stable manifest is `release/compose/0.1.4.json`; the original qualified candidate remains at
 `release/compose/0.1.0-rc.1.json`. The existing
 `release-compose-bundle.yml` flow downloads the first-party qualification records, binds their tags,
 product commits, OCI digests, platform gates, and provenance gates to that manifest, verifies the
 three remote amd64/arm64 indexes, and only then generates the bundle artifact. A manual dispatch for
-the stable manifest publishes the checksummed archive and manifest as the durable `compose-0.1.1`
+the stable manifest publishes the checksummed archive and manifest as the durable `compose-0.1.4`
 GitHub Release; it does not rebuild or republish the pinned images.
 
 In a generated bundle, run `./wsr-compose start`. It pulls the pinned images, runs the Evidence
 migration before Evidence readiness, waits for Evidence before Evolution, and binds both APIs only to
 loopback. `stop`, `down`, `restart`, `status`, and `logs` are non-destructive. `upgrade` and `rollback`
-start the exact current bundle against the stable `wsr-evidence-data` volume, so selecting the newer or
-older qualified bundle selects the version. A manifest is rejected unless its declared Evidence schema
-revision remains readable by that bundle.
+start the exact current bundle against its configured Evidence volume, so selecting the newer or older
+qualified bundle selects the version. Startup is retryable: a failed internal effect removes partial
+containers and networks but preserves the volume. Volumes carry the state identity as an ownership
+label, and a mismatched owner is rejected before pull or runtime mutation. A manifest is rejected unless
+its declared Evidence schema revision remains readable by that bundle.
 
 `./wsr-compose preflight` checks the two effective ports and the closed
 loopback/Contract fixture without starting Docker. `./wsr-compose host-config`

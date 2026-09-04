@@ -96,6 +96,8 @@ secrets:
 volumes:
   evidence-data:
     name: ${WSR_EVIDENCE_VOLUME:-wsr-evidence-data}
+    labels:
+      io.wsr.state-identity: ${WSR_EVIDENCE_STATE_IDENTITY:-unconfigured}
 
 networks:
   evidence-db:

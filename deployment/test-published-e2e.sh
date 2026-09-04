@@ -7,7 +7,7 @@ if test "${WSR_RUN_PUBLISHED_E2E:-}" != 1; then
 fi
 
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-manifest=${WSR_PUBLISHED_E2E_MANIFEST:-"$root/release/compose/0.1.1.json"}
+manifest=${WSR_PUBLISHED_E2E_MANIFEST:-"$root/release/compose/0.1.4.json"}
 temporary=$(mktemp -d "${TMPDIR:-/tmp}/wsr-published-e2e.XXXXXX")
 bundle="$temporary/bundle"
 suffix=$(openssl rand -hex 6)
@@ -54,8 +54,8 @@ schema=$(docker compose -f compose.yaml exec -T database \
   psql -U wsr_evidence_admin -d wsr_evidence -Atc 'select version_num from alembic_version')
 test "$schema" = 20260828_0004
 
-# Reproduce an unmarked pre-identity volume with credentials from an older
-# state directory, then prove start claims it, rotates roles, and retains data.
+# Remove the database-side marker and prove the volume label still prevents a
+# different state directory from claiming the retained data.
 docker compose -f compose.yaml exec -T database \
   psql -U wsr_evidence_admin -d wsr_evidence -v ON_ERROR_STOP=1 \
   -c 'create table if not exists wsr_upgrade_probe (value text primary key)' \
@@ -63,14 +63,24 @@ docker compose -f compose.yaml exec -T database \
 docker compose -f compose.yaml exec -T database sh -c \
   'mv "$PGDATA/.wsr-state-identity" "$PGDATA/.wsr-state-identity.legacy"'
 original_identity=$(tr -d '\r\n' < "$WSR_LOCAL_STATE_DIR/service-state-identity")
+original_state_dir=$WSR_LOCAL_STATE_DIR
 "$bundle/wsr-compose" down
 export WSR_LOCAL_STATE_DIR="$temporary/reconciled-state"
+set +e
+foreign_output=$("$bundle/wsr-compose" start 2>&1)
+foreign_status=$?
+set -e
+test "$foreign_status" -eq 20
+case "$foreign_output" in
+  *'different WSR state directory'*) ;;
+  *) printf '%s\n' "$foreign_output" >&2; exit 1 ;;
+esac
+export WSR_LOCAL_STATE_DIR=$original_state_dir
 "$bundle/wsr-compose" start
 export WSR_EVIDENCE_ADMIN_PASSWORD_FILE="$WSR_LOCAL_STATE_DIR/secrets/admin-password"
 export WSR_EVIDENCE_BACKUP_PASSWORD_FILE="$WSR_LOCAL_STATE_DIR/secrets/backup-password"
 export WSR_EVIDENCE_RUNTIME_PASSWORD_FILE="$WSR_LOCAL_STATE_DIR/secrets/runtime-password"
-reconciled_identity=$(tr -d '\r\n' < "$WSR_LOCAL_STATE_DIR/service-state-identity")
-test "$reconciled_identity" != "$original_identity"
+test "$(tr -d '\r\n' < "$WSR_LOCAL_STATE_DIR/service-state-identity")" = "$original_identity"
 test "$(docker compose -f compose.yaml exec -T database psql -U wsr_evidence_admin -d wsr_evidence -Atc "select value from wsr_upgrade_probe where value = 'retained'")" = retained
 
 password_before=$(sha256sum "$WSR_EVIDENCE_RUNTIME_PASSWORD_FILE" | cut -d' ' -f1)

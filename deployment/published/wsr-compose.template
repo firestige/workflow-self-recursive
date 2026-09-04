@@ -66,6 +66,36 @@ state_identity=$(tr -d '\r\n' < "$identity_file")
 case "$state_identity" in *[!0-9a-f]* | "") printf 'Invalid service state identity.\n' >&2; exit 2;; esac
 if test "${#state_identity}" -ne 64; then printf 'Invalid service state identity.\n' >&2; exit 2; fi
 
+verify_volume_owner=0
+case "$action" in start | restart | upgrade | rollback | purge) verify_volume_owner=1;; esac
+if test "$verify_volume_owner" -eq 1 && volume_inspection=$(docker volume inspect "$volume" --format '{{json .Labels}}' 2>&1); then
+  recorded_identity=
+  if test -n "$volume_inspection" && test "$volume_inspection" != null; then
+    if ! recorded_identity=$(printf '%s' "$volume_inspection" | node -e '
+      const fs = require("node:fs");
+      const labels = JSON.parse(fs.readFileSync(0, "utf8"));
+      process.stdout.write(labels?.["io.wsr.state-identity"] ?? "");
+    '); then
+      printf 'Evidence volume %s has unreadable ownership labels.\n' "$volume" >&2
+      exit 20
+    fi
+  fi
+  if test -z "$recorded_identity"; then
+    if test "$volume" != wsr-evidence-data; then
+      printf 'Evidence volume %s has no verifiable WSR state owner.\n' "$volume" >&2
+      exit 20
+    fi
+  elif test "$recorded_identity" != "$state_identity"; then
+    printf 'Evidence volume belongs to a different WSR state directory; refusing credential rotation.\n' >&2
+    exit 20
+  fi
+elif test "$verify_volume_owner" -eq 1; then
+  case "$volume_inspection" in
+    *'no such volume'* | *'No such volume'*) ;;
+    *) printf 'Cannot inspect Evidence volume %s ownership.\n' "$volume" >&2; exit 20;;
+  esac
+fi
+
 export WSR_EVIDENCE_ADMIN_PASSWORD_FILE="$secret_dir/admin-password"
 export WSR_EVIDENCE_BACKUP_PASSWORD_FILE="$secret_dir/backup-password"
 export WSR_EVIDENCE_RUNTIME_PASSWORD_FILE="$secret_dir/runtime-password"
@@ -73,12 +103,14 @@ export WSR_EVIDENCE_VOLUME="$volume"
 export WSR_EVIDENCE_STATE_IDENTITY="$state_identity"
 export WSR_EVOLUTION_CONFIG_FILE="$evolution_config"
 compose() { docker compose -f "$compose_file" "$@"; }
+runtime_touched=0
 
 wait_stack() {
-  set +e
-  compose up --wait --wait-timeout "$wait_timeout"
-  status=$?
-  set -e
+  if compose up --wait --wait-timeout "$wait_timeout"; then
+    status=0
+  else
+    status=$?
+  fi
   if test "$status" -ne 0; then
     printf 'Published service stack did not become ready (bundle @BUNDLE_VERSION@).\n' >&2
     compose ps >&2 || true
@@ -89,20 +121,36 @@ wait_stack() {
 }
 
 start_stack() {
-  compose pull
+  compose pull || return $?
   # Compose does not include a secret file's host source path in the service
   # configuration hash. Recreate the database so a second Product state using
   # this bundle cannot inherit another state's secret mounts or volume.
-  compose up -d --wait --wait-timeout "$wait_timeout" --force-recreate database
-  compose exec -T database /docker-entrypoint-initdb.d/10-wsr-roles.sh
+  runtime_touched=1
+  compose up -d --wait --wait-timeout "$wait_timeout" --force-recreate database || return $?
+  compose exec -T database /docker-entrypoint-initdb.d/10-wsr-roles.sh || return $?
   # One-shot migrate containers can otherwise retain the previous state's
   # admin secret mount even after the database has moved to the current state.
-  compose rm -sf migrate evidence evolution
+  compose rm -sf migrate evidence evolution || return $?
   wait_stack
 }
 
+recoverable_start_stack() {
+  if start_stack; then
+    status=0
+  else
+    status=$?
+  fi
+  if test "$status" -ne 0; then
+    if test "$runtime_touched" -eq 1; then
+      printf 'Service operation did not commit; removing partial runtime while preserving Evidence data.\n' >&2
+      compose down --remove-orphans || printf 'Partial service runtime cleanup also failed.\n' >&2
+    fi
+    return "$status"
+  fi
+}
+
 case "$action" in
-  start | upgrade | rollback) start_stack;;
+  start | upgrade | rollback) recoverable_start_stack;;
   restart) compose restart database && compose exec -T database /docker-entrypoint-initdb.d/10-wsr-roles.sh && compose restart evidence evolution && wait_stack;;
   stop) compose stop;;
   down) compose down --remove-orphans;;

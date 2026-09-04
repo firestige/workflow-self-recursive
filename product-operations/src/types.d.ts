@@ -7,6 +7,7 @@ export interface ComponentResult {
   id: string;
   layer: string;
   status: "succeeded" | "blocked" | "failed" | "unavailable" | "resumed";
+  phase: "preflight" | "apply" | "resume" | "abort" | "rollback" | "inspect";
   data?: unknown;
 }
 

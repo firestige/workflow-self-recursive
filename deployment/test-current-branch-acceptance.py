@@ -27,6 +27,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
         uninitialized_execution_system: bool = False,
         uninitialized_system_contracts: bool = False,
         browser_qualification: bool = False,
+        leaked_container: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], list[str], Path]:
         with tempfile.TemporaryDirectory(prefix="wsr-accept-test-") as temporary_name:
             temporary = Path(temporary_name)
@@ -83,6 +84,10 @@ EOF
             """)
             executable(fake_bin / "node", """
                 printf 'node %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
+                if test "${1:-}" = -e; then
+                  printf 'abc123def456'
+                  exit 0
+                fi
                 if test "${1:-}" = -p; then
                   case "${3:-}" in
                     */wsr-ui/packages/bi/package.json) printf '0.1.0-rc.1\n' ;;
@@ -113,6 +118,15 @@ EOF
             """)
             executable(fake_bin / "open", """
                 printf 'open %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
+            """)
+            executable(fake_bin / "docker", """
+                printf 'docker %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
+                case " $* " in
+                  *" ps -aq "*)
+                    if test "${WSR_ACCEPT_TEST_LEAKED_CONTAINER:-0}" = 1; then printf 'leaked-container\n'; fi ;;
+                  *" network ls -q "*) : ;;
+                  *" volume inspect "*) exit 1 ;;
+                esac
             """)
             executable(fake_bin / "git", """
                 printf 'git %s\n' "$*" >> "$WSR_ACCEPT_TEST_LOG"
@@ -147,6 +161,7 @@ EOF
                 "WSR_ACCEPT_TEST_UNINITIALIZED_SYSTEM_CONTRACTS": "1" if uninitialized_system_contracts else "0",
                 "WSR_ACCEPT_NO_OPEN": "1" if no_open else "0",
                 "WSR_ACCEPT_BROWSER_QUALIFICATION": "1" if browser_qualification else "0",
+                "WSR_ACCEPT_TEST_LEAKED_CONTAINER": "1" if leaked_container else "0",
             }
             result = subprocess.run(
                 [str(SCRIPT)],
@@ -200,8 +215,18 @@ EOF
         self.assertIn("open http://127.0.0.1:13080", joined)
         self.assertIn(" stop ", f" {joined} ")
         self.assertIn("compose purge", joined)
-        self.assertRegex(joined, r"compose purge volume=wsr-accept-[a-z0-9]+ project=wsr_accept_[a-z0-9]+")
+        self.assertIn("compose purge volume=wsr-evidence-abc123def456 project=wsr_services_abc123def456", joined)
+        self.assertIn("docker ps -aq --filter label=com.docker.compose.project=wsr_services_abc123def456", joined)
+        self.assertIn("docker network ls -q --filter label=com.docker.compose.project=wsr_services_abc123def456", joined)
+        self.assertIn("docker volume inspect wsr-evidence-abc123def456", joined)
         self.assertIn("验收完成后按 Enter", result.stdout)
+
+    def test_cleanup_fails_closed_when_an_isolated_container_remains(self) -> None:
+        result, commands, _ = self.run_acceptance(leaked_container=True)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("验收清理不完整", result.stderr)
+        self.assertIn("docker ps -aq --filter label=com.docker.compose.project=wsr_services_abc123def456", "\n".join(commands))
 
     def test_start_failure_still_removes_isolated_assets(self) -> None:
         result, commands, _ = self.run_acceptance(fail_start=True)
