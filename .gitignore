@@ -6,6 +6,10 @@ tmp/
 # pnpm content-addressable store (local cache)
 .pnpm-store/
 
+# Python bytecode caches
+__pycache__/
+*.py[cod]
+
 # Local deployment state
 deployment/.secrets/
 deployment/.local/
