@@ -28,6 +28,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
         uninitialized_system_contracts: bool = False,
         browser_qualification: bool = False,
         leaked_container: bool = False,
+        manifest_mismatch: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], list[str], Path]:
         with tempfile.TemporaryDirectory(prefix="wsr-accept-test-") as temporary_name:
             temporary = Path(temporary_name)
@@ -47,9 +48,9 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
                 done
                 case " $* " in
                   *" --workspace wsr-ui-core "*) : > "$destination/wsr-ui-core-0.1.0-rc.1.tgz" ;;
-                  *" --workspace dsh-wsr-execution "*) : > "$destination/dsh-wsr-execution-0.2.7.tgz" ;;
+                  *" --workspace dsh-wsr-execution "*) : > "$destination/dsh-wsr-execution-0.2.9.tgz" ;;
                   *" --workspace dsh-wsr-studio "*) : > "$destination/dsh-wsr-studio-0.1.2.tgz" ;;
-                  *" --workspace dsh-wsr "*) : > "$destination/dsh-wsr-0.2.7.tgz" ;;
+                  *" --workspace dsh-wsr "*) : > "$destination/dsh-wsr-0.2.9.tgz" ;;
                 esac
             """)
             executable(fake_bin / "pnpm", """
@@ -91,15 +92,21 @@ EOF
                 if test "${1:-}" = -p; then
                   case "${3:-}" in
                     */wsr-ui/packages/bi/package.json) printf '0.1.0-rc.1\n' ;;
+                    */product-operations/package.json) printf '0.5.12\n' ;;
                     */execution-system/package.json) printf '0.2.6\n' ;;
-                    */wsr-dsh/packages/execution/package.json) printf '0.2.7\n' ;;
+                    */wsr-dsh/packages/execution/package.json) printf '0.2.9\n' ;;
                     */wsr-dsh/packages/studio/package.json) printf '0.1.2\n' ;;
-                    */wsr-dsh/packages/suite/package.json) printf '0.2.7\n' ;;
+                    */wsr-dsh/packages/suite/package.json) printf '0.2.9\n' ;;
                     *) exit 2 ;;
                   esac
                   exit 0
                 fi
                 case " $* " in
+                  *local-manifest-consistency.mjs*)
+                    if test "${WSR_ACCEPT_TEST_MANIFEST_MISMATCH:-0}" = 1; then
+                      printf '%s\n' 'LOCAL_MANIFEST_CONSISTENCY: BLOCKED' >&2
+                      exit 1
+                    fi ;;
                   *" start "*)
                     if test "${WSR_ACCEPT_TEST_FAIL_START:-0}" = 1; then exit 3; fi ;;
                 esac
@@ -109,6 +116,9 @@ EOF
                 printf 'dsh %s home=%s\n' "$*" "$DSH_HOME" >> "$WSR_ACCEPT_TEST_LOG"
             """)
             executable(fake_bin / "jq", """
+                case " $* " in
+                  *components*services*version*) printf '0.1.6\n'; exit 0 ;;
+                esac
                 if test "$#" -eq 0; then
                   command cat
                 else
@@ -162,6 +172,7 @@ EOF
                 "WSR_ACCEPT_NO_OPEN": "1" if no_open else "0",
                 "WSR_ACCEPT_BROWSER_QUALIFICATION": "1" if browser_qualification else "0",
                 "WSR_ACCEPT_TEST_LEAKED_CONTAINER": "1" if leaked_container else "0",
+                "WSR_ACCEPT_TEST_MANIFEST_MISMATCH": "1" if manifest_mismatch else "0",
             }
             result = subprocess.run(
                 [str(SCRIPT)],
@@ -193,6 +204,9 @@ EOF
         self.assertIn("--workspace dsh-wsr-studio", joined)
         self.assertIn("--workspace dsh-wsr", joined)
         self.assertIn("prepare-local-dsh-acceptance.mjs", joined)
+        self.assertIn("local-manifest-consistency.mjs", joined)
+        self.assertIn("product-operations/manifests/product-0.5.12.json", joined)
+        self.assertIn("release/compose/0.1.6.json", joined)
         self.assertIn("pnpm cwd=", joined)
         self.assertIn("execution-system release:artifacts", joined)
         self.assertIn("deployment/published/build-bundle.py", joined)
@@ -205,9 +219,9 @@ EOF
         self.assertIn("wsr-execution-0.2.6.tgz", joined)
         self.assertNotIn("bind-local-package-candidate-cli.ts", joined)
         self.assertIn("verify-local-core-install.mjs", joined)
-        self.assertIn("dsh-wsr-execution-0.2.7.tgz", joined)
+        self.assertIn("dsh-wsr-execution-0.2.9.tgz", joined)
         self.assertIn("dsh-wsr-studio-0.1.2.tgz", joined)
-        self.assertIn("dsh-wsr-0.2.7.tgz", joined)
+        self.assertIn("dsh-wsr-0.2.9.tgz", joined)
         self.assertRegex(joined, r"product-operations/bin/wsr\.mjs install .*--manifest .*compatibility\.json")
         self.assertIn(" start ", f" {joined} ")
         self.assertNotIn("git init", joined)
@@ -227,6 +241,15 @@ EOF
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("验收清理不完整", result.stderr)
         self.assertIn("docker ps -aq --filter label=com.docker.compose.project=wsr_services_abc123def456", "\n".join(commands))
+
+    def test_manifest_mismatch_stops_before_setup_or_install(self) -> None:
+        result, commands, _ = self.run_acceptance(manifest_mismatch=True)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("LOCAL_MANIFEST_CONSISTENCY: BLOCKED", result.stderr)
+        joined = "\n".join(commands)
+        self.assertIn("local-manifest-consistency.mjs", joined)
+        self.assertNotRegex(joined, r"product-operations/bin/wsr\.mjs (setup|install)")
 
     def test_start_failure_still_removes_isolated_assets(self) -> None:
         result, commands, _ = self.run_acceptance(fail_start=True)

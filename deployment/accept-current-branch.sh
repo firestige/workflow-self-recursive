@@ -145,8 +145,22 @@ ensure_submodule execution-system package.json
 ensure_submodule evidence-system pyproject.toml
 ensure_submodule evolution-system Dockerfile
 ensure_submodule system-contracts workflow-dsl-2-candidate/package.json
+ensure_submodule workflow-package implementation/definition/package.json
 ensure_submodule wsr-dsh package.json
 ensure_submodule wsr-ui packages/bi/package.json
+
+product_version=$(node -p 'require(process.argv[1]).version' "$root/product-operations/package.json")
+product_manifest="$root/product-operations/manifests/product-$product_version.json"
+if ! test -f "$product_manifest"; then
+  printf 'Current Product manifest missing: %s\n' "$product_manifest" >&2
+  exit 1
+fi
+services_version=$(jq -er '.components[] | select(.id == "services") | .version' "$product_manifest")
+compose_manifest="$root/release/compose/$services_version.json"
+if ! test -f "$compose_manifest"; then
+  printf 'Compose manifest referenced by current Product is missing: %s\n' "$compose_manifest" >&2
+  exit 1
+fi
 
 free_port() {
   python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()'
@@ -255,22 +269,32 @@ fi
   npm pack --silent --pack-destination "$packages" --workspace dsh-wsr
 )
 
+python3 "$root/deployment/published/build-bundle.py" \
+  "$compose_manifest" \
+  "$bundle"
+node "$root/deployment/bind-local-evidence-build.mjs" \
+  "$bundle/compose.yaml" \
+  "$root/evidence-system" \
+  "$root"
+
+node "$root/deployment/local-manifest-consistency.mjs" \
+  "$product_manifest" \
+  "$root/wsr-dsh/package.json" \
+  "$packages/wsr-execution-$execution_version.tgz" \
+  "$packages/dsh-wsr-execution-$execution_plugin_version.tgz" \
+  "$packages/dsh-wsr-studio-$studio_plugin_version.tgz" \
+  "$packages/dsh-wsr-$suite_plugin_version.tgz" \
+  "$bundle/release.json" \
+  "$root/workflow-package/implementation/definition/package.json"
+
 node "$root/deployment/prepare-local-dsh-acceptance.mjs" \
-  "$root/product-operations/manifests/product-0.5.6.json" \
+  "$product_manifest" \
   "$acceptance_manifest" \
   "$packages/wsr-execution-$execution_version.tgz" \
   "$packages/dsh-wsr-execution-$execution_plugin_version.tgz" \
   "$packages/dsh-wsr-studio-$studio_plugin_version.tgz" \
   "$packages/dsh-wsr-$suite_plugin_version.tgz" \
   "$provider_archive"
-
-python3 "$root/deployment/published/build-bundle.py" \
-  "$root/release/compose/0.1.0.json" \
-  "$bundle"
-node "$root/deployment/bind-local-evidence-build.mjs" \
-  "$bundle/compose.yaml" \
-  "$root/evidence-system" \
-  "$root"
 
 node "$root/product-operations/bin/wsr.mjs" setup \
   --manifest "$acceptance_manifest" \
@@ -290,7 +314,7 @@ node "$root/deployment/verify-local-core-install.mjs" \
   "$DSH_HOME/profiles/web" \
   "$packages/wsr-execution-$execution_version.tgz"
 
-installed_bundle="$state/managed/wsr-services-0.1.0"
+installed_bundle="$state/managed/wsr-services-$services_version"
 mkdir -p "$installed_bundle"
 cp -R "$bundle/." "$installed_bundle/"
 
