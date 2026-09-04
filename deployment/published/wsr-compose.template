@@ -8,6 +8,7 @@ secret_dir="$state_dir/secrets"
 identity_file="$state_dir/service-state-identity"
 volume=${WSR_EVIDENCE_VOLUME:-wsr-evidence-data}
 wait_timeout=${WSR_READY_TIMEOUT_SECONDS:-120}
+compose_timeout=${WSR_COMPOSE_TIMEOUT_SECONDS:-}
 evidence_port=${WSR_EVIDENCE_PORT:-4318}
 evolution_port=${WSR_EVOLUTION_PORT:-8000}
 evolution_config=${WSR_EVOLUTION_CONFIG_FILE:-"$bundle_dir/evolution.config.json"}
@@ -17,11 +18,19 @@ case "$volume" in *[!A-Za-z0-9_.-]* | "") printf 'Invalid WSR_EVIDENCE_VOLUME.\n
 for value in "$evidence_port" "$evolution_port" "$wait_timeout"; do
   case "$value" in *[!0-9]* | "") printf 'Ports and ready timeout must be integers.\n' >&2; exit 2;; esac
 done
+if test -n "$compose_timeout"; then
+  case "$compose_timeout" in *[!0-9]* | "") printf 'Compose timeout must be an integer.\n' >&2; exit 2;; esac
+fi
 for port in "$evidence_port" "$evolution_port"; do
   if test "$port" -lt 1 || test "$port" -gt 65535; then printf 'Ports must be in 1..65535.\n' >&2; exit 2; fi
 done
 if test "$wait_timeout" -lt 1 || test "$wait_timeout" -gt 3600; then
   printf 'WSR_READY_TIMEOUT_SECONDS must be in 1..3600.\n' >&2
+  exit 2
+fi
+if test -z "$compose_timeout"; then compose_timeout=$((wait_timeout + 30)); fi
+if test "$compose_timeout" -lt 1 || test "$compose_timeout" -gt 3630; then
+  printf 'WSR_COMPOSE_TIMEOUT_SECONDS must be in 1..3630.\n' >&2
   exit 2
 fi
 if ! test -f "$evolution_config" || ! test -r "$evolution_config"; then
@@ -102,7 +111,7 @@ export WSR_EVIDENCE_RUNTIME_PASSWORD_FILE="$secret_dir/runtime-password"
 export WSR_EVIDENCE_VOLUME="$volume"
 export WSR_EVIDENCE_STATE_IDENTITY="$state_identity"
 export WSR_EVOLUTION_CONFIG_FILE="$evolution_config"
-compose() { docker compose -f "$compose_file" "$@"; }
+compose() { node "$bundle_dir/run-with-timeout.mjs" "$compose_timeout" docker compose -f "$compose_file" "$@"; }
 runtime_touched=0
 
 wait_stack() {

@@ -164,6 +164,28 @@ test("install fails closed on doctor findings before the first adapter effect", 
   assert.deepEqual(adapter.effects(), []);
 });
 
+test("upgrade accepts a healthy prior release after component ownership preflight", async () => {
+  const { adapter, operations } = await harness({
+    maintenance: {
+      diagnosis: {
+        verdict: "BLOCKED",
+        findings: [
+          { code: "INACTIVE_PRODUCT_RELEASE", severity: "cleanup", message: "prior release is installed" },
+          { code: "EXTERNAL_SERVICE_PORT_OCCUPIED", severity: "blocked", message: "prior services own the port" },
+        ],
+        plan: ["remove-prior-release-after-commit"],
+        manualActions: [],
+        preserved: { config: true, durableData: true, evidence: true, credentials: true, userPatches: true },
+      },
+    },
+  });
+
+  const result = await operations.run("upgrade");
+
+  assert.equal(result.status, "succeeded");
+  assert.deepEqual(adapter.effects(), ["upgrade:execution"]);
+});
+
 test("a repeated install still runs doctor before returning an idempotent result", async () => {
   const maintenance = {};
   const input = await harness({ maintenance });

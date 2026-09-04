@@ -231,9 +231,9 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
     }
 
     const key = `${command}:${manifest.digest}`;
-    const readiness = ["install", "upgrade"].includes(command)
+    const readiness = command === "install"
       ? resuming ? await preflight(command, id) : await diagnose(command, id)
-      : undefined;
+      : command === "upgrade" ? await preflight(command, id) : undefined;
     if (readiness !== undefined && readiness.status !== "succeeded") return readiness;
     if (state.completed[key]) {
       if (["install", "upgrade", "rollback"].includes(command)) await retainAppliedManifest();

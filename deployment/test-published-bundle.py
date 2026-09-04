@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -362,6 +363,36 @@ class PublishedBundleTest(unittest.TestCase):
                 self.assertEqual("down --remove-orphans" in commands, expects_compensation)
                 self.assertNotIn("volume rm", commands)
 
+    def test_services_owner_bounds_a_compose_process_that_never_returns(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            bundle = self.build(temporary_root)
+            fake_bin = temporary_root / "bin"
+            fake_bin.mkdir()
+            docker = fake_bin / "docker"
+            docker.write_text(
+                "#!/bin/sh\ncase \"$*\" in *' pull') sleep 5;; esac\nexit 0\n",
+                encoding="utf-8",
+            )
+            docker.chmod(0o755)
+            started = time.monotonic()
+
+            completed = subprocess.run(
+                [str(bundle / "wsr-compose"), "upgrade"],
+                env=os.environ
+                | {
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "WSR_LOCAL_STATE_DIR": str(temporary_root / "state"),
+                    "WSR_COMPOSE_TIMEOUT_SECONDS": "1",
+                },
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(completed.returncode, 124)
+            self.assertLess(time.monotonic() - started, 4)
+            self.assertIn("exceeded 1 seconds", completed.stderr)
+
     def test_services_owner_rejects_a_foreign_volume_identity_before_pull(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             temporary_root = Path(temporary)
@@ -700,7 +731,7 @@ class PublishedBundleTest(unittest.TestCase):
         e2e = (ROOT / "deployment" / "test-published-e2e.sh").read_text(encoding="utf-8")
 
         self.assertIn("WSR_RUN_PUBLISHED_E2E", e2e)
-        self.assertIn("release/compose/0.1.4.json", e2e)
+        self.assertIn("release/compose/0.1.5.json", e2e)
         self.assertIn("build-bundle.py", e2e)
         self.assertIn('"$bundle/wsr-compose" start', e2e)
         self.assertIn('"$bundle/wsr-compose" restart', e2e)

@@ -1,8 +1,8 @@
 # Product operations
 
 This package owns the top-level orchestration contract for WSR's independently released delivery
-carriers. By default the CLI resolves the manifest matching its own package version; release `0.5.11` uses
-`manifests/product-0.5.11.json` and installs the stable DSH, Compose,
+carriers. By default the CLI resolves the manifest matching its own package version; release `0.5.12` uses
+`manifests/product-0.5.12.json` and installs the stable DSH, Compose,
 Workflow Package, Copilot and Codex coordinates recorded there. No owner source checkout or build is
 required. The fixture adapter remains available only when `--fixture` is supplied explicitly.
 
@@ -13,7 +13,7 @@ The stable command set is `setup`, `doctor`, `cleanup`, `install`, `preflight`, 
 `wsr.operations.result@1.0.0` JSON result to standard output. Exit code `0` means succeeded, `3` means
 blocked/recoverable, and `2` means failed or invalid input.
 
-Create a private configuration from the Release's `wsr-product-0.5.11.config.example.json`. It selects
+Create a private configuration from the Release's `wsr-product-0.5.12.config.example.json`. It selects
 the GitHub Workflow repository and may choose unused loopback ports; it does not select a workspace,
 Task, Workflow version, or repository Role Provider binding. Then run the installed CLI from any directory:
 
@@ -27,8 +27,9 @@ wsr start
 
 `doctor` is read-only and returns `READY`, `CLEANUP_REQUIRED`, or `BLOCKED`. It inventories exact DSH
 roots, legacy WSR roots and user patch references, active-release drift, interrupted operations, and
-configured loopback-port ownership. `install` and `upgrade` run the same diagnosis before their first
-adapter effect and fail closed unless it is ready.
+configured loopback-port ownership. A new `install` requires a ready diagnosis. `upgrade` instead relies
+on every component's ownership-aware preflight, because the running prior release and its artifacts are
+valid upgrade inputs rather than drift to remove before the operation.
 
 `cleanup` previews an exact allowlisted plan without mutation. `cleanup --apply true` removes only
 obsolete WSR package roots, inactive release/download/bundle/cache artifacts, and invalidated operation
@@ -54,8 +55,8 @@ The active DSH Session supplies the runtime workspace. Each repository owns its 
 `.wsr/role-provider-bindings.json`; product setup never creates or overwrites it. Set `DSH_HOME` before
 every command when a non-default DSH profile home is required.
 
-Mutable commands run preflight for every component before the first adapter effect; install and upgrade
-also require a ready doctor result. An interrupted operation records the exact manifest digest and
+Mutable commands run preflight for every component before the first adapter effect; a new install also
+requires a ready doctor result. An interrupted operation records the exact manifest digest and
 the current and completed component set. Retrying the same command resumes at that component; a newer
 CLI resolves the journal's exact retained or packaged historical manifest before using its own default.
 The composite journal never records a component's private steps: each component owner is responsible

@@ -97,12 +97,16 @@ def main() -> None:
         "wsr-host-preflight.mjs": (
             ROOT / "wsr-host-preflight.mjs"
         ).read_text(encoding="utf-8"),
+        "run-with-timeout.mjs": (
+            ROOT / "run-with-timeout.mjs"
+        ).read_text(encoding="utf-8"),
     }
     for name, content in files.items():
         (output / name).write_text(content, encoding="utf-8")
     (output / "wsr-compose").chmod(0o755)
     (output / "init-roles.sh").chmod(0o755)
     (output / "wsr-host-preflight.mjs").chmod(0o755)
+    (output / "run-with-timeout.mjs").chmod(0o755)
     checksums = []
     for name in sorted(files):
         digest = hashlib.sha256((output / name).read_bytes()).hexdigest()
