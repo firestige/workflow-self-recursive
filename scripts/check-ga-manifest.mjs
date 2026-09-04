@@ -18,8 +18,10 @@ import { basename, dirname, join } from "node:path";
 import { createHash } from "node:crypto";
 
 const PRERELEASE = /-(rc|dev|alpha|beta|canary|snapshot|preview)\b/i;
-// Fields that legitimately differ between an rc and the GA promoted from it.
-const IDENTITY_FIELDS = new Set(["release", "version", "coordinate", "downloadUrl", "digest", "sha256"]);
+// Only the manifest's own release identity changes during promotion. Component
+// versions, coordinates, and digests identify the already-qualified bytes and
+// must remain exactly equal to the rc, even when they reuse these field names.
+const RELEASE_IDENTITY_PATHS = new Set(["$.release", "$.version"]);
 const SHA256_DIGEST = /^sha256:[0-9a-f]{64}$/i;
 
 const args = process.argv.slice(2);
@@ -92,7 +94,7 @@ function diffAgainst(ga, rc) {
   };
   const gaMap = flatten(ga);
   const rcMap = flatten(rc);
-  const isIdentity = (path) => IDENTITY_FIELDS.has(path.split(".").pop().replace(/\[\d+\]$/, ""));
+  const isIdentity = (path) => RELEASE_IDENTITY_PATHS.has(path);
 
   for (const [path, value] of gaMap) {
     if (isIdentity(path)) continue;
