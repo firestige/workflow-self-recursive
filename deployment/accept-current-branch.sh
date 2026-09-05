@@ -115,8 +115,9 @@ printf 'run=%s stage=%s\n' "$run_id" "$stage" > "$lifecycle_log"
 : > "$operation_log"
 
 export DSH_HOME="$preview/dsh-home"
-export COMPOSE_PROJECT_NAME="wsr_services_$run_id"
-export WSR_EVIDENCE_VOLUME="wsr-evidence-$run_id"
+service_namespace_suffix=$(node -e 'const { createHash } = require("node:crypto"); const path = require("node:path"); process.stdout.write(createHash("sha256").update(path.resolve(process.argv[1])).digest("hex").slice(0, 12));' "$state")
+export COMPOSE_PROJECT_NAME="wsr_services_$service_namespace_suffix"
+export WSR_EVIDENCE_VOLUME="wsr-evidence-$service_namespace_suffix"
 export WSR_ACCEPT_WORKFLOW_SELECTOR="$workflow_selector"
 
 mkdir -p "$packages"
@@ -189,11 +190,25 @@ cleanup() {
   esac
 
   inspect_cleanup_resources() {
-    remaining_containers=$(docker ps -aq --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null)
-    remaining_networks=$(docker network ls -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null)
+    cleanup_inspection_failed=0
+    remaining_containers=
+    remaining_networks=
+    remaining_volumes=
     evidence_volume_exists=0
-    if docker volume inspect "$WSR_EVIDENCE_VOLUME" >/dev/null 2>&1; then
-      evidence_volume_exists=1
+    if ! remaining_containers=$(docker ps -aq --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null); then
+      cleanup_inspection_failed=1
+    fi
+    if ! remaining_networks=$(docker network ls -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" 2>/dev/null); then
+      cleanup_inspection_failed=1
+    fi
+    if ! remaining_volumes=$(docker volume ls -q --filter "name=^${WSR_EVIDENCE_VOLUME}$" 2>/dev/null); then
+      cleanup_inspection_failed=1
+    fi
+    for cleanup_volume in $remaining_volumes; do
+      if test "$cleanup_volume" = "$WSR_EVIDENCE_VOLUME"; then evidence_volume_exists=1; fi
+    done
+    if test "$cleanup_inspection_failed" -ne 0; then
+      return 1
     fi
     test -z "$remaining_containers" && test -z "$remaining_networks" && test "$evidence_volume_exists" -eq 0
   }
@@ -210,13 +225,15 @@ cleanup() {
 
   remove_remaining_resources() {
     if test -n "$remaining_containers"; then
-      docker rm -f $remaining_containers >/dev/null 2>&1
+      docker container rm $remaining_containers >/dev/null 2>&1 || \
+        docker container rm -f $remaining_containers >/dev/null 2>&1
     fi
     if test -n "$remaining_networks"; then
       docker network rm $remaining_networks >/dev/null 2>&1
     fi
     if test "$evidence_volume_exists" -ne 0; then
-      docker volume rm -f "$WSR_EVIDENCE_VOLUME" >/dev/null 2>&1
+      docker volume rm "$WSR_EVIDENCE_VOLUME" >/dev/null 2>&1 || \
+        docker volume rm -f "$WSR_EVIDENCE_VOLUME" >/dev/null 2>&1
     fi
   }
 
@@ -255,6 +272,9 @@ cleanup() {
   if ! wait_for_cleanup_convergence; then
     remove_remaining_resources
     if ! wait_for_cleanup_convergence; then
+      if test "$cleanup_inspection_failed" -ne 0; then
+        printf '验收清理不完整：Docker 资源检查失败，无法证明隔离环境已移除。\n' >&2
+      fi
       if test -n "$remaining_containers"; then
         printf '验收清理不完整：Compose project %s 仍有容器。\n' "$COMPOSE_PROJECT_NAME" >&2
       fi
