@@ -9,8 +9,8 @@ import { createPublishedAdapters } from "../src/published-adapters.mjs";
 import { resolveProductPaths } from "../src/platform-paths.mjs";
 
 const root = path.resolve(import.meta.dirname, "../..");
-const manifestPath = path.join(root, "release/product/0.5.12.json");
-const packagedManifestPath = path.join(root, "product-operations/manifests/product-0.5.12.json");
+const manifestPath = path.join(root, "release/product/0.5.13-rc.1.json");
+const packagedManifestPath = path.join(root, "product-operations/manifests/product-0.5.13-rc.1.json");
 
 async function configFixture(directory, overrides = {}) {
   const configPath = path.join(directory, "config.json");
@@ -31,7 +31,7 @@ async function configFixture(directory, overrides = {}) {
 test("final product manifest binds only stable published artifacts", async () => {
   assert.equal(await readFile(packagedManifestPath, "utf8"), await readFile(manifestPath, "utf8"));
   const manifest = await loadCompatibilityManifest(manifestPath);
-  assert.equal(manifest.release, "0.5.12");
+  assert.equal(manifest.release, "0.5.13-rc.1");
   assert.deepEqual(manifest.components.map(({ id }) => id), [
     "dsh-bundle",
     "services",
@@ -41,19 +41,19 @@ test("final product manifest binds only stable published artifacts", async () =>
   assert.ok(manifest.components.every(({ coordinate }) => !coordinate.startsWith("fixture://")));
 
   const [dsh, services, workflow, providers] = manifest.components;
-  assert.equal(dsh.version, "0.2.10");
-  assert.equal(dsh.coordinate, "github-release://firestige/wsr-dsh/0.2.10/compatibility-matrix.json");
+  assert.equal(dsh.version, "0.2.11");
+  assert.equal(dsh.coordinate, "github-release://firestige/wsr-dsh/0.2.11/compatibility-matrix.json");
   assert.deepEqual(dsh.compatibility.packages, {
     execution: "dsh-wsr-execution@0.2.9",
-    studio: "dsh-wsr-studio@0.1.2",
-    suite: "dsh-wsr@0.2.9",
+    studio: "dsh-wsr-studio@0.1.3",
+    suite: "dsh-wsr@0.2.10",
   });
   assert.equal(dsh.compatibility.executionOwner.version, "0.2.6");
   assert.equal(dsh.compatibility.executionOwner.release, "0.2.6");
-  assert.equal(services.version, "0.1.6");
-  assert.match(services.coordinate, /compose-0\.1\.6\/wsr-services-0\.1\.6\.tar\.gz$/u);
-  assert.equal(workflow.version, "0.4.6");
-  assert.match(workflow.coordinate, /workflow-package\/implementation-workflow\/v0\.4\.6/u);
+  assert.equal(services.version, "0.1.7");
+  assert.match(services.coordinate, /compose-0\.1\.7\/wsr-services-0\.1\.7\.tar\.gz$/u);
+  assert.equal(workflow.version, "0.4.12");
+  assert.match(workflow.coordinate, /workflow-package\/implementation-workflow\/v0\.4\.12/u);
   assert.equal(providers.compatibility.copilot, "1.0.78");
   assert.equal(providers.compatibility.codex, "0.144.5");
 });
@@ -597,7 +597,7 @@ test("published DSH rollback reconciles the stable package instead of removing r
 
   const result = await adapters.get("dsh-bundle").apply("rollback");
   assert.equal(result.status, "succeeded");
-  assert.ok(commands.some((command) => command.includes("add") && command.at(-1) === "dsh-wsr@0.2.9"));
+  assert.ok(commands.some((command) => command.includes("add") && command.at(-1) === "dsh-wsr@0.2.10"));
   assert.ok(commands.every((command) => !command.includes("remove")));
 });
 
