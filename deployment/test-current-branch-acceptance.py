@@ -103,6 +103,8 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
         leaked_container: bool = False,
         transient_container_checks: int = 0,
         cleanup_requires_fallback: bool = False,
+        cleanup_inspection_error: bool = False,
+        force_remove_rejected: bool = False,
         manifest_mismatch: bool = False,
         preexisting_resources: bool = False,
         dev_artifact_set: bool = False,
@@ -272,6 +274,10 @@ EOF
                   " network ls -q ")
                     if test "${WSR_ACCEPT_TEST_PREEXISTING_RESOURCES:-0}" = 1; then printf 'preexisting-network\n'; fi ;;
                   *" ps -aq "*)
+                    if test "${WSR_ACCEPT_TEST_CLEANUP_INSPECTION_ERROR:-0}" = 1; then
+                      printf 'Docker daemon inspection failed\n' >&2
+                      exit 1
+                    fi
                     counter="$WSR_ACCEPT_TEST_LOG.container-checks"
                     checks=0
                     if test -f "$counter"; then checks=$(cat "$counter"); fi
@@ -283,9 +289,15 @@ EOF
                        test "$checks" -le "${WSR_ACCEPT_TEST_TRANSIENT_CONTAINER_CHECKS:-0}"; then
                       printf 'leaked-container\n'
                     fi ;;
-                  *" rm -f leaked-container "*) : > "$WSR_ACCEPT_TEST_LOG.fallback-complete" ;;
+                  *" container rm leaked-container "*) : > "$WSR_ACCEPT_TEST_LOG.fallback-complete" ;;
+                  *" rm -f leaked-container "*)
+                    if test "${WSR_ACCEPT_TEST_FORCE_REMOVE_REJECTED:-0}" = 1; then
+                      printf 'page not found\n' >&2
+                      exit 1
+                    fi
+                    : > "$WSR_ACCEPT_TEST_LOG.fallback-complete" ;;
                   *" network ls -q "*) : ;;
-                  *" volume inspect "*) exit 1 ;;
+                  *" volume ls -q "*) : ;;
                   *" rm -f preexisting-container "*|*" network rm preexisting-network "*|*" volume rm -f preexisting-volume "*)
                     printf 'PREEXISTING_RESOURCE_REMOVAL_ATTEMPT\n' >&2
                     exit 9 ;;
@@ -328,6 +340,8 @@ EOF
                 "WSR_ACCEPT_TEST_LEAKED_CONTAINER": "1" if leaked_container else "0",
                 "WSR_ACCEPT_TEST_TRANSIENT_CONTAINER_CHECKS": str(transient_container_checks),
                 "WSR_ACCEPT_TEST_CLEANUP_REQUIRES_FALLBACK": "1" if cleanup_requires_fallback else "0",
+                "WSR_ACCEPT_TEST_CLEANUP_INSPECTION_ERROR": "1" if cleanup_inspection_error else "0",
+                "WSR_ACCEPT_TEST_FORCE_REMOVE_REJECTED": "1" if force_remove_rejected else "0",
                 "WSR_ACCEPT_CLEANUP_MAX_ATTEMPTS": "5",
                 "WSR_ACCEPT_CLEANUP_POLL_SECONDS": "0",
                 "WSR_ACCEPT_TEST_MANIFEST_MISMATCH": "1" if manifest_mismatch else "0",
@@ -430,7 +444,7 @@ EOF
         self.assertIn("compose purge volume=wsr-evidence-accepttest123 project=wsr_services_accepttest123", joined)
         self.assertIn("docker ps -aq --filter label=com.docker.compose.project=wsr_services_accepttest123", joined)
         self.assertIn("docker network ls -q --filter label=com.docker.compose.project=wsr_services_accepttest123", joined)
-        self.assertIn("docker volume inspect wsr-evidence-accepttest123", joined)
+        self.assertIn("docker volume ls -q --filter name=^wsr-evidence-accepttest123$", joined)
         self.assertIn("验收完成后按 Enter", result.stdout)
 
     def test_explicit_product_manifest_is_required_before_any_deployment_side_effect(self) -> None:
@@ -488,7 +502,26 @@ EOF
         result, commands, remaining = self.run_acceptance(cleanup_requires_fallback=True)
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("docker rm -f leaked-container", "\n".join(commands))
+        self.assertIn("docker container rm leaked-container", "\n".join(commands))
+        self.assertEqual(remaining, [])
+
+    def test_cleanup_fails_closed_when_docker_resource_inspection_errors(self) -> None:
+        result, _, remaining = self.run_acceptance(cleanup_inspection_error=True)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("验收清理不完整", result.stderr)
+        self.assertEqual(len(remaining), 1)
+
+    def test_cleanup_removes_stopped_containers_before_trying_force(self) -> None:
+        result, commands, remaining = self.run_acceptance(
+            cleanup_requires_fallback=True,
+            force_remove_rejected=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        joined = "\n".join(commands)
+        self.assertIn("docker container rm leaked-container", joined)
+        self.assertNotIn("docker rm -f leaked-container", joined)
         self.assertEqual(remaining, [])
 
     def test_cleanup_never_targets_resources_outside_the_run_identity(self) -> None:
