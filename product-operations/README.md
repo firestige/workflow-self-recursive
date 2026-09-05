@@ -1,8 +1,8 @@
 # Product operations
 
 This package owns the top-level orchestration contract for WSR's independently released delivery
-carriers. By default the CLI resolves the manifest matching its own package version; release `0.5.12` uses
-`manifests/product-0.5.12.json` and installs the stable DSH, Compose,
+carriers. By default the CLI resolves the manifest matching its own package version; release `0.5.13-rc.1` uses
+`manifests/product-0.5.13-rc.1.json` and installs the stable DSH, Compose,
 Workflow Package, Copilot and Codex coordinates recorded there. No owner source checkout or build is
 required. The fixture adapter remains available only when `--fixture` is supplied explicitly.
 
@@ -13,7 +13,7 @@ The stable command set is `setup`, `doctor`, `cleanup`, `install`, `preflight`, 
 `wsr.operations.result@1.0.0` JSON result to standard output. Exit code `0` means succeeded, `3` means
 blocked/recoverable, and `2` means failed or invalid input.
 
-Create a private configuration from the Release's `wsr-product-0.5.12.config.example.json`. It selects
+Create a private configuration from the Release's `wsr-product-0.5.13-rc.1.config.example.json`. It selects
 the GitHub Workflow repository and may choose unused loopback ports; it does not select a workspace,
 Task, Workflow version, or repository Role Provider binding. Then run the installed CLI from any directory:
 
