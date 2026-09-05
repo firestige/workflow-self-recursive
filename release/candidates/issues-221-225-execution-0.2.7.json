@@ -6,14 +6,14 @@
     "repository": "firestige/wsr-execution",
     "input_commit": "22b204a2606c82bed07bae056f1310e6acca200f",
     "build_input_commit": "22b204a2606c82bed07bae056f1310e6acca200f",
-    "candidate_archive_commit": "d5731f189939690911804f359c1a02183a46edd6",
+    "candidate_archive_commit": "de2335c7a869aff7c010100bcb809fe2d499dced",
     "metadata": {
       "path": "execution-system/release/candidates/issues-221-225-execution-0.2.7/release-metadata.json",
-      "sha256": "sha256:b732eb87b66996f6bcc5116fd37c95906f3116546a93ae7309363e3a66f95959"
+      "sha256": "sha256:7495dc0d6242f72bb5fabf6a1834924a92a6d23c0d9ca4933d4a5cdaa401e1d5"
     },
     "release_notes": {
       "path": "execution-system/release/candidates/issues-221-225-execution-0.2.7/release-notes.md",
-      "sha256": "sha256:922b6266879c2d22991bdae5cc417a763b73b3f75c262e219a66566a174b7b37"
+      "sha256": "sha256:607dcabeb13daef62947a500813e74b7874acf7b18a80f98f3d6db9d6421092f"
     },
     "artifacts": [
       {
