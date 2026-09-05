@@ -122,6 +122,8 @@ jobs:
           node --input-type=module -e 'import { DefaultExecutionApplicationFactory, loadExecutionInstallationConfig } from "wsr-execution"; if (![DefaultExecutionApplicationFactory, loadExecutionInstallationConfig].every(Boolean)) process.exit(1)'
 
       - name: Qualify exact WSR DSH source bundles
+        env:
+          WSR_CHROME_BINARY: /usr/bin/google-chrome
         run: |
           export PATH="$GITHUB_WORKSPACE/execution-system/node_modules/.bin:$PATH"
           test "$(dsh --version)" = 0.1.1-rc.2

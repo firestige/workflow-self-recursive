@@ -30,3 +30,12 @@ test("canonical CI replays v2 assets and the public exact-content cache qualific
   assert.match(qualification, /implementation-workflow@0\.4\.0/);
   assert.doesNotMatch(qualification, /FrozenWorkflowPackageValidator(?!V2)|contractVersion: "1\.|implementation-workflow@0\.3\.0/);
 });
+
+test("canonical CI binds Linux Chrome while qualifying the exact DSH source", () => {
+  const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+  const workflow = readFileSync(path.join(repository, ".github/workflows/iter3-execution-ci.yml"), "utf8");
+  assert.match(
+    workflow,
+    /- name: Qualify exact WSR DSH source bundles[\s\S]*?env:\n\s+WSR_CHROME_BINARY: \/usr\/bin\/google-chrome\n\s+run:/u,
+  );
+});
