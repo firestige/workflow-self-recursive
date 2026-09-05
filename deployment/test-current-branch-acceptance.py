@@ -188,7 +188,11 @@ EOF
                     exit 0 ;;
                 esac
                 if test "${1:-}" = -e; then
-                  printf 'abc123def456'
+                  case "${3:-}" in
+                    *acceptfirst1*) printf '111111111111' ;;
+                    *acceptsecond2*) printf '222222222222' ;;
+                    *) printf 'abc123def456' ;;
+                  esac
                   exit 0
                 fi
                 if test "${1:-}" = -p; then
@@ -441,10 +445,10 @@ EOF
         self.assertIn("open http://127.0.0.1:13080", joined)
         self.assertIn(" stop ", f" {joined} ")
         self.assertIn("compose purge", joined)
-        self.assertIn("compose purge volume=wsr-evidence-accepttest123 project=wsr_services_accepttest123", joined)
-        self.assertIn("docker ps -aq --filter label=com.docker.compose.project=wsr_services_accepttest123", joined)
-        self.assertIn("docker network ls -q --filter label=com.docker.compose.project=wsr_services_accepttest123", joined)
-        self.assertIn("docker volume ls -q --filter name=^wsr-evidence-accepttest123$", joined)
+        self.assertIn("compose purge volume=wsr-evidence-abc123def456 project=wsr_services_abc123def456", joined)
+        self.assertIn("docker ps -aq --filter label=com.docker.compose.project=wsr_services_abc123def456", joined)
+        self.assertIn("docker network ls -q --filter label=com.docker.compose.project=wsr_services_abc123def456", joined)
+        self.assertIn("docker volume ls -q --filter name=^wsr-evidence-abc123def456$", joined)
         self.assertIn("验收完成后按 Enter", result.stdout)
 
     def test_explicit_product_manifest_is_required_before_any_deployment_side_effect(self) -> None:
@@ -474,12 +478,12 @@ EOF
         self.assertEqual(second_remaining, [])
         first_log = "\n".join(first_commands)
         second_log = "\n".join(second_commands)
-        self.assertIn("wsr_services_acceptfirst1", first_log)
-        self.assertIn("wsr-evidence-acceptfirst1", first_log)
+        self.assertIn("wsr_services_111111111111", first_log)
+        self.assertIn("wsr-evidence-111111111111", first_log)
         self.assertIn("current-branch-acceptance-acceptfirst1", first_log)
         self.assertNotIn("acceptsecond2", first_log)
-        self.assertIn("wsr_services_acceptsecond2", second_log)
-        self.assertIn("wsr-evidence-acceptsecond2", second_log)
+        self.assertIn("wsr_services_222222222222", second_log)
+        self.assertIn("wsr-evidence-222222222222", second_log)
         self.assertIn("current-branch-acceptance-acceptsecond2", second_log)
         self.assertNotIn("acceptfirst1", second_log)
 
@@ -489,7 +493,7 @@ EOF
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("验收清理不完整", result.stderr)
         self.assertEqual(len(remaining), 1)
-        self.assertIn("docker ps -aq --filter label=com.docker.compose.project=wsr_services_accepttest123", "\n".join(commands))
+        self.assertIn("docker ps -aq --filter label=com.docker.compose.project=wsr_services_abc123def456", "\n".join(commands))
 
     def test_cleanup_waits_for_isolated_resources_to_converge(self) -> None:
         result, commands, _ = self.run_acceptance(transient_container_checks=2)
@@ -503,6 +507,18 @@ EOF
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("docker container rm leaked-container", "\n".join(commands))
+        self.assertEqual(remaining, [])
+
+    def test_cleanup_targets_the_product_operations_state_namespace(self) -> None:
+        result, commands, remaining = self.run_acceptance()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        joined = "\n".join(commands)
+        self.assertIn(
+            "docker ps -aq --filter label=com.docker.compose.project=wsr_services_abc123def456",
+            joined,
+        )
+        self.assertIn("docker volume ls -q --filter name=^wsr-evidence-abc123def456$", joined)
         self.assertEqual(remaining, [])
 
     def test_cleanup_fails_closed_when_docker_resource_inspection_errors(self) -> None:

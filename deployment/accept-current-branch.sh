@@ -115,8 +115,9 @@ printf 'run=%s stage=%s\n' "$run_id" "$stage" > "$lifecycle_log"
 : > "$operation_log"
 
 export DSH_HOME="$preview/dsh-home"
-export COMPOSE_PROJECT_NAME="wsr_services_$run_id"
-export WSR_EVIDENCE_VOLUME="wsr-evidence-$run_id"
+service_namespace_suffix=$(node -e 'const { createHash } = require("node:crypto"); const path = require("node:path"); process.stdout.write(createHash("sha256").update(path.resolve(process.argv[1])).digest("hex").slice(0, 12));' "$state")
+export COMPOSE_PROJECT_NAME="wsr_services_$service_namespace_suffix"
+export WSR_EVIDENCE_VOLUME="wsr-evidence-$service_namespace_suffix"
 export WSR_ACCEPT_WORKFLOW_SELECTOR="$workflow_selector"
 
 mkdir -p "$packages"
