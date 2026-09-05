@@ -26,7 +26,7 @@ Python support is expressed as minor-version compatibility and tested on Python 
 
 ## Trigger and recovery
 
-Candidate workflows reject any ref other than `release/next`. The first RC is triggered by pushing a commit whose `release/request.json` contains the fixed request. Contract and Evidence requests contain only `candidate_tag`; Execution additionally contains `local_manual_e2e_evidence`, `authority_ref`, and `authority_manifest`. For example:
+Candidate workflows reject any event or ref other than a push to `release/next`. An RC is triggered by pushing a commit whose repository-specific `release/request.json` contains the fixed candidate tag and every immutable authority/product ref required by that publisher. For example:
 
 ```json
 {
@@ -34,7 +34,7 @@ Candidate workflows reject any ref other than `release/next`. The first RC is tr
 }
 ```
 
-After the workflow has reached the default branch, `workflow_dispatch` from `release/next` remains an equivalent recovery entry point with the same fields. Execution requires an exact superproject `authority_ref` whose Execution submodule points to the candidate, an `authority_manifest` path to the tracked unified candidate, and a GitHub issue/comment URL for credentialed local DSH evidence. The workflow materializes those bound assets instead of rebuilding them. See the component-specific guide.
+There is no manual or reusable candidate entry point. Recovery updates the immutable request or implementation in dev and pushes `release/next` again; changed bytes use the next RC ordinal. Execution requires an exact superproject `authority_ref` whose Execution submodule points to the candidate and an `authority_manifest` path to the tracked unified candidate. The workflow materializes those bound assets instead of rebuilding them. See the component-specific guide.
 
 | Failure | Stable allowed? | Recovery |
 |---|---:|---|
@@ -48,9 +48,9 @@ After the workflow has reached the default branch, `workflow_dispatch` from `rel
 
 ## GitHub App identity
 
-The approved App identity is owned by `firestige`, with slug `wsr-release`. Its installation allowlist is exactly `workflow-self-recursive`, `wsr-execution`, `wsr-evidence`, `wsr-evolution`, `wsr-contracts`, `wsr-workflow-package`, and `wsr-dsh`. Registration permissions are Contents read/write, Workflows read/write, and Metadata read. Each promotion workflow further narrows the minted token to its own repository and `contents: write`.
+The approved App identity is owned by `firestige`, with slug `wsr-release`. Its installation allowlist is exactly `workflow-self-recursive`, `wsr-execution`, `wsr-evidence`, `wsr-evolution`, `wsr-contracts`, `wsr-workflow-package`, `wsr-dsh`, and `wsr-ui`. Registration permissions are Contents read/write, Workflows read/write, and Metadata read. Each release workflow further narrows the minted token to its own repository and required permissions.
 
-Store the App ID as Actions variable `WSR_RELEASE_APP_ID` and the PEM private key as Actions secret `WSR_RELEASE_APP_PRIVATE_KEY`. Build and qualification steps never receive that key or an installation token. Candidate workflows mint a short-lived token only after all local qualification gates pass and use it only for the scoped RC Release write; stable workflows mint a new token only immediately before the final stable GitHub Release operation. Request both `contents: write` and `workflows: write` when the selected release target changes `.github/workflows/` relative to the default branch; otherwise GitHub rejects Release creation even when Contents is writable. GitHub documents that installation tokens expire after one hour and can be restricted to selected repositories and permissions ([workflow authentication](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow), [installation token scope](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app), [Release target permission rule](https://docs.github.com/en/rest/releases/releases#create-a-release)).
+Store the App Client ID as Actions variable `WSR_RELEASE_CLIENT_ID` and the PEM private key as Actions secret `WSR_RELEASE_APP_PRIVATE_KEY`; the deprecated `app-id` action input is not used. Build and qualification steps never receive that key or an installation token. Candidate workflows mint a short-lived token only after all local qualification gates pass and use it only for the scoped RC Release write; stable workflows mint a new token only immediately before the final stable GitHub Release operation. Request both `contents: write` and `workflows: write` when the selected release target changes `.github/workflows/` relative to the default branch; otherwise GitHub rejects Release creation even when Contents is writable. GitHub documents that installation tokens expire after one hour and can be restricted to selected repositories and permissions ([workflow authentication](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow), [installation token scope](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app), [Release target permission rule](https://docs.github.com/en/rest/releases/releases#create-a-release)).
 
 Bootstrap:
 

@@ -26,7 +26,7 @@ Python 兼容性按 minor 表达，并在 Python 3.13/3.14 上测试，不锁 Py
 
 ## 触发与恢复
 
-candidate workflow 会拒绝 `release/next` 之外的 ref。首次 RC 由 push 触发，commit 中的 `release/request.json` 保存固定请求。Contract 与 Evidence 请求只包含 `candidate_tag`；Execution 还包含 `local_manual_e2e_evidence`、`authority_ref` 和 `authority_manifest`。例如：
+candidate workflow 会拒绝 push `release/next` 以外的事件或 ref。RC 由 push 触发，commit 中各仓专属的 `release/request.json` 保存固定 candidate tag，以及该 publisher 所需的全部不可变 authority/product ref。例如：
 
 ```json
 {
@@ -34,7 +34,7 @@ candidate workflow 会拒绝 `release/next` 之外的 ref。首次 RC 由 push �
 }
 ```
 
-workflow 进入默认分支后，仍可从 `release/next` 使用 `workflow_dispatch` 作为等价恢复入口，并提供相同字段。Execution 要求一个准确的 superproject `authority_ref`（其 Execution submodule 必须指向 candidate）、指向已跟踪 unified candidate 的 `authority_manifest` 路径，以及带真实 credential 的本地 DSH evidence GitHub issue/comment URL。workflow 会物化这些已绑定资产，而不是重新构建。
+candidate 不暴露人工或 reusable 入口。恢复方式是在 dev 修正不可变请求或实现后再次 push `release/next`；字节发生变化时使用下一个 RC ordinal。Execution 要求准确的 superproject `authority_ref`（其 Execution submodule 必须指向 candidate）和已跟踪 unified candidate 的 `authority_manifest` 路径。workflow 会物化这些已绑定资产，而不是重新构建。
 
 | 失败点 | 可进入 stable？ | 恢复方式 |
 |---|---:|---|
@@ -48,11 +48,11 @@ workflow 进入默认分支后，仍可从 `release/next` 使用 `workflow_dispa
 
 ## GitHub App 身份
 
-批准的 App owner 是 `firestige`，slug 为 `wsr-release`。安装 allowlist 精确包含 `workflow-self-recursive`、`wsr-execution`、`wsr-evidence`、`wsr-evolution`、`wsr-contracts`、`wsr-workflow-package`、`wsr-dsh`。注册权限为 Contents 读写、Workflows 读写、Metadata 只读；每个 promotion workflow 进一步把本次 token 限到自身仓库和 `contents: write`。
+批准的 App owner 是 `firestige`，slug 为 `wsr-release`。安装 allowlist 精确包含 `workflow-self-recursive`、`wsr-execution`、`wsr-evidence`、`wsr-evolution`、`wsr-contracts`、`wsr-workflow-package`、`wsr-dsh`、`wsr-ui`。注册权限为 Contents 读写、Workflows 读写、Metadata 只读；每个 release workflow 进一步把本次 token 限到自身仓库及所需权限。
 
-App ID 存为 Actions variable `WSR_RELEASE_APP_ID`，PEM private key 存为 Actions secret `WSR_RELEASE_APP_PRIVATE_KEY`。build 与 qualification 步骤拿不到 private key 或 installation token。candidate workflow 只有在所有本地资格门禁通过后才生成短期 token，并仅用于 scoped RC Release 写入；stable workflow 只在 final stable GitHub Release 前重新生成 token。若所选 release target 相对默认分支改变了 `.github/workflows/`，mint 时必须同时请求 `contents: write` 与 `workflows: write`，否则即使 Contents 可写，GitHub 仍拒绝创建 Release。GitHub 说明 installation token 一小时过期，并可进一步限制仓库和权限（[workflow 认证](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow)、[installation token 范围](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app)、[Release target 权限规则](https://docs.github.com/en/rest/releases/releases#create-a-release)）。
+App Client ID 存为 Actions variable `WSR_RELEASE_CLIENT_ID`，PEM private key 存为 Actions secret `WSR_RELEASE_APP_PRIVATE_KEY`；不再使用已弃用的 `app-id` action 输入。build 与 qualification 步骤拿不到 private key 或 installation token。candidate workflow 只有在所有本地资格门禁通过后才生成短期 token，并仅用于 scoped RC Release 写入；stable workflow 只在 final stable GitHub Release 前重新生成 token。若所选 release target 相对默认分支改变了 `.github/workflows/`，mint 时必须同时请求 `contents: write` 与 `workflows: write`，否则即使 Contents 可写，GitHub 仍拒绝创建 Release。GitHub 说明 installation token 一小时过期，并可进一步限制仓库和权限（[workflow 认证](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow)、[installation token 范围](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app)、[Release target 权限规则](https://docs.github.com/en/rest/releases/releases#create-a-release)）。
 
-Bootstrap 顺序：注册/安装 App；在四个 active 发布仓库分别配置 variable/secret；确认 PAT/private key 未进入仓库、日志、artifact 或 report；发布批准前只跑无副作用 oracle，真实发布序列只在 Wave12 执行。
+Bootstrap 顺序：注册/安装 App；在每个 active 发布仓库分别配置 variable/secret；确认 PAT/private key 未进入仓库、日志、artifact 或 report；发布批准前只跑无副作用 oracle，真实发布序列只在批准的发布计划内执行。
 
 轮换时先生成第二把 App key，替换 Actions secret、运行静态 attestation，再删除旧 key。事故撤销时禁用/卸载 App 或删除 key，取消发布 run，并保留 run URL 与不可变 digest。break-glass 的含义是暂停发布并由 owner 明确批准恢复 App 路径；host `gh` credential 或个人 PAT 不是发布 fallback。
 
