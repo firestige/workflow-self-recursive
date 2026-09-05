@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "wsr.dev-artifact-set@1.0.0",
+  "identity": "issues-221-225-dsh-rc-replay",
+  "productManifest": "product-dsh-rc.json",
+  "components": [
+    {
+      "id": "system-contracts",
+      "commit": "4e8cdcf9a4e16358dffe01405c6b0e0522a8e6ef",
+      "version": "workflow-dsl@1.1.0;observation@1.0.2;evidence-query@0.1.0",
+      "coordinate": "gitlink://system-contracts@4e8cdcf9a4e16358dffe01405c6b0e0522a8e6ef",
+      "digest": "sha256:5809dc2624639fa0b45777e77393984dda0c269945913996af4a2e0626155ff0"
+    },
+    {
+      "id": "evidence-system",
+      "commit": "3f15ee99c63280c223361af46f2d4dc5392c625c",
+      "version": "0.1.1",
+      "coordinate": "gitlink://evidence-system@3f15ee99c63280c223361af46f2d4dc5392c625c",
+      "digest": "sha256:d8d10512c9b2855b7a2aefc2d45164ac65c16521114e315d7d07493c32641cc3"
+    },
+    {
+      "id": "evolution-system",
+      "commit": "33a83aaaf66ba5aa5bc8a0e1a24c108e2486b06e",
+      "version": "0.1.1",
+      "coordinate": "gitlink://evolution-system@33a83aaaf66ba5aa5bc8a0e1a24c108e2486b06e",
+      "digest": "sha256:85db1b247817197c14685676929a7c9ec3b5c21b84c7c1cd38af80105c92289d"
+    },
+    {
+      "id": "execution-system",
+      "commit": "dbec4ec441f384ec83788890e5ed614a7c405dec",
+      "version": "0.2.7",
+      "coordinate": "gitlink://execution-system@dbec4ec441f384ec83788890e5ed614a7c405dec",
+      "digest": "sha256:1bc09d78c75df08e25ad3acc3856bbc5f35fe6a48fbce339d0bf433d8b27a133"
+    },
+    {
+      "id": "workflow-package",
+      "commit": "63e356de259e113b4dd377f677ce8a0c96c0f232",
+      "version": "implementation-workflow@0.4.12",
+      "coordinate": "gitlink://workflow-package@63e356de259e113b4dd377f677ce8a0c96c0f232",
+      "digest": "sha256:9478732b3793366a07d61d5e237d50d76232482573c54d54f5c91868404ffb16"
+    },
+    {
+      "id": "wsr-dsh",
+      "commit": "e6894596db937b59434f37025d0e4ef7dab67d2a",
+      "version": "0.2.12",
+      "coordinate": "gitlink://wsr-dsh@e6894596db937b59434f37025d0e4ef7dab67d2a",
+      "digest": "sha256:5534b8c873510dfa7b72fd4a62adc951b59f0046e1d091f883395cff9137ab2a"
+    },
+    {
+      "id": "wsr-ui",
+      "commit": "171bea81cca85010a3736d95dc27f59f08e9d38c",
+      "version": "0.1.0",
+      "coordinate": "gitlink://wsr-ui@171bea81cca85010a3736d95dc27f59f08e9d38c",
+      "digest": "sha256:f1cfebd4e52f31598a407f47f9363036e5a983a697bab92d3b805205de1dc0fa"
+    }
+  ],
+  "archives": {
+    "executionOwner": {
+      "path": "../../../../workflow-self-recursive/tmp/2026-09-04/issues-221-225-fix/artifacts/execution-0.2.7-ga/wsr-execution-0.2.7.tgz",
+      "sha256": "sha256:bb3718360946d114251def2f1a975ee783974c2c0d959dbb4289e8955f4b5acc",
+      "name": "wsr-execution",
+      "version": "0.2.7"
+    },
+    "dshExecution": {
+      "path": "../../../../workflow-self-recursive/tmp/2026-09-04/issues-221-225-fix/artifacts/dsh-0.2.12-rc.4/dsh-wsr-execution-0.2.10.tgz",
+      "sha256": "sha256:e15999a7bd6ecef5c56cf2ac4044fbb50f523b9b636b61a77ec63c405ec4f8fb",
+      "name": "dsh-wsr-execution",
+      "version": "0.2.10"
+    },
+    "dshStudio": {
+      "path": "../../../../workflow-self-recursive/tmp/2026-09-04/issues-221-225-fix/artifacts/dsh-0.2.12-rc.4/dsh-wsr-studio-0.1.4.tgz",
+      "sha256": "sha256:2c49ede660f784c5672af1b64d238bcae83fec6f105883b923a63dd40e88b918",
+      "name": "dsh-wsr-studio",
+      "version": "0.1.4"
+    },
+    "dshSuite": {
+      "path": "../../../../workflow-self-recursive/tmp/2026-09-04/issues-221-225-fix/artifacts/dsh-0.2.12-rc.4/dsh-wsr-0.2.11.tgz",
+      "sha256": "sha256:ef0bc7b29a9baf8ed9037e05e0fdd76213693e9ddd7984334724308059d76a03",
+      "name": "dsh-wsr",
+      "version": "0.2.11"
+    },
+    "uiCore": {
+      "path": "../../../../workflow-self-recursive/tmp/2026-09-04/issues-221-225-fix/artifacts/product-dev-wave8/ui/wsr-ui-core-0.1.0.tgz",
+      "sha256": "sha256:85bb8a226538cba32c7ddad25b69e4b09afe184c936ed60cf40c1e354b3dd2e8",
+      "name": "wsr-ui-core",
+      "version": "0.1.0"
+    }
+  },
+  "workflowAssets": {
+    "directory": "../../../../workflow-self-recursive/tmp/2026-09-04/issues-221-225-fix/artifacts/product-dev-wave8/workflow-assets",
+    "metadataSha256": "sha256:30b70b1ce8a456f5a0a26a1c6e0a1e887ee6a828703a5f9865444f37123530cd",
+    "selector": "implementation-workflow@0.4.12"
+  }
+}
