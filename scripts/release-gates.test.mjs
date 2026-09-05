@@ -231,6 +231,17 @@ test("all first-party workflows and actions use Node 24 action majors", async ()
   ]) assert.doesNotMatch(text, deprecated);
 });
 
+test("release guides describe candidate push as the only entry point", async () => {
+  const guides = await Promise.all([
+    readFile(path.join(ROOT, "docs", "guides", "release-automation.md"), "utf8"),
+    readFile(path.join(ROOT, "docs", "guides", "release-automation.zh-CN.md"), "utf8"),
+  ]);
+  for (const guide of guides) {
+    assert.match(guide, /release\/next/);
+    assert.doesNotMatch(guide, /workflow_dispatch.*(?:candidate|候选)|(?:candidate|候选).*workflow_dispatch/i);
+  }
+});
+
 test("both promotion jobs bind a published rc to its exact manifest asset", async (t) => {
   for (const kind of ["compose", "product"]) {
     await t.test(`${kind}: matching asset passes`, async () => {
