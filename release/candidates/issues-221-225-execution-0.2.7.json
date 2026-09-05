@@ -1,0 +1,48 @@
+{
+  "schema_version": "wsr.iter4-unified-candidate@1.0.0",
+  "status": "IMMUTABLE_RELEASE_CANDIDATE",
+  "created_at": "2026-09-05",
+  "execution": {
+    "repository": "firestige/wsr-execution",
+    "input_commit": "22b204a2606c82bed07bae056f1310e6acca200f",
+    "build_input_commit": "22b204a2606c82bed07bae056f1310e6acca200f",
+    "candidate_archive_commit": "d5731f189939690911804f359c1a02183a46edd6",
+    "metadata": {
+      "path": "execution-system/release/candidates/issues-221-225-execution-0.2.7/release-metadata.json",
+      "sha256": "sha256:b732eb87b66996f6bcc5116fd37c95906f3116546a93ae7309363e3a66f95959"
+    },
+    "release_notes": {
+      "path": "execution-system/release/candidates/issues-221-225-execution-0.2.7/release-notes.md",
+      "sha256": "sha256:922b6266879c2d22991bdae5cc417a763b73b3f75c262e219a66566a174b7b37"
+    },
+    "artifacts": [
+      {
+        "package": "wsr-execution",
+        "version": "0.2.7",
+        "path": "execution-system/release/candidates/issues-221-225-execution-0.2.7/wsr-execution-0.2.7.tgz",
+        "bytes": 217790,
+        "sha256": "sha256:bb3718360946d114251def2f1a975ee783974c2c0d959dbb4289e8955f4b5acc"
+      }
+    ]
+  },
+  "workflow_package": {
+    "repository": "firestige/wsr-workflow-package",
+    "commit": "63e356de259e113b4dd377f677ce8a0c96c0f232",
+    "implementation": "implementation-workflow@0.4.12",
+    "system_design": "system-design-workflow@0.4.10",
+    "contract": "agentops.workflow-dsl@2.0.0"
+  },
+  "qualification": {
+    "execution_full_test": "PASS_82_FILES_736_TESTS",
+    "execution_artifact_rebuild": "BYTE_EXACT",
+    "current_source_product_e2e": "PASS_TWO_CLEAN_DEV_COMPOSITIONS",
+    "execution_rc": "PENDING_CANDIDATE_WORKFLOW",
+    "exact_rc_product_replay": "PENDING_REMOTE_RC_ASSET"
+  },
+  "non_claims": [
+    "NO_EXECUTION_0.2.7_TAG_OR_NPM_PUBLICATION_CREATED",
+    "NO_EXECUTION_OWNER_MAIN_MERGE_OR_SUPERPROJECT_MAIN_REPIN",
+    "NO_DSH_CANDIDATE_CREATED",
+    "NO_STABLE_COMPONENT_OR_SUPERPROJECT_PUBLICATION_CREATED"
+  ]
+}
