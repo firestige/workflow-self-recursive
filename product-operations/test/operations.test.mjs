@@ -562,6 +562,7 @@ test("the stable command set always returns the versioned result envelope", asyn
     "uninstall",
     "doctor",
     "cleanup",
+    "version",
   ];
 
   for (const command of commands) {
