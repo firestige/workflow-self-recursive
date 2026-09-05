@@ -13,7 +13,7 @@ const productRoot = path.resolve(import.meta.dirname, "..");
 const repositoryRoot = path.resolve(productRoot, "..");
 const execFileAsync = promisify(execFile);
 
-test("the current one-click product installs the qualified DSH 0.2.11 release set", async () => {
+test("the current one-click product installs the qualified DSH 0.2.12 release set", async () => {
   const packageDocument = JSON.parse(await readFile(path.join(productRoot, "package.json"), "utf8"));
   const releaseManifestPath = path.join(repositoryRoot, "release/product", `${packageDocument.version}.json`);
   const packagedManifestPath = path.join(productRoot, "manifests", `product-${packageDocument.version}.json`);
@@ -26,9 +26,9 @@ test("the current one-click product installs the qualified DSH 0.2.11 release se
     JSON.parse(await readFile(path.join(repositoryRoot, `wsr-dsh/packages/${name}/package.json`), "utf8"))));
 
   assert.equal(manifest.release, packageDocument.version);
-  assert.equal(dsh.coordinate, "github-release://firestige/wsr-dsh/0.2.11/compatibility-matrix.json");
-  assert.equal(dsh.version, "0.2.11");
-  assert.equal(dsh.digest, "sha256:d99a2188589bbe39bbd15cdcc212e919eb5d0b42d703142936f80ca8f72b0a60");
+  assert.equal(dsh.coordinate, "github-release://firestige/wsr-dsh/0.2.12/compatibility-matrix.json");
+  assert.equal(dsh.version, "0.2.12");
+  assert.equal(dsh.digest, "sha256:833a6959248521edf7852cc485fc8ece2d5d420ca00e9102e041f5129832a6a4");
   assert.deepEqual(dsh.compatibility.executionOwner, {
     package: ownerRecord.package,
     version: ownerRecord.version,
@@ -70,7 +70,7 @@ test("the Product publisher checks out the pinned DSH owner record", async () =>
   assert.match(productJob, /actions\/checkout@v6[\s\S]*submodules: recursive/u);
 });
 
-test("the packed CLI resumes or rolls back an interrupted composite upgrade", async () => {
+test("the packed CLI self-describes from a clean consumer and resumes or rolls back an upgrade", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-packed-recovery-"));
   const archiveDirectory = path.join(directory, "archives");
   const extractedDirectory = path.join(directory, "extracted");
@@ -86,6 +86,27 @@ test("the packed CLI resumes or rolls back an interrupted composite upgrade", as
   const manifestPath = path.join(packagedRoot, "manifests", `product-${packageDocument.version}.json`);
   const fixturePath = path.join(directory, "fixture.json");
   const configPath = path.join(directory, "config.json");
+
+  const help = await execFileAsync(process.execPath, [path.join(packagedRoot, "bin/wsr.mjs"), "help"], {
+    cwd: directory,
+  });
+  assert.match(help.stdout, /Usage: wsr/u);
+  const shortcutVersion = await execFileAsync(
+    process.execPath, [path.join(packagedRoot, "bin/wsr.mjs"), "--version"], { cwd: directory },
+  );
+  assert.equal(shortcutVersion.stdout, `${packageDocument.version}\n`);
+  const cleanState = path.join(directory, "clean-consumer-state");
+  const structuredVersion = JSON.parse((await execFileAsync(process.execPath, [
+    path.join(packagedRoot, "bin/wsr.mjs"), "version", "--state-dir", cleanState,
+  ], { cwd: directory })).stdout);
+  assert.equal(structuredVersion.data.cli.version, packageDocument.version);
+  assert.equal(structuredVersion.data.applied, null);
+  await writeFile(fixturePath, "{}\n");
+  const cleanStatus = JSON.parse((await execFileAsync(process.execPath, [
+    path.join(packagedRoot, "bin/wsr.mjs"), "status", "--state-dir", cleanState,
+    "--fixture", fixturePath,
+  ], { cwd: directory })).stdout);
+  assert.deepEqual(cleanStatus.data.versions, structuredVersion.data);
 
   async function invoke(command, stateDirectory, fixture) {
     await writeFile(fixturePath, `${JSON.stringify(fixture)}\n`);

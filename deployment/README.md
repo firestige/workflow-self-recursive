@@ -63,6 +63,26 @@ reverse proxy exposes BI on `0.0.0.0` or a public interface, that operator also 
 authentication, firewall policy, and the resulting public-exposure risk.
 # Qualification modes
 
-`accept-current-branch.sh` is a current-source composition check. It intentionally builds local archives and rewrites a temporary Product manifest, so its result is never evidence for a published coordinate.
+`accept-current-branch.sh` is a current-source composition check. It intentionally builds local archives and rewrites a temporary Product manifest, so its result is never evidence for a published coordinate. Invoke it with an explicit Product manifest; that manifest is the sole authority for the DSH bundle, Execution owner, Services/Compose, Workflow source, and Provider coordinates:
+
+```sh
+./deployment/accept-current-branch.sh \
+  --product-manifest product-operations/manifests/product-0.5.13.json
+```
+
+For a cross-owner development freeze, also pass `--dev-artifact-set FILE`. The set is validated
+before deployment; its digest-bound Execution, DSH, and UI archives are copied into the isolated
+run, and its local Workflow assets serve the Product's exact selector. This mode never substitutes a
+same-version published package for the development artifact and never changes a formal manifest.
+
+The normal workload uses the Product manifest's exact Workflow source selector. An extra selector is allowed only as an explicitly non-composition diagnostic:
+
+```sh
+./deployment/accept-current-branch.sh \
+  --product-manifest product-operations/manifests/product-0.5.13.json \
+  --diagnostic-selector hello-world-workflow@0.2.0
+```
+
+Each invocation has an independent run identity covering its Product state, DSH home, Compose project and Evidence volume, workspace, and temporary assets. A failed stage first preserves `coordinates.json`, `lifecycle.log`, and a structured result under the selected temporary parent, then removes only resources whose names derive from that identity. `WSR_ACCEPT_RUN_ID` is intended for deterministic automation and must itself be unique; an existing failure-evidence directory is never overwritten.
 
 `verify-owner-release.mjs` is the published-coordinate gate. It checks the Product Execution pin against DSH's single owner-release record, resolves the remote release tag to the recorded source revision, downloads the exact remote artifact, and verifies its SHA-256 digest. It does not accept a local archive override.

@@ -21,6 +21,7 @@ const COMMANDS = new Set([
   "uninstall",
   "doctor",
   "cleanup",
+  "version",
 ]);
 const READ_COMMANDS = new Set(["config", "status", "health", "logs"]);
 const ORDER_REVERSED = new Set(["stop", "rollback", "uninstall"]);
@@ -85,7 +86,7 @@ const READY_DIAGNOSIS = Object.freeze({
   }),
 });
 
-export function createOperations({ manifest, adapters, stateDirectory, configPath, maintenance }) {
+export function createOperations({ manifest, adapters, stateDirectory, configPath, maintenance, versionFacts }) {
   const statePath = path.join(stateDirectory, "operations-state.json");
   const installationMaintenance = maintenance ?? Object.freeze({
     async diagnose() { return READY_DIAGNOSIS; },
@@ -146,6 +147,14 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
   }
 
   async function inspect(command, id) {
+    if (command === "version") {
+      if (versionFacts === undefined) {
+        return envelope(command, id, "failed", {
+          diagnostics: [{ code: "VERSION_FACTS_UNAVAILABLE", message: "Version facts were not resolved" }],
+        });
+      }
+      return envelope(command, id, "succeeded", { data: versionFacts });
+    }
     if (command === "config") {
       return envelope(command, id, "succeeded", {
         data: { owner: "product.operations", path: configPath, editable: true },
@@ -176,7 +185,11 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
         message: result.message ?? `${component.id} is not healthy`,
       });
     }
-    return envelope(command, id, diagnostics.length === 0 ? "succeeded" : "blocked", { components, diagnostics });
+    return envelope(command, id, diagnostics.length === 0 ? "succeeded" : "blocked", {
+      components,
+      diagnostics,
+      ...(command === "status" && versionFacts !== undefined ? { data: { versions: versionFacts } } : {}),
+    });
   }
 
   async function diagnose(command, id) {
@@ -370,6 +383,7 @@ export function createOperations({ manifest, adapters, stateDirectory, configPat
         });
       }
       const id = operationId(command, manifest.digest);
+      if (command === "version") return inspect(command, id);
       if (command === "preflight") return preflight(command, id);
       if (command === "doctor") return diagnose(command, id);
       if (command === "cleanup") return cleanup(id, options);

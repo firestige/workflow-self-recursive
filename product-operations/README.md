@@ -1,19 +1,38 @@
 # Product operations
 
 This package owns the top-level orchestration contract for WSR's independently released delivery
-carriers. By default the CLI resolves the manifest matching its own package version; release `0.5.13` uses
-`manifests/product-0.5.13.json` and installs the stable DSH, Compose,
+carriers. By default the CLI resolves the manifest matching its own package version; release `0.5.14-rc.1` uses
+`manifests/product-0.5.14-rc.1.json` and installs the stable DSH, Compose,
 Workflow Package, Copilot and Codex coordinates recorded there. No owner source checkout or build is
 required. The fixture adapter remains available only when `--fixture` is supplied explicitly.
 
+## Self-description and version facts
+
+`wsr help` and `wsr --help` print the complete command, option, and exit-code reference without
+reading configuration, installation state, a Product manifest, or an adapter. `wsr --version` follows
+the usual CLI convention and prints only the current CLI package version with exit code `0`; it is also
+independent of installation state.
+
+`wsr version` writes a structured `wsr.operations.result@1.0.0` result. Its `data` distinguishes four
+facts: `cli` is the running package version, `applied` is the last completely committed Product release
+and manifest digest (or `null`), `target` is the CLI's default Product release and digest, and
+`activeOperation` is a separately verified resumable operation (or `null`). `alignment` is
+`not-installed`, `aligned`, or `drifted`. `wsr status` keeps its component inspection results and exposes
+the same object at `data.versions`. Missing installation state is not an error; malformed records,
+missing retained manifests, and release/digest mismatches fail closed with exit code `2`.
+
+The `active-release.json`, `operations-state.json`, and retained manifests used to establish these facts
+remain internal implementation details; callers should use `version` or `status` instead of reading them.
+
 ## Commands
 
-The stable command set is `setup`, `doctor`, `cleanup`, `install`, `preflight`, `config`, `status`,
+The stable command set is `help`, `version`, `setup`, `doctor`, `cleanup`, `install`, `preflight`, `config`, `status`,
 `health`, `logs`, `start`, `stop`, `restart`, `upgrade`, `rollback`, and `uninstall`. Every command writes one
-`wsr.operations.result@1.0.0` JSON result to standard output. Exit code `0` means succeeded, `3` means
+`wsr.operations.result@1.0.0` JSON result to standard output, except for the human-readable `help` and
+plain-text `--version` shortcuts. Exit code `0` means succeeded, `3` means
 blocked/recoverable, and `2` means failed or invalid input.
 
-Create a private configuration from the Release's `wsr-product-0.5.13.config.example.json`. It selects
+Create a private configuration from the Release's `wsr-product-0.5.14-rc.1.config.example.json`. It selects
 the GitHub Workflow repository and may choose unused loopback ports; it does not select a workspace,
 Task, Workflow version, or repository Role Provider binding. Then run the installed CLI from any directory:
 
