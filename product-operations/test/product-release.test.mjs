@@ -70,7 +70,7 @@ test("the Product publisher checks out the pinned DSH owner record", async () =>
   assert.match(productJob, /actions\/checkout@v6[\s\S]*submodules: recursive/u);
 });
 
-test("the packed CLI resumes or rolls back an interrupted composite upgrade", async () => {
+test("the packed CLI self-describes from a clean consumer and resumes or rolls back an upgrade", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "wsr-packed-recovery-"));
   const archiveDirectory = path.join(directory, "archives");
   const extractedDirectory = path.join(directory, "extracted");
@@ -86,6 +86,27 @@ test("the packed CLI resumes or rolls back an interrupted composite upgrade", as
   const manifestPath = path.join(packagedRoot, "manifests", `product-${packageDocument.version}.json`);
   const fixturePath = path.join(directory, "fixture.json");
   const configPath = path.join(directory, "config.json");
+
+  const help = await execFileAsync(process.execPath, [path.join(packagedRoot, "bin/wsr.mjs"), "help"], {
+    cwd: directory,
+  });
+  assert.match(help.stdout, /Usage: wsr/u);
+  const shortcutVersion = await execFileAsync(
+    process.execPath, [path.join(packagedRoot, "bin/wsr.mjs"), "--version"], { cwd: directory },
+  );
+  assert.equal(shortcutVersion.stdout, `${packageDocument.version}\n`);
+  const cleanState = path.join(directory, "clean-consumer-state");
+  const structuredVersion = JSON.parse((await execFileAsync(process.execPath, [
+    path.join(packagedRoot, "bin/wsr.mjs"), "version", "--state-dir", cleanState,
+  ], { cwd: directory })).stdout);
+  assert.equal(structuredVersion.data.cli.version, packageDocument.version);
+  assert.equal(structuredVersion.data.applied, null);
+  await writeFile(fixturePath, "{}\n");
+  const cleanStatus = JSON.parse((await execFileAsync(process.execPath, [
+    path.join(packagedRoot, "bin/wsr.mjs"), "status", "--state-dir", cleanState,
+    "--fixture", fixturePath,
+  ], { cwd: directory })).stdout);
+  assert.deepEqual(cleanStatus.data.versions, structuredVersion.data);
 
   async function invoke(command, stateDirectory, fixture) {
     await writeFile(fixturePath, `${JSON.stringify(fixture)}\n`);

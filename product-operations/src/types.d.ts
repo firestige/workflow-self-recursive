@@ -1,7 +1,25 @@
 export type OperationsCommand =
   | "setup" | "install" | "preflight" | "config"
   | "status" | "health" | "logs" | "start" | "stop" | "restart"
-  | "upgrade" | "rollback" | "uninstall" | "doctor" | "cleanup";
+  | "upgrade" | "rollback" | "uninstall" | "doctor" | "cleanup" | "version";
+
+export interface ProductVersionIdentity {
+  release: string;
+  manifestDigest: string;
+}
+
+export interface VersionFacts {
+  cli: { version: string };
+  applied: ProductVersionIdentity | null;
+  target: ProductVersionIdentity;
+  activeOperation: null | (ProductVersionIdentity & {
+    operationId: string;
+    command: string;
+    currentComponent: string | null;
+    resumable: true;
+  });
+  alignment: "not-installed" | "aligned" | "drifted";
+}
 
 export interface ComponentResult {
   id: string;
@@ -27,4 +45,14 @@ export interface OperationsResult {
   diagnostics: OperationsDiagnostic[];
   resume?: { operationId: string; manifestDigest: string; nextComponent: string };
   data?: unknown;
+}
+
+export interface VersionOperationsResult extends OperationsResult {
+  command: "version";
+  data?: VersionFacts;
+}
+
+export interface StatusOperationsResult extends OperationsResult {
+  command: "status";
+  data?: { versions: VersionFacts };
 }
