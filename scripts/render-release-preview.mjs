@@ -3,6 +3,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { isThirdPartyPrereleaseField } from "./release-content-policy.mjs";
+
 const PRERELEASE = /-(?:rc|dev|alpha|beta|canary|snapshot|preview)\b/i;
 
 function identity(manifest) {
@@ -65,6 +67,7 @@ function residues(manifest) {
   const visit = (value, segments = []) => {
     if (typeof value === "string") {
       if (segments.length === 1 && ["version", "release"].includes(segments[0])) return;
+      if (isThirdPartyPrereleaseField(manifest, segments)) return;
       if (PRERELEASE.test(value)) found.push({ path: segments.join("."), value });
       return;
     }

@@ -353,6 +353,46 @@ test("promotion rejects changes to nested component identity fields", async () =
   }
 });
 
+test("GA prerelease policy ignores only the external DSH runtime version", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "wsr-third-party-prerelease-"));
+  const product = {
+    schema: "wsr.compatibility@1.0.0",
+    release: "1.2.3",
+    components: [{
+      id: "dsh-bundle",
+      version: "0.2.11",
+      compatibility: {
+        dsh: "0.1.1-rc.2",
+        packages: { suite: "dsh-wsr@0.2.10" },
+      },
+    }],
+  };
+  await writeFile(path.join(root, "rc.json"), JSON.stringify({ ...product, release: "1.2.3-rc.1" }));
+
+  await t.test("allows the third-party DSH runtime prerelease", async () => {
+    await writeFile(path.join(root, "ga.json"), JSON.stringify(product));
+    const result = await runNode(
+      path.join(ROOT, "scripts", "check-ga-manifest.mjs"),
+      ["ga.json", "--from-rc", "rc.json"],
+      root,
+    );
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+
+  await t.test("still rejects a first-party DSH package prerelease", async () => {
+    const invalid = structuredClone(product);
+    invalid.components[0].compatibility.packages.suite = "dsh-wsr@0.2.10-rc.1";
+    await writeFile(path.join(root, "ga.json"), JSON.stringify(invalid));
+    const result = await runNode(
+      path.join(ROOT, "scripts", "check-ga-manifest.mjs"),
+      ["ga.json", "--from-rc", "rc.json"],
+      root,
+    );
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(result.stdout, /packages\.suite/);
+  });
+});
+
 test("coordinate verification accepts the exact bytes and digest", async () => {
   const body = Buffer.from("verified artifact\n");
   const digest = `sha256:${createHash("sha256").update(body).digest("hex")}`;

@@ -68,6 +68,27 @@ test("product inventory includes top-level and nested release coordinates", () =
   assert.match(preview, /Content diff from selected rc: empty/);
 });
 
+test("product readiness ignores only the external DSH runtime prerelease", () => {
+  const manifest = {
+    schema: "wsr.compatibility@1.0.0",
+    release: "0.5.13-rc.1",
+    components: [{
+      id: "dsh-bundle",
+      version: "0.2.11",
+      compatibility: {
+        dsh: "0.1.1-rc.2",
+        packages: { suite: "dsh-wsr@0.2.10" },
+      },
+    }],
+  };
+  assert.match(renderReleasePreview(manifest, []), /GA readiness: READY/);
+
+  manifest.components[0].compatibility.packages.suite = "dsh-wsr@0.2.10-rc.1";
+  const blocked = renderReleasePreview(manifest, []);
+  assert.match(blocked, /GA readiness: BLOCKED/);
+  assert.match(blocked, /components\.0\.compatibility\.packages\.suite/);
+});
+
 test("candidate publication exposes the generated preview in the summary and release", async () => {
   const workflow = await readFile(new URL("../.github/workflows/release-candidate.yml", import.meta.url), "utf8");
 

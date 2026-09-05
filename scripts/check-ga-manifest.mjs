@@ -17,6 +17,8 @@ import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { createHash } from "node:crypto";
 
+import { isThirdPartyPrereleaseField } from "./release-content-policy.mjs";
+
 const PRERELEASE = /-(rc|dev|alpha|beta|canary|snapshot|preview)\b/i;
 // Only the manifest's own release identity changes during promotion. Component
 // versions, coordinates, and digests identify the already-qualified bytes and
@@ -51,10 +53,10 @@ const readJson = (path) => {
   return JSON.parse(readFileSync(path, "utf8"));
 };
 
-function* walk(node, path = "$") {
-  if (typeof node === "string") yield [path, node];
-  else if (Array.isArray(node)) for (const [i, v] of node.entries()) yield* walk(v, `${path}[${i}]`);
-  else if (node && typeof node === "object") for (const [k, v] of Object.entries(node)) yield* walk(v, `${path}.${k}`);
+function* walk(node, path = "$", segments = []) {
+  if (typeof node === "string") yield [path, node, segments];
+  else if (Array.isArray(node)) for (const [i, v] of node.entries()) yield* walk(v, `${path}[${i}]`, [...segments, String(i)]);
+  else if (node && typeof node === "object") for (const [k, v] of Object.entries(node)) yield* walk(v, `${path}.${k}`, [...segments, k]);
 }
 
 /** Every object node in the tree (arrays included), depth-first — used to find
@@ -71,9 +73,12 @@ function* walkObjects(node, path = "$") {
 // ------------------------------------------------------- rule 1: no prerelease
 
 function checkNoPrerelease(manifest) {
-  for (const [path, value] of walk(manifest)) {
+  for (const [path, value, segments] of walk(manifest)) {
     const hit = PRERELEASE.exec(value);
     if (!hit) continue;
+    // The DSH CLI is an external runtime selected by a stable first-party DSH
+    // bundle. Its upstream version lifecycle is not controlled by WSR.
+    if (isThirdPartyPrereleaseField(manifest, segments)) continue;
     record(
       path,
       value,
