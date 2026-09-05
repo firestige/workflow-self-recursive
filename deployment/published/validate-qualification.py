@@ -11,6 +11,7 @@ from typing import Any
 
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 IMAGE = re.compile(r"^(?P<name>[a-z0-9./_-]+):(?P<tag>[A-Za-z0-9._-]+)@(?P<digest>sha256:[0-9a-f]{64})$")
+STABLE_VERSION = re.compile(r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$")
 SOURCE_REPOSITORIES = {"evidence": "wsr-evidence", "evolution": "wsr-evolution"}
 
 
@@ -45,9 +46,15 @@ def validate(
     )
     expected_sha256 = image.get("qualificationSha256")
     actual_sha256 = f"sha256:{hashlib.sha256(qualification_bytes).hexdigest()}"
+    candidate_tag = qualification.get("candidateTag")
+    candidate_matches = candidate_tag == tag or (
+        STABLE_VERSION.fullmatch(tag) is not None
+        and isinstance(candidate_tag, str)
+        and re.fullmatch(re.escape(tag) + r"-rc\.[1-9]\d*", candidate_tag) is not None
+    )
     checks = {
         "qualification SHA-256": expected_sha256 == actual_sha256,
-        "candidate tag": qualification.get("candidateTag") == tag,
+        "candidate tag": candidate_matches,
         "OCI digest": qualification.get("ociDigest") == match.group("digest"),
         "source commit": image.get("source") == expected_source,
         "qualification URL": image.get("provenance") == expected_evidence,

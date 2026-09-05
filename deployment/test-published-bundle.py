@@ -751,7 +751,7 @@ class PublishedBundleTest(unittest.TestCase):
                 json.dumps(
                     {
                         "schemaVersion": "wsr.release-qualification@1.0.0",
-                        "candidateTag": "0.1.0",
+                        "candidateTag": "0.1.0-rc.7",
                         "commit": evidence_commit,
                         "ociDigest": f"sha256:{SHA}",
                         "localAcceptance": {"status": "PASS"},
@@ -765,7 +765,7 @@ class PublishedBundleTest(unittest.TestCase):
                 json.dumps(
                     {
                         "schemaVersion": "wsr.evolution-image-qualification@1.0.0",
-                        "candidateTag": "0.1.0",
+                        "candidateTag": "0.1.0-rc.7",
                         "commit": evolution_commit,
                         "ociDigest": f"sha256:{SHA}",
                         "platforms": ["linux/amd64", "linux/arm64"],
@@ -787,6 +787,24 @@ class PublishedBundleTest(unittest.TestCase):
             ]
 
             subprocess.run(command, check=True)
+            wrong_candidate = json.loads(evidence.read_text(encoding="utf-8"))
+            wrong_candidate["candidateTag"] = "0.1.1-rc.1"
+            evidence.write_text(json.dumps(wrong_candidate), encoding="utf-8")
+            value["images"]["evidence"]["qualificationSha256"] = (  # type: ignore[index]
+                f"sha256:{hashlib.sha256(evidence.read_bytes()).hexdigest()}"
+            )
+            release.write_text(json.dumps(value), encoding="utf-8")
+            rejected = subprocess.run(command, capture_output=True, text=True)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("candidate tag", rejected.stderr)
+            evidence.write_text(
+                json.dumps({**wrong_candidate, "candidateTag": "0.1.0-rc.7"}),
+                encoding="utf-8",
+            )
+            value["images"]["evidence"]["qualificationSha256"] = (  # type: ignore[index]
+                f"sha256:{hashlib.sha256(evidence.read_bytes()).hexdigest()}"
+            )
+            release.write_text(json.dumps(value), encoding="utf-8")
             original = evolution.read_text(encoding="utf-8")
             evolution.write_text(original + "\n", encoding="utf-8")
             self.assertNotEqual(subprocess.run(command).returncode, 0)
