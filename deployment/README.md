@@ -70,6 +70,11 @@ authentication, firewall policy, and the resulting public-exposure risk.
   --product-manifest product-operations/manifests/product-0.5.13.json
 ```
 
+For a cross-owner development freeze, also pass `--dev-artifact-set FILE`. The set is validated
+before deployment; its digest-bound Execution, DSH, and UI archives are copied into the isolated
+run, and its local Workflow assets serve the Product's exact selector. This mode never substitutes a
+same-version published package for the development artifact and never changes a formal manifest.
+
 The normal workload uses the Product manifest's exact Workflow source selector. An extra selector is allowed only as an explicitly non-composition diagnostic:
 
 ```sh

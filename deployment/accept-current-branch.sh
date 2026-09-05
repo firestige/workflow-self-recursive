@@ -7,6 +7,7 @@ printf '%s\n' 'Qualification mode: CURRENT_SOURCE_COMPOSITION (not published-coo
 
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 product_manifest=${WSR_ACCEPT_PRODUCT_MANIFEST:-}
+dev_artifact_set=${WSR_ACCEPT_DEV_ARTIFACT_SET:-}
 diagnostic_selector=
 while test "$#" -gt 0; do
   case "$1" in
@@ -20,8 +21,13 @@ while test "$#" -gt 0; do
       diagnostic_selector=$2
       shift 2
       ;;
+    --dev-artifact-set)
+      if test "$#" -lt 2; then printf '%s\n' 'Missing value for --dev-artifact-set' >&2; exit 2; fi
+      dev_artifact_set=$2
+      shift 2
+      ;;
     --help)
-      printf '%s\n' 'usage: accept-current-branch.sh --product-manifest FILE [--diagnostic-selector NAME@VERSION]'
+      printf '%s\n' 'usage: accept-current-branch.sh --product-manifest FILE [--dev-artifact-set FILE] [--diagnostic-selector NAME@VERSION]'
       exit 0
       ;;
     *) printf 'Unknown argument: %s\n' "$1" >&2; exit 2 ;;
@@ -57,6 +63,29 @@ workflow_version=$(printf '%s' "$target_json" | jq -er '.workflow.version')
 provider_target_version=$(printf '%s' "$target_json" | jq -er '.providers.version')
 workload_mode=$(printf '%s' "$target_json" | jq -er '.workload.mode')
 workflow_selector=$(printf '%s' "$target_json" | jq -er '.workload.selector')
+
+dev_set_identity=
+if test -n "$dev_artifact_set"; then
+  dev_set_json=$(node "$root/deployment/dev-artifact-set.mjs" "$dev_artifact_set")
+  dev_set_identity=$(printf '%s' "$dev_set_json" | jq -er '.identity')
+  dev_product_manifest=$(printf '%s' "$dev_set_json" | jq -er '.productManifest')
+  dev_workflow_selector=$(printf '%s' "$dev_set_json" | jq -er '.workflowAssets.selector')
+  if test "$dev_product_manifest" != "$product_manifest"; then
+    printf 'DEV_ARTIFACT_SET_INVALID: productManifest does not equal the explicit Product manifest\n' >&2
+    exit 2
+  fi
+  if test "$workload_mode" = product-composition && test "$dev_workflow_selector" != "$workflow_selector"; then
+    printf 'DEV_ARTIFACT_SET_INVALID: workflow selector does not equal the Product selector\n' >&2
+    exit 2
+  fi
+  frozen_execution_archive=$(printf '%s' "$dev_set_json" | jq -er '.archives.executionOwner.path')
+  frozen_dsh_execution_archive=$(printf '%s' "$dev_set_json" | jq -er '.archives.dshExecution.path')
+  frozen_dsh_studio_archive=$(printf '%s' "$dev_set_json" | jq -er '.archives.dshStudio.path')
+  frozen_dsh_suite_archive=$(printf '%s' "$dev_set_json" | jq -er '.archives.dshSuite.path')
+  frozen_ui_archive=$(printf '%s' "$dev_set_json" | jq -er '.archives.uiCore.path')
+  WSR_ACCEPT_WORKFLOW_ASSETS=$(printf '%s' "$dev_set_json" | jq -er '.workflowAssets.directory')
+  export WSR_ACCEPT_WORKFLOW_ASSETS
+fi
 
 temporary_parent=${WSR_ACCEPT_TMPDIR:-${TMPDIR:-/tmp}}
 run_id=${WSR_ACCEPT_RUN_ID:-$(node -e 'process.stdout.write(require("node:crypto").randomUUID().replaceAll("-", ""))')}
@@ -263,7 +292,7 @@ cleanup() {
 trap cleanup 0
 trap 'exit 130' HUP INT TERM
 
-for command in npm pnpm python3 dsh docker git; do
+for command in npm pnpm python3 dsh docker git cp; do
   if ! command -v "$command" >/dev/null 2>&1; then
     printf 'Required command not found: %s\n' "$command" >&2
     exit 1
@@ -322,6 +351,7 @@ printf 'services/compose: %s\n' "$services_version"
 printf 'workflow-source: %s@%s\n' "$workflow_name" "$workflow_version"
 printf 'providers: %s\n' "$provider_target_version"
 printf 'workflow-selector: %s\n' "$workflow_selector"
+if test -n "$dev_set_identity"; then printf 'devArtifactSet: %s\n' "$dev_set_identity"; fi
 printf 'resolvedTarget: %s\n' "$target_json"
 printf '当前提交：%s\n' "$(git -C "$root" rev-parse --short HEAD)"
 printf 'DSH 提交：%s\n' "$(git -C "$root/wsr-dsh" rev-parse --short HEAD)"
@@ -380,6 +410,34 @@ printf '%s\n' \
   '    "role.fresh-reader": {' \
   '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
   '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.goal-facilitator": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.implementation-feasibility-validator": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.test-designer": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.implementer": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.goal-adversary": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.implementation-reviewer": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
+  '    },' \
+  '    "role.delivery-custodian": {' \
+  '      "agentProvider": { "identity": "provider.copilot", "version": "1.0.78" },' \
+  '      "model": { "provider": "github-copilot", "model": "gpt-5.3-codex" }' \
   '    }' \
   '  }' \
   '}' > "$workspace/.wsr/role-provider-bindings.json"
@@ -387,40 +445,50 @@ printf '%s\n' \
 stage=local-artifact-build
 printf 'run=%s stage=%s\n' "$run_id" "$stage" >> "$lifecycle_log"
 printf '\n==> 2/4 构建并部署本地产物\n'
-(
-  cd "$root/execution-system"
-  pnpm release:artifacts "$packages"
-)
 provider_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-ui/packages/bi/package.json")
 provider_archive="$packages/wsr-ui-core-$provider_version.tgz"
 execution_version=$(node -p 'require(process.argv[1]).version' "$root/execution-system/package.json")
 execution_plugin_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-dsh/packages/execution/package.json")
 studio_plugin_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-dsh/packages/studio/package.json")
 suite_plugin_version=$(node -p 'require(process.argv[1]).version' "$root/wsr-dsh/packages/suite/package.json")
-(
-  cd "$root/wsr-ui"
-  npm ci --ignore-scripts --no-audit --no-fund
-  npm run build
-  npm pack --silent --pack-destination "$packages" --workspace wsr-ui-core
-)
+if test -n "$dev_set_identity"; then
+  cp "$frozen_execution_archive" "$packages/wsr-execution-$execution_version.tgz"
+  cp "$frozen_dsh_execution_archive" "$packages/dsh-wsr-execution-$execution_plugin_version.tgz"
+  cp "$frozen_dsh_studio_archive" "$packages/dsh-wsr-studio-$studio_plugin_version.tgz"
+  cp "$frozen_dsh_suite_archive" "$packages/dsh-wsr-$suite_plugin_version.tgz"
+  cp "$frozen_ui_archive" "$provider_archive"
+else
+  (
+    cd "$root/execution-system"
+    pnpm release:artifacts "$packages"
+  )
+  (
+    cd "$root/wsr-ui"
+    npm ci --ignore-scripts --no-audit --no-fund
+    npm run build
+    npm pack --silent --pack-destination "$packages" --workspace wsr-ui-core
+  )
+fi
 if ! test -f "$provider_archive"; then
   printf 'Local shared UI archive missing: %s\n' "$provider_archive" >&2
   exit 1
 fi
-(
-  cd "$root/wsr-dsh"
-  npm ci --ignore-scripts --no-audit --no-fund
-  node "$root/deployment/bind-local-package-candidate.mjs" --install \
-    "$root/wsr-dsh/node_modules" \
-    wsr-ui-core \
-    "$provider_version" \
-    "$provider_archive" \
-    "$root/wsr-ui/node_modules"
-  npm run build
-  npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-execution
-  npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-studio
-  npm pack --silent --pack-destination "$packages" --workspace dsh-wsr
-)
+if test -z "$dev_set_identity"; then
+  (
+    cd "$root/wsr-dsh"
+    npm ci --ignore-scripts --no-audit --no-fund
+    node "$root/deployment/bind-local-package-candidate.mjs" --install \
+      "$root/wsr-dsh/node_modules" \
+      wsr-ui-core \
+      "$provider_version" \
+      "$provider_archive" \
+      "$root/wsr-ui/node_modules"
+    npm run build
+    npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-execution
+    npm pack --silent --pack-destination "$packages" --workspace dsh-wsr-studio
+    npm pack --silent --pack-destination "$packages" --workspace dsh-wsr
+  )
+fi
 
 python3 "$root/deployment/published/build-bundle.py" \
   "$compose_manifest" \
@@ -535,9 +603,12 @@ if test "${WSR_ACCEPT_BROWSER_QUALIFICATION:-0}" = 1; then
     cat "$browser_result"
     exit "$browser_status"
   fi
-  if ! jq -e --arg selector "$workflow_selector" --arg mode "$workload_mode" \
-    '.result == "PASS" and .selector == $selector and .workloadMode == $mode' \
-    "$browser_result" >/dev/null; then
+  if test "$workload_mode" = product-composition; then
+    browser_attestation='.result == "PASS" and .evidenceKind == "composition" and .workflowSelector == $selector'
+  else
+    browser_attestation='.result == "PASS" and .evidenceKind == "diagnostic-non-composition" and .diagnosticSelector == $selector'
+  fi
+  if ! jq -e --arg selector "$workflow_selector" "$browser_attestation" "$browser_result" >/dev/null; then
     printf 'Browser qualifier did not attest the exact target selector/mode: %s (%s).\n' "$workflow_selector" "$workload_mode" >&2
     exit 1
   fi

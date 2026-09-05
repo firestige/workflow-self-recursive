@@ -21,6 +21,15 @@ def executable(path: Path, body: str) -> None:
 
 
 class CurrentBranchAcceptanceTest(unittest.TestCase):
+    def test_product_workspace_binds_every_implementation_workflow_role(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        for role in [
+            "role.goal-facilitator", "role.implementation-feasibility-validator",
+            "role.test-designer", "role.implementer", "role.goal-adversary",
+            "role.implementation-reviewer", "role.delivery-custodian",
+        ]:
+            self.assertIn(role, source)
+
     def test_target_resolver_returns_every_product_owned_coordinate(self) -> None:
         source = ROOT / "product-operations" / "manifests" / "product-0.5.13.json"
         result = subprocess.run(
@@ -96,6 +105,7 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
         cleanup_requires_fallback: bool = False,
         manifest_mismatch: bool = False,
         preexisting_resources: bool = False,
+        dev_artifact_set: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], list[str], list[str]]:
         with tempfile.TemporaryDirectory(prefix="wsr-accept-test-") as temporary_name:
             temporary = Path(temporary_name)
@@ -104,6 +114,9 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
             log = temporary / "commands.log"
             preview_parent = temporary / "previews"
             preview_parent.mkdir()
+            dev_set = temporary / "dev-artifact-set.json"
+            if dev_artifact_set:
+                dev_set.write_text("{}\n", encoding="utf-8")
 
             executable(fake_bin / "npm", """
                 printf 'npm cwd=%s %s\n' "$PWD" "$*" >> "$WSR_ACCEPT_TEST_LOG"
@@ -114,10 +127,10 @@ class CurrentBranchAcceptanceTest(unittest.TestCase):
                   previous=$argument
                 done
                 case " $* " in
-                  *" --workspace wsr-ui-core "*) : > "$destination/wsr-ui-core-0.1.0-rc.1.tgz" ;;
+                  *" --workspace wsr-ui-core "*) : > "$destination/wsr-ui-core-0.1.0.tgz" ;;
                   *" --workspace dsh-wsr-execution "*) : > "$destination/dsh-wsr-execution-0.2.9.tgz" ;;
-                  *" --workspace dsh-wsr-studio "*) : > "$destination/dsh-wsr-studio-0.1.2.tgz" ;;
-                  *" --workspace dsh-wsr "*) : > "$destination/dsh-wsr-0.2.9.tgz" ;;
+                  *" --workspace dsh-wsr-studio "*) : > "$destination/dsh-wsr-studio-0.1.3.tgz" ;;
+                  *" --workspace dsh-wsr "*) : > "$destination/dsh-wsr-0.2.10.tgz" ;;
                 esac
             """)
             executable(fake_bin / "pnpm", """
@@ -153,6 +166,9 @@ EOF
             executable(fake_bin / "node", """
                 printf 'node %s WSR_ACCEPT_WORKFLOW_SELECTOR=%s\n' "$*" "${WSR_ACCEPT_WORKFLOW_SELECTOR:-}" >> "$WSR_ACCEPT_TEST_LOG"
                 case "${1:-}" in
+                  */dev-artifact-set.mjs)
+                    printf '{"identity":"issues-221-225-product-dev","productManifest":"%s/product-operations/manifests/product-0.5.13.json","archives":{"executionOwner":{"path":"%s/frozen-wsr-execution-0.2.6.tgz"},"dshExecution":{"path":"%s/frozen-dsh-wsr-execution-0.2.9.tgz"},"dshStudio":{"path":"%s/frozen-dsh-wsr-studio-0.1.3.tgz"},"dshSuite":{"path":"%s/frozen-dsh-wsr-0.2.10.tgz"},"uiCore":{"path":"%s/frozen-wsr-ui-core-0.1.0.tgz"}},"workflowAssets":{"directory":"%s/workflow-assets","selector":"implementation-workflow@0.4.12"}}\n' "$WSR_ACCEPT_TMPDIR" "$WSR_ACCEPT_TMPDIR" "$WSR_ACCEPT_TMPDIR" "$WSR_ACCEPT_TMPDIR" "$WSR_ACCEPT_TMPDIR" "$WSR_ACCEPT_TMPDIR" "$WSR_ACCEPT_TMPDIR"
+                    exit 0 ;;
                   */resolve-current-branch-target.mjs)
                     mode=product-composition
                     selector=implementation-workflow@0.4.12
@@ -161,8 +177,12 @@ EOF
                     exit 0 ;;
                 esac
                 case " $* " in
+                  *serve-workflow-assets.ts*)
+                    for argument in "$@"; do ready=$argument; done
+                    printf '{"releasesBaseUrl":"https://127.0.0.1:14443","certificate":"%s/test-ca.pem"}\n' "$WSR_ACCEPT_TMPDIR" > "$ready"
+                    while :; do sleep 1; done ;;
                   *qualify-current-source-browser.ts*)
-                    printf '{"result":"PASS","selector":"%s","workloadMode":"product-composition"}\n' "${WSR_ACCEPT_WORKFLOW_SELECTOR:-}"
+                    printf '{"result":"PASS","evidenceKind":"composition","workflowSelector":"%s"}\n' "${WSR_ACCEPT_WORKFLOW_SELECTOR:-}"
                     exit 0 ;;
                 esac
                 if test "${1:-}" = -e; then
@@ -171,12 +191,12 @@ EOF
                 fi
                 if test "${1:-}" = -p; then
                   case "${3:-}" in
-                    */wsr-ui/packages/bi/package.json) printf '0.1.0-rc.1\n' ;;
+                    */wsr-ui/packages/bi/package.json) printf '0.1.0\n' ;;
                     */product-operations/package.json) printf '0.5.12\n' ;;
                     */execution-system/package.json) printf '0.2.6\n' ;;
                     */wsr-dsh/packages/execution/package.json) printf '0.2.9\n' ;;
-                    */wsr-dsh/packages/studio/package.json) printf '0.1.2\n' ;;
-                    */wsr-dsh/packages/suite/package.json) printf '0.2.9\n' ;;
+                    */wsr-dsh/packages/studio/package.json) printf '0.1.3\n' ;;
+                    */wsr-dsh/packages/suite/package.json) printf '0.2.10\n' ;;
                     *) exit 2 ;;
                   esac
                   exit 0
@@ -189,6 +209,14 @@ EOF
                     fi ;;
                   *" start "*)
                     if test "${WSR_ACCEPT_TEST_FAIL_START:-0}" = 1; then exit 3; fi ;;
+                  *product-operations/bin/wsr.mjs*" install "*)
+                    previous=
+                    for argument in "$@"; do
+                      if test "$previous" = --state-dir; then state_dir=$argument; fi
+                      previous=$argument
+                    done
+                    mkdir -p "$state_dir/managed/dsh"
+                    printf '{}\n' > "$state_dir/managed/dsh/execution-config.json" ;;
                 esac
                 printf '{"status":"succeeded"}\n'
             """)
@@ -215,7 +243,16 @@ EOF
                     payload=$(command cat)
                     case "$payload" in *'"mode":"diagnostic"'*) printf 'hello-world-workflow@0.2.0\n' ;; *) printf 'implementation-workflow@0.4.12\n' ;; esac
                     exit 0 ;;
-                  *workloadMode*selector*) exit 0 ;;
+                  *" .identity "*) printf 'issues-221-225-product-dev\n'; exit 0 ;;
+                  *" .archives.executionOwner.path "*) printf '%s/frozen-wsr-execution-0.2.6.tgz\n' "$WSR_ACCEPT_TMPDIR"; exit 0 ;;
+                  *" .archives.dshExecution.path "*) printf '%s/frozen-dsh-wsr-execution-0.2.9.tgz\n' "$WSR_ACCEPT_TMPDIR"; exit 0 ;;
+                  *" .archives.dshStudio.path "*) printf '%s/frozen-dsh-wsr-studio-0.1.3.tgz\n' "$WSR_ACCEPT_TMPDIR"; exit 0 ;;
+                  *" .archives.dshSuite.path "*) printf '%s/frozen-dsh-wsr-0.2.10.tgz\n' "$WSR_ACCEPT_TMPDIR"; exit 0 ;;
+                  *" .archives.uiCore.path "*) printf '%s/frozen-wsr-ui-core-0.1.0.tgz\n' "$WSR_ACCEPT_TMPDIR"; exit 0 ;;
+                  *" .workflowAssets.directory "*) printf '%s/workflow-assets\n' "$WSR_ACCEPT_TMPDIR"; exit 0 ;;
+                  *" .workflowAssets.selector "*) printf 'implementation-workflow@0.4.12\n'; exit 0 ;;
+                  *evidenceKind*workflowSelector*) exit 0 ;;
+                  *selector*workloadMode*) exit 1 ;;
                 esac
                 if test "$#" -eq 0; then
                   command cat
@@ -297,6 +334,15 @@ EOF
                 "WSR_ACCEPT_TEST_PREEXISTING_RESOURCES": "1" if preexisting_resources else "0",
             }
             arguments = [str(SCRIPT)]
+            if dev_artifact_set:
+                for name in [
+                    "frozen-wsr-execution-0.2.6.tgz", "frozen-dsh-wsr-execution-0.2.9.tgz",
+                    "frozen-dsh-wsr-studio-0.1.3.tgz", "frozen-dsh-wsr-0.2.10.tgz",
+                    "frozen-wsr-ui-core-0.1.0.tgz",
+                ]:
+                    (preview_parent / name).write_bytes(b"frozen")
+                (preview_parent / "workflow-assets").mkdir()
+                arguments.extend(["--dev-artifact-set", str(dev_set)])
             if product_manifest is not None:
                 arguments.extend(["--product-manifest", str(product_manifest)])
             if diagnostic_selector is not None:
@@ -313,6 +359,23 @@ EOF
             commands = log.read_text(encoding="utf-8").splitlines() if log.exists() else []
             remaining = [path.name for path in preview_parent.iterdir()]
             return result, commands, remaining
+
+    def test_explicit_dev_artifact_set_is_verified_and_consumed_without_rebuilding_owner_archives(self) -> None:
+        result, commands, remaining = self.run_acceptance(dev_artifact_set=True, no_open=True)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertCountEqual(remaining, [
+            "frozen-wsr-execution-0.2.6.tgz",
+            "frozen-dsh-wsr-execution-0.2.9.tgz", "frozen-dsh-wsr-studio-0.1.3.tgz",
+            "frozen-dsh-wsr-0.2.10.tgz", "frozen-wsr-ui-core-0.1.0.tgz", "workflow-assets",
+        ])
+        joined = "\n".join(commands)
+        self.assertIn("dev-artifact-set.mjs", joined)
+        self.assertIn("devArtifactSet: issues-221-225-product-dev", result.stdout)
+        self.assertNotIn("execution-system release:artifacts", joined)
+        self.assertNotIn("--workspace dsh-wsr-execution", joined)
+        self.assertNotIn("--workspace wsr-ui-core", joined)
+        self.assertIn("dsh-wsr-studio-0.1.3.tgz", joined)
 
     def test_one_command_builds_local_assets_waits_for_acceptance_and_removes_everything(self) -> None:
         result, commands, remaining = self.run_acceptance()
@@ -331,7 +394,7 @@ EOF
         joined = "\n".join(commands)
         self.assertRegex(joined, r"npm cwd=.*/wsr-ui run build")
         self.assertIn("--workspace wsr-ui-core", joined)
-        self.assertIn("wsr-ui-core-0.1.0-rc.1.tgz", joined)
+        self.assertIn("wsr-ui-core-0.1.0.tgz", joined)
         self.assertIn("bind-local-package-candidate.mjs", joined)
         self.assertIn("--install", joined)
         self.assertIn("--verify", joined)
@@ -355,8 +418,8 @@ EOF
         self.assertNotIn("bind-local-package-candidate-cli.ts", joined)
         self.assertIn("verify-local-core-install.mjs", joined)
         self.assertIn("dsh-wsr-execution-0.2.9.tgz", joined)
-        self.assertIn("dsh-wsr-studio-0.1.2.tgz", joined)
-        self.assertIn("dsh-wsr-0.2.9.tgz", joined)
+        self.assertIn("dsh-wsr-studio-0.1.3.tgz", joined)
+        self.assertIn("dsh-wsr-0.2.10.tgz", joined)
         self.assertRegex(joined, r"product-operations/bin/wsr\.mjs install .*--manifest .*compatibility\.json")
         self.assertIn(" start ", f" {joined} ")
         self.assertNotIn("git init", joined)
@@ -483,7 +546,8 @@ EOF
         self.assertIn("current-branch-acceptance", joined)
         self.assertIn("WSR_ACCEPT_WORKFLOW_SELECTOR=implementation-workflow@0.4.12", joined)
         self.assertNotIn("验收完成后按 Enter", result.stdout)
-        self.assertIn('"selector":"implementation-workflow@0.4.12"', result.stdout)
+        self.assertIn('"workflowSelector":"implementation-workflow@0.4.12"', result.stdout)
+        self.assertIn('"evidenceKind":"composition"', result.stdout)
         self.assertIn("自动产品验收通过", result.stdout)
         self.assertIn("compose purge", joined)
 
