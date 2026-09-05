@@ -29,7 +29,6 @@ async function governanceFixture() {
     `name: promote
 on:
   workflow_dispatch:
-  workflow_call:
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -160,22 +159,22 @@ test("a comment naming a promotion workflow does not count as a call", async () 
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
-test("an auto-triggered candidate cannot call a promotion workflow", async () => {
+test("a promotion workflow cannot expose workflow_call", async () => {
   const root = await governanceFixture();
-  const candidate = path.join(root, ".github", "workflows", "release-candidate.yml");
-  await writeFile(candidate, `${await readFile(candidate, "utf8")}\n  bypass:\n    uses: ./.github/workflows/release-compose-bundle.yml\n`);
+  const promote = path.join(root, ".github", "workflows", "release-compose-bundle.yml");
+  await writeFile(promote, (await readFile(promote, "utf8")).replace("  workflow_dispatch:\n", "  workflow_dispatch:\n  workflow_call:\n"));
   const result = await runGovernance(root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  assert.match(result.stdout, /绕过人工闸门/);
+  assert.match(result.stdout, /workflow_call/);
 });
 
-test("a folded YAML uses value cannot hide a promotion-workflow call", async () => {
+test("a candidate workflow cannot expose workflow_dispatch", async () => {
   const root = await governanceFixture();
   const candidate = path.join(root, ".github", "workflows", "release-candidate.yml");
-  await writeFile(candidate, `${await readFile(candidate, "utf8")}\n  bypass:\n    uses: >-\n      ./.github/workflows/release-compose-bundle.yml\n`);
+  await writeFile(candidate, (await readFile(candidate, "utf8")).replace("  push:\n", "  workflow_dispatch:\n  push:\n"));
   const result = await runGovernance(root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  assert.match(result.stdout, /绕过人工闸门/);
+  assert.match(result.stdout, /candidate.*人工|人工.*candidate/i);
 });
 
 test("existing governance hazards remain blocked", async (t) => {
@@ -212,6 +211,24 @@ test("compose qualification uses the Node 24 buildx action runtime", async () =>
   const action = await readFile(path.join(ROOT, ".github", "actions", "build-qualify-bundle", "action.yml"), "utf8");
   assert.match(action, /uses: docker\/setup-buildx-action@v4\b/);
   assert.doesNotMatch(action, /uses: docker\/setup-buildx-action@v3\b/);
+});
+
+test("all first-party workflows and actions use Node 24 action majors", async () => {
+  const files = [
+    path.join(ROOT, ".github", "workflows", "iter3-execution-ci.yml"),
+    path.join(ROOT, ".github", "workflows", "release-candidate.yml"),
+    path.join(ROOT, ".github", "workflows", "release-compose-bundle.yml"),
+    path.join(ROOT, ".github", "workflows", "release-governance.yml"),
+    path.join(ROOT, ".github", "actions", "build-qualify-bundle", "action.yml"),
+  ];
+  const text = (await Promise.all(files.map((file) => readFile(file, "utf8")))).join("\n");
+  for (const deprecated of [
+    /actions\/checkout@v4\b/,
+    /actions\/setup-node@v4\b/,
+    /actions\/upload-artifact@v4\b/,
+    /actions\/create-github-app-token@v2\b/,
+    /docker\/setup-buildx-action@v3\b/,
+  ]) assert.doesNotMatch(text, deprecated);
 });
 
 test("both promotion jobs bind a published rc to its exact manifest asset", async (t) => {

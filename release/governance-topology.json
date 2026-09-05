@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "wsr.release-topology@1.0.0",
+  "repositories": [
+    { "path": ".", "candidate": ".github/workflows/release-candidate.yml", "promotions": [".github/workflows/release-compose-bundle.yml"] },
+    { "path": "workflow-package", "candidate": ".github/workflows/release-candidate.yml", "promotions": [".github/workflows/release-promote.yml"] },
+    { "path": "execution-system", "candidate": ".github/workflows/release-candidate.yml", "promotions": [".github/workflows/release-promote.yml"] },
+    { "path": "evidence-system", "candidate": ".github/workflows/release-candidate.yml", "promotions": [".github/workflows/release-promote.yml"] },
+    { "path": "evolution-system", "candidate": ".github/workflows/release-candidate.yml", "promotions": [".github/workflows/release-promote.yml"] },
+    { "path": "system-contracts", "candidate": ".github/workflows/release-candidate.yml", "promotions": [".github/workflows/release-promote.yml"] },
+    { "path": "wsr-dsh", "candidate": ".github/workflows/release-candidate.yml", "promotions": [".github/workflows/release-promote.yml"] },
+    { "path": "wsr-ui", "candidate": ".github/workflows/release-candidate.yml", "promotions": [".github/workflows/release-promote.yml"] }
+  ]
+}
