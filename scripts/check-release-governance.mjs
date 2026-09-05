@@ -122,13 +122,30 @@ function checkReleaseTriggers(files) {
     if (!files.includes(name)) continue;
     const path = join(WORKFLOW_DIR, name);
     const triggers = triggersOf(readFileSync(path, "utf8"));
-    const illegal = triggers.filter((t) => t !== "workflow_dispatch" && t !== "workflow_call");
-    if (illegal.length > 0) {
+    const illegal = triggers.filter((t) => t !== "workflow_dispatch");
+    if (illegal.length > 0 || triggers.length !== 1) {
       fail(
         path,
         `on: ${triggers.join(", ")}`,
-        `晋升 workflow 出现自动触发器 (${illegal.join(", ")}) → GA 可被非人工触发`,
-        ["移除自动触发器", "若确需自动化，改为触发 candidate 流程而非晋升流程"],
+        `晋升 workflow 必须仅暴露 workflow_dispatch；发现 ${illegal.join(", ") || "缺失/重复触发器"}`,
+        ["仅保留 workflow_dispatch", "删除 workflow_call 及所有自动触发器"],
+      );
+    }
+  }
+
+  for (const name of CANDIDATE_WORKFLOWS) {
+    if (!files.includes(name)) continue;
+    const path = join(WORKFLOW_DIR, name);
+    const text = readFileSync(path, "utf8");
+    const triggers = triggersOf(text);
+    const exactPush = triggers.length === 1 && triggers[0] === "push";
+    const releaseNext = /^  push:\s*$[\s\S]*?^    branches:\s*(?:\n\s*-\s*release\/next\s*$|\[\s*release\/next\s*\])/m.test(text);
+    if (!exactPush || !releaseNext) {
+      fail(
+        path,
+        `on: ${triggers.join(", ")}`,
+        "candidate workflow 必须且只能由 release/next push 自动触发；不得暴露人工或复用入口",
+        ["仅保留 push: branches: [release/next]", "删除 workflow_dispatch 与 workflow_call"],
       );
     }
   }
@@ -217,6 +234,31 @@ function checkStrayPublishing(files) {
 
 // --------------------------------------------------------------- rule 4
 
+const NODE20_ACTIONS = [
+  /actions\/checkout@v4\b/,
+  /actions\/setup-node@v4\b/,
+  /actions\/upload-artifact@v4\b/,
+  /actions\/create-github-app-token@v2\b/,
+  /docker\/setup-buildx-action@v3\b/,
+];
+
+function checkActionRuntimeAndIdentity(files) {
+  const paths = [...files.map((name) => join(WORKFLOW_DIR, name)), ...actionFiles()];
+  for (const path of paths) {
+    const text = readFileSync(path, "utf8");
+    for (const pattern of NODE20_ACTIONS) {
+      if (pattern.test(text)) {
+        fail(path, `匹配 ${pattern}`, "第一方 workflow/action 引用了已知 Node 20 action 主版本", ["升级到对应的 Node 24 action 主版本"]);
+      }
+    }
+    if (/actions\/create-github-app-token@/.test(text) && /^\s*app-id:/m.test(text)) {
+      fail(path, "create-github-app-token 使用 app-id", "发布身份仍依赖已弃用的 App ID 输入", ["改用 client-id: ${{ vars.WSR_RELEASE_CLIENT_ID }}"]);
+    }
+  }
+}
+
+// --------------------------------------------------------------- rule 5
+
 function flagGovernanceChanges(changed) {
   if (!changed) return;
   const touched = changed.filter((f) => GOVERNANCE_PATHS.some((re) => re.test(f)));
@@ -257,6 +299,7 @@ const files = workflowFiles();
 checkReleaseTriggers(files);
 checkCallChain(files);
 checkStrayPublishing(files);
+checkActionRuntimeAndIdentity(files);
 flagGovernanceChanges(changedFiles());
 
 for (const a of annotations) console.log(a);
